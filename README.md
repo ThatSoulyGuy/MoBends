@@ -27,6 +27,8 @@ them is to build and run the project using IntelliJ IDEA. It seems to build ever
 ### Troubleshooting
 - IntelliJ freaks out and can't find symbols in the project, but compiles fine.
     - `File > Invalidate Caches/Restart` works like a charm <3
+- Crashing on a NullPointerException inside FML.
+    - Click "Download Sources" in the Gradle sidebar
 
 ## Creating addons
 Addons are a way to extend the functionality of Mo' Bends, e.g. adding support for new mobs.
