@@ -24,10 +24,14 @@ There are a few paper-cuts in developing mods (especially for older versions of 
 them is to build and run the project using IntelliJ IDEA. It seems to build everything from source, as opposed to the
 `./gradlew runClient` and `./gradlew runServer` scripts, which fail at bootup.
 
+### Troubleshooting
+- IntelliJ freaks out and can't find symbols in the project, but compiles fine.
+    - `File > Invalidate Caches/Restart` works like a charm <3
+
 ## Creating addons
 Addons are a way to extend the functionality of Mo' Bends, e.g. adding support for new mobs.
 
-There's an example addon that I set up a while back, but the sources for CustomNPCs are not longer available, which
-makes it impossible to use. I'm looking for a replacement soon.
+There's an example addon that I set up a while back, but the sources for CustomNPCs are
+no longer available, which makes it impossible to use. I'm looking for a replacement soon.
 
 [CustomNPCs Support Addon](https://github.com/mobends/mobends-addon-customnpcs)

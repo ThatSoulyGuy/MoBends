@@ -1,6 +1,9 @@
 package goblinbob.mobends.standard.main;
 
+import goblinbob.mobends.core.util.ErrorReporter;
+import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.core.util.WildcardPattern;
+import goblinbob.mobends.standard.UseActionType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.item.Item;
@@ -11,10 +14,8 @@ import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 
 @Config(modid = ModStatics.MODID)
 public class ModConfig
@@ -25,10 +26,10 @@ public class ModConfig
     public static boolean showSwordTrail = true;
     @Config.LangKey(ModStatics.MODID + ".config.perform_spin_attack")
     public static boolean performSpinAttack = true;
-    @Config.LangKey(ModStatics.MODID + ".config.weapon_items")
-    public static String[] weaponItems = new String[] {};
-    @Config.LangKey(ModStatics.MODID + ".config.tool_items")
-    public static String[] toolItems = new String[] {};
+    @Config.LangKey(ModStatics.MODID + ".config.item_use_classifications")
+    public static String[] itemUseClassifications = new String[] {};
+    @Config.LangKey(ModStatics.MODID + ".config.item_attack_classifications")
+    public static String[] itemAttackClassifications = new String[] {};
     @Config.LangKey(ModStatics.MODID + ".config.keep_armor_as_vanilla")
     public static String[] keepArmorAsVanilla = new String[] {};
     @Config.LangKey(ModStatics.MODID + ".config.keep_entity_as_vanilla")
@@ -39,13 +40,20 @@ public class ModConfig
     @Config.Ignore
     private static Map<Entity, Boolean> keepEntityAsVanillaCache;
     @Config.Ignore
-    private static Map<Item, ItemClassification> itemClassificationCache;
+    private static Map<Item, UseActionType> itemUseClassificationCache;
+    @Config.Ignore
+    private static Map<Item, AttackActionType> itemAttackClassificationCache;
+    @Config.Ignore
+    private static LinkedList<ItemClassificationEntry<UseActionType>> itemUseClassificationEntries = new LinkedList<>();
+    @Config.Ignore
+    private static LinkedList<ItemClassificationEntry<AttackActionType>> itemAttackClassificationEntries = new LinkedList<>();
 
     @Config.Ignore
     private static List<Map<?, ?>> caches = Arrays.asList(
         keepArmorAsVanillaCache = new HashMap<>(),
         keepEntityAsVanillaCache = new HashMap<>(),
-        itemClassificationCache = new HashMap<>()
+        itemUseClassificationCache = new HashMap<>(),
+        itemAttackClassificationCache = new HashMap<>()
     );
 
     @Mod.EventBusSubscriber(modid = ModStatics.MODID)
@@ -69,16 +77,52 @@ public class ModConfig
                     cache.clear();
                 }
 
+                itemUseClassificationEntries.clear();
+                getOrMakeEntries(itemUseClassificationEntries, itemUseClassifications, UseActionType::valueOf);
+
+                itemAttackClassificationEntries.clear();
+                getOrMakeEntries(itemAttackClassificationEntries, itemAttackClassifications, AttackActionType::valueOf);
+
                 MoBends.refreshSystems();
             }
         }
     }
 
-    public enum ItemClassification
+    private static <T> LinkedList<ItemClassificationEntry<T>> getOrMakeEntries(LinkedList<ItemClassificationEntry<T>> entries, String[] rawEntries, Function<String, T> parseFunction)
     {
-        UNKNOWN,
-        WEAPON,
-        TOOL,
+        if (rawEntries.length == 0)
+            return entries;
+
+        if (entries.size() == 0)
+        {
+            for (String rawEntry : rawEntries)
+            {
+                try
+                {
+                    entries.addFirst(ItemClassificationEntry.parse(rawEntry, parseFunction));
+                }
+                catch(MalformedConfigException e)
+                {
+                    ErrorReporter.showErrorToPlayer(String.format("Invalid configuration! %s", e.getMessage()));
+                }
+            }
+        }
+
+        return entries;
+    }
+
+    private static boolean doesLocationMatchPattern(ResourceLocation resourceLocation, String pattern)
+    {
+        final ResourceLocation patternLocation = new ResourceLocation(pattern);
+
+        if (resourceLocation.equals(patternLocation))
+            return true;
+
+        WildcardPattern domainPattern = new WildcardPattern(patternLocation.getResourceDomain());
+        WildcardPattern pathPattern = new WildcardPattern(patternLocation.getResourcePath());
+
+        return domainPattern.matches(resourceLocation.getResourceDomain()) &&
+               pathPattern.matches(resourceLocation.getResourcePath());
     }
 
     private static boolean checkForPatterns(ResourceLocation resourceLocation, String[] patterns)
@@ -106,29 +150,56 @@ public class ModConfig
         return false;
     }
 
-    public static ItemClassification getItemClassification(Item item)
+    public static UseActionType getItemUseAction(Item item)
     {
         // If cached before, returning the cached classification.
-        return itemClassificationCache.computeIfAbsent(item, (i) -> {
+        return itemUseClassificationCache.computeIfAbsent(item, (i) -> {
             ResourceLocation location = item.getRegistryName();
 
-            if (checkForPatterns(location, weaponItems))
-                return ItemClassification.WEAPON;
-
-            if (checkForPatterns(location, toolItems))
-                return ItemClassification.TOOL;
+            if (location != null)
+            {
+                List<ItemClassificationEntry<UseActionType>> entries = getOrMakeEntries(itemUseClassificationEntries, itemUseClassifications, UseActionType::valueOf);
+                for (ItemClassificationEntry<UseActionType> e : entries)
+                {
+                    if (doesLocationMatchPattern(location, e.pattern))
+                    {
+                        return e.classification;
+                    }
+                }
+            }
 
             // Unclassified
-            return ItemClassification.UNKNOWN;
+            return null;
+        });
+    }
+
+    public static AttackActionType getItemAttackAction(Item item)
+    {
+        // If cached before, returning the cached classification.
+        return itemAttackClassificationCache.computeIfAbsent(item, (i) -> {
+            ResourceLocation location = item.getRegistryName();
+
+            if (location != null)
+            {
+                List<ItemClassificationEntry<AttackActionType>> entries = getOrMakeEntries(itemAttackClassificationEntries, itemAttackClassifications, AttackActionType::valueOf);
+                for (ItemClassificationEntry<AttackActionType> e : entries)
+                {
+                    if (doesLocationMatchPattern(location, e.pattern))
+                    {
+                        return e.classification;
+                    }
+                }
+            }
+
+            // Unclassified
+            return null;
         });
     }
     
     public static boolean shouldKeepArmorAsVanilla(Item item)
     {
         // If cached before, returning the cached result.
-        return keepArmorAsVanillaCache.computeIfAbsent(item, (i) -> {
-            return checkForPatterns(i.getRegistryName(), keepArmorAsVanilla);
-        });
+        return keepArmorAsVanillaCache.computeIfAbsent(item, (i) -> checkForPatterns(i.getRegistryName(), keepArmorAsVanilla));
     }
 
     public static boolean shouldKeepEntityAsVanilla(Entity entity)
@@ -140,5 +211,41 @@ public class ModConfig
             // The player, for example, doesn't have a key.
             return location != null && checkForPatterns(location, keepEntityAsVanilla);
         });
+    }
+
+    private static class ItemClassificationEntry<T>
+    {
+        public final String pattern;
+        public final T classification;
+
+        public ItemClassificationEntry(String pattern, T classification)
+        {
+            this.pattern = pattern;
+            this.classification = classification;
+        }
+
+        public static <T> ItemClassificationEntry<T> parse(String encoded, Function<String, T> parsingFunction)
+        {
+            int indexOfEquals = encoded.indexOf("=");
+
+            if (indexOfEquals == -1)
+            {
+                throw new IllegalArgumentException(String.format("No equals sign found in the item classification entry: %s", encoded));
+            }
+
+            String pattern = encoded.substring(0, indexOfEquals);
+            String encodedActionType = encoded.substring(indexOfEquals + 1).toUpperCase();
+
+            try
+            {
+                T actionType = parsingFunction.apply(encodedActionType);
+
+                return new ItemClassificationEntry<>(pattern, actionType);
+            }
+            catch(IllegalArgumentException e)
+            {
+                throw new MalformedConfigException(String.format("Unknown action type: %s", encodedActionType), e);
+            }
+        }
     }
 }

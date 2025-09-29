@@ -5,17 +5,13 @@ import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.animation.keyframe.ArmatureMask;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.*;
+import goblinbob.mobends.standard.animation.bit.biped.item.*;
 import goblinbob.mobends.standard.animation.bit.player.*;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PlayerData;
-import goblinbob.mobends.standard.main.ModConfig;
-import goblinbob.mobends.standard.main.ModConfig.ItemClassification;
 import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelBiped.ArmPose;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.*;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumHandSide;
 
 import java.util.ArrayList;
@@ -32,7 +28,6 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected HardAnimationLayer<BipedEntityData<?>> layerBase = new HardAnimationLayer<>();
     protected HardAnimationLayer<BipedEntityData<?>> layerTorch = new HardAnimationLayer<>();
     protected HardAnimationLayer<BipedEntityData<?>> layerSneak = new HardAnimationLayer<>();
-    protected HardAnimationLayer<BipedEntityData<?>> layerAction = new HardAnimationLayer<>();
     protected HardAnimationLayer<BipedEntityData<?>> layerCape = new HardAnimationLayer<>();
 
     protected AnimationBit<BipedEntityData<?>> bitStand = new StandAnimationBit<>();
@@ -47,15 +42,12 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected AnimationBit<PlayerData> bitSprint = new goblinbob.mobends.standard.animation.bit.player.SprintAnimationBit();
     protected AnimationBit<PlayerData> bitSprintJump = new SprintJumpAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitTorchHolding = new TorchHoldingAnimationBit();
-    protected AnimationBit<PlayerData> bitAttack = new AttackAnimationBit();
     protected FlyingAnimationBit bitFlying = new FlyingAnimationBit();
     protected ElytraAnimationBit bitElytra = new ElytraAnimationBit();
-    protected BowAnimationBit bitBow = new BowAnimationBit();
-    protected EatingAnimationBit bitEating = new EatingAnimationBit();
-    protected HarvestAnimationBit bitHarvest = new HarvestAnimationBit();
-    protected ShieldAnimationBit bitShield = new ShieldAnimationBit();
     protected CapeAnimationBit bitCape = new CapeAnimationBit();
     protected SleepingAnimationBit bitSleeping = new SleepingAnimationBit();
+
+    protected final BipedActionController actionController = new BipedActionController();
 
     protected ArmatureMask upperBodyOnlyMask;
 
@@ -70,75 +62,20 @@ public class PlayerController implements IAnimationController<PlayerData>
         this.upperBodyOnlyMask.exclude("rightForeLeg");
     }
 
-    public static boolean isHoldingFood(Item activeItem)
-    {
-        return activeItem instanceof ItemFood;
-    }
-
-    public static boolean isHoldingBow(ModelBiped.ArmPose mainArmPose, ModelBiped.ArmPose offArmPose)
-    {
-        return mainArmPose == ArmPose.BOW_AND_ARROW || offArmPose == ArmPose.BOW_AND_ARROW;
-    }
-
-    public static boolean isShielding(ModelBiped.ArmPose mainArmPose, ModelBiped.ArmPose offArmPose)
-    {
-        return mainArmPose == ArmPose.BLOCK || offArmPose == ArmPose.BLOCK;
-    }
-
-    public static boolean isHoldingWeapon(Item heldItemMainhand)
-    {
-        ItemClassification classification = ModConfig.getItemClassification(heldItemMainhand);
-
-        return (
-            classification == ModConfig.ItemClassification.WEAPON ||
-            (classification == ModConfig.ItemClassification.UNKNOWN && heldItemMainhand instanceof ItemSword)
-        );
-    }
-
     public void performActionAnimations(PlayerData data, AbstractClientPlayer player)
     {
         if (player.isEntityAlive() && player.isPlayerSleeping())
         {
-            layerAction.clearAnimation();
+            actionController.clearAction();
             return;
         }
 
         final EnumHandSide primaryHand = player.getPrimaryHand();
-        final EnumHandSide offHand = primaryHand == EnumHandSide.RIGHT ? EnumHandSide.LEFT : EnumHandSide.RIGHT;
         final ItemStack heldItemMainhand = player.getHeldItemMainhand();
         final ItemStack heldItemOffhand = player.getHeldItemOffhand();
         final Item activeItem = player.getActiveItemStack().getItem();
-        final ModelBiped.ArmPose armPoseMain = getAction(player, heldItemMainhand);
-        final ModelBiped.ArmPose armPoseOff = getAction(player, heldItemOffhand);
-        final EnumHandSide activeHandSide = player.getActiveHand() == EnumHand.MAIN_HAND ? primaryHand : offHand;
 
-        if (isShielding(armPoseMain, armPoseOff))
-        {
-            bitShield.setActionHand(armPoseMain == ArmPose.BLOCK ? primaryHand : offHand);
-            layerAction.playOrContinueBit(bitShield, data);
-        }
-        else if (isHoldingFood(activeItem))
-        {
-            bitEating.setActionHand(activeHandSide);
-            layerAction.playOrContinueBit(bitEating, data);
-        }
-        else if (isHoldingBow(armPoseMain, armPoseOff))
-        {
-            bitBow.setActionHand(armPoseMain == ArmPose.BOW_AND_ARROW ? primaryHand : offHand);
-            layerAction.playOrContinueBit(bitBow, data);
-        }
-        else if (isHoldingWeapon(heldItemMainhand.getItem()) || heldItemMainhand.isEmpty())
-        {
-            layerAction.playOrContinueBit(bitAttack, data);
-        }
-        else
-        {
-            bitHarvest.setActionHand(primaryHand);
-            if (player.isSwingInProgress)
-                layerAction.playOrContinueBit(bitHarvest, data);
-            else
-                layerAction.clearAnimation();
-        }
+        actionController.perform(data, primaryHand, heldItemMainhand, heldItemOffhand, activeItem);
     }
 
     @Override
@@ -239,34 +176,17 @@ public class PlayerController implements IAnimationController<PlayerData>
             }
         }
 
-        this.performActionAnimations(data, player);
+
+        // Resetting item rotations
+        data.renderLeftItemRotation.orientZero();
+        data.renderRightItemRotation.orientZero();
 
         final List<String> actions = new ArrayList<>();
         layerBase.perform(data, actions);
         layerSneak.perform(data, actions);
         layerTorch.perform(data, actions);
-        layerAction.perform(data, actions);
+        this.performActionAnimations(data, player);
         layerCape.perform(data, actions);
         return actions;
-    }
-
-    private ArmPose getAction(AbstractClientPlayer player, ItemStack heldItem)
-    {
-        if (!heldItem.isEmpty())
-        {
-            if (player.getItemInUseCount() > 0)
-            {
-                EnumAction enumaction = heldItem.getItemUseAction();
-
-                if (enumaction == EnumAction.BLOCK)
-                    return ArmPose.BLOCK;
-                else if (enumaction == EnumAction.BOW)
-                    return ArmPose.BOW_AND_ARROW;
-            }
-
-            return ArmPose.ITEM;
-        }
-
-        return ArmPose.EMPTY;
     }
 }
