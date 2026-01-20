@@ -2,10 +2,10 @@
 [![CurseForge Downloads](http://cf.way2muchnoise.eu/231347.svg)](https://www.curseforge.com/minecraft/mc-mods/mo-bends) [![Mod Versions](http://cf.way2muchnoise.eu/versions/231347.svg)](https://www.curseforge.com/minecraft/mc-mods/mo-bends) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/dc7fa82e8d904f65b33b948ed093c21f)](https://app.codacy.com/gh/mobends/MoBends?utm_source=github.com&utm_medium=referral&utm_content=mobends/MoBends&utm_campaign=Badge_Grade_Dashboard)
 
 
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/mobends/MoBends.svg?style=for-the-badge)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ThatSoulyGuy/MoBends.svg?style=for-the-badge)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/mobends/MoBends.svg?style=for-the-badge)](https://github.com/mobends/MoBends/pulls)
-[![GitHub issues](https://img.shields.io/github/issues-raw/mobends/MoBends.svg?style=for-the-badge)](https://github.com/mobends/MoBends/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/ThatSoulyGuy/MoBends.svg?style=for-the-badge)](https://github.com/ThatSoulyGuy/MoBends/pulls)
+[![GitHub issues](https://img.shields.io/github/issues-raw/ThatSoulyGuy/MoBends.svg?style=for-the-badge)](https://github.com/ThatSoulyGuy/MoBends/issues)
 
 A Minecraft mod that adds more realistic looking animations to the inhabitants of your blocky world, now in **1.20.1**!
 
