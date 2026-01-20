@@ -10,7 +10,7 @@
 A Minecraft mod that adds more realistic looking animations to the inhabitants of your blocky world, now in **1.20.1**!
 
 ## Discord
-The development of version **1.0.0** is in progress right now! If you'd like to be a part of it, see the progress, or just hang out, join our Discord server!
+The development of version **3.0.0** is in progress right now! If you'd like to be a part of it, see the progress, or just hang out, join our Discord server!
 
 [![Discord](https://img.shields.io/discord/386940930739011584.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/JqgWRgdkvx)
 
