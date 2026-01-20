@@ -1,5 +1,7 @@
 package goblinbob.mobends.core.client.gui.elements;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 public interface IGuiElement extends IGuiPositioned
 {
 
@@ -27,7 +29,7 @@ public interface IGuiElement extends IGuiPositioned
     boolean handleMouseReleased(int mouseX, int mouseY, int button);
 
     void initGui();
-    void draw(float partialTicks);
+    void draw(GuiGraphics guiGraphics, float partialTicks);
     IGuiElement getParent();
 
     /**

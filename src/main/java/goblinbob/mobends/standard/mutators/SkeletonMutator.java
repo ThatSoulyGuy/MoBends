@@ -1,160 +1,131 @@
 package goblinbob.mobends.standard.mutators;
 
-import goblinbob.mobends.core.client.model.BoxSide;
-import goblinbob.mobends.core.client.model.ModelPart;
-import goblinbob.mobends.core.client.model.ModelPartExtended;
-import goblinbob.mobends.core.client.model.ModelPartPostOffset;
+import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.data.SkeletonData;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelSkeleton;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.entity.monster.EntitySkeleton;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.SkeletonModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.monster.Skeleton;
 
 /**
- * Instantiated once per RenderSkeleton
+ * Instantiated once per SkeletonRenderer
  *
  * @author Iwo Plaza
- *
  */
-public class SkeletonMutator extends BipedMutator<SkeletonData, EntitySkeleton, ModelSkeleton>
+public class SkeletonMutator extends BipedMutator<SkeletonData, Skeleton, SkeletonModel<Skeleton>>
 {
 
-	protected boolean boneLimbs = false;
+    protected boolean boneLimbs = false;
 
-	public SkeletonMutator(IEntityDataFactory<EntitySkeleton> dataCreationFunction)
-	{
-		super(dataCreationFunction);
-	}
+    public SkeletonMutator(IEntityDataFactory<Skeleton> dataCreationFunction)
+    {
+        super(dataCreationFunction);
+    }
 
-	@Override
-	public void fetchFields(RenderLivingBase<? extends EntitySkeleton> renderer)
-	{
-		super.fetchFields(renderer);
+    @Override
+    public void fetchFields(LivingEntityRenderer<Skeleton, SkeletonModel<Skeleton>> renderer)
+    {
+        super.fetchFields(renderer);
 
-		if (renderer.getMainModel() instanceof ModelSkeleton)
-		{
-			ModelSkeleton model = (ModelSkeleton) renderer.getMainModel();
+        // In 1.20.1, skeleton limbs are always bone-style (thin)
+        this.boneLimbs = true;
+    }
 
-			this.boneLimbs = ((int) model.bipedRightArm.cubeList.get(0).posX1) == -1;
-		}
-	}
+    @Override
+    public void storeVanillaModel(SkeletonModel<Skeleton> model)
+    {
+        super.storeVanillaModel(model);
+    }
 
-	@Override
-	public void storeVanillaModel(ModelSkeleton model)
-	{
-		this.vanillaModel = new ModelSkeleton(0.0F, !this.boneLimbs);
+    @Override
+    public boolean createParts(SkeletonModel<Skeleton> original, float scaleFactor)
+    {
+        // Create custom bendable parts using BendsModelPart
+        // Body - root of upper body hierarchy
+        body = new BendsModelPart(16, 16)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 12.0F, 0.0F);
+        body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
 
-		// Calling the super method here, since it
-		// requires the vanillaModel property to be
-		// set.
-		super.storeVanillaModel(model);
-	}
+        // Head - child of body
+        head = new BendsModelPart(0, 0)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, -12.0F, 0.0F);
+        head.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor);
+        body.addChild(head);
 
-	@Override
-	public boolean createParts(ModelSkeleton original, float scaleFactor)
-	{
-		super.createParts(original, scaleFactor);
+        // Headwear - child of head
+        headwear = new BendsModelPart(32, 0)
+                .setTextureSize(64, 32);
+        headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
+        head.addChild(headwear);
 
-		if (this.boneLimbs)
-		{
-//			this.bipedRightArm = new ModelRenderer(this, 40, 16);
-//			this.bipedRightArm.addBox(-1.0F, -2.0F, -1.0F, 2, 12, 2, modelSize);
-//			this.bipedRightArm.setRotationPoint(-5.0F, 2.0F, 0.0F);
-//			this.bipedLeftArm = new ModelRenderer(this, 40, 16);
-//			this.bipedLeftArm.mirror = true;
-//			this.bipedLeftArm.addBox(-1.0F, -2.0F, -1.0F, 2, 12, 2, modelSize);
-//			this.bipedLeftArm.setRotationPoint(5.0F, 2.0F, 0.0F);
-//			this.bipedRightLeg = new ModelRenderer(this, 0, 16);
-//			this.bipedRightLeg.addBox(-1.0F, 0.0F, -1.0F, 2, 12, 2, modelSize);
-//			this.bipedRightLeg.setRotationPoint(-2.0F, 12.0F, 0.0F);
-//			this.bipedLeftLeg = new ModelRenderer(this, 0, 16);
-//			this.bipedLeftLeg.mirror = true;
-//			this.bipedLeftLeg.addBox(-1.0F, 0.0F, -1.0F, 2, 12, 2, modelSize);
-//			this.bipedLeftLeg.setRotationPoint(2.0F, 12.0F, 0.0F);
+        // Skeleton uses thin bone limbs (2 pixels wide)
+        // Right Arm - child of body
+        rightArm = new BendsModelPart(40, 16)
+                .setTextureSize(64, 32)
+                .setPosition(-5.0F, -10.0F, 0.0F);
+        rightArm.addCube(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor);
+        body.addChild(rightArm);
 
-			// Arms
-			original.bipedRightArm = this.rightArm = new ModelPartExtended(original, 40, 16);
-			this.rightArm
-					.setParent(body)
-					.setPosition(-5.0F, 2.0F, 0.0F)
-					.developBox(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor)
-					.inflate(0.01F, 0F, 0.01F)
-					.hideFace(BoxSide.BOTTOM)
-					.create();
+        // Left Arm - child of body
+        leftArm = new BendsModelPart(40, 16)
+                .setTextureSize(64, 32)
+                .setPosition(5.0F, -10.0F, 0.0F)
+                .setMirror(true);
+        leftArm.addCube(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor);
+        body.addChild(leftArm);
 
-			original.bipedLeftArm = this.leftArm = new ModelPartExtended(original, 40, 16);
-			this.leftArm
-					.setParent(body)
-					.setPosition(5.0F, 2.0F, 0.0F)
-					.developBox(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor)
-					.inflate(0.01F, 0F, 0.01F)
-					.hideFace(BoxSide.BOTTOM)
-					.create();
+        // Right Forearm - child of rightArm
+        rightForeArm = new BendsModelPart(40, 16 + 6)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 4.0F, 1.0F);
+        rightForeArm.addCube(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor);
+        rightArm.addChild(rightForeArm);
 
-			this.rightForeArm = new ModelPartPostOffset(original, 40, 16 + 6)
-					.setPostOffset(0, -4F, -1F);
-			this.rightForeArm
-					.setPosition(0.0F, 4.0F, 1.0F)
-					.setParent(rightArm)
-					.developBox(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor)
-					.hideFace(BoxSide.TOP)
-					.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-					.create();
-			this.rightArm.setExtension(this.rightForeArm);
+        // Left Forearm - child of leftArm
+        leftForeArm = new BendsModelPart(40, 16 + 6)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 4.0F, 1.0F)
+                .setMirror(true);
+        leftForeArm.addCube(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor);
+        leftArm.addChild(leftForeArm);
 
-			this.leftForeArm = new ModelPartPostOffset(original, 40, 16 + 6)
-					.setPostOffset(0, -4F, -1F);
-			this.leftForeArm
-					.setPosition(0.0F, 4.0F, 1.0F)
-					.setParent(leftArm)
-					.developBox(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor)
-					.hideFace(BoxSide.TOP)
-					.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-					.create();
-			this.leftArm.setExtension(this.leftForeArm);
+        // Legs (also thin) - independent roots
+        rightLeg = new BendsModelPart(0, 16)
+                .setTextureSize(64, 32)
+                .setPosition(-2.0F, 12.0F, 0.0F);
+        rightLeg.addCube(-1.0F, 0.0F, -1.0F, 2, 6, 2, scaleFactor);
 
-			//			this.bipedLeftLeg = new ModelRenderer(this, 0, 16);
-			//			this.bipedLeftLeg.mirror = true;
-			//			this.bipedLeftLeg.setRotationPoint(2.0F, 12.0F, 0.0F);
-			//			this.bipedLeftLeg.addBox(-1.0F, 0.0F, -1.0F, 2, 12, 2, modelSize);
+        leftLeg = new BendsModelPart(0, 16)
+                .setTextureSize(64, 32)
+                .setPosition(2.0F, 12.0F, 0.0F)
+                .setMirror(true);
+        leftLeg.addCube(-1.0F, 0.0F, -1.0F, 2, 6, 2, scaleFactor);
 
-			// Legs
-			original.bipedRightLeg = rightLeg = (ModelPartExtended) new ModelPartExtended(original, 0, 16)
-					.setPosition(-2.0F, 12.0F, 0.0F);
-			rightLeg.addBox(-1.0F, 0.0F, -1.0F, 2, 6, 2, scaleFactor);
-			original.bipedLeftLeg = leftLeg = (ModelPartExtended) new ModelPartExtended(original, 0, 16)
-					.setPosition(2.0F, 12.0F, 0.0F)
-					.setMirror(true);
-			leftLeg.addBox(-1F, 0.0F, -1.0F, 2, 6, 2, scaleFactor);
+        // Right Foreleg - child of rightLeg
+        rightForeLeg = new BendsModelPart(0, 16 + 6)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 6.0F, -2.0F);
+        rightForeLeg.addCube(-1.0F, 0.0F, 0.0F, 2, 6, 2, scaleFactor);
+        rightLeg.addChild(rightForeLeg);
 
-			leftForeLeg = new ModelPart(original, 0, 16 + 6)
-					.setParent(leftLeg)
-					.setPosition(0, 6.0F, -2.0F)
-					.setMirror(true);
-			leftForeLeg.developBox(-1.0F, 0.0F, 0.0F, 2, 6, 2, scaleFactor)
-					.inflate(0.01F, 0, 0.01F)
-					.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-					.create();
-			leftLeg.setExtension(leftForeLeg);
+        // Left Foreleg - child of leftLeg
+        leftForeLeg = new BendsModelPart(0, 16 + 6)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 6.0F, -2.0F)
+                .setMirror(true);
+        leftForeLeg.addCube(-1.0F, 0.0F, 0.0F, 2, 6, 2, scaleFactor);
+        leftLeg.addChild(leftForeLeg);
 
-			rightForeLeg = new ModelPart(original, 0, 16 + 6)
-					.setParent(rightLeg)
-					.setPosition(0, 6.0F, -2.0F);
-			rightForeLeg.developBox(-1F, 0.0F, 0.0F, 2, 6, 2, scaleFactor)
-					.inflate(0.01F, 0, 0.01F)
-					.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-					.create();
-			rightLeg.setExtension(rightForeLeg);
-		}
+        return true;
+    }
 
-		return true;
-	}
-
-	@Override
-	public boolean shouldModelBeSkipped(ModelBase model)
-	{
-		return !(model instanceof ModelSkeleton);
-	}
+    @Override
+    public boolean shouldModelBeSkipped(EntityModel<?> model)
+    {
+        return !(model instanceof SkeletonModel);
+    }
 
 }

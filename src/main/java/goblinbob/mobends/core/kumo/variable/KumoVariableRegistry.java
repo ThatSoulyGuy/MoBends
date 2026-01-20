@@ -3,8 +3,8 @@ package goblinbob.mobends.core.kumo.variable;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.data.LivingEntityData;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.HashMap;
 
@@ -34,8 +34,8 @@ public class KumoVariableRegistry
         });
         registerVariable("health", () -> {
             Entity entity = instance.tempData.getEntity();
-            if (entity instanceof EntityLivingBase)
-                return ((EntityLivingBase) entity).getHealth();
+            if (entity instanceof LivingEntity)
+                return ((LivingEntity) entity).getHealth();
             return 0;
         });
     }

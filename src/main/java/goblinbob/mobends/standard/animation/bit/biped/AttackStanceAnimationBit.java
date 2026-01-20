@@ -5,9 +5,9 @@ import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.core.math.SmoothOrientation;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumHandSide;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.util.Mth;
 
 public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
@@ -25,10 +25,10 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 	@Override
 	public void perform(BipedEntityData<?> data)
 	{
-		EntityLivingBase entity = data.getEntity();
-		EnumHandSide primaryHand = entity.getPrimaryHand();
+		LivingEntity entity = data.getEntity();
+		HumanoidArm primaryHand = entity.getMainArm();
 
-		boolean mainHandSwitch = primaryHand == EnumHandSide.RIGHT;
+		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		// Main Hand Direction Multiplier - it helps switch animation sides depending on
 		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -76,7 +76,7 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 		{
 			data.body.rotation.setSmoothness(1F);
 			data.body.rotation.orientX(5F * (1 - touchdown) + 15F);
-			data.globalOffset.setY(-MathHelper.sin(touchdown * PI) * 2F - 2F);
+			data.globalOffset.setY(-Mth.sin(touchdown * PI) * 2F - 2F);
 		}
 	}
 }

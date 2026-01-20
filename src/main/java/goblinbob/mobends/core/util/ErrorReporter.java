@@ -1,50 +1,46 @@
 package goblinbob.mobends.core.util;
 
 import goblinbob.mobends.core.pack.InvalidPackFormatException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 public class ErrorReporter
 {
 
-    public static TextComponentString createErrorHeader()
+    public static MutableComponent createErrorHeader()
     {
-        TextComponentString header = new TextComponentString("[Mo' Bends] ");
-        header.getStyle().setColor(TextFormatting.YELLOW);
-
-        return header;
+        return Component.literal("[Mo' Bends] ").withStyle(ChatFormatting.YELLOW);
     }
 
-    public static void showErrorToPlayer(TextComponentString textComponent)
+    public static void showErrorToPlayer(Component textComponent)
     {
-        if (Minecraft.getMinecraft().player == null)
+        if (Minecraft.getInstance().player == null)
         {
             return;
         }
 
-        TextComponentString base = new TextComponentString("");
-        base.getStyle().setColor(TextFormatting.WHITE);
-        base.appendSibling(createErrorHeader());
-        base.appendSibling(textComponent);
+        MutableComponent base = Component.literal("").withStyle(ChatFormatting.WHITE);
+        base.append(createErrorHeader());
+        base.append(textComponent);
 
-        Minecraft.getMinecraft().player.sendMessage(base);
+        Minecraft.getInstance().player.sendSystemMessage(base);
     }
 
     public static void showErrorToPlayer(String error)
     {
-        showErrorToPlayer(new TextComponentString(error));
+        showErrorToPlayer(Component.literal(error));
     }
 
     public static void showErrorToPlayer(InvalidPackFormatException ex)
     {
-        TextComponentString textComponent = new TextComponentString("A pack has been disabled due to it's wrong format: ");
+        MutableComponent textComponent = Component.literal("A pack has been disabled due to it's wrong format: ");
 
-        TextComponentString packName = new TextComponentString(ex.getPackName());
-        packName.getStyle().setBold(true);
-        textComponent.appendSibling(packName);
+        MutableComponent packName = Component.literal(ex.getPackName()).withStyle(ChatFormatting.BOLD);
+        textComponent.append(packName);
 
-        textComponent.appendText(". Check the logs for more details...");
+        textComponent.append(Component.literal(". Check the logs for more details..."));
 
         showErrorToPlayer(textComponent);
     }

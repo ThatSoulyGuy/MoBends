@@ -1,16 +1,17 @@
 package goblinbob.mobends.core.client.model;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.math.SmoothOrientation;
 import goblinbob.mobends.core.math.TransformUtils;
 import goblinbob.mobends.core.math.matrix.IMat4x4d;
 import goblinbob.mobends.core.math.vector.IVec3f;
 import goblinbob.mobends.core.math.vector.Vec3f;
 import goblinbob.mobends.core.util.GlHelper;
-import net.minecraft.client.renderer.GlStateManager;
 
 /**
  * Used for manipulating the transform of things that are
  * going to postRender this part.
+ * Updated for 1.20.1 to use PoseStack instead of GlStateManager.
  */
 public class ModelPartTransform implements IModelPart
 {
@@ -28,7 +29,7 @@ public class ModelPartTransform implements IModelPart
 	public Vec3f globalOffset = new Vec3f();
 
 	public final ModelPartTransform parent;
-	
+
 	public ModelPartTransform(ModelPartTransform parent)
 	{
 		this.position = new Vec3f();
@@ -37,20 +38,20 @@ public class ModelPartTransform implements IModelPart
 		this.rotation = new SmoothOrientation();
 		this.parent = parent;
 	}
-	
+
 	public ModelPartTransform()
 	{
 		this(null);
 	}
 
 	@Override
-	public void renderPart(float scale)
+	public void renderPart(PoseStack poseStack, float scale)
 	{
 		// Since this is just a transform, do nothing.
 	}
-	
+
 	@Override
-	public void renderJustPart(float scale)
+	public void renderJustPart(PoseStack poseStack, float scale)
 	{
 	}
 
@@ -95,10 +96,10 @@ public class ModelPartTransform implements IModelPart
 	}
 
 	@Override
-	public void applyPreTransform(float scale)
+	public void applyPreTransform(PoseStack poseStack, float scale)
 	{
 		if (this.globalOffset.x != 0.0F || this.globalOffset.y != 0.0F || this.globalOffset.z != 0.0F)
-			GlStateManager.translate(this.globalOffset.x * scale, this.globalOffset.y * scale, this.globalOffset.z * scale);
+			poseStack.translate(this.globalOffset.x * scale, this.globalOffset.y * scale, this.globalOffset.z * scale);
 	}
 
 	@Override
@@ -109,28 +110,28 @@ public class ModelPartTransform implements IModelPart
 	}
 
 	@Override
-	public void applyLocalTransform(float scale)
+	public void applyLocalTransform(PoseStack poseStack, float scale)
 	{
 		if (this.position.x != 0.0F || this.position.y != 0.0F || this.position.z != 0.0F)
-        	GlStateManager.translate(this.position.x * scale * offsetScale, this.position.y * scale * offsetScale, this.position.z * scale * offsetScale);
+        	poseStack.translate(this.position.x * scale * offsetScale, this.position.y * scale * offsetScale, this.position.z * scale * offsetScale);
 
 		if (this.offset.x != 0.0F || this.offset.y != 0.0F || this.offset.z != 0.0F)
-			GlStateManager.translate(this.offset.x * scale * offsetScale, this.offset.y * scale * offsetScale, this.offset.z * scale * offsetScale);
+			poseStack.translate(this.offset.x * scale * offsetScale, this.offset.y * scale * offsetScale, this.offset.z * scale * offsetScale);
 
-		GlHelper.rotate(this.rotation.getSmooth());
+		GlHelper.rotate(poseStack, this.rotation.getSmooth());
 
 		if(this.scale.x != 0.0F || this.scale.y != 0.0F || this.scale.z != 0.0F)
-        	GlStateManager.scale(this.scale.x, this.scale.y, this.scale.z);
+        	poseStack.scale(this.scale.x, this.scale.y, this.scale.z);
 	}
 
 	@Override
-	public void propagateTransform(float scale)
+	public void propagateTransform(PoseStack poseStack, float scale)
 	{
-		this.applyLocalTransform(scale);
+		this.applyLocalTransform(poseStack, scale);
 	}
 
 	@Override
-	public void applyPostTransform(float scale)
+	public void applyPostTransform(PoseStack poseStack, float scale)
 	{
 	}
 
@@ -150,11 +151,11 @@ public class ModelPartTransform implements IModelPart
 			TransformUtils.translate(matrix, this.offset.x * scale * offsetScale, this.offset.y * scale * offsetScale, this.offset.z * scale * offsetScale);
 
 		TransformUtils.rotate(matrix, this.rotation.getSmooth());
-		
+
     	/*if(this.scale.x != 0.0F || this.scale.y != 0.0F || this.scale.z != 0.0F)
     		TransformUtils.scale(dest, this.scale.x, this.scale.y, this.scale.z, dest);*/
 	}
-	
+
 	@Override
 	public IModelPart getParent()
 	{

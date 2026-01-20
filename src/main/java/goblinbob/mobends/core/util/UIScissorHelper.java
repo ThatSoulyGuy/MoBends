@@ -1,7 +1,7 @@
 package goblinbob.mobends.core.util;
 
+import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.opengl.GL11;
 
 public class UIScissorHelper
@@ -24,14 +24,16 @@ public class UIScissorHelper
 
     public void setUIBounds(int uiX, int uiY, int uiWidth, int uiHeight)
     {
-        ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
-        final int scaledWidth = scaledResolution.getScaledWidth();
-        final int scaledHeight = scaledResolution.getScaledHeight();
+        Window window = Minecraft.getInstance().getWindow();
+        final int scaledWidth = window.getGuiScaledWidth();
+        final int scaledHeight = window.getGuiScaledHeight();
+        final int displayWidth = window.getWidth();
+        final int displayHeight = window.getHeight();
 
-        this.x = uiX * Minecraft.getMinecraft().displayWidth / scaledWidth;
-        this.y = (scaledHeight - uiY - uiHeight) * Minecraft.getMinecraft().displayHeight / scaledHeight;
-        this.width = uiWidth * Minecraft.getMinecraft().displayWidth / scaledWidth;
-        this.height = uiHeight * Minecraft.getMinecraft().displayHeight / scaledHeight;
+        this.x = uiX * displayWidth / scaledWidth;
+        this.y = (scaledHeight - uiY - uiHeight) * displayHeight / scaledHeight;
+        this.width = uiWidth * displayWidth / scaledWidth;
+        this.height = uiHeight * displayHeight / scaledHeight;
     }
 
     public void enable()

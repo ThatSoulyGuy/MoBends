@@ -1,5 +1,6 @@
 package goblinbob.mobends.core.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.core.WebAPI;
 import goblinbob.mobends.core.client.gui.elements.GuiSectionButton;
 import goblinbob.mobends.core.client.gui.packswindow.GuiPacksWindow;
@@ -10,19 +11,14 @@ import goblinbob.mobends.core.network.NetworkConfiguration;
 import goblinbob.mobends.core.util.Draw;
 import goblinbob.mobends.core.util.GuiHelper;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.ResourceLocation;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.GL11;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
-import java.io.IOException;
-
-public class GuiBendsMenu extends GuiScreen
+public class GuiBendsMenu extends Screen
 {
-	
+
 	private static final ResourceLocation MENU_TITLE_TEXTURE = new ResourceLocation(ModStatics.MODID,
 			"textures/gui/title.png");
 	public static final ResourceLocation ICONS_TEXTURE = new ResourceLocation(ModStatics.MODID,
@@ -31,29 +27,27 @@ public class GuiBendsMenu extends GuiScreen
 	private GuiSectionButton settingsButton;
 	private GuiSectionButton packsButton;
 	private GuiSectionButton customizeButton;
-	//private GuiSectionButton addonsButton;
 	private GuiPopUp popUp;
 
 	public GuiBendsMenu()
 	{
-		Keyboard.enableRepeatEvents(true);
+		super(Component.translatable("mobends.gui.title"));
 
-		this.settingsButton = new GuiSectionButton(I18n.format("mobends.gui.section.settings"), 0xFFDA3A00)
+		this.settingsButton = new GuiSectionButton(Component.translatable("mobends.gui.section.settings").getString(), 0xFFDA3A00)
 				.setLeftIcon(0, 43, 19, 19).setRightIcon(19, 43, 19, 19);
-		this.packsButton = new GuiSectionButton(I18n.format("mobends.gui.section.packs"), 0xFF4577DE)
+		this.packsButton = new GuiSectionButton(Component.translatable("mobends.gui.section.packs").getString(), 0xFF4577DE)
 				.setLeftIcon(38, 43, 23, 20).setRightIcon(38, 43, 23, 20);
-		this.customizeButton = new GuiSectionButton(I18n.format("mobends.gui.section.customize"), 0xFF26DAA3)
+		this.customizeButton = new GuiSectionButton(Component.translatable("mobends.gui.section.customize").getString(), 0xFF26DAA3)
 				.setLeftIcon(80, 43, 19, 14).setRightIcon(80, 43, 19, 14);
-//		this.addonsButton = new GuiSectionButton(I18n.format("mobends.gui.section.addons"), 0xFFFFE565)
-//				.setLeftIcon(61, 43, 19, 18).setRightIcon(61, 43, 19, 18);
 
 		this.popUp = null;
 	}
 
-	public void initGui()
+	@Override
+	protected void init()
 	{
-		super.initGui();
-		this.buttonList.clear();
+		super.init();
+		this.clearWidgets();
 
 		if (this.popUp != null)
 			this.popUp.initGui(this.width / 2, this.height / 2);
@@ -74,62 +68,74 @@ public class GuiBendsMenu extends GuiScreen
 		}
 	}
 
-	protected void keyTyped(char typedChar, int keyCode)
+	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
 		if (popUp != null)
 		{
-			return;
+			return true;
 		}
 
-		switch (keyCode)
+		// ESC key
+		if (keyCode == 256)
 		{
-			case 1:
-				GuiHelper.closeGui();
-				break;
+			this.onClose();
+			return true;
 		}
+
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override
-	public void onGuiClosed()
+	public void onClose()
 	{
-		Keyboard.enableRepeatEvents(false);
+		super.onClose();
 	}
 
 	@Override
-	public void updateScreen()
+	public void tick()
 	{
-		int mouseX = Mouse.getEventX() * this.width / this.mc.displayWidth;
-		int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+		super.tick();
+
+		if (this.minecraft == null) return;
+
+		double mouseX = this.minecraft.mouseHandler.xpos() * (double)this.width / (double)this.minecraft.getWindow().getScreenWidth();
+		double mouseY = this.minecraft.mouseHandler.ypos() * (double)this.height / (double)this.minecraft.getWindow().getScreenHeight();
 
 		if (this.popUp != null)
 		{
-			this.popUp.update(mouseX, mouseY);
+			this.popUp.update((int)mouseX, (int)mouseY);
 			return;
 		}
 
-		this.settingsButton.update(mouseX, mouseY);
-		this.packsButton.update(mouseX, mouseY);
-		this.customizeButton.update(mouseX, mouseY);
+		this.settingsButton.update((int)mouseX, (int)mouseY);
+		this.packsButton.update((int)mouseX, (int)mouseY);
+		this.customizeButton.update((int)mouseX, (int)mouseY);
 	}
 
 	@Override
-	protected void mouseClicked(int x, int y, int state)
+	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
+		int x = (int) mouseX;
+		int y = (int) mouseY;
+
 		if (popUp != null)
 		{
-			popUp.mouseClicked(x, y, state);
-			return;
+			popUp.mouseClicked(x, y, button);
+			return true;
 		}
 
-		if (settingsButton.mouseClicked(x, y, state))
+		if (settingsButton.mouseClicked(x, y, button))
 		{
-			mc.displayGuiScreen(new GuiSettingsWindow());
+			minecraft.setScreen(new GuiSettingsWindow());
+			return true;
 		}
-		else if (packsButton.mouseClicked(x, y, state))
+		else if (packsButton.mouseClicked(x, y, button))
 		{
-			mc.displayGuiScreen(new GuiPacksWindow());
+			minecraft.setScreen(new GuiPacksWindow());
+			return true;
 		}
-		else if (customizeButton.mouseClicked(x, y, state))
+		else if (customizeButton.mouseClicked(x, y, button))
 		{
 			IAnimationEditor editor = AnimationEditorRegistry.INSTANCE.getPrimaryEditor();
 
@@ -154,62 +160,57 @@ public class GuiBendsMenu extends GuiScreen
 				// Opens the animation editor.
 				editor.openEditorGui();
 			}
+			return true;
 		}
 
-		try
-		{
-			super.mouseClicked(x, y, state);
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
-	protected void mouseReleased(int mouseX, int mouseY, int state)
+	@Override
+	public boolean mouseReleased(double mouseX, double mouseY, int button)
 	{
-		super.mouseReleased(mouseX, mouseY, state);
-		this.settingsButton.mouseReleased(mouseX, mouseY, state);
-		this.packsButton.mouseReleased(mouseX, mouseY, state);
-		this.customizeButton.mouseReleased(mouseX, mouseY, state);
+		int x = (int) mouseX;
+		int y = (int) mouseY;
+
+		this.settingsButton.mouseReleased(x, y, button);
+		this.packsButton.mouseReleased(x, y, button);
+		this.customizeButton.mouseReleased(x, y, button);
+
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
-	/**
-	 * Draws the screen and all the components in it.
-	 */
-	public void drawScreen(int mouseX, int mouseY, float partialTicks)
+	@Override
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
 	{
-		this.drawDefaultBackground();
+		this.renderBackground(guiGraphics);
 
-		GL11.glDisable(GL11.GL_LIGHTING);
-		GL11.glEnable(GL11.GL_BLEND);
+		RenderSystem.enableBlend();
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-		this.mc.renderEngine.bindTexture(MENU_TITLE_TEXTURE);
 		int titleWidth = 167 * 2;
 		int titleHeight = 37 * 2;
 
-		Draw.texturedRectangle((width - titleWidth) / 2, (height - titleHeight) / 2 - 70, titleWidth, titleHeight, 0, 0, 1, 1);
+		guiGraphics.blit(MENU_TITLE_TEXTURE, (width - titleWidth) / 2, (height - titleHeight) / 2 - 70,
+				0, 0, titleWidth, titleHeight, titleWidth, titleHeight);
 
-		this.settingsButton.display();
+		this.settingsButton.display(guiGraphics);
 		if (NetworkConfiguration.instance.areBendsPacksAllowed())
 		{
-			this.packsButton.display();
+			this.packsButton.display(guiGraphics);
 		}
-		this.customizeButton.display();
+		this.customizeButton.display(guiGraphics);
 
-		super.drawScreen(mouseX, mouseY, partialTicks);
+		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
 		if (this.popUp != null)
 		{
-			GlStateManager.disableDepth();
-			this.drawDefaultBackground();
-			this.popUp.display(mouseX, mouseY, partialTicks);
-			GlStateManager.enableDepth();
+			this.renderBackground(guiGraphics);
+			this.popUp.display(guiGraphics, mouseX, mouseY, partialTicks);
 		}
 	}
 
-	public boolean doesGuiPauseGame()
+	@Override
+	public boolean isPauseScreen()
 	{
 		return false;
 	}
@@ -217,13 +218,13 @@ public class GuiBendsMenu extends GuiScreen
 	private void closePopUp()
 	{
 		this.popUp = null;
-		this.initGui();
+		this.init();
 	}
 
 	private void openPopUp(GuiPopUp popUp)
 	{
 		this.popUp = popUp;
-		this.initGui();
+		this.init();
 	}
 
 }

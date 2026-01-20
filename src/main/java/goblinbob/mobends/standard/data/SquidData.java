@@ -3,9 +3,9 @@ package goblinbob.mobends.standard.data;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.standard.animation.controller.SquidController;
-import net.minecraft.entity.passive.EntitySquid;
+import net.minecraft.world.entity.animal.Squid;
 
-public class SquidData extends LivingEntityData<EntitySquid>
+public class SquidData extends LivingEntityData<Squid>
 {
 	public static final int TENTACLE_SECTIONS = 9;
 	public static final int SECTION_HEIGHT = 18 / TENTACLE_SECTIONS;
@@ -15,7 +15,7 @@ public class SquidData extends LivingEntityData<EntitySquid>
 
 	private final SquidController controller = new SquidController();
 	
-	public SquidData(EntitySquid entity)
+	public SquidData(Squid entity)
 	{
 		super(entity);
 	}

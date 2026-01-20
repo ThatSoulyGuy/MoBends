@@ -1,14 +1,14 @@
 package goblinbob.mobends.core.asset;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.env.EnvironmentModule;
 import goblinbob.mobends.core.module.IModule;
 import goblinbob.mobends.core.util.ConnectionHelper;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.http.conn.HttpHostConnectException;
+import org.slf4j.Logger;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -23,6 +23,7 @@ import static goblinbob.mobends.core.util.ConnectionHelper.sendGetRequest;
 
 public class AssetsModule
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
     public static AssetsModule INSTANCE;
 
     private final String apiUrl;
@@ -57,7 +58,7 @@ public class AssetsModule
             }
             catch (JsonParseException | FileNotFoundException e)
             {
-                Core.LOG.warning("Failed to get local asset manifest.");
+                LOGGER.warn("Failed to get local asset manifest.");
                 e.printStackTrace();
             }
         }
@@ -77,12 +78,12 @@ public class AssetsModule
         }
         catch(JsonParseException e)
         {
-            Core.LOG.warning("Failed to parse online asset manifest.");
+            LOGGER.warn("Failed to parse online asset manifest.");
             e.printStackTrace();
         }
         catch(IOException|URISyntaxException e)
         {
-            Core.LOG.warning("Failed to get online asset manifest.");
+            LOGGER.warn("Failed to get online asset manifest.");
             e.printStackTrace();
         }
 
@@ -98,7 +99,7 @@ public class AssetsModule
         }
         catch (JsonParseException | IOException e)
         {
-            Core.LOG.warning("Failed to save local asset manifest.");
+            LOGGER.warn("Failed to save local asset manifest.");
             e.printStackTrace();
         }
 
@@ -144,7 +145,7 @@ public class AssetsModule
             return;
         }
 
-        Core.LOG.info("New assets detected");
+        LOGGER.info("New assets detected");
         Iterable<AssetDefinition> assetsToUpdate = AssetManifest.getAssetsToUpdate(localManifest, onlineManifest);
 
         try
@@ -159,7 +160,7 @@ public class AssetsModule
         }
         catch(MalformedAssetException e)
         {
-            Core.LOG.warning(e.getMessage());
+            LOGGER.warn(e.getMessage());
         }
     }
 
@@ -176,9 +177,9 @@ public class AssetsModule
     public static class Factory implements IModule
     {
         @Override
-        public void preInit(FMLPreInitializationEvent event)
+        public void init()
         {
-            AssetsModule.INSTANCE = new AssetsModule(event.getModConfigurationDirectory());
+            AssetsModule.INSTANCE = new AssetsModule(FMLPaths.CONFIGDIR.get().toFile());
         }
 
         @Override

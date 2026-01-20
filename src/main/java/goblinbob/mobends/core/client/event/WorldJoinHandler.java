@@ -1,17 +1,17 @@
 package goblinbob.mobends.core.client.event;
 
-import goblinbob.mobends.core.Core;
 import goblinbob.mobends.core.network.NetworkConfiguration;
-import goblinbob.mobends.core.network.msg.MessageConfigRequest;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import goblinbob.mobends.core.network.NetworkHandler;
+import goblinbob.mobends.core.network.msg.ConfigRequestPacket;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class WorldJoinHandler
 {
 
     @SubscribeEvent
-    public void onPlayerJoinedServer(EntityJoinWorldEvent event)
+    public void onPlayerJoinedServer(EntityJoinLevelEvent event)
     {
         if (event.getEntity() instanceof AbstractClientPlayer)
         {
@@ -19,7 +19,7 @@ public class WorldJoinHandler
             NetworkConfiguration.instance.onWorldJoin();
 
             // Sending a request to the server for the server-specific config.
-            Core.getNetworkWrapper().sendToServer(new MessageConfigRequest());
+            NetworkHandler.sendToServer(new ConfigRequestPacket());
         }
     }
 

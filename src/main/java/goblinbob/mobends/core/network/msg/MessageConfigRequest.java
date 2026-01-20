@@ -1,43 +1,38 @@
 package goblinbob.mobends.core.network.msg;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 /**
  * This message is sent by the client to the server to request
  * the server specific configuration.
  */
-public class MessageConfigRequest implements IMessage
+public class MessageConfigRequest
 {
-
     /**
-     * Necessary empty constructor, because of dynamic instancing.
+     * Necessary empty constructor.
      */
     public MessageConfigRequest() {}
 
-    @Override
-    public void fromBytes(ByteBuf buf)
+    public static void encode(MessageConfigRequest msg, FriendlyByteBuf buf)
     {
         // No data transferred.
     }
 
-    @Override
-    public void toBytes(ByteBuf buf)
+    public static MessageConfigRequest decode(FriendlyByteBuf buf)
     {
         // No data transferred.
+        return new MessageConfigRequest();
     }
 
-    public static class Handler implements IMessageHandler<MessageConfigRequest, MessageConfigResponse>
+    public static void handle(MessageConfigRequest msg, Supplier<NetworkEvent.Context> ctx)
     {
-
-        @Override
-        public MessageConfigResponse onMessage(MessageConfigRequest message, MessageContext ctx)
-        {
-            return new MessageConfigResponse();
-        }
-
+        ctx.get().enqueueWork(() -> {
+            // Send back the config response
+            // NetworkHandler.sendToPlayer(ctx.get().getSender(), new MessageConfigResponse());
+        });
+        ctx.get().setPacketHandled(true);
     }
-
 }

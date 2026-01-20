@@ -5,14 +5,14 @@ import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.util.GUtil;
 import goblinbob.mobends.standard.animation.controller.SpiderController;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.monster.EntitySpider;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class SpiderData extends LivingEntityData<EntitySpider>
+public class SpiderData extends LivingEntityData<Spider>
 {
 
     public ModelPartTransform spiderHead;
@@ -24,9 +24,9 @@ public class SpiderData extends LivingEntityData<EntitySpider>
     protected final SpiderController controller = new SpiderController();
     protected float prevCrawlProgress = 0;
     protected float crawlProgress = 0;
-    protected EnumFacing wallFacing = null;
+    protected Direction wallFacing = null;
 
-    public SpiderData(EntitySpider entity)
+    public SpiderData(Spider entity)
     {
         super(entity);
     }
@@ -112,32 +112,36 @@ public class SpiderData extends LivingEntityData<EntitySpider>
         }
 
         prevCrawlProgress = crawlProgress;
-        crawlProgress += MathHelper.sqrt(this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ);
+        crawlProgress += Mth.sqrt((float) (this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ));
         wallFacing = calcWallFacing();
     }
 
-    public EnumFacing calcWallFacing()
+    public Direction calcWallFacing()
     {
-        if (!entity.isOnLadder())
+        if (!entity.onClimbable())
         {
             return null;
         }
 
-        final BlockPos position = new BlockPos(Math.floor(entity.posX), Math.floor(entity.posY), Math.floor(entity.posZ));
+        final BlockPos position = new BlockPos(
+                Mth.floor(entity.getX()),
+                Mth.floor(entity.getY()),
+                Mth.floor(entity.getZ())
+        );
 
-        final IBlockState blockN = entity.world.getBlockState(position.add(EnumFacing.NORTH.getDirectionVec()));
-        final IBlockState blockS = entity.world.getBlockState(position.add(EnumFacing.SOUTH.getDirectionVec()));
-        final IBlockState blockW = entity.world.getBlockState(position.add(EnumFacing.WEST.getDirectionVec()));
-        final IBlockState blockE = entity.world.getBlockState(position.add(EnumFacing.EAST.getDirectionVec()));
+        final BlockState blockN = entity.level().getBlockState(position.relative(Direction.NORTH));
+        final BlockState blockS = entity.level().getBlockState(position.relative(Direction.SOUTH));
+        final BlockState blockW = entity.level().getBlockState(position.relative(Direction.WEST));
+        final BlockState blockE = entity.level().getBlockState(position.relative(Direction.EAST));
 
-        if (blockN.getBlock() != Blocks.AIR) return EnumFacing.NORTH;
-        if (blockS.getBlock() != Blocks.AIR) return EnumFacing.SOUTH;
-        if (blockW.getBlock() != Blocks.AIR) return EnumFacing.WEST;
-        if (blockE.getBlock() != Blocks.AIR) return EnumFacing.EAST;
+        if (!blockN.isAir()) return Direction.NORTH;
+        if (!blockS.isAir()) return Direction.SOUTH;
+        if (!blockW.isAir()) return Direction.WEST;
+        if (!blockE.isAir()) return Direction.EAST;
         return null;
     }
 
-    public EnumFacing getWallFacing()
+    public Direction getWallFacing()
     {
         return wallFacing;
     }
@@ -147,7 +151,7 @@ public class SpiderData extends LivingEntityData<EntitySpider>
         if (wallFacing == null)
             return 0.0F;
 
-        return wallFacing.getHorizontalAngle();
+        return wallFacing.toYRot();
     }
 
     public static class Limb
@@ -161,7 +165,7 @@ public class SpiderData extends LivingEntityData<EntitySpider>
         private final double neutralYaw;
 
         private double worldX, worldZ, prevWorldX, prevWorldZ;
-        private  double adjustTargetX = 0;
+        private double adjustTargetX = 0;
         private double adjustTargetZ = 0;
         private float adjustingProgress = 1F;
         private float adjustingSpeed = 0.2F;
@@ -186,7 +190,7 @@ public class SpiderData extends LivingEntityData<EntitySpider>
         public void resetPosition()
         {
             final float distance = 1;
-            final float bodyYaw = data.entity.renderYawOffset / 180F * GUtil.PI;
+            final float bodyYaw = data.entity.yBodyRot / 180F * GUtil.PI;
 
             this.worldX = Math.cos(this.neutralYaw + bodyYaw) * distance + data.getPositionX();
             this.worldZ = Math.sin(this.neutralYaw + bodyYaw) * distance + data.getPositionZ();
@@ -218,7 +222,7 @@ public class SpiderData extends LivingEntityData<EntitySpider>
 
         public void setAngleAndDistance(float angle, float distance)
         {
-            setLocalPosition(MathHelper.cos(angle) * distance + this.upperPart.position.x * 0.0625F, MathHelper.sin(angle) * distance - this.upperPart.position.z * 0.0625F);
+            setLocalPosition(Mth.cos(angle) * distance + this.upperPart.position.x * 0.0625F, Mth.sin(angle) * distance - this.upperPart.position.z * 0.0625F);
         }
 
         public void adjustToNeutralPosition()
@@ -230,7 +234,7 @@ public class SpiderData extends LivingEntityData<EntitySpider>
             this.adjustingProgress = 0;
 
             final float distance = 1.2F;
-            final float bodyYaw = data.entity.renderYawOffset / 180F * GUtil.PI;
+            final float bodyYaw = data.entity.yBodyRot / 180F * GUtil.PI;
             this.adjustTargetX = Math.cos(this.neutralYaw + bodyYaw) * distance + data.getPositionX();
             this.adjustTargetZ = Math.sin(this.neutralYaw + bodyYaw) * distance + data.getPositionZ();
         }
@@ -253,7 +257,7 @@ public class SpiderData extends LivingEntityData<EntitySpider>
 
             this.adjustingSpeed = adjustingSpeed;
             this.adjustingProgress = 0;
-            final float bodyYaw = data.entity.renderYawOffset / 180F * GUtil.PI;
+            final float bodyYaw = data.entity.yBodyRot / 180F * GUtil.PI;
             this.adjustTargetX = x * Math.cos(bodyYaw) - z * Math.sin(bodyYaw) + data.getPositionX();
             this.adjustTargetZ = x * Math.sin(bodyYaw) + z * Math.cos(bodyYaw) + data.getPositionZ();
         }
@@ -261,16 +265,16 @@ public class SpiderData extends LivingEntityData<EntitySpider>
         public void setLocalPosition(double x, double z)
         {
             this.adjustingProgress = 1;
-            final float bodyYaw = data.entity.renderYawOffset / 180F * GUtil.PI;
+            final float bodyYaw = data.entity.yBodyRot / 180F * GUtil.PI;
             this.worldX = this.adjustTargetX = x * Math.cos(bodyYaw) - z * Math.sin(bodyYaw) + data.getPositionX();
             this.worldZ = this.adjustTargetZ = x * Math.sin(bodyYaw) + z * Math.cos(bodyYaw) + data.getPositionZ();
         }
 
         public IKResult solveIK(double bodyX, double bodyZ, float pt)
         {
-            final double renderYawOffset = (data.entity.prevRenderYawOffset + (data.entity.renderYawOffset - data.entity.prevRenderYawOffset) * pt) / 180F * Math.PI;
-            final double spiderX = data.entity.prevPosX + (data.entity.posX - data.entity.prevPosX) * pt;
-            final double spiderZ = data.entity.prevPosZ + (data.entity.posZ - data.entity.prevPosZ) * pt;
+            final double renderYawOffset = (data.entity.yBodyRotO + (data.entity.yBodyRot - data.entity.yBodyRotO) * pt) / 180F * Math.PI;
+            final double spiderX = data.entity.xOld + (data.entity.getX() - data.entity.xOld) * pt;
+            final double spiderZ = data.entity.zOld + (data.entity.getZ() - data.entity.zOld) * pt;
             final double worldLimbX = this.prevWorldX + (this.worldX - this.prevWorldX) * pt;
             final double worldLimbZ = this.prevWorldZ + (this.worldZ - this.prevWorldZ) * pt;
             final double x = (worldLimbX - spiderX) / 0.0625;

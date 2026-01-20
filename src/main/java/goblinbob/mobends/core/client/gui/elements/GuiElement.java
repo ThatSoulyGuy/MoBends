@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.client.gui.elements;
 
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.LinkedList;
 
@@ -56,16 +56,16 @@ public abstract class GuiElement implements IGuiElement, IGuiElementsContainer
     }
 
     @Override
-    public void draw(float partialTicks)
+    public void draw(GuiGraphics guiGraphics, float partialTicks)
     {
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(this.getViewX(), this.getViewY(), 0);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(this.getViewX(), this.getViewY(), 0);
 
-        this.drawBackground(partialTicks);
-        this.drawChildren(partialTicks);
-        this.drawForeground(partialTicks);
+        this.drawBackground(guiGraphics, partialTicks);
+        this.drawChildren(guiGraphics, partialTicks);
+        this.drawForeground(guiGraphics, partialTicks);
 
-        GlStateManager.popMatrix();
+        guiGraphics.pose().popPose();
     }
 
     @Override
@@ -80,8 +80,8 @@ public abstract class GuiElement implements IGuiElement, IGuiElementsContainer
         return y;
     }
 
-    protected abstract void drawBackground(float partialTicks);
+    protected abstract void drawBackground(GuiGraphics guiGraphics, float partialTicks);
 
-    protected abstract void drawForeground(float partialTicks);
+    protected abstract void drawForeground(GuiGraphics guiGraphics, float partialTicks);
 
 }

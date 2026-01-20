@@ -1,17 +1,16 @@
 package goblinbob.mobends.core.client.gui.elements;
 
-import goblinbob.mobends.core.util.Draw;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.GL11;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 
 public class GuiToggleButton
 {
 
 	protected static final ResourceLocation BUTTON_TEXTURES = new ResourceLocation("textures/gui/widgets.png");
-	
+
     private static final int FLIPPER_WIDTH = 30;
     private static final int HEIGHT = 20;
 
@@ -22,7 +21,7 @@ public class GuiToggleButton
     protected boolean toggleState;
     protected final String title;
     protected final int labelWidth;
-    
+
     public GuiToggleButton(String title, int minLabelWidth)
     {
         this.x = 0;
@@ -30,11 +29,11 @@ public class GuiToggleButton
         this.enabled = true;
         this.hovered = false;
         this.toggleState = false;
-        
+
         this.title = title;
-        
-        int titleWidth = Minecraft.getMinecraft().fontRenderer.getStringWidth(title) + 20;
-        
+
+        int titleWidth = Minecraft.getInstance().font.width(title) + 20;
+
         this.labelWidth = titleWidth > minLabelWidth ? titleWidth : minLabelWidth;
     }
 
@@ -50,32 +49,35 @@ public class GuiToggleButton
                 mouseY >= y && mouseY <= y + HEIGHT;
     }
 
-    public void draw()
+    public void draw(GuiGraphics guiGraphics)
     {
-        Minecraft mc = Minecraft.getMinecraft();
-        FontRenderer fontRenderer = mc.fontRenderer;
-        mc.getTextureManager().bindTexture(BUTTON_TEXTURES);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glEnable(GL11.GL_BLEND);
-        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        
+        Minecraft mc = Minecraft.getInstance();
+        Font font = mc.font;
+
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
         int k = this.hovered ? 1 : 0;
-        
-        GL11.glPushMatrix();
-        	Draw.texturedModalRect(this.x, this.y, 0, 66 + k * 20, (this.labelWidth + FLIPPER_WIDTH) / 2, HEIGHT);
-        	Draw.texturedModalRect(this.x + this.labelWidth / 2, this.y, 200 - (this.labelWidth + FLIPPER_WIDTH) / 2, 66 + k * 20, (this.labelWidth + FLIPPER_WIDTH) / 2, HEIGHT);
-        GL11.glPopMatrix();
-        
-        GL11.glPushMatrix();
-        	if(this.toggleState)
-        		GL11.glColor3f(0.3F, 1.0F, 0.5F);
-        	else
-        		GL11.glColor3f(1.0F, 0.3F, 0.3F);
-        	Draw.texturedModalRect(this.x + this.labelWidth, this.y, 0, 66 + k * 20, FLIPPER_WIDTH / 2, HEIGHT);
-        	Draw.texturedModalRect(this.x + this.labelWidth + FLIPPER_WIDTH / 2, this.y, 200 - FLIPPER_WIDTH / 2, 66 + k * 20, FLIPPER_WIDTH / 2, HEIGHT);
-        GL11.glPopMatrix();
-        
+
+        // Draw the label background
+        guiGraphics.blit(BUTTON_TEXTURES, this.x, this.y, 0, 66 + k * 20, (this.labelWidth + FLIPPER_WIDTH) / 2, HEIGHT);
+        guiGraphics.blit(BUTTON_TEXTURES, this.x + this.labelWidth / 2, this.y, 200 - (this.labelWidth + FLIPPER_WIDTH) / 2, 66 + k * 20, (this.labelWidth + FLIPPER_WIDTH) / 2, HEIGHT);
+
+        // Draw the flipper (toggle part)
+        if (this.toggleState)
+        {
+            RenderSystem.setShaderColor(0.3F, 1.0F, 0.5F, 1.0F);
+        }
+        else
+        {
+            RenderSystem.setShaderColor(1.0F, 0.3F, 0.3F, 1.0F);
+        }
+        guiGraphics.blit(BUTTON_TEXTURES, this.x + this.labelWidth, this.y, 0, 66 + k * 20, FLIPPER_WIDTH / 2, HEIGHT);
+        guiGraphics.blit(BUTTON_TEXTURES, this.x + this.labelWidth + FLIPPER_WIDTH / 2, this.y, 200 - FLIPPER_WIDTH / 2, 66 + k * 20, FLIPPER_WIDTH / 2, HEIGHT);
+
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
         int l = 14737632;
 
         if (!this.enabled)
@@ -86,16 +88,16 @@ public class GuiToggleButton
         {
             l = 16777120;
         }
-        
+
         String stateText = this.toggleState ? "ON" : "OFF";
-        int textWidth = fontRenderer.getStringWidth(stateText);
-        fontRenderer.drawString(stateText, this.x + this.labelWidth - textWidth/2 + FLIPPER_WIDTH/2, this.y + (HEIGHT - 8) / 2, l);
-        
-        fontRenderer.drawString(this.title, this.x + 10, this.y + (HEIGHT - 8) / 2, l);
-    
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        int textWidth = font.width(stateText);
+        guiGraphics.drawString(font, stateText, this.x + this.labelWidth - textWidth/2 + FLIPPER_WIDTH/2, this.y + (HEIGHT - 8) / 2, l, false);
+
+        guiGraphics.drawString(font, this.title, this.x + 10, this.y + (HEIGHT - 8) / 2, l, false);
+
+        RenderSystem.defaultBlendFunc();
     }
-    
+
     public void setToggleState(boolean state)
     {
     	this.toggleState = state;
@@ -108,10 +110,10 @@ public class GuiToggleButton
 	    	this.toggleState = !this.toggleState;
 	        return true;
     	}
-    	
+
 		return false;
     }
-    
+
     public boolean getToggleState()
     {
     	return this.toggleState;

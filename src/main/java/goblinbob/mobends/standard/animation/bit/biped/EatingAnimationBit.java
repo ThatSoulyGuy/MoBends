@@ -4,16 +4,16 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.util.EnumHandSide;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.HumanoidArm;
 
 public class EatingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-	protected final EnumHandSide actionHand;
-	
+	protected final HumanoidArm actionHand;
+
 	protected float bringUpAnimation;
 
-	public EatingAnimationBit(EnumHandSide handSide)
+	public EatingAnimationBit(HumanoidArm handSide)
 	{
 		this.actionHand = handSide;
 	}
@@ -29,7 +29,7 @@ public class EatingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	{
 		final float ticks = DataUpdateHandler.getTicks();
 
-		final boolean mainHandSwitch = this.actionHand == EnumHandSide.RIGHT;
+		final boolean mainHandSwitch = this.actionHand == HumanoidArm.RIGHT;
 		// Main Hand Direction Multiplier - it helps switch animation sides depending on
 		// what is your main hand.
 		final float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -43,7 +43,7 @@ public class EatingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		}
 		else
 		{
-			float wiggle = MathHelper.cos(ticks * 1F);
+			float wiggle = Mth.cos(ticks * 1F);
 			data.head.rotation.orientX(wiggle * 5.0F)
 					.rotateY(15.0F * handDirMtp);
 		}

@@ -1,8 +1,9 @@
 package goblinbob.mobends.core.client.gui.packswindow;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.core.util.Draw;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.GuiGraphics;
 
 public class GuiPackTab
 {
@@ -48,11 +49,13 @@ public class GuiPackTab
         }
     }
 
-    public void draw(int mouseX, int mouseY)
+    public void draw(GuiGraphics guiGraphics, int mouseX, int mouseY)
     {
         update(mouseX, mouseY);
 
-        Minecraft.getMinecraft().getTextureManager().bindTexture(GuiPacksWindow.BACKGROUND_TEXTURE);
+        RenderSystem.setShaderTexture(0, GuiPacksWindow.BACKGROUND_TEXTURE);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
         final int yOffset = y - HEIGHT + (selected ? -1 : 0);
         final int SELECTED_TEXTURE_Y = 147;
         final int HOVERED_TEXTURE_Y = 132;
@@ -63,14 +66,14 @@ public class GuiPackTab
 
         if (this.selectedTransitionTween > 0)
         {
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
 
-            GlStateManager.color(1F, 1F, 1F, this.selectedTransitionTween);
+            RenderSystem.setShaderColor(1F, 1F, 1F, this.selectedTransitionTween);
             Draw.texturedModalRect(x, yOffset, textureIndex * WIDTH, SELECTED_TEXTURE_Y, WIDTH, HEIGHT);
-            GlStateManager.color(1F, 1F, 1F, 1F);
+            RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 
-            GlStateManager.disableBlend();
+            RenderSystem.disableBlend();
         }
     }
 

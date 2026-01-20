@@ -3,11 +3,13 @@ package goblinbob.mobends.core.animation.keyframe;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class AnimationLoader
 {
@@ -48,16 +50,21 @@ public class AnimationLoader
 
     public static KeyframeAnimation loadFromResource(ResourceLocation location) throws IOException
     {
-        InputStream stream = Minecraft.getMinecraft().getResourceManager().getResource(location).getInputStream();
-
         if (cachedAnimations.containsKey(location))
         {
             return cachedAnimations.get(location);
         }
-        else
+
+        Optional<Resource> resourceOpt = Minecraft.getInstance().getResourceManager().getResource(location);
+        if (resourceOpt.isEmpty())
+        {
+            throw new IOException("Resource not found: " + location);
+        }
+
+        try (InputStream stream = resourceOpt.get().open())
         {
             KeyframeAnimation animation = null;
-            if (location.getResourcePath().endsWith(".json"))
+            if (location.getPath().endsWith(".json"))
             {
                 animation = (new Gson()).fromJson(new InputStreamReader(stream), KeyframeAnimation.class);
             }

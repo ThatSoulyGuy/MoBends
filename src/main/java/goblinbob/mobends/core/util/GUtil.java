@@ -3,7 +3,7 @@ package goblinbob.mobends.core.util;
 import goblinbob.mobends.core.math.Quaternion;
 import goblinbob.mobends.core.math.QuaternionUtils;
 import goblinbob.mobends.core.math.vector.IVec3f;
-import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.Font;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -125,7 +125,7 @@ public class GUtil
         return vectors;
     }
 
-    public static String[] wrapText(FontRenderer fontRenderer, String text, int maxWidth)
+    public static String[] wrapText(Font font, String text, int maxWidth)
     {
         if (maxWidth <= 0) return new String[] {};
         if (!text.contains(" "))
@@ -150,7 +150,7 @@ public class GUtil
                 endOfString = true;
             }
 
-            int currentWidth = fontRenderer.getStringWidth(line + leftoverToNextSpace);
+            int currentWidth = font.width(line + leftoverToNextSpace);
             if (currentWidth > maxWidth)
             {
                 lines.add(line.trim());

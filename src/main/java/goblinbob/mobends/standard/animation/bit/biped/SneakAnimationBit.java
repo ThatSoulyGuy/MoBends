@@ -2,7 +2,7 @@ package goblinbob.mobends.standard.animation.bit.biped;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class SneakAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
@@ -24,20 +24,20 @@ public class SneakAnimationBit extends AnimationBit<BipedEntityData<?>>
 		float limbSwing = data.limbSwing.get() * 0.6662F;
 		float limbSwingAmount = data.limbSwingAmount.get() * 1.4F * 1.1F / PI * 180F;
 		float var = (limbSwing / PI) % 2;
-		data.rightLeg.rotation.setSmoothness(1.0F).orientX(MathHelper.cos(limbSwing) * limbSwingAmount - 5F)
+		data.rightLeg.rotation.setSmoothness(1.0F).orientX(Mth.cos(limbSwing) * limbSwingAmount - 5F)
 				.rotateZ(10);
-		data.leftLeg.rotation.setSmoothness(1.0F).orientX(MathHelper.cos(limbSwing + PI) * limbSwingAmount - 5F)
+		data.leftLeg.rotation.setSmoothness(1.0F).orientX(Mth.cos(limbSwing + PI) * limbSwingAmount - 5F)
 				.rotateZ(-10);
 
-		data.rightArm.rotation.setSmoothness(0.8F).orientX(20F * MathHelper.cos(limbSwing + PI) - 20F)
+		data.rightArm.rotation.setSmoothness(0.8F).orientX(20F * Mth.cos(limbSwing + PI) - 20F)
 				.rotateZ(10.0F);
-		data.leftArm.rotation.setSmoothness(0.8F).orientX(20F * MathHelper.cos(limbSwing) - 20F)
+		data.leftArm.rotation.setSmoothness(0.8F).orientX(20F * Mth.cos(limbSwing) - 20F)
 				.rotateZ(-10.0F);
 		
 		data.leftForeLeg.rotation.setSmoothness(0.3F).orientX(var > 1 ? 45F : 10F);
 		data.rightForeLeg.rotation.setSmoothness(0.3F).orientX(var > 1 ? 10F : 45F);
 
-		float var2 = 25F + MathHelper.cos(limbSwing * 2F) * 5F;
+		float var2 = 25F + Mth.cos(limbSwing * 2F) * 5F;
 		data.body.rotation.localRotateX(var2);
 		data.head.rotation.rotateX(-var2);
 	}

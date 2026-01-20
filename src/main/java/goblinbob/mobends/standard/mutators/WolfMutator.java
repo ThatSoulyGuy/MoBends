@@ -1,221 +1,178 @@
 package goblinbob.mobends.standard.mutators;
 
-import goblinbob.mobends.core.client.model.FaceRotation;
-import goblinbob.mobends.core.client.model.IModelPart;
-import goblinbob.mobends.core.client.model.ModelPart;
-import goblinbob.mobends.core.client.model.ModelPartExtended;
-import goblinbob.mobends.core.client.model.BoxSide;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.core.mutators.Mutator;
-import goblinbob.mobends.standard.client.renderer.entity.layers.LayerWolfMisc;
 import goblinbob.mobends.standard.data.WolfData;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelWolf;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.WolfModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.animal.Wolf;
 
-public class WolfMutator extends Mutator<WolfData, EntityWolf, ModelWolf>
+public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
 {
 
-    /** main box for the wolf head */
-    public ModelPart wolfHeadMain;
-    /** The wolf's body */
-    public ModelPart wolfBody;
-    /** Wolf'se first leg */
-    public ModelPartExtended wolfLeg1;
-    /** Wolf's second leg */
-    public ModelPartExtended wolfLeg2;
-    /** Wolf's third leg */
-    public ModelPartExtended wolfLeg3;
-    /** Wolf's fourth leg */
-    public ModelPartExtended wolfLeg4;
-    /** The wolf's tail */
-    public ModelPart wolfTail;
-    /** The wolf's mane */
-    public ModelPart wolfMane;
+    public BendsModelPart wolfHeadMain;
+    public BendsModelPart wolfBody;
+    public BendsModelPart wolfLeg1;
+    public BendsModelPart wolfLeg2;
+    public BendsModelPart wolfLeg3;
+    public BendsModelPart wolfLeg4;
+    public BendsModelPart wolfTail;
+    public BendsModelPart wolfMane;
 
-    public ModelPart nose;
-    public ModelPart mouth;
-    public ModelPart leftEar;
-    public ModelPart rightEar;
-    public ModelPart foreLeg1;
-    public ModelPart foreLeg2;
-    public ModelPart foreLeg3;
-    public ModelPart foreLeg4;
+    public BendsModelPart nose;
+    public BendsModelPart mouth;
+    public BendsModelPart leftEar;
+    public BendsModelPart rightEar;
+    public BendsModelPart foreLeg1;
+    public BendsModelPart foreLeg2;
+    public BendsModelPart foreLeg3;
+    public BendsModelPart foreLeg4;
 
-    protected LayerWolfMisc layerMisc;
+    // Store the current data for use in renderMutated
+    private WolfData currentData;
 
-    public WolfMutator(IEntityDataFactory<EntityWolf> dataFactory)
+    public WolfMutator(IEntityDataFactory<Wolf> dataFactory)
     {
         super(dataFactory);
     }
 
     @Override
-    public void storeVanillaModel(ModelWolf model)
+    public void storeVanillaModel(WolfModel<Wolf> model)
     {
-        this.vanillaModel = new ModelWolf();
-
-        this.vanillaModel.wolfHeadMain = model.wolfHeadMain;
-        this.vanillaModel.wolfBody = model.wolfBody;
-        this.vanillaModel.wolfLeg1 = model.wolfLeg1;
-        this.vanillaModel.wolfLeg2 = model.wolfLeg2;
-        this.vanillaModel.wolfLeg3 = model.wolfLeg3;
-        this.vanillaModel.wolfLeg4 = model.wolfLeg4;
-        this.vanillaModel.wolfTail = model.wolfTail;
-        this.vanillaModel.wolfMane = model.wolfMane;
+        // In 1.20.1, we use composition pattern - no need to store vanilla parts
     }
 
     @Override
-    public void applyVanillaModel(ModelWolf model)
+    public void applyVanillaModel(WolfModel<Wolf> model)
     {
-        model.wolfHeadMain = this.vanillaModel.wolfHeadMain;
-        model.wolfBody = this.vanillaModel.wolfBody;
-        model.wolfLeg1 = this.vanillaModel.wolfLeg1;
-        model.wolfLeg2 = this.vanillaModel.wolfLeg2;
-        model.wolfLeg3 = this.vanillaModel.wolfLeg3;
-        model.wolfLeg4 = this.vanillaModel.wolfLeg4;
-        model.wolfTail = this.vanillaModel.wolfTail;
-        model.wolfMane = this.vanillaModel.wolfMane;
-
-        layerRenderers.remove(layerMisc);
+        // In 1.20.1, demutation handled differently
     }
 
     @Override
-    public void swapLayer(RenderLivingBase<? extends EntityWolf> renderer, int index, boolean isModelVanilla)
+    public void swapLayer(LivingEntityRenderer<Wolf, WolfModel<Wolf>> renderer, int index, boolean isModelVanilla)
     {
-
+        // No custom layers for wolf yet
     }
 
     @Override
-    public void deswapLayer(RenderLivingBase<? extends EntityWolf> renderer, int index)
+    public void deswapLayer(LivingEntityRenderer<Wolf, WolfModel<Wolf>> renderer, int index)
     {
+        // No custom layers for wolf yet
     }
 
     @Override
-    public boolean createParts(ModelWolf original, float scaleFactor)
+    public boolean createParts(WolfModel<Wolf> original, float scaleFactor)
     {
-        layerRenderers.remove(layerMisc);
-        layerRenderers.add(layerMisc = new LayerWolfMisc());
+        // Body - main part that other parts are relative to
+        // Wolf body position: (0, 14, 2), box: (-3, -2, -3, 6, 9, 6)
+        wolfBody = new BendsModelPart(18, 14)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 14.0F, 2.0F);
+        wolfBody.addCube(-3.0F, -2.0F, -3.0F, 6, 9, 6, scaleFactor);
 
-        // Body
-        original.wolfBody = wolfBody = new ModelPart(original, 18, 14)
-                .setPosition(0.0F, 13.0F, 8.0F);
-        wolfBody.developBox(-3.0F, -3.0F, -8.0F, 6, 6, 9, scaleFactor)
-                .offsetTextureQuad(BoxSide.TOP, 9.0F, 6.0F)
-                .rotateTextureQuad(BoxSide.TOP, FaceRotation.HALF_TURN)
-                .offsetTextureQuad(BoxSide.BACK, -12F, -9F)
-                .rotateTextureQuad(BoxSide.BOTTOM, FaceRotation.HALF_TURN)
-                .offsetTextureQuad(BoxSide.BOTTOM, -8F, 6F)
-                .rotateTextureQuad(BoxSide.LEFT, FaceRotation.CLOCKWISE)
-                .offsetTextureQuad(BoxSide.LEFT, -3F, -3F)
-                .rotateTextureQuad(BoxSide.RIGHT, FaceRotation.COUNTER_CLOCKWISE)
-                .offsetTextureQuad(BoxSide.RIGHT, 0F, -3F)
-                .create();
+        // Head - attached to body, position relative to body
+        // Wolf head position: (-1, 13.5, -7)
+        wolfHeadMain = new BendsModelPart(0, 0)
+                .setTextureSize(64, 32)
+                .setPosition(-1.0F, 13.5F, -7.0F);
+        wolfHeadMain.addCube(-2.0F, -3.0F, -2.0F, 6, 6, 4, scaleFactor);
 
-        // Head
-        original.wolfHeadMain = wolfHeadMain = new ModelPart(original, 0, 0)
-                .setParent(wolfBody)
-                .setPosition(0.0F, 0F, -7.0F);
-        wolfHeadMain.addBox(-3.0F, -3.0F, -4.0F, 6, 6, 4, scaleFactor);
+        // Mane (upper body/neck)
+        // Wolf mane position: (-1, 14, -3)
+        wolfMane = new BendsModelPart(21, 0)
+                .setTextureSize(64, 32)
+                .setPosition(-1.0F, 14.0F, -3.0F);
+        wolfMane.addCube(-3.0F, -3.0F, -3.0F, 8, 6, 7, scaleFactor);
 
-        // Mane
-        original.wolfMane = wolfMane = new ModelPart(original, 21, 0)
-                .setParent(wolfBody)
-                .setPosition(0.0F, 0.0F, -7.0F);
-        wolfMane.developBox(-4.0F, -3.5F, -2.0F, 8, 7, 6, scaleFactor)
-                .offsetTextureQuad(BoxSide.TOP, 1.0F, 7.0F)
-                .rotateTextureQuad(BoxSide.TOP, FaceRotation.HALF_TURN)
-                .offsetTextureQuad(BoxSide.BACK, -5F, -6F)
-                .offsetTextureQuad(BoxSide.BOTTOM, 8F, 7F)
-                .rotateTextureQuad(BoxSide.BOTTOM, FaceRotation.HALF_TURN)
-                .rotateTextureQuad(BoxSide.LEFT, FaceRotation.CLOCKWISE)
-                .offsetTextureQuad(BoxSide.LEFT, -14F, 1F)
-                .rotateTextureQuad(BoxSide.RIGHT, FaceRotation.COUNTER_CLOCKWISE)
-                .offsetTextureQuad(BoxSide.RIGHT, 15F, 1F)
-                .offsetTextureQuad(BoxSide.FRONT, 1F, -6F)
-                .create();
-
-        // Leg1
-        original.wolfLeg1 = wolfLeg1 = (ModelPartExtended) new ModelPartExtended(original, 0, 18)
-                .setParent(wolfBody)
+        // Back legs (leg1 and leg2)
+        // Wolf leg1 position: (-2.5, 16, 7)
+        wolfLeg1 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
                 .setPosition(-2.5F, 16.0F, 7.0F);
-        wolfLeg1.addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        wolfLeg1.addCube(0.0F, 0.0F, -1.0F, 2, 8, 2, scaleFactor);
 
-        // Leg2
-        original.wolfLeg2 = wolfLeg2 = (ModelPartExtended) new ModelPartExtended(original, 0, 18)
-                .setParent(wolfBody)
+        // Wolf leg2 position: (0.5, 16, 7)
+        wolfLeg2 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
                 .setPosition(0.5F, 16.0F, 7.0F);
-        wolfLeg2.addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        wolfLeg2.addCube(0.0F, 0.0F, -1.0F, 2, 8, 2, scaleFactor);
 
-        // Leg3
-        original.wolfLeg3 = wolfLeg3 = (ModelPartExtended) new ModelPartExtended(original, 0, 18)
-                .setParent(wolfBody)
-                .setPosition(-2.5F, 0.0F, -4.0F);
-        wolfLeg3.addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        // Front legs (leg3 and leg4)
+        // Wolf leg3 position: (-2.5, 16, -4)
+        wolfLeg3 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
+                .setPosition(-2.5F, 16.0F, -4.0F);
+        wolfLeg3.addCube(0.0F, 0.0F, -1.0F, 2, 8, 2, scaleFactor);
 
-        // Leg4
-        original.wolfLeg4 = wolfLeg4 = (ModelPartExtended) new ModelPartExtended(original, 0, 18)
-                .setParent(wolfBody)
-                .setPosition(0.5F, 0.0F, -4.0F);
-        wolfLeg4.addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        // Wolf leg4 position: (0.5, 16, -4)
+        wolfLeg4 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
+                .setPosition(0.5F, 16.0F, -4.0F);
+        wolfLeg4.addCube(0.0F, 0.0F, -1.0F, 2, 8, 2, scaleFactor);
 
         // Tail
-        original.wolfTail = wolfTail = new ModelPart(original, 9, 18)
-                .setParent(wolfBody)
-                .setPosition(-1.0F, 0.0F, 8.0F);
-        wolfTail.addBox(-1.0F, 0.0F, -2.0F, 2, 8, 2, scaleFactor);
+        // Wolf tail position: (-1, 12, 8)
+        wolfTail = new BendsModelPart(9, 18)
+                .setTextureSize(64, 32)
+                .setPosition(-1.0F, 12.0F, 8.0F);
+        wolfTail.addCube(0.0F, 0.0F, -1.0F, 2, 8, 2, scaleFactor);
 
-        // wolfHeadMain.setTextureOffset(16, 14).addBox(-3.0F, -5.0F, 0.0F, 2, 2, 1, 0.0F);
-        // wolfHeadMain.setTextureOffset(16, 14).addBox(1.0F, -5.0F, 0.0F, 2, 2, 1, 0.0F);
-        // Nose wolfHeadMain.setTextureOffset(0, 10).addBox(-1.5F, 0.0F, -5.0F, 3, 3, 4, 0.0F);
-
-        nose = new ModelPart(original, 0, 10)
-                .setPosition(0, 1F, -4F);
-        nose.developBox(-1.5F, -1.0F, -4.0F, 3, 2, 4, 0.0F)
-                .hideFace(BoxSide.BOTTOM)
-                .create();
+        // Nose
+        nose = new BendsModelPart(0, 10)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 0.0F, 0.0F);
+        nose.addCube(-1.5F, -3.0F, -5.0F, 3, 3, 4, scaleFactor);
         wolfHeadMain.addChild(nose);
 
-        mouth = new ModelPart(original, 0, 12)
-                .setPosition(0, 2F, -4F);
-        mouth.developBox(-1.5F, 0.0F, -4.0F, 3, 1, 4, 0.0F)
-                .hideFace(BoxSide.TOP)
-                .create();
+        // Mouth (lower jaw)
+        mouth = new BendsModelPart(0, 10)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 0.0F, 0.0F);
+        mouth.addCube(-1.5F, 0.0F, -5.0F, 3, 1, 4, scaleFactor);
         wolfHeadMain.addChild(mouth);
 
-        leftEar = new ModelPart(original, 16, 14)
-                .setPosition(0, 1F, -4F);
-        leftEar.addBox(-1.0F, -2.0F, -1.0F, 2, 2, 1, 0.0F);
+        // Left ear
+        leftEar = new BendsModelPart(16, 14)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 0.0F, 0.0F);
+        leftEar.addCube(-3.0F, -5.0F, 0.0F, 2, 2, 1, scaleFactor);
         wolfHeadMain.addChild(leftEar);
 
-        rightEar = new ModelPart(original, 16, 14)
-                .setPosition(0, 1F, -4F);
-        rightEar.addBox(-1.0F, -2.0F, -1.0F, 2, 2, 1, 0.0F);
+        // Right ear
+        rightEar = new BendsModelPart(16, 14)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 0.0F, 0.0F);
+        rightEar.addCube(1.0F, -5.0F, 0.0F, 2, 2, 1, scaleFactor);
         wolfHeadMain.addChild(rightEar);
 
-        foreLeg1 = new ModelPart(original, 0, 18)
-                .setParent(wolfLeg1)
-                .setPosition(0.0F, -4.0F, -1.0F);
-        foreLeg1.addBox(-1.0F, 0, 0, 2, 4, 2, scaleFactor);
-        wolfLeg1.setExtension(foreLeg1);
+        // Fore legs (lower leg segments)
+        foreLeg1 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 4.0F, 0.0F);
+        foreLeg1.addCube(0.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        wolfLeg1.addChild(foreLeg1);
 
-        foreLeg2 = new ModelPart(original, 0, 18)
-                .setParent(wolfLeg2)
-                .setPosition(0.0F, -4.0F, -1.0F);
-        foreLeg2.addBox(-1.0F, 0, 0, 2, 4, 2, scaleFactor);
-        wolfLeg2.setExtension(foreLeg2);
+        foreLeg2 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 4.0F, 0.0F);
+        foreLeg2.addCube(0.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        wolfLeg2.addChild(foreLeg2);
 
-        foreLeg3 = new ModelPart(original, 0, 18)
-                .setParent(wolfLeg3)
-                .setPosition(0.0F, -4.0F, 1.0F);
-        foreLeg3.addBox(-1.0F, 0, -2, 2, 4, 2, scaleFactor);
-        wolfLeg3.setExtension(foreLeg3);
+        foreLeg3 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 4.0F, 0.0F);
+        foreLeg3.addCube(0.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        wolfLeg3.addChild(foreLeg3);
 
-        foreLeg4 = new ModelPart(original, 0, 18)
-                .setParent(wolfLeg4)
-                .setPosition(0.0F, -4.0F, 1.0F);
-        foreLeg4.addBox(-1.0F, 0, -2, 2, 4, 2, scaleFactor);
-        wolfLeg4.setExtension(foreLeg4);
+        foreLeg4 = new BendsModelPart(0, 18)
+                .setTextureSize(64, 32)
+                .setPosition(0.0F, 4.0F, 0.0F);
+        foreLeg4.addCube(0.0F, 0.0F, -1.0F, 2, 4, 2, scaleFactor);
+        wolfLeg4.addChild(foreLeg4);
 
         return true;
     }
@@ -223,35 +180,112 @@ public class WolfMutator extends Mutator<WolfData, EntityWolf, ModelWolf>
     @Override
     public void syncUpWithData(WolfData data)
     {
-        wolfHeadMain.syncUp(data.head);
-        wolfBody.syncUp(data.body);
-        wolfLeg1.syncUp(data.leg1);
-        wolfLeg2.syncUp(data.leg2);
-        wolfLeg3.syncUp(data.leg3);
-        wolfLeg4.syncUp(data.leg4);
-        wolfTail.syncUp(data.tail);
-        wolfMane.syncUp(data.mane);
+        // Store current data for use in renderMutated
+        this.currentData = data;
 
-        nose.syncUp(data.nose);
-        mouth.syncUp(data.mouth);
-        leftEar.syncUp(data.leftEar);
-        rightEar.syncUp(data.rightEar);
-        foreLeg1.syncUp(data.foreLeg1);
-        foreLeg2.syncUp(data.foreLeg2);
-        foreLeg3.syncUp(data.foreLeg3);
-        foreLeg4.syncUp(data.foreLeg4);
+        if (wolfHeadMain != null) wolfHeadMain.syncUp(data.head);
+        if (wolfBody != null) wolfBody.syncUp(data.body);
+        if (wolfLeg1 != null) wolfLeg1.syncUp(data.leg1);
+        if (wolfLeg2 != null) wolfLeg2.syncUp(data.leg2);
+        if (wolfLeg3 != null) wolfLeg3.syncUp(data.leg3);
+        if (wolfLeg4 != null) wolfLeg4.syncUp(data.leg4);
+        if (wolfTail != null) wolfTail.syncUp(data.tail);
+        if (wolfMane != null) wolfMane.syncUp(data.mane);
+
+        if (nose != null) nose.syncUp(data.nose);
+        if (mouth != null) mouth.syncUp(data.mouth);
+        if (leftEar != null) leftEar.syncUp(data.leftEar);
+        if (rightEar != null) rightEar.syncUp(data.rightEar);
+        if (foreLeg1 != null) foreLeg1.syncUp(data.foreLeg1);
+        if (foreLeg2 != null) foreLeg2.syncUp(data.foreLeg2);
+        if (foreLeg3 != null) foreLeg3.syncUp(data.foreLeg3);
+        if (foreLeg4 != null) foreLeg4.syncUp(data.foreLeg4);
     }
 
     @Override
-    public boolean isModelVanilla(ModelWolf model)
+    public boolean isModelVanilla(WolfModel<Wolf> model)
     {
-        return !(model.wolfBody instanceof IModelPart);
+        // Check if we've already created custom parts
+        return this.wolfHeadMain == null;
     }
 
     @Override
-    public boolean shouldModelBeSkipped(ModelBase model)
+    public boolean shouldModelBeSkipped(EntityModel<?> model)
     {
-        return !(model instanceof ModelWolf);
+        return !(model instanceof WolfModel);
+    }
+
+    @Override
+    public boolean shouldRenderCustom()
+    {
+        return this.wolfHeadMain != null;
+    }
+
+    @Override
+    public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
+                              int packedLight, int packedOverlay,
+                              float red, float green, float blue, float alpha)
+    {
+        if (currentData == null)
+        {
+            // Fallback: just render without transforms
+            renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            return;
+        }
+
+        poseStack.pushPose();
+
+        // Render all wolf parts
+        renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+
+        poseStack.popPose();
+    }
+
+    private void renderParts(PoseStack poseStack, VertexConsumer vertexConsumer,
+                             int packedLight, int packedOverlay,
+                             float red, float green, float blue, float alpha)
+    {
+        // Render body first as it's the main part
+        if (wolfBody != null)
+        {
+            wolfBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+
+        // Render head (with nose, mouth, ears as children)
+        if (wolfHeadMain != null)
+        {
+            wolfHeadMain.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+
+        // Render mane
+        if (wolfMane != null)
+        {
+            wolfMane.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+
+        // Render legs (with forelegs as children)
+        if (wolfLeg1 != null)
+        {
+            wolfLeg1.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+        if (wolfLeg2 != null)
+        {
+            wolfLeg2.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+        if (wolfLeg3 != null)
+        {
+            wolfLeg3.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+        if (wolfLeg4 != null)
+        {
+            wolfLeg4.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+
+        // Render tail
+        if (wolfTail != null)
+        {
+            wolfTail.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
     }
 
 }

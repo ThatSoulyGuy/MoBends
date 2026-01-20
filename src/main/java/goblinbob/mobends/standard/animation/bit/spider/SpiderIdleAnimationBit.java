@@ -4,8 +4,8 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.util.GUtil;
 import goblinbob.mobends.standard.data.SpiderData;
-import net.minecraft.entity.monster.EntitySpider;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.util.Mth;
 
 public class SpiderIdleAnimationBit extends AnimationBit<SpiderData>
 {
@@ -28,7 +28,7 @@ public class SpiderIdleAnimationBit extends AnimationBit<SpiderData>
 	{
 		final float ticks = DataUpdateHandler.getTicks();
 		final float pt = DataUpdateHandler.partialTicks;
-		EntitySpider spider = data.getEntity();
+		Spider spider = data.getEntity();
 		
 		final float headYaw = data.headYaw.get();
 		final float headPitch = data.headPitch.get();
@@ -64,14 +64,14 @@ public class SpiderIdleAnimationBit extends AnimationBit<SpiderData>
 
 		// Makes the spider move it's front limbs to resemble
 		// 'feeling' the ground.
-		if (spider.ticksExisted % 100 < 10)
+		if (spider.tickCount % 100 < 10)
 		{
 			data.limbs[6].adjustToLocalPosition(0, 1.5, 0.2F);
 			data.limbs[7].adjustToLocalPosition(0, 1.5, 0.2F);
 		}
 
 		float climbingRotation = 0;
-		float renderRotationY = MathHelper.wrapDegrees(spider.rotationYaw - data.headYaw.get() - climbingRotation);
+		float renderRotationY = Mth.wrapDegrees(spider.getYRot() - data.headYaw.get() - climbingRotation);
 
 		data.localOffset.slideToZero();
 		data.globalOffset.set((float) bodyX, (float) -groundLevel, (float) -bodyZ);

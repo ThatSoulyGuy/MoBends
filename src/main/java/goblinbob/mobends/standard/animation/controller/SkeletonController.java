@@ -9,10 +9,10 @@ import goblinbob.mobends.standard.animation.bit.skeleton.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.skeleton.WalkAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.SkeletonData;
-import net.minecraft.entity.monster.EntitySkeleton;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,8 +27,8 @@ import java.util.List;
  */
 public class SkeletonController implements IAnimationController<SkeletonData>
 {
-	protected HardAnimationLayer<BipedEntityData<EntitySkeleton>> layerBase;
-	protected AnimationBit<? extends BipedEntityData<EntitySkeleton>> bitStand, bitWalk, bitJump;
+	protected HardAnimationLayer<BipedEntityData<Skeleton>> layerBase;
+	protected AnimationBit<? extends BipedEntityData<Skeleton>> bitStand, bitWalk, bitJump;
 
 	protected final BipedActionController actionController = new BipedActionController();
 
@@ -41,20 +41,20 @@ public class SkeletonController implements IAnimationController<SkeletonData>
 		this.bitJump = new JumpAnimationBit<>();
 	}
 
-	public void performActionAnimations(SkeletonData data, EntitySkeleton skeleton)
+	public void performActionAnimations(SkeletonData data, Skeleton skeleton)
 	{
-		final EnumHandSide primaryHand = skeleton.getPrimaryHand();
-		final ItemStack heldItemMainhand = skeleton.getHeldItemMainhand();
-		final ItemStack heldItemOffhand = skeleton.getHeldItemOffhand();
-		final Item activeItem = skeleton.getActiveItemStack().getItem();
+		final HumanoidArm primaryHand = skeleton.getMainArm();
+		final ItemStack heldItemMainhand = skeleton.getMainHandItem();
+		final ItemStack heldItemOffhand = skeleton.getOffhandItem();
+		final Item activeItem = skeleton.getUseItem().getItem();
 
 		actionController.perform(data, primaryHand, heldItemMainhand, heldItemOffhand, activeItem);
 	}
-	
+
 	@Override
 	public Collection<String> perform(SkeletonData skeletonData)
 	{
-		EntitySkeleton skeleton =  skeletonData.getEntity();
+		Skeleton skeleton = skeletonData.getEntity();
 		
 		if (!skeletonData.isOnGround() || skeletonData.getTicksAfterTouchdown() < 1)
 		{

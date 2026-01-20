@@ -3,8 +3,8 @@ package goblinbob.mobends.core.data;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.bender.PreviewHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,9 +26,9 @@ public class EntityDatabase
         return entryMap.get(identifier);
     }
 
-    public <T extends LivingEntityData<E>, E extends EntityLivingBase> T get(E entity)
+    public <T extends LivingEntityData<E>, E extends LivingEntity> T get(E entity)
     {
-        return (T) this.get(entity.getEntityId());
+        return (T) this.get(entity.getId());
     }
 
     /**
@@ -40,9 +40,9 @@ public class EntityDatabase
      * @param entity               The entity whose data we want to get (or first create if there is none)
      * @return Entity's data
      */
-    public <T extends LivingEntityData<E>, E extends EntityLivingBase> T getOrMake(IEntityDataFactory<E> dataCreationFunction, E entity)
+    public <T extends LivingEntityData<E>, E extends LivingEntity> T getOrMake(IEntityDataFactory<E> dataCreationFunction, E entity)
     {
-        final int entityId = entity.getEntityId();
+        final int entityId = entity.getId();
 
         // Both T and the return type of #get(Entity) will be EntityData during runtime due to generic type erasure.
         @SuppressWarnings("unchecked")
@@ -63,19 +63,21 @@ public class EntityDatabase
 
     public void add(Entity entity, LivingEntityData<?> data)
     {
-        this.add(entity.getEntityId(), data);
+        this.add(entity.getId(), data);
     }
 
     public void updateClient()
     {
+        if (Minecraft.getInstance().level == null) return;
+
         Iterator<Entry<Integer, LivingEntityData<?>>> it = entryMap.entrySet().iterator();
         while (it.hasNext())
         {
             Entry<Integer, LivingEntityData<?>> entry = it.next();
 
             LivingEntityData<?> entityData = entry.getValue();
-            EntityLivingBase entityInData = entityData.getEntity();
-            Entity entity = Minecraft.getMinecraft().world.getEntityByID(entry.getKey());
+            LivingEntity entityInData = entityData.getEntity();
+            Entity entity = Minecraft.getInstance().level.getEntity(entry.getKey());
             if (!PreviewHelper.isPreviewEntity(entityInData) && (entity == null || entityInData != entity))
             {
                 EntityBenderRegistry.instance.clearCache(entityInData);

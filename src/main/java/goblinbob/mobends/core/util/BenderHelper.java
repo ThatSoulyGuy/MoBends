@@ -4,8 +4,8 @@ import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.Mutator;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.LivingEntity;
 
 public class BenderHelper
 {
@@ -15,21 +15,21 @@ public class BenderHelper
      * @param entity
      * @return
      */
-    public static boolean isEntityAnimated(EntityLivingBase entity)
+    public static boolean isEntityAnimated(LivingEntity entity)
     {
         final EntityBender<?> bender = EntityBenderRegistry.instance.getForEntity(entity);
         return bender != null && bender.isAnimated();
     }
 
-    public static <T extends EntityLivingBase> Mutator<?, ?, ?> getMutatorForRenderer(Class<T> entityClass, RenderLivingBase<T> renderer)
+    public static <T extends LivingEntity> Mutator<?, ?, ?> getMutatorForRenderer(Class<T> entityClass, LivingEntityRenderer<T, ?> renderer)
     {
         final EntityBender<?> bender = EntityBenderRegistry.instance.getForEntityClass(entityClass);
         return bender != null ? bender.getMutator(renderer) : null;
     }
 
-    public static <D extends LivingEntityData<E>, E extends EntityLivingBase> D getData(E entity, RenderLivingBase<? extends EntityLivingBase> renderer)
+    public static <D extends LivingEntityData<E>, E extends LivingEntity> D getData(E entity, LivingEntityRenderer<? extends LivingEntity, ?> renderer)
     {
-        final EntityBender<EntityLivingBase> entityBender = EntityBenderRegistry.instance.getForEntity(entity);
+        final EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(entity);
 
         if (entityBender == null)
             return null;

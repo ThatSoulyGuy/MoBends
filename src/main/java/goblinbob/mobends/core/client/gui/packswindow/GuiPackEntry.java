@@ -1,21 +1,21 @@
 package goblinbob.mobends.core.client.gui.packswindow;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.core.client.gui.IGuiDraggable;
 import goblinbob.mobends.core.client.gui.elements.IGuiListElement;
 import goblinbob.mobends.core.pack.IBendsPack;
 import goblinbob.mobends.core.util.Draw;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 
 public class GuiPackEntry implements IGuiListElement, IGuiDraggable
 {
 
     private static final int HEIGHT = 31;
 
-    protected final FontRenderer fontRenderer;
+    protected final Font font;
     protected String name;
     protected String author;
     protected String description;
@@ -39,7 +39,7 @@ public class GuiPackEntry implements IGuiListElement, IGuiDraggable
 
     public GuiPackEntry(IBendsPack pack)
     {
-        this.fontRenderer = Minecraft.getMinecraft().fontRenderer;
+        this.font = Minecraft.getInstance().font;
 
         this.name = pack.getKey();
         this.displayName = pack.getDisplayName();
@@ -176,27 +176,24 @@ public class GuiPackEntry implements IGuiListElement, IGuiDraggable
     }
 
     @Override
-    public void draw(float partialTicks)
+    public void draw(GuiGraphics guiGraphics, float partialTicks)
     {
         final int viewX = dragged ? dragX - dragPivotX : smoothX;
         final int viewY = dragged ? dragY - dragPivotY : smoothY;
 
-        final Minecraft mc = Minecraft.getMinecraft();
-        final TextureManager textureManager = mc.getTextureManager();
-
-        textureManager.bindTexture(GuiPacksWindow.BACKGROUND_TEXTURE);
-        GlStateManager.color(1, 1, 1, 1);
+        RenderSystem.setShaderTexture(0, GuiPacksWindow.BACKGROUND_TEXTURE);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
         final int SELECTED_TEXTURE_Y = 62;
         final int HOVER_TEXTURE_Y = 31;
         final int NEUTRAL_TEXTURE_Y = 0;
         final int textureY = selected ? SELECTED_TEXTURE_Y : hover ? HOVER_TEXTURE_Y : NEUTRAL_TEXTURE_Y;
         Draw.texturedModalRect(viewX - 1, viewY - (selected ? 1 : 0), 0, textureY, 102, HEIGHT);
 
-        textureManager.bindTexture(thumbnailLocation);
-        GlStateManager.color(1, 1, 1, 1);
+        RenderSystem.setShaderTexture(0, thumbnailLocation);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
         Draw.texturedRectangle(viewX + 2, viewY + 2, 25, 25, 0, 0, 25F / 32F, 25F / 32F);
 
-        fontRenderer.drawStringWithShadow(fontRenderer.trimStringToWidth(this.displayName, 70), viewX + 32, viewY + 1, 0xffffff);
+        guiGraphics.drawString(font, font.plainSubstrByWidth(this.displayName, 70), viewX + 32, viewY + 1, 0xffffff, true);
         Draw.rectangleHorizontalGradient(viewX + 101 - 40, viewY + 1, 39, 9, 0x004e4e4e, 0xff4e4e4e);
     }
 

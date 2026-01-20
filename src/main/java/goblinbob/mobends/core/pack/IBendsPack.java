@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.pack;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public interface IBendsPack
 {

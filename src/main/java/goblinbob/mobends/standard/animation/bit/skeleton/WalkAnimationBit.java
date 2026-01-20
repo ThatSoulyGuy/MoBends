@@ -1,7 +1,7 @@
 package goblinbob.mobends.standard.animation.bit.skeleton;
 
 import goblinbob.mobends.standard.data.SkeletonData;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class WalkAnimationBit extends goblinbob.mobends.standard.animation.bit.biped.WalkAnimationBit<SkeletonData>
 {
@@ -16,8 +16,8 @@ public class WalkAnimationBit extends goblinbob.mobends.standard.animation.bit.b
 			float limbSwing = data.limbSwing.get() * 0.6662F;
 
 			float legSwingAmount = 0.7F * data.limbSwingAmount.get() / PI * 180F;
-			data.rightLeg.rotation.setSmoothness(1.0F).orientZ(-5F + MathHelper.cos(limbSwing) * legSwingAmount);
-			data.leftLeg.rotation.setSmoothness(1.0F).orientZ(-5F + MathHelper.cos(limbSwing + PI) * legSwingAmount);
+			data.rightLeg.rotation.setSmoothness(1.0F).orientZ(-5F + Mth.cos(limbSwing) * legSwingAmount);
+			data.leftLeg.rotation.setSmoothness(1.0F).orientZ(-5F + Mth.cos(limbSwing + PI) * legSwingAmount);
 		}
 	}
 }

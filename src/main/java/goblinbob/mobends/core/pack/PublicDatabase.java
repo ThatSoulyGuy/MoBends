@@ -3,7 +3,8 @@ package goblinbob.mobends.core.pack;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +12,7 @@ import java.net.URL;
 
 public class PublicDatabase
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public PackEntry[] packs;
 
@@ -25,7 +27,7 @@ public class PublicDatabase
         }
         catch(JsonSyntaxException e)
         {
-            Core.LOG.warning("The downloaded database is not proper JSON.");
+            LOGGER.warn("The downloaded database is not proper JSON.");
         }
         catch (IOException e)
         {

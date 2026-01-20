@@ -1,83 +1,95 @@
 package goblinbob.mobends.standard.client.renderer.entity.layers;
 
-import goblinbob.mobends.core.util.BenderHelper;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.standard.data.PlayerData;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.model.ModelElytra;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
-import net.minecraft.client.renderer.entity.layers.LayerArmorBase;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.player.EnumPlayerModelParts;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.model.ElytraModel;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.PlayerModelPart;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
-public class LayerCustomElytra implements LayerRenderer<AbstractClientPlayer>
+/**
+ * Custom elytra layer for Mo' Bends animated elytra rendering.
+ * Updated for 1.20.1 to use PoseStack and RenderSystem instead of GlStateManager.
+ */
+@OnlyIn(Dist.CLIENT)
+public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
     /** The basic Elytra texture. */
     private static final ResourceLocation TEXTURE_ELYTRA = new ResourceLocation("textures/entity/elytra.png");
-    /** Instance of the player renderer. */
-    protected final RenderPlayer renderPlayer;
     /** The model used by the Elytra. */
-    private final ModelElytra modelElytra = new ModelElytra();
+    private final ElytraModel<AbstractClientPlayer> elytraModel;
 
-    public LayerCustomElytra(RenderPlayer p_i47185_1_)
+    public LayerCustomElytra(RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer, EntityModelSet modelSet)
     {
-        this.renderPlayer = p_i47185_1_;
+        super(renderer);
+        this.elytraModel = new ElytraModel<>(modelSet.bakeLayer(ModelLayers.ELYTRA));
     }
 
-    public void doRenderLayer(AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale)
+    @Override
+    public void render(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                       AbstractClientPlayer player, float limbSwing, float limbSwingAmount,
+                       float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
-        final PlayerData data = BenderHelper.getData(player, renderPlayer);
-        assert data != null;
+        final EntityData<?> entityData = EntityDatabase.instance.get(player);
+        if (!(entityData instanceof PlayerData))
+            return;
 
-        ItemStack itemstack = player.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+        final PlayerData data = (PlayerData) entityData;
+        final float scale = 0.0625F;
 
-        if (itemstack.getItem() == Items.ELYTRA)
+        ItemStack itemstack = player.getItemBySlot(EquipmentSlot.CHEST);
+
+        if (itemstack.is(Items.ELYTRA))
         {
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
 
-            if (player.isPlayerInfoSet() && player.getLocationElytra() != null)
+            ResourceLocation texture;
+            if (player.isCapeLoaded() && player.getElytraTextureLocation() != null)
             {
-                this.renderPlayer.bindTexture(player.getLocationElytra());
+                texture = player.getElytraTextureLocation();
             }
-            else if (player.hasPlayerInfo() && player.getLocationCape() != null && player.isWearing(EnumPlayerModelParts.CAPE))
+            else if (player.isCapeLoaded() && player.getCloakTextureLocation() != null && player.isModelPartShown(PlayerModelPart.CAPE))
             {
-                this.renderPlayer.bindTexture(player.getLocationCape());
+                texture = player.getCloakTextureLocation();
             }
             else
             {
-                this.renderPlayer.bindTexture(TEXTURE_ELYTRA);
+                texture = TEXTURE_ELYTRA;
             }
 
-            GlStateManager.pushMatrix();
-            //GlStateManager.translate(0.0F, 0.0F, 0.225F);
-            data.body.applyCharacterTransform(0.0625F);
-            //GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
-            //GlStateManager.translate(0.0F, 0.0F, 0.125F);
-            GlStateManager.translate(0.0F, -12.0F * scale, 0.0F);
-            this.modelElytra.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, player);
-            this.modelElytra.render(player, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
+            poseStack.pushPose();
+            data.body.applyCharacterTransform(poseStack, 0.0625F);
+            poseStack.translate(0.0F, -12.0F * scale, 0.0F);
 
-            if (itemstack.isItemEnchanted())
-            {
-                LayerArmorBase.renderEnchantedGlint(this.renderPlayer, player, this.modelElytra, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch, scale);
-            }
+            this.elytraModel.setupAnim(player, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
-            GlStateManager.disableBlend();
-            GlStateManager.popMatrix();
+            VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
+                    bufferSource, RenderType.armorCutoutNoCull(texture), false, itemstack.hasFoil());
+            this.elytraModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY,
+                    1.0F, 1.0F, 1.0F, 1.0F);
+
+            RenderSystem.disableBlend();
+            poseStack.popPose();
         }
-    }
-
-    public boolean shouldCombineTextures()
-    {
-        return false;
     }
 }

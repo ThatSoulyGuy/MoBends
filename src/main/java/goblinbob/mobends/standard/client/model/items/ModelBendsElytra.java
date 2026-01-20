@@ -1,60 +1,78 @@
 package goblinbob.mobends.standard.client.model.items;
 
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.model.ElytraModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
-public class ModelBendsElytra extends ModelBase
+/**
+ * Custom elytra model for Mo' Bends animations.
+ * Updated for Minecraft 1.20.1 - uses modern model architecture.
+ *
+ * NOTE: This is a simplified implementation. Full integration with the
+ * MoBends animation system would require additional work.
+ */
+@OnlyIn(Dist.CLIENT)
+public class ModelBendsElytra<T extends LivingEntity> extends ElytraModel<T>
 {
-    private ModelRenderer field_187060_a;
-    private ModelRenderer field_187061_b = new ModelRenderer(this, 22, 0);
+    private final ModelPart leftWing;
+    private final ModelPart rightWing;
 
-    public ModelBendsElytra()
+    public ModelBendsElytra(ModelPart root)
     {
-        this.field_187061_b.addBox(-10.0F, 0.0F, 0.0F, 10, 20, 2, 1.0F);
-        this.field_187060_a = new ModelRenderer(this, 22, 0);
-        this.field_187060_a.mirror = true;
-        this.field_187060_a.addBox(0.0F, 0.0F, 0.0F, 10, 20, 2, 1.0F);
+        super(root);
+        this.leftWing = root.getChild("left_wing");
+        this.rightWing = root.getChild("right_wing");
     }
 
-    /**
-     * Sets the models various rotation angles then renders the model.
-     */
-    public void render(Entity entityIn, float p_78088_2_, float limbSwing, float ageInTicks, float netHeadYaw, float headPitch, float scale)
+    public static LayerDefinition createLayer()
     {
-        GlStateManager.disableRescaleNormal();
-        GlStateManager.disableCull();
-        this.field_187061_b.render(scale);
-        this.field_187060_a.render(scale);
+        MeshDefinition meshdefinition = new MeshDefinition();
+        PartDefinition partdefinition = meshdefinition.getRoot();
+
+        partdefinition.addOrReplaceChild("left_wing",
+                CubeListBuilder.create()
+                        .texOffs(22, 0)
+                        .addBox(-10.0F, 0.0F, 0.0F, 10, 20, 2, new CubeDeformation(1.0F)),
+                PartPose.offset(5.0F, 0.0F, 0.0F));
+
+        partdefinition.addOrReplaceChild("right_wing",
+                CubeListBuilder.create()
+                        .texOffs(22, 0)
+                        .mirror()
+                        .addBox(0.0F, 0.0F, 0.0F, 10, 20, 2, new CubeDeformation(1.0F)),
+                PartPose.offset(-5.0F, 0.0F, 0.0F));
+
+        return LayerDefinition.create(meshdefinition, 64, 32);
     }
 
-    /**
-     * Sets the model's various rotation angles. For bipeds, par1 and par2 are used for animating the movement of arms
-     * and legs, where par1 represents the time(so that arms and legs swing back and forth) and par2 represents how
-     * "far" arms and legs can swing at most.
-     */
-    public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn)
+    @Override
+    public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch)
     {
-        super.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entityIn);
         float f = 0.2617994F;
         float f1 = -0.2617994F;
         float f2 = 0.0F;
         float f3 = 0.0F;
 
-        if (entityIn instanceof EntityLivingBase && ((EntityLivingBase)entityIn).isElytraFlying())
+        if (entity.isFallFlying())
         {
             float f4 = 1.0F;
+            Vec3 deltaMovement = entity.getDeltaMovement();
 
-            if (entityIn.motionY < 0.0D)
+            if (deltaMovement.y < 0.0D)
             {
-                Vec3d vec3d = (new Vec3d(entityIn.motionX, entityIn.motionY, entityIn.motionZ)).normalize();
+                Vec3 vec3d = deltaMovement.normalize();
                 f4 = 1.0F - (float)Math.pow(-vec3d.y, 1.5D);
             }
 
@@ -62,39 +80,29 @@ public class ModelBendsElytra extends ModelBase
             f1 = f4 * -((float)Math.PI / 2F) + (1.0F - f4) * f1;
         }
 
-        this.field_187061_b.rotationPointX = 5.0F;
-        this.field_187061_b.rotationPointY = f2;
+        this.leftWing.x = 5.0F;
+        this.leftWing.y = f2;
 
-        if (entityIn instanceof AbstractClientPlayer)
+        // In 1.20.1, the elytra rotation fields are handled differently
+        // For now, use simpler animation
+        if (entity instanceof AbstractClientPlayer)
         {
-            AbstractClientPlayer abstractclientplayer = (AbstractClientPlayer)entityIn;
-            abstractclientplayer.rotateElytraX = (float)((double)abstractclientplayer.rotateElytraX + (double)(f - abstractclientplayer.rotateElytraX) * 0.1D);
-            abstractclientplayer.rotateElytraY = (float)((double)abstractclientplayer.rotateElytraY + (double)(f3 - abstractclientplayer.rotateElytraY) * 0.1D);
-            abstractclientplayer.rotateElytraZ = (float)((double)abstractclientplayer.rotateElytraZ + (double)(f1 - abstractclientplayer.rotateElytraZ) * 0.1D);
-            this.field_187061_b.rotateAngleX = abstractclientplayer.rotateElytraX;
-            this.field_187061_b.rotateAngleY = abstractclientplayer.rotateElytraY;
-            this.field_187061_b.rotateAngleZ = abstractclientplayer.rotateElytraZ;
+            // Apply smooth rotation (simplified from original)
+            this.leftWing.xRot = f;
+            this.leftWing.yRot = f3;
+            this.leftWing.zRot = f1;
         }
         else
         {
-            this.field_187061_b.rotateAngleX = f;
-            this.field_187061_b.rotateAngleZ = f1;
-            this.field_187061_b.rotateAngleY = f3;
+            this.leftWing.xRot = f;
+            this.leftWing.zRot = f1;
+            this.leftWing.yRot = f3;
         }
 
-        this.field_187060_a.rotationPointX = -this.field_187061_b.rotationPointX;
-        this.field_187060_a.rotateAngleY = -this.field_187061_b.rotateAngleY;
-        this.field_187060_a.rotationPointY = this.field_187061_b.rotationPointY;
-        this.field_187060_a.rotateAngleX = this.field_187061_b.rotateAngleX;
-        this.field_187060_a.rotateAngleZ = -this.field_187061_b.rotateAngleZ;
-    }
-
-    /**
-     * Used for easily adding entity-dependent animations. The second and third float params here are the same second
-     * and third as in the setRotationAngles method.
-     */
-    public void setLivingAnimations(EntityLivingBase entitylivingbaseIn, float p_78086_2_, float p_78086_3_, float partialTickTime)
-    {
-        super.setLivingAnimations(entitylivingbaseIn, p_78086_2_, p_78086_3_, partialTickTime);
+        this.rightWing.x = -this.leftWing.x;
+        this.rightWing.yRot = -this.leftWing.yRot;
+        this.rightWing.y = this.leftWing.y;
+        this.rightWing.xRot = this.leftWing.xRot;
+        this.rightWing.zRot = -this.leftWing.zRot;
     }
 }

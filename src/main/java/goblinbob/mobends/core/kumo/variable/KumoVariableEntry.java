@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.kumo.variable;
 
-import net.minecraft.client.resources.I18n;
+import net.minecraft.client.resources.language.I18n;
 
 public class KumoVariableEntry
 {
@@ -16,7 +16,7 @@ public class KumoVariableEntry
 
     public String getLocalizedName()
     {
-        return I18n.format(String.format("mobends.variable.%s", this.key));
+        return I18n.get(String.format("mobends.variable.%s", this.key));
     }
 
 }

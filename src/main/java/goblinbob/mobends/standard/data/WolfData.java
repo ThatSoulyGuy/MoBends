@@ -4,9 +4,9 @@ import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.standard.animation.controller.WolfController;
-import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.world.entity.animal.Wolf;
 
-public class WolfData extends LivingEntityData<EntityWolf>
+public class WolfData extends LivingEntityData<Wolf>
 {
 
     public ModelPartTransform head;
@@ -30,7 +30,7 @@ public class WolfData extends LivingEntityData<EntityWolf>
 
     private final WolfController controller = new WolfController();
 
-    public WolfData(EntityWolf entity)
+    public WolfData(Wolf entity)
     {
         super(entity);
     }
@@ -71,24 +71,29 @@ public class WolfData extends LivingEntityData<EntityWolf>
         nameToPartMap.put("foreLeg3", foreLeg3 = new ModelPartTransform());
         nameToPartMap.put("foreLeg4", foreLeg4 = new ModelPartTransform());
 
-        head.position.set(0.0F, -0.5F, -13.0F);
-        body.position.set(0.0F, 14.0F, 8.0F);
-        mane.position.set(0.0F, -0.5F, -12.0F);
-        nose.position.set(0, 1F, -3F);
-        mouth.position.set(0, 2F, -3F);
-        tongue.position.set(0, 2F, -3F);
-        leftEar.position.set(-2F, -3F, -1F);
-        rightEar.position.set(2F, -3F, -1F);
-        leg1.position.set(-2F, 3.0F, -1.0F);
-        leg2.position.set(2F, 3.0F, -1.0F);
-        leg3.position.set(-2F, 3.0F, -12.0F);
-        leg4.position.set(2F, 3.0F, -12.0F);
-        tail.position.set(0.0F, -3.0F, 0.0F);
+        // Positions must match vanilla WolfModel positions (also used in WolfMutator.createParts())
+        head.position.set(-1.0F, 13.5F, -7.0F);
+        body.position.set(0.0F, 14.0F, 2.0F);
+        mane.position.set(-1.0F, 14.0F, -3.0F);
+        // Nose, mouth, tongue, ears are children of head - relative positions
+        nose.position.set(0.0F, 0.0F, 0.0F);
+        mouth.position.set(0.0F, 0.0F, 0.0F);
+        tongue.position.set(0.0F, 0.0F, 0.0F);
+        leftEar.position.set(0.0F, 0.0F, 0.0F);
+        rightEar.position.set(0.0F, 0.0F, 0.0F);
+        // Back legs
+        leg1.position.set(-2.5F, 16.0F, 7.0F);
+        leg2.position.set(0.5F, 16.0F, 7.0F);
+        // Front legs
+        leg3.position.set(-2.5F, 16.0F, -4.0F);
+        leg4.position.set(0.5F, 16.0F, -4.0F);
+        tail.position.set(-1.0F, 12.0F, 8.0F);
 
-        foreLeg1.position.set(0.0F, 4.0F, -1.0F);
-        foreLeg2.position.set(0.0F, 4.0F, -1.0F);
-        foreLeg3.position.set(0.0F, 4.0F, 1.0F);
-        foreLeg4.position.set(0.0F, 4.0F, 1.0F);
+        // Forelegs are children of legs - relative positions
+        foreLeg1.position.set(0.0F, 4.0F, 0.0F);
+        foreLeg2.position.set(0.0F, 4.0F, 0.0F);
+        foreLeg3.position.set(0.0F, 4.0F, 0.0F);
+        foreLeg4.position.set(0.0F, 4.0F, 0.0F);
     }
 
     @Override
@@ -118,7 +123,7 @@ public class WolfData extends LivingEntityData<EntityWolf>
 
     public boolean isSitting()
     {
-        return entity.isSitting();
+        return entity.isInSittingPose();
     }
 
 }

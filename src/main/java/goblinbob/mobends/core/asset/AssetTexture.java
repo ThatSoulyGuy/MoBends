@@ -1,61 +1,74 @@
 package goblinbob.mobends.core.asset;
 
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.platform.TextureUtil;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraft.client.resources.IResourceManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.server.packs.resources.ResourceManager;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class AssetTexture extends AbstractTexture
 {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private final AssetLocation assetLocation;
 
     @Nullable
-    private BufferedImage bufferedImage;
-    private boolean textureUploaded = false;
+    private NativeImage image;
 
     public AssetTexture(AssetLocation assetLocation)
     {
         this.assetLocation = assetLocation;
     }
 
-    private void checkTextureUploaded()
-    {
-        if (!this.textureUploaded)
-        {
-            if (this.bufferedImage != null)
-            {
-                TextureUtil.uploadTextureImage(super.getGlTextureId(), this.bufferedImage);
-                this.textureUploaded = true;
-            }
-        }
-    }
-
     @Override
-    public int getGlTextureId()
+    public void load(ResourceManager resourceManager) throws IOException
     {
-        this.checkTextureUploaded();
-        return super.getGlTextureId();
-    }
+        this.close();
 
-    @Override
-    public void loadTexture(IResourceManager resourceManager) throws IOException
-    {
-        try
+        try (InputStream inputStream = new FileInputStream(AssetsModule.INSTANCE.getAssetFile(assetLocation)))
         {
-            this.bufferedImage = ImageIO.read(AssetsModule.INSTANCE.getAssetFile(assetLocation));
+            this.image = NativeImage.read(inputStream);
         }
         catch (IOException ioexception)
         {
             LOGGER.error("Couldn't load asset texture {}", assetLocation.toString(), ioexception);
             throw ioexception;
+        }
+
+        if (!RenderSystem.isOnRenderThreadOrInit())
+        {
+            RenderSystem.recordRenderCall(this::uploadTexture);
+        }
+        else
+        {
+            this.uploadTexture();
+        }
+    }
+
+    private void uploadTexture()
+    {
+        if (this.image != null)
+        {
+            TextureUtil.prepareImage(this.getId(), this.image.getWidth(), this.image.getHeight());
+            this.image.upload(0, 0, 0, false);
+        }
+    }
+
+    @Override
+    public void close()
+    {
+        super.close();
+        if (this.image != null)
+        {
+            this.image.close();
+            this.image = null;
         }
     }
 }

@@ -10,9 +10,9 @@ import goblinbob.mobends.core.util.GUtil;
 import goblinbob.mobends.core.util.GsonResources;
 import goblinbob.mobends.standard.data.WolfData;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraft.entity.passive.EntityWolf;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -55,8 +55,8 @@ public class WolfController implements IAnimationController<WolfData>
     @Override
     public Collection<String> perform(WolfData data)
     {
-        EntityWolf wolf = data.getEntity();
-        final float ticks = wolf.ticksExisted + DataUpdateHandler.partialTicks;
+        Wolf wolf = data.getEntity();
+        final float ticks = wolf.tickCount + DataUpdateHandler.partialTicks;
 
         try
         {
@@ -67,7 +67,7 @@ public class WolfController implements IAnimationController<WolfData>
             e.printStackTrace();
         }
 
-        if (wolf.isChild())
+        if (wolf.isBaby())
         {
             data.head.offsetScale = 0.5F;
             data.head.globalOffset.set(0.0F, 5.0F, -2.0F);
@@ -77,22 +77,22 @@ public class WolfController implements IAnimationController<WolfData>
             data.head.offsetScale = 1.0F;
             data.head.globalOffset.set(0.0F, 0.0F, 0.0F);
         }
-        data.head.position.set(0.0F, -0.5F, -13.0F);
+        // Position is set in initModelPose(), don't overwrite here
 
         // Head rotation
         data.head.rotation.localRotateY(data.headYaw.get()).finish();
         data.head.rotation.localRotateX(data.headPitch.get()).finish();
 
-        data.head.rotation.localRotateZ((wolf.getInterestedAngle(DataUpdateHandler.partialTicks)
-                + wolf.getShakeAngle(DataUpdateHandler.partialTicks, 0.0F)) * GUtil.RAD_TO_DEG).finish();
-        data.mane.rotation.localRotateZ(wolf.getShakeAngle(DataUpdateHandler.partialTicks, -0.08F) * GUtil.RAD_TO_DEG).finish();
-        data.tail.rotation.localRotateZ(wolf.getShakeAngle(DataUpdateHandler.partialTicks, -0.2F) * GUtil.RAD_TO_DEG).finish();
+        data.head.rotation.localRotateZ((wolf.getHeadRollAngle(DataUpdateHandler.partialTicks)
+                + wolf.getBodyRollAngle(DataUpdateHandler.partialTicks, 0.0F)) * GUtil.RAD_TO_DEG).finish();
+        data.mane.rotation.localRotateZ(wolf.getBodyRollAngle(DataUpdateHandler.partialTicks, -0.08F) * GUtil.RAD_TO_DEG).finish();
+        data.tail.rotation.localRotateZ(wolf.getBodyRollAngle(DataUpdateHandler.partialTicks, -0.2F) * GUtil.RAD_TO_DEG).finish();
 
         // Tail wagging on interest
-        data.tail.rotation.localRotateZ(wolf.getInterestedAngle(DataUpdateHandler.partialTicks) * MathHelper.sin(ticks) * 20.0F).finish();
+        data.tail.rotation.localRotateZ(wolf.getHeadRollAngle(DataUpdateHandler.partialTicks) * Mth.sin(ticks) * 20.0F).finish();
 
         // Tail rotating based on health
-        data.tail.rotation.localRotateX(wolf.getTailRotation() * GUtil.RAD_TO_DEG - 90.0F).finish();
+        data.tail.rotation.localRotateX(wolf.getTailAngle() * GUtil.RAD_TO_DEG - 90.0F).finish();
 
         data.head.offset.set(0, 0, 0);
 

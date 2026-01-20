@@ -1,7 +1,7 @@
 package goblinbob.mobends.test.core.util;
 
-import static org.junit.Assert.*;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import goblinbob.mobends.core.util.WildcardPattern;
 

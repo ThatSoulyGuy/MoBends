@@ -1,24 +1,43 @@
 package goblinbob.mobends.standard.client.model.armor;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
+import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PlayerData;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArmorWrapper extends ModelBiped
+/**
+ * Wrapper for armor models that provides animated rendering.
+ * Updated for Minecraft 1.20.1 - renders custom geometry with Mo' Bends animation.
+ *
+ * Instead of replacing vanilla model parts, this wrapper creates its own geometry
+ * that can be rendered with proper transforms for bendable limbs.
+ *
+ * @deprecated This class is part of the legacy armor rendering system.
+ *             Use {@link goblinbob.mobends.standard.client.model.armor.ArmorRenderingFacade}
+ *             and the three-tier rendering system instead (Tier 1, 2, 3 renderers).
+ *             This class is kept for backward compatibility and will be removed in a future version.
+ */
+@Deprecated
+@OnlyIn(Dist.CLIENT)
+public class ArmorWrapper
 {
-    protected ModelBiped original;
+    protected HumanoidModel<?> original;
 
     /**
      * Keeps track of whether the model is mutated or not.
@@ -26,98 +45,150 @@ public class ArmorWrapper extends ModelBiped
     protected boolean mutated = true;
 
     /**
-     * True if this armor model should be shown in the mutated form rather than the vanilla form.
-     * This is useful if for example the Player wears an armor and is animated, but a skeleton who
-     * is wearing the same armor isn't. In one instance the armor has to be shown as mutated, in the
-     * other one as vanilla.
+     * True if this armor model should be shown in the mutated form.
      */
     protected boolean applied = false;
 
-    protected List<IPartWrapper> partWrappers;
+    /**
+     * All part wrappers for syncing and rendering.
+     */
+    protected List<IPartWrapper> partWrappers = new ArrayList<>();
 
-    protected IPartWrapper bodyParts,
-                           headParts,
-                           headwearParts,
-                           leftArmParts,
-                           rightArmParts,
-                           leftLegParts,
-                           rightLegParts;
+    /**
+     * Individual part wrappers for direct access.
+     */
+    protected HumanoidPartWrapper bodyParts;
+    protected HumanoidPartWrapper headParts;
+    protected HumanoidPartWrapper headwearParts;
+    protected HumanoidLimbWrapper leftArmParts;
+    protected HumanoidLimbWrapper rightArmParts;
+    protected HumanoidLimbWrapper leftLegParts;
+    protected HumanoidLimbWrapper rightLegParts;
 
+    /**
+     * Body transform for parenting arm/head parts.
+     */
     protected ModelPartTransform bodyTransform;
 
-    private static final IPartWrapper.ModelPartSetter bodySetter = (model, part) -> model.bipedBody = part;
-    private static final IPartWrapper.ModelPartSetter headSetter = (model, part) -> model.bipedHead = part;
-    private static final IPartWrapper.ModelPartSetter headwearSetter = (model, part) -> model.bipedHeadwear = part;
-    private static final IPartWrapper.ModelPartSetter leftArmSetter = (model, part) -> model.bipedLeftArm = part;
-    private static final IPartWrapper.ModelPartSetter rightArmSetter = (model, part) -> model.bipedRightArm = part;
-    private static final IPartWrapper.ModelPartSetter leftLegSetter = (model, part) -> model.bipedLeftLeg = part;
-    private static final IPartWrapper.ModelPartSetter rightLegSetter = (model, part) -> model.bipedRightLeg = part;
+    /**
+     * The inflation value used for this armor (0.5F for inner layer, 1.0F for outer layer).
+     */
+    protected float inflation;
 
-    private ArmorWrapper(ModelBiped original)
+    private ArmorWrapper(HumanoidModel<?> original, float inflation)
     {
         this.original = original;
-        // Replacing our unused modelRenderer properties with the ones from
-        // the original model, meaning that whenever some internal method changes
-        // the visibility of a model we can get it from these.
-        this.bipedBody = original.bipedBody;
-        this.bipedHead = original.bipedHead;
-        this.bipedLeftArm = original.bipedLeftArm;
-        this.bipedRightArm = original.bipedRightArm;
-        this.bipedLeftLeg = original.bipedLeftLeg;
-        this.bipedRightLeg = original.bipedRightLeg;
-        this.bipedHeadwear = original.bipedHeadwear;
-
+        this.inflation = inflation;
         this.bodyTransform = new ModelPartTransform();
 
-        // Mutating by default, but not applying yet.
-        this.partWrappers = new ArrayList<>();
-        this.bodyParts = registerWrapper(original, bipedBody, bodySetter, data -> data.body).offsetInner(0, -12.0F, 0);
-        this.headParts = registerWrapper(original, bipedHead, headSetter, data -> data.head)
-            .setParent(this.bodyTransform);
-        this.headwearParts = registerWrapper(original, bipedHeadwear, headwearSetter, data -> data.head)
-            .setParent(this.bodyTransform);
-        this.leftArmParts  = registerWrapper(original, bipedLeftArm,  leftArmSetter,  data -> data.leftArm,  data -> data.leftForeArm, 4.0F, 0.001F)
-            .offsetLower(0, -4.0F, -2.0F).setParent(this.bodyTransform);
-        this.rightArmParts = registerWrapper(original, bipedRightArm, rightArmSetter, data -> data.rightArm, data -> data.rightForeArm, 4.0F, 0.001F)
-            .offsetLower(0, -4.0F, -2.0F).setParent(this.bodyTransform);
-        this.leftLegParts  = registerWrapper(original, bipedLeftLeg,  leftLegSetter,  data -> data.leftLeg,  data -> data.leftForeLeg, 6.0F, 0F)
-            .offsetLower(1.9F, -6.0F, 2.0F).offsetInner(1.9F, 0, 0);
-        this.rightLegParts = registerWrapper(original, bipedRightLeg, rightLegSetter, data -> data.rightLeg, data -> data.rightForeLeg, 6.0F, 0F)
-            .offsetLower(-1.9F, -6.0F, 2.0F).offsetInner(-1.9F, 0, 0);
+        // Create all part wrappers
+        createPartWrappers(original, inflation);
     }
 
-    private HumanoidPartWrapper registerWrapper(ModelBiped vanillaModel, ModelRenderer vanillaPart, IPartWrapper.ModelPartSetter setter, IPartWrapper.DataPartSelector dataSelector)
+    /**
+     * Create all the part wrappers for this armor model.
+     */
+    protected void createPartWrappers(HumanoidModel<?> model, float inflation)
     {
-        HumanoidPartWrapper wrapper = new HumanoidPartWrapper(vanillaModel, vanillaPart, setter, dataSelector);
-        this.partWrappers.add(wrapper);
-        return wrapper;
+        // Body - root of upper body hierarchy
+        this.bodyParts = new HumanoidPartWrapper(
+                model, model.body, null,
+                data -> data.body,
+                HumanoidPartWrapper.PartType.BODY,
+                inflation
+        );
+        bodyParts.offsetInner(0, -12.0F, 0);
+        partWrappers.add(bodyParts);
+
+        // Head - child of body
+        this.headParts = new HumanoidPartWrapper(
+                model, model.head, null,
+                data -> data.head,
+                HumanoidPartWrapper.PartType.HEAD,
+                inflation
+        );
+        headParts.setParent(bodyTransform);
+        partWrappers.add(headParts);
+
+        // Headwear - child of body (follows head animation)
+        this.headwearParts = new HumanoidPartWrapper(
+                model, model.hat, null,
+                data -> data.head,
+                HumanoidPartWrapper.PartType.HEADWEAR,
+                inflation
+        );
+        headwearParts.setParent(bodyTransform);
+        partWrappers.add(headwearParts);
+
+        // Left arm - child of body
+        this.leftArmParts = new HumanoidLimbWrapper(
+                model, model.leftArm, null,
+                data -> data.leftArm,
+                data -> data.leftForeArm,
+                4.0F,  // Cut plane at elbow
+                inflation + 0.001F
+        );
+        leftArmParts.offsetLower(0, -4.0F, -2.0F);
+        leftArmParts.setParent(bodyTransform);
+        partWrappers.add(leftArmParts);
+
+        // Right arm - child of body
+        this.rightArmParts = new HumanoidLimbWrapper(
+                model, model.rightArm, null,
+                data -> data.rightArm,
+                data -> data.rightForeArm,
+                4.0F,  // Cut plane at elbow
+                inflation + 0.001F
+        );
+        rightArmParts.offsetLower(0, -4.0F, -2.0F);
+        rightArmParts.setParent(bodyTransform);
+        partWrappers.add(rightArmParts);
+
+        // Left leg - NOT child of body (legs are independent)
+        // Note: leg X offset comes from animation data, not innerOffset
+        this.leftLegParts = new HumanoidLimbWrapper(
+                model, model.leftLeg, null,
+                data -> data.leftLeg,
+                data -> data.leftForeLeg,
+                6.0F,  // Cut plane at knee
+                inflation
+        );
+        leftLegParts.offsetLower(0, -6.0F, 2.0F);  // No X offset - comes from animation
+        // No innerOffset for legs - position comes from animation data
+        partWrappers.add(leftLegParts);
+
+        // Right leg - NOT child of body
+        this.rightLegParts = new HumanoidLimbWrapper(
+                model, model.rightLeg, null,
+                data -> data.rightLeg,
+                data -> data.rightForeLeg,
+                6.0F,  // Cut plane at knee
+                inflation
+        );
+        rightLegParts.offsetLower(0, -6.0F, 2.0F);  // No X offset - comes from animation
+        // No innerOffset for legs - position comes from animation data
+        partWrappers.add(rightLegParts);
     }
 
-    private HumanoidLimbWrapper registerWrapper(ModelBiped vanillaModel, ModelRenderer vanillaPart, IPartWrapper.ModelPartSetter setter, IPartWrapper.DataPartSelector data, IPartWrapper.DataPartSelector lowerData, float cutPlane, float inflation)
-    {
-        HumanoidLimbWrapper wrapper = new HumanoidLimbWrapper(vanillaModel, vanillaPart, setter, data, lowerData, cutPlane, inflation);
-        this.partWrappers.add(wrapper);
-        return wrapper;
-    }
-
-    @Override
-    public void render(Entity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw,
-                       float headPitch, float scale)
+    /**
+     * Render the armor for a specific equipment slot.
+     */
+    public void render(PoseStack poseStack, VertexConsumer vertexConsumer,
+                       int packedLight, int packedOverlay,
+                       LivingEntity entity, EquipmentSlot slot,
+                       float red, float green, float blue, float alpha)
     {
         if (!this.mutated)
         {
             throw new MalformedArmorModelException("Operating on a demutated armor wrapper.");
         }
 
-        if (!(entityIn instanceof EntityLivingBase))
-            return;
-        EntityLivingBase entityLiving = (EntityLivingBase) entityIn;
-
-        EntityBender<EntityLivingBase> entityBender = EntityBenderRegistry.instance.getForEntity(entityLiving);
+        // Get animation data
+        EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(entity);
         if (entityBender == null)
             return;
 
-        EntityData<?> entityData = EntityDatabase.instance.get(entityLiving);
+        EntityData<?> entityData = EntityDatabase.instance.get(entity);
         if (!(entityData instanceof BipedEntityData))
             return;
 
@@ -128,27 +199,110 @@ public class ArmorWrapper extends ModelBiped
 
         final BipedEntityData<?> dataBiped = (BipedEntityData<?>) entityData;
 
-        // Syncing up the model with animated data.
-        this.bodyTransform.syncUp(dataBiped.body);
-        this.partWrappers.forEach(group -> group.syncUp(dataBiped));
+        // Sync body transform
+        bodyTransform.syncUp(dataBiped.body);
 
-        this.apply();
+        // Sync all parts with animation data
+        for (IPartWrapper wrapper : partWrappers)
+        {
+            wrapper.syncUp(dataBiped);
+        }
 
-        original.setModelAttributes(this);
-        original.render(entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
-
-        this.deapply();
-    }
-
-    @Override
-    public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw,
-                                  float headPitch, float scaleFactor, Entity entityIn)
-    {
-        // Do nothing
+        // Render the appropriate parts for this slot
+        renderSlot(poseStack, vertexConsumer, packedLight, packedOverlay, slot, red, green, blue, alpha);
     }
 
     /**
-     * Brings the original model back to it's vanilla state.
+     * Render parts for a specific equipment slot.
+     */
+    protected void renderSlot(PoseStack poseStack, VertexConsumer vertexConsumer,
+                              int packedLight, int packedOverlay,
+                              EquipmentSlot slot,
+                              float red, float green, float blue, float alpha)
+    {
+        switch (slot)
+        {
+            case HEAD:
+                if (original.head.visible)
+                    headParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                if (original.hat.visible)
+                    headwearParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                break;
+
+            case CHEST:
+                if (original.body.visible)
+                    bodyParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                if (original.leftArm.visible)
+                    leftArmParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                if (original.rightArm.visible)
+                    rightArmParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                break;
+
+            case LEGS:
+                if (original.body.visible)
+                    bodyParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                if (original.leftLeg.visible)
+                    leftLegParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                if (original.rightLeg.visible)
+                    rightLegParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                break;
+
+            case FEET:
+                // For boots, render the full leg geometry - the texture determines what's visible
+                // Boots use layer_1 texture which has boot pattern on lower leg
+                if (original.leftLeg.visible)
+                    leftLegParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                if (original.rightLeg.visible)
+                    rightLegParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Prepare the wrapper for rendering (syncs animation data).
+     */
+    public void prepareForRendering(LivingEntity entity, float partialTicks)
+    {
+        EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(entity);
+        if (entityBender == null)
+            return;
+
+        EntityData<?> entityData = EntityDatabase.instance.get(entity);
+        if (!(entityData instanceof BipedEntityData))
+            return;
+
+        if (entityData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
+        {
+            entityData = PlayerPreviewer.getPreviewData();
+        }
+
+        final BipedEntityData<?> dataBiped = (BipedEntityData<?>) entityData;
+
+        // Sync the body transform
+        this.bodyTransform.syncUp(dataBiped.body);
+
+        // Sync all part wrappers
+        for (IPartWrapper wrapper : this.partWrappers)
+        {
+            wrapper.syncUp(dataBiped);
+        }
+
+        this.apply();
+    }
+
+    /**
+     * Called after rendering to restore the model to its original state.
+     */
+    public void finishRendering()
+    {
+        this.deapply();
+    }
+
+    /**
+     * Brings the original model back to its vanilla state permanently.
      */
     public void demutate()
     {
@@ -162,7 +316,6 @@ public class ArmorWrapper extends ModelBiped
         if (this.applied)
             return;
 
-        // Assigning mutated models to fields in the armor model.
         for (IPartWrapper wrapper : partWrappers)
         {
             wrapper.apply(this);
@@ -176,7 +329,6 @@ public class ArmorWrapper extends ModelBiped
         if (!this.applied)
             return;
 
-        // Assigning vanilla models to fields in the armor model.
         for (IPartWrapper wrapper : partWrappers)
         {
             wrapper.deapply(this);
@@ -185,8 +337,41 @@ public class ArmorWrapper extends ModelBiped
         this.applied = false;
     }
 
-    public static ArmorWrapper createFor(ModelBiped src)
+    public HumanoidModel<?> getOriginal()
     {
-        return new ArmorWrapper(src);
+        return this.original;
+    }
+
+    public boolean isMutated()
+    {
+        return this.mutated;
+    }
+
+    public boolean isApplied()
+    {
+        return this.applied;
+    }
+
+    public ModelPartTransform getBodyTransform()
+    {
+        return bodyTransform;
+    }
+
+    /**
+     * Create an armor wrapper for the given model.
+     * @param src The source HumanoidModel
+     * @param inflation The inflation amount (0.5F for leggings, 1.0F for armor)
+     */
+    public static ArmorWrapper createFor(HumanoidModel<?> src, float inflation)
+    {
+        return new ArmorWrapper(src, inflation);
+    }
+
+    /**
+     * Create an armor wrapper with default inflation.
+     */
+    public static ArmorWrapper createFor(HumanoidModel<?> src)
+    {
+        return createFor(src, 1.0F);
     }
 }

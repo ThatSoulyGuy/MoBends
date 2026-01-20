@@ -2,7 +2,7 @@ package goblinbob.mobends.standard.animation.bit.spider;
 
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.data.SpiderData;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class SpiderMoveAnimationBit extends SpiderAnimationBitBase
 {
@@ -24,7 +24,7 @@ public class SpiderMoveAnimationBit extends SpiderAnimationBitBase
         final float headPitch = data.headPitch.get();
         final float limbSwing = data.limbSwing.get() * 0.6662F;
 
-        float groundLevel = MathHelper.sin(ticks * 0.6F) * 1.2F;
+        float groundLevel = Mth.sin(ticks * 0.6F) * 1.2F;
         final float touchdown = Math.min(data.getTicksAfterTouchdown() / KNEEL_DURATION, 1.0F);
 
         if (startTransition < 1.0F)
@@ -39,8 +39,8 @@ public class SpiderMoveAnimationBit extends SpiderAnimationBitBase
         data.spiderHead.rotation.orientInstantX(headPitch);
         data.spiderHead.rotation.rotateY(headYaw).finish();
 
-        final float bodyX = MathHelper.sin(ticks * 0.2F) * 0.4F;
-        final float bodyZ = MathHelper.cos(ticks * 0.2F) * 0.4F;
+        final float bodyX = Mth.sin(ticks * 0.2F) * 0.4F;
+        final float bodyZ = Mth.cos(ticks * 0.2F) * 0.4F;
 
         // Back limbs
         animateMovingLimb(data, groundLevel, limbSwing + .0F, 0, 20.0F, 10F, -80, -50);

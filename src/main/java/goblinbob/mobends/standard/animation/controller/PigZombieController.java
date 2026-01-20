@@ -3,13 +3,14 @@ package goblinbob.mobends.standard.animation.controller;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
+import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.animation.bit.biped.AttackSlashInwardAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.pigzombie.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.pigzombie.WalkAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PigZombieData;
-import net.minecraft.entity.monster.EntityPigZombie;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,9 +26,9 @@ import java.util.List;
 public class PigZombieController implements IAnimationController<PigZombieData>
 {
 	
-	protected HardAnimationLayer<BipedEntityData<EntityPigZombie>> layerBase;
+	protected HardAnimationLayer<BipedEntityData<ZombifiedPiglin>> layerBase;
 	protected HardAnimationLayer<BipedEntityData<?>> layerAction;
-	protected AnimationBit<? extends BipedEntityData<EntityPigZombie>> bitStand, bitWalk, bitJump;
+	protected AnimationBit<? extends BipedEntityData<ZombifiedPiglin>> bitStand, bitWalk, bitJump;
 	protected AttackSlashInwardAnimationBit bitAttack;
 	
 	public PigZombieController()
@@ -43,7 +44,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 	@Override
 	public Collection<String> perform(PigZombieData pigZombieData)
 	{
-		EntityPigZombie pigZombie =  pigZombieData.getEntity();
+		ZombifiedPiglin pigZombie =  pigZombieData.getEntity();
 		
 		if (!pigZombieData.isOnGround() || pigZombieData.getTicksAfterTouchdown() < 1)
 		{
@@ -61,7 +62,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 			}
 		}
 		
-		if (pigZombie.swingProgress > 0)
+		if (pigZombie.getAttackAnim(DataUpdateHandler.partialTicks) > 0)
 		{
 			this.layerAction.playOrContinueBit(this.bitAttack, pigZombieData);
 		}

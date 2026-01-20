@@ -3,10 +3,10 @@ package goblinbob.mobends.standard.animation.bit.biped;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemSword;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
 
 public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
@@ -15,10 +15,10 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 	{
 		data.localOffset.slideToZero(0.3F);
 
-		final EntityLivingBase living = data.getEntity();
-		final EnumHandSide primaryHand = living.getPrimaryHand();
+		final LivingEntity living = data.getEntity();
+		final HumanoidArm primaryHand = living.getMainArm();
 
-		boolean mainHandSwitch = primaryHand == EnumHandSide.RIGHT;
+		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		// Main Hand Direction Multiplier - it helps switch animation sides depending on
 		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -27,7 +27,7 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 
-		if (living.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemSword)
+		if (living.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SwordItem)
 		{
 			data.swordTrail.add(data, 0.0F, 0.0F, -10.0F);
 		}

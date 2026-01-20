@@ -1,6 +1,7 @@
 package goblinbob.mobends.core.client.gui.popup;
 
-import net.minecraft.client.resources.I18n;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 
 public class GuiEditorNotFound extends GuiPopUp
 {
@@ -8,9 +9,9 @@ public class GuiEditorNotFound extends GuiPopUp
 
     public GuiEditorNotFound(ButtonAction onBack, ButtonAction onGetEditor)
     {
-        super(I18n.format("mobends.gui.editornotfound"), 200, 100, new ButtonProps[] {
-                new ButtonProps(I18n.format("mobends.gui.back"), onBack),
-                new ButtonProps(I18n.format("mobends.gui.geteditor"), onGetEditor)
+        super(I18n.get("mobends.gui.editornotfound"), 200, 100, new ButtonProps[] {
+                new ButtonProps(I18n.get("mobends.gui.back"), onBack),
+                new ButtonProps(I18n.get("mobends.gui.geteditor"), onGetEditor)
         });
     }
 
@@ -20,15 +21,15 @@ public class GuiEditorNotFound extends GuiPopUp
     }
 
     @Override
-    public void display(int mouseX, int mouseY, float partialTicks)
+    public void display(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        super.display(mouseX, mouseY, partialTicks);
+        super.display(guiGraphics, mouseX, mouseY, partialTicks);
 
         if (errorOccurred)
         {
             String message = "There seems to be something wrong. Please check your internet connection," +
                     " or contact the developers.";
-            fontRenderer.drawStringWithShadow(message, 5, 5, 0xffff0000);
+            guiGraphics.drawString(font, message, 5, 5, 0xffff0000, true);
         }
     }
 }

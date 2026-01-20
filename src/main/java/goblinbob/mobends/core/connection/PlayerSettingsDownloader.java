@@ -46,7 +46,7 @@ public class PlayerSettingsDownloader implements Runnable
                 }
                 catch(IOException|URISyntaxException e)
                 {
-                    MoBends.LOG.warning("API player settings fetch failed.");
+                    MoBends.LOG.warn("API player settings fetch failed.");
                     e.printStackTrace();
                 }
 
@@ -57,7 +57,7 @@ public class PlayerSettingsDownloader implements Runnable
             }
             catch (InterruptedException e)
             {
-                MoBends.LOG.warning("AssetDownloader has been interrupted");
+                MoBends.LOG.warn("AssetDownloader has been interrupted");
                 return;
             }
         }

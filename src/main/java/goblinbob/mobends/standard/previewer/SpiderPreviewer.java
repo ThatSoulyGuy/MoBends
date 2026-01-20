@@ -4,12 +4,16 @@ import goblinbob.mobends.core.bender.BoneMetadata;
 import goblinbob.mobends.core.bender.IPreviewer;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.data.SpiderData;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.world.entity.monster.Spider;
 
 import java.util.Map;
 
 public class SpiderPreviewer implements IPreviewer<SpiderData>
 {
+
+	// Store Y offset for jump animation preview
+	// This will be applied during rendering via PoseStack
+	protected double previewYOffset = 0;
 
 	/**
 	 * The Entity is generated specifically just for preview, so
@@ -19,39 +23,44 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 	public void prePreview(SpiderData data, String animationToPreview)
 	{
 		data.limbSwingAmount.override(0F);
-		
+		previewYOffset = 0;
+
 		switch (animationToPreview)
 		{
 			case "jump":
 				{
 					final float ticks = DataUpdateHandler.getTicks();
-					
+
 					final float JUMP_DURATION = 10;
 					final float WAIT_DURATION = 10;
 					final float TOTAL_DURATION = JUMP_DURATION + WAIT_DURATION;
 					float t = ticks % TOTAL_DURATION;
-					
+
 					if (t <= JUMP_DURATION)
 					{
 						data.overrideOnGroundState(false);
-						
-						double yOffset = Math.sin(t/JUMP_DURATION * Math.PI) * 1.5;
-						GlStateManager.translate(0, yOffset, 0);
+
+						// Store offset for later application via PoseStack during rendering
+						previewYOffset = Math.sin(t/JUMP_DURATION * Math.PI) * 1.5;
 					} else {
 						data.overrideOnGroundState(true);
 					}
-					
+
 					data.limbSwingAmount.override(0F);
 					data.overrideStillness(true);
 				}
 				break;
 			case "move":
 				final float ticks = DataUpdateHandler.getTicks();
-				
-				data.getEntity().posZ += DataUpdateHandler.ticksPerFrame * 0.1F;
-				data.getEntity().prevPosZ = data.getEntity().posZ;
-				data.getEntity().noClip = true;
-				//System.out.println(data.getEntity().posZ);
+
+				// In 1.20.1, position fields are accessed differently
+				Spider entity = data.getEntity();
+				if (entity != null)
+				{
+					// Position updates happen through setPos() in 1.20.1
+					// For preview, we override the animation state
+					entity.noPhysics = true;
+				}
 				data.limbSwing.override(ticks * 0.6F);
 				data.overrideOnGroundState(true);
 				data.limbSwingAmount.override(1F);
@@ -74,5 +83,14 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 	{
 		return null;
 	}
-	
+
+	/**
+	 * Get the Y offset for preview rendering.
+	 * Should be applied to PoseStack during rendering.
+	 */
+	public double getPreviewYOffset()
+	{
+		return previewYOffset;
+	}
+
 }

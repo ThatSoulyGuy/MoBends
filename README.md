@@ -7,7 +7,7 @@
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/mobends/MoBends.svg?style=for-the-badge)](https://github.com/mobends/MoBends/pulls)
 [![GitHub issues](https://img.shields.io/github/issues-raw/mobends/MoBends.svg?style=for-the-badge)](https://github.com/mobends/MoBends/issues)
 
-A Minecraft mod that adds more realistic looking animations to the inhabitants of your blocky world.
+A Minecraft mod that adds more realistic looking animations to the inhabitants of your blocky world, now in **1.20.1**!
 
 ## Discord
 The development of version **1.0.0** is in progress right now! If you'd like to be a part of it, see the progress, or just hang out, join our Discord server!
@@ -17,7 +17,7 @@ The development of version **1.0.0** is in progress right now! If you'd like to 
 Say you came from GitHub if you decide to come by! Hope to see you there
 
 ## Local Development Setup
-Install a Java Development Kit (JDK) appropriate for the Minecraft version you are developing for. For Minecraft 1.12.2, use JDK 8.
+Install a Java Development Kit (JDK) appropriate for the Minecraft version you are developing for. For Minecraft 1.20.1, use JDK 17.
 I personally use the [Eclipse Temurin JDK](https://adoptium.net/temurin/releases?version=8&os=any&arch=any).
 
 There are a few paper-cuts in developing mods (especially for older versions of Minecraft), but a sure-fire way to avoid

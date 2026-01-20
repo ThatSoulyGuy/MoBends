@@ -3,7 +3,7 @@ package goblinbob.mobends.standard.animation.bit.spider;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.data.SpiderData;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class SpiderDeathAnimationBit extends AnimationBit<SpiderData>
 {
@@ -68,14 +68,14 @@ public class SpiderDeathAnimationBit extends AnimationBit<SpiderData>
 
         final float limbSwing = data.limbSwing.get() * 0.6662F;
         final float limbSwingAmount = data.limbSwingAmount.get() / (float) Math.PI * 180F;
-        final float f3 = -(MathHelper.cos(limbSwing * 2.0F + 0.0F) * 0.4F) * limbSwingAmount;
-        final float f4 = -(MathHelper.cos(limbSwing * 2.0F + (float) Math.PI) * 0.4F) * limbSwingAmount;
-        final float f5 = -(MathHelper.cos(limbSwing * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
-        final float f6 = -(MathHelper.cos(limbSwing * 2.0F + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
-        final float f7 = Math.abs(MathHelper.sin(limbSwing + 0.0F) * 0.4F) * limbSwingAmount;
-        final float f8 = Math.abs(MathHelper.sin(limbSwing + (float) Math.PI) * 0.4F) * limbSwingAmount;
-        final float f9 = Math.abs(MathHelper.sin(limbSwing + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
-        final float f10 = Math.abs(MathHelper.sin(limbSwing + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
+        final float f3 = -(Mth.cos(limbSwing * 2.0F + 0.0F) * 0.4F) * limbSwingAmount;
+        final float f4 = -(Mth.cos(limbSwing * 2.0F + (float) Math.PI) * 0.4F) * limbSwingAmount;
+        final float f5 = -(Mth.cos(limbSwing * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
+        final float f6 = -(Mth.cos(limbSwing * 2.0F + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
+        final float f7 = Math.abs(Mth.sin(limbSwing + 0.0F) * 0.4F) * limbSwingAmount;
+        final float f8 = Math.abs(Mth.sin(limbSwing + (float) Math.PI) * 0.4F) * limbSwingAmount;
+        final float f9 = Math.abs(Mth.sin(limbSwing + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
+        final float f10 = Math.abs(Mth.sin(limbSwing + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
         data.limbs[0].upperPart.rotation.rotateY(f3);
         data.limbs[1].upperPart.rotation.rotateY(-f3);
         data.limbs[2].upperPart.rotation.rotateY(f4);
@@ -94,10 +94,10 @@ public class SpiderDeathAnimationBit extends AnimationBit<SpiderData>
         wigglePhase += (0.3F + wiggleSpeedMultiplier * 2F) * DataUpdateHandler.ticksPerFrame;
 
         final float wiggleAmount = 10.0F + wiggleSpeedMultiplier * 10.0F;
-        final float wiggle1 = MathHelper.cos(wigglePhase) * wiggleAmount;
-        final float wiggle2 = MathHelper.cos(wigglePhase + PI / 4) * wiggleAmount;
-        final float wiggle3 = MathHelper.cos(wigglePhase + PI / 2) * wiggleAmount;
-        final float wiggle4 = MathHelper.cos(wigglePhase + PI / 4 * 3) * wiggleAmount;
+        final float wiggle1 = Mth.cos(wigglePhase) * wiggleAmount;
+        final float wiggle2 = Mth.cos(wigglePhase + PI / 4) * wiggleAmount;
+        final float wiggle3 = Mth.cos(wigglePhase + PI / 2) * wiggleAmount;
+        final float wiggle4 = Mth.cos(wigglePhase + PI / 4 * 3) * wiggleAmount;
 
         data.limbs[0].upperPart.rotation.rotateZ(f7 + wiggle1);
         data.limbs[1].upperPart.rotation.rotateZ(-f7 + wiggle2);

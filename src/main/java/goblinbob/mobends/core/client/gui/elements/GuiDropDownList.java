@@ -1,13 +1,14 @@
 package goblinbob.mobends.core.client.gui.elements;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.core.client.gui.GuiBendsMenu;
 import goblinbob.mobends.core.client.gui.IChangeListener;
 import goblinbob.mobends.core.client.gui.IObservable;
 import goblinbob.mobends.core.util.Draw;
 import goblinbob.mobends.core.util.GUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import org.lwjgl.input.Mouse;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -21,7 +22,7 @@ public class GuiDropDownList<T> implements IObservable
 	public static final int ELEMENT_HEIGHT = 11;
 	public static final int SCROLLBAR_WIDTH = 5;
 
-	private final FontRenderer fontRenderer;
+	private final Font font;
 	protected final List<Entry<T>> entries;
 	private int x, y;
 	private int width;
@@ -48,15 +49,15 @@ public class GuiDropDownList<T> implements IObservable
 	 * These listeners will respond, when a change has occurred in this object.
 	 */
 	private List<IChangeListener> changeListeners = new LinkedList<>();
-	
+
 	public List<IChangeListener> getChangeListeners()
 	{
 		return this.changeListeners;
 	}
-	
+
 	public GuiDropDownList()
 	{
-		this.fontRenderer = Minecraft.getMinecraft().fontRenderer;
+		this.font = Minecraft.getInstance().font;
 		this.entries = new ArrayList<>();
 		this.selectedIndex = 0;
 		this.width = 94;
@@ -176,17 +177,16 @@ public class GuiDropDownList<T> implements IObservable
 		this.scrollBarGrabbed = false;
 	}
 
-	public boolean handleMouseInput()
+	public boolean handleMouseInput(double scrollDelta)
 	{
 		if (!isEnabled())
 			return false;
 
-		int mouseWheelRoll = -Mouse.getEventDWheel();
+		int mouseWheelRoll = scrollDelta > 0 ? -1 : (scrollDelta < 0 ? 1 : 0);
 		if (dropped && listHovered)
 		{
 			if (mouseWheelRoll != 0)
 			{
-				mouseWheelRoll = mouseWheelRoll > 0 ? 1 : -1;
 				scroll(mouseWheelRoll * 0.5F);
 			}
 			return true;
@@ -195,7 +195,6 @@ public class GuiDropDownList<T> implements IObservable
 		{
 			if (mouseWheelRoll != 0)
 			{
-				mouseWheelRoll = mouseWheelRoll > 0 ? 1 : -1;
 				selectedIndex = (int) GUtil.clamp(selectedIndex + mouseWheelRoll, 0, entries.size() + (noValueAllowed ? 0 : -1));
 				this.notifyChanged();
 			}
@@ -226,7 +225,7 @@ public class GuiDropDownList<T> implements IObservable
 		return this;
 	}
 
-	public void display()
+	public void display(GuiGraphics guiGraphics)
 	{
 		if (!isEnabled())
 			return;
@@ -240,15 +239,15 @@ public class GuiDropDownList<T> implements IObservable
 		// Current value label
 		boolean noValue = noValueAllowed && selectedIndex == 0;
 		String text = noValue ? "None"
-				: this.fontRenderer.trimStringToWidth(getSelectedEntry().getLabel(), this.getWidth() - 20);
-		this.fontRenderer.drawStringWithShadow(text, x + 5, y + 4, noValue ? 0x999999 : 0xe2e2e2);
+				: this.font.plainSubstrByWidth(getSelectedEntry().getLabel(), this.getWidth() - 20);
+		guiGraphics.drawString(this.font, text, x + 5, y + 4, noValue ? 0x999999 : 0xe2e2e2, true);
 
 		// Label gradient overlay
 		Draw.rectangleHorizontalGradient(x + width - 40, y + 1, 27, HEIGHT - 2, 0x00000000,
 				hovered || dropped ? 0xff222222 : 0xff000000);
 
 		// Arrow icon
-		Minecraft.getMinecraft().getTextureManager().bindTexture(GuiBendsMenu.ICONS_TEXTURE);
+		RenderSystem.setShaderTexture(0, GuiBendsMenu.ICONS_TEXTURE);
 		Draw.texturedModalRect(x + width - 12, y + 3, 94, 24 + (hovered || dropped ? 10 : 0), 10, 10);
 
 		if (dropped)
@@ -268,9 +267,9 @@ public class GuiDropDownList<T> implements IObservable
 				else if (selectedIndex == getScrollInEntries() + i)
 					Draw.rectangle(x + 1, y + HEIGHT + i * ELEMENT_HEIGHT, width - 2, ELEMENT_HEIGHT, 0xff151525);
 				String name = noValue ? "None"
-						: this.fontRenderer.trimStringToWidth(entries.get(entryID).getLabel(), getWidth());
-				this.fontRenderer.drawStringWithShadow(name, x + 3, y + HEIGHT + i * ELEMENT_HEIGHT + 2,
-						noValue ? 0x999999 : 0xe2e2e2);
+						: this.font.plainSubstrByWidth(entries.get(entryID).getLabel(), getWidth());
+				guiGraphics.drawString(this.font, name, x + 3, y + HEIGHT + i * ELEMENT_HEIGHT + 2,
+						noValue ? 0x999999 : 0xe2e2e2, true);
 			}
 
 			if (shouldShowScrollBar())
@@ -379,7 +378,7 @@ public class GuiDropDownList<T> implements IObservable
 			}
 		}
 		this.selectedIndex = 0;
-		
+
 		if (previouslySelected != this.selectedIndex)
 			this.notifyChanged();
 	}

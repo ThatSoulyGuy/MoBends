@@ -5,10 +5,10 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.*;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PlayerData;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.InteractionHand;
 
 public class AttackAnimationBit extends AnimationBit<PlayerData> {
 
@@ -41,8 +41,8 @@ public class AttackAnimationBit extends AnimationBit<PlayerData> {
     }
 
     public boolean shouldPerformAttack(AbstractClientPlayer player) {
-        final ItemStack heldItemStack = player.getHeldItem(EnumHand.MAIN_HAND);
-        return heldItemStack.getItem() != Items.AIR;
+        final ItemStack heldItemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
+        return !heldItemStack.is(Items.AIR);
     }
 
     @Override

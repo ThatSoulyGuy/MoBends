@@ -1,16 +1,16 @@
 package goblinbob.mobends.core.supporters;
 
 import com.google.gson.JsonParseException;
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.connection.ConnectionManager;
 import goblinbob.mobends.core.connection.PlayerSettingsResponse;
 import goblinbob.mobends.core.env.EnvironmentModule;
 import goblinbob.mobends.core.module.IModule;
 import goblinbob.mobends.core.util.Color;
 import goblinbob.mobends.core.util.IColorRead;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraft.world.entity.LivingEntity;
 import org.apache.http.conn.HttpHostConnectException;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -21,6 +21,7 @@ import static goblinbob.mobends.core.util.ConnectionHelper.sendGetRequest;
 
 public class SupporterContent
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static SupporterContent INSTANCE;
     private static final Color DEFAULT_TRAIL_COLOR = new Color(Color.WHITE);
 
@@ -49,12 +50,12 @@ public class SupporterContent
         }
         catch (JsonParseException e)
         {
-            Core.LOG.warning("Failed to parse accessory details map.");
+            LOGGER.warn("Failed to parse accessory details map.");
             e.printStackTrace();
         }
         catch (NullPointerException | IOException | URISyntaxException e)
         {
-            Core.LOG.warning("Failed to get accessory details map.");
+            LOGGER.warn("Failed to get accessory details map.");
             e.printStackTrace();
         }
     }
@@ -80,9 +81,9 @@ public class SupporterContent
         return Collections.unmodifiableSet(INSTANCE.accessoryDetailsMap.entrySet());
     }
 
-    public static Map<String, AccessorySettings> getAccessorySettingsMapFor(EntityLivingBase entity)
+    public static Map<String, AccessorySettings> getAccessorySettingsMapFor(LivingEntity entity)
     {
-        final String name = entity.getName();
+        final String name = entity.getName().getString();
 
         PlayerSettingsResponse settings;
 
@@ -100,7 +101,7 @@ public class SupporterContent
         return settings.getSettings();
     }
 
-    public static IColorRead getTrailColorFor(EntityLivingBase entity)
+    public static IColorRead getTrailColorFor(LivingEntity entity)
     {
         Map<String, AccessorySettings> settingsMap = getAccessorySettingsMapFor(entity);
         AccessorySettings swordTrailSettings = settingsMap.get("sword_trail");
@@ -116,7 +117,7 @@ public class SupporterContent
     public static class Factory implements IModule
     {
         @Override
-        public void preInit(FMLPreInitializationEvent event)
+        public void init()
         {
             // Doing it here so that we know the module's been registered.
             // Otherwise, this module wouldn't get refreshed and we wouldn't know.

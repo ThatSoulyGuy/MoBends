@@ -11,12 +11,12 @@ public class PlayerPreviewer extends BipedPreviewer<PlayerData>
 
     public static void createPreviewData()
     {
-        if (Minecraft.getMinecraft().player == null)
+        if (Minecraft.getInstance().player == null)
         {
             PREVIEW_DATA = null;
             return;
         }
-        PREVIEW_DATA = new PlayerData(Minecraft.getMinecraft().player);
+        PREVIEW_DATA = new PlayerData(Minecraft.getInstance().player);
     }
 
     public static void deletePreviewData()

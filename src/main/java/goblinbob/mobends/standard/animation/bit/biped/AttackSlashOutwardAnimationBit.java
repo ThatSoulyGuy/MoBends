@@ -6,11 +6,11 @@ import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.core.math.SmoothOrientation;
 import goblinbob.mobends.core.util.GUtil;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemSword;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumHandSide;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.util.Mth;
 
 public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
@@ -37,10 +37,10 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 	{
 		data.localOffset.slideToZero(0.3F);
 
-		final EntityLivingBase living = data.getEntity();
-		final EnumHandSide primaryHand = living.getPrimaryHand();
+		final LivingEntity living = data.getEntity();
+		final HumanoidArm primaryHand = living.getMainArm();
 
-		boolean mainHandSwitch = primaryHand == EnumHandSide.RIGHT;
+		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		// Main Hand Direction Multiplier - it helps switch animation sides depending on
 		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -51,7 +51,7 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 		SmoothOrientation mainItemRotation = mainHandSwitch ? data.renderRightItemRotation : data.renderLeftItemRotation;
 
 		if (data.getTicksAfterAttack() < 4F &&
-			living.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemSword)
+			living.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SwordItem)
 		{
 			data.swordTrail.add(data);
 		}
@@ -64,8 +64,8 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 
 		data.body.rotation.setSmoothness(.9F).orientX(bodyRotationX)
 											 .orientY(bodyRotationY);
-		data.head.rotation.setSmoothness(.9F).orientX(MathHelper.wrapDegrees(data.headPitch.get()) - bodyRotationX)
-						  .rotateY(MathHelper.wrapDegrees(data.headYaw.get()) - bodyRotationY);
+		data.head.rotation.setSmoothness(.9F).orientX(Mth.wrapDegrees(data.headPitch.get()) - bodyRotationX)
+						  .rotateY(Mth.wrapDegrees(data.headYaw.get()) - bodyRotationY);
 		
 		mainArm.getRotation().setSmoothness(.3F).orientZ((70F + armSwing * 40F) * handDirMtp)
 												.rotateInstantY((-20F + armSwing * 70F) * handDirMtp);
@@ -74,7 +74,7 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 		mainForeArm.getRotation().setSmoothness(.3F).orientX(-20F);
 		offForeArm.getRotation().setSmoothness(.3F).orientX(-60F);
 
-		if (data.isStillHorizontally() && !living.isRiding())
+		if (data.isStillHorizontally() && !living.isPassenger())
 		{
 			data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F)
 					.rotateZ(10)

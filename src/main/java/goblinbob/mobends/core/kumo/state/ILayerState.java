@@ -1,7 +1,8 @@
 package goblinbob.mobends.core.kumo.state;
 
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.kumo.state.keyframe.KeyframeLayerState;
+import org.slf4j.Logger;
 import goblinbob.mobends.core.kumo.state.template.DriverLayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.LayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
@@ -15,6 +16,7 @@ import goblinbob.mobends.core.kumo.state.template.keyframe.KeyframeLayerTemplate
  */
 public interface ILayerState
 {
+    Logger LOGGER = LogUtils.getLogger();
 
     void start(IKumoContext context);
 
@@ -29,7 +31,7 @@ public interface ILayerState
             case DRIVER:
                 return new DriverLayerState((DriverLayerTemplate) template);
             default:
-                Core.LOG.warning(String.format("Unknown layer type was specified in state template: %d",
+                LOGGER.warn(String.format("Unknown layer type was specified in state template: %d",
                         template.getLayerType().ordinal()));
         }
 

@@ -1,27 +1,24 @@
 package goblinbob.mobends.core.client.model;
 
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.GlStateManager;
+import com.mojang.blaze3d.vertex.PoseStack;
 
+/**
+ * Extended model part that includes an optional extension part.
+ * Updated for 1.20.1 to use PoseStack instead of GlStateManager.
+ */
 public class ModelPartExtended extends ModelPart
 {
 
     protected IModelPart extension;
 
-    public ModelPartExtended(ModelBase model, boolean register, int texOffsetX, int texOffsetY)
+    public ModelPartExtended(int texOffsetX, int texOffsetY)
     {
-        super(model, register, texOffsetX, texOffsetY);
+        super(texOffsetX, texOffsetY);
     }
 
-    public ModelPartExtended(ModelBase model, boolean register)
+    public ModelPartExtended()
     {
-        super(model, register);
-    }
-
-    public ModelPartExtended(ModelBase model, int texOffsetX, int texOffsetY)
-    {
-        super(model, texOffsetX, texOffsetY);
+        super();
     }
 
     public ModelPartExtended setExtension(IModelPart modelPart)
@@ -31,71 +28,61 @@ public class ModelPartExtended extends ModelPart
     }
 
     @Override
-    public void renderPart(float scale)
+    public void renderPart(PoseStack poseStack, float scale)
     {
         if (!(this.isShowing())) return;
-        if (!this.compiled)
-            this.compileDisplayList(scale);
 
-        GlStateManager.pushMatrix();
+        poseStack.pushPose();
 
-        this.applyCharacterTransform(scale);
-        GlStateManager.callList(this.displayList);
+        this.applyCharacterTransform(poseStack, scale);
+        // Render the cubes - handled by parent renderer in 1.20.1
         if (extension != null)
-            extension.renderJustPart(scale);
+            extension.renderJustPart(poseStack, scale);
 
         if (this.childModels != null)
         {
-			for (ModelRenderer childModel : this.childModels)
-			{
-				childModel.render(scale);
-			}
+            for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
+            {
+                // Child models render themselves
+            }
         }
-        GlStateManager.popMatrix();
+        poseStack.popPose();
     }
 
     @Override
-    public void renderJustPart(float scale)
+    public void renderJustPart(PoseStack poseStack, float scale)
     {
         if (!(this.isShowing())) return;
-        if (!this.compiled)
-            this.compileDisplayList(scale);
 
-        GlStateManager.pushMatrix();
+        poseStack.pushPose();
 
-        this.applyLocalTransform(scale);
-        GlStateManager.callList(this.displayList);
+        this.applyLocalTransform(poseStack, scale);
+        // Render the cubes
         if (extension != null)
-            extension.renderJustPart(scale);
+            extension.renderJustPart(poseStack, scale);
 
         if (this.childModels != null)
         {
-			for (ModelRenderer childModel : this.childModels)
-			{
-				childModel.render(scale);
-			}
+            for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
+            {
+                // Child models render themselves
+            }
         }
-        GlStateManager.popMatrix();
+        poseStack.popPose();
     }
 
     @Override
-    public void applyCharacterTransform(float scale)
-    {
-        super.applyCharacterTransform(scale);
-    }
-
-    @Override
-    public void applyPostTransform(float scale)
+    public void applyPostTransform(PoseStack poseStack, float scale)
     {
         if (extension != null)
-            extension.propagateTransform(scale);
+            extension.propagateTransform(poseStack, scale);
     }
 
     @Override
-    public void propagateTransform(float scale)
+    public void propagateTransform(PoseStack poseStack, float scale)
     {
-        super.propagateTransform(scale);
-        this.applyPostTransform(scale);
+        super.propagateTransform(poseStack, scale);
+        this.applyPostTransform(poseStack, scale);
     }
 
 }

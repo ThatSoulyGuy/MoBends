@@ -37,9 +37,9 @@ public class NetworkConfiguration
      */
 	public void onWorldJoin()
     {
-        this.modelScalingAllowed.setValue(Minecraft.getMinecraft().isSingleplayer());
+        this.modelScalingAllowed.setValue(Minecraft.getInstance().isSingleplayer());
         this.bendsPacksAllowed.setValue(true);
-        this.movementLimited.setValue(!Minecraft.getMinecraft().isSingleplayer());
+        this.movementLimited.setValue(!Minecraft.getInstance().isSingleplayer());
     }
 
     public SharedConfig getSharedConfig()

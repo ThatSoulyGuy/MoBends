@@ -1,61 +1,77 @@
 package goblinbob.mobends.core;
 
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.configuration.CoreConfig;
 import goblinbob.mobends.core.module.IModule;
-import goblinbob.mobends.core.network.msg.MessageConfigRequest;
-import goblinbob.mobends.core.network.msg.MessageConfigResponse;
-import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import net.minecraftforge.fml.relauncher.Side;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Logger;
 
+/**
+ * Core class for Mo' Bends.
+ * Handles module registration and lifecycle for 1.20.1.
+ */
 public abstract class Core<T extends CoreConfig>
 {
-    private static Core INSTANCE;
-    public static final Logger LOG = Logger.getLogger("mobends-core");
+    private static Core<?> INSTANCE;
+    private static final Logger LOG = LogUtils.getLogger();
 
-    private SimpleNetworkWrapper networkWrapper;
-    private static final int MESSAGE_CONFIG_REQUEST = 0;
-    private static final int MESSAGE_CONFIG_RESPONSE = 1;
-
-    private Collection<IModule> modules = new ArrayList<>();
+    private final Collection<IModule> modules = new ArrayList<>();
 
     public abstract T getConfiguration();
 
-    public void preInit(FMLPreInitializationEvent event)
+    /**
+     * Called during common setup.
+     * Subclasses can override to perform common initialization.
+     */
+    public void onCommonSetup()
     {
-        networkWrapper = NetworkRegistry.INSTANCE.newSimpleChannel(ModStatics.MODID);
-        networkWrapper.registerMessage(MessageConfigRequest.Handler.class, MessageConfigRequest.class, MESSAGE_CONFIG_REQUEST, Side.SERVER);
-        networkWrapper.registerMessage(MessageConfigResponse.Handler.class, MessageConfigResponse.class, MESSAGE_CONFIG_RESPONSE, Side.CLIENT);
-
-        for (IModule module : modules)
-        {
-            module.preInit(event);
-        }
+        LOG.info("Mo' Bends Core common setup");
     }
 
-    public void init(FMLInitializationEvent event)
+    /**
+     * Called during client setup.
+     * Subclasses can override to perform client-specific initialization.
+     */
+    public void onClientSetup()
     {
-
+        LOG.info("Mo' Bends Core client setup");
     }
 
-    public void postInit(FMLPostInitializationEvent event)
+    /**
+     * Apply configuration to entity benders.
+     * Called after entity benders are registered.
+     */
+    public void applyConfigurationToEntityBenders()
     {
-
+        // Default implementation does nothing
+        // CoreClient overrides this
     }
 
+    /**
+     * Register a module to be managed by the core.
+     */
     public void registerModule(IModule module)
     {
         this.modules.add(module);
     }
 
+    /**
+     * Initialize all registered modules.
+     * Should be called during setup after all modules are registered.
+     */
+    public void initModules()
+    {
+        for (IModule module : modules)
+        {
+            module.init();
+        }
+    }
+
+    /**
+     * Refresh all registered modules.
+     */
     public void refreshModules()
     {
         for (IModule module : modules)
@@ -64,9 +80,17 @@ public abstract class Core<T extends CoreConfig>
         }
     }
 
+    /**
+     * Get the collection of registered modules.
+     */
+    public Collection<IModule> getModules()
+    {
+        return modules;
+    }
+
     // Static methods
 
-    public static Core getInstance()
+    public static Core<?> getInstance()
     {
         return INSTANCE;
     }
@@ -74,22 +98,29 @@ public abstract class Core<T extends CoreConfig>
     public static void createAsClient()
     {
         if (INSTANCE == null)
+        {
             INSTANCE = new CoreClient();
+        }
     }
 
     public static void createAsServer()
     {
         if (INSTANCE == null)
+        {
             INSTANCE = new CoreServer();
-    }
-
-    public static SimpleNetworkWrapper getNetworkWrapper()
-    {
-        return INSTANCE.networkWrapper;
+        }
     }
 
     public static void saveConfiguration()
     {
-        INSTANCE.getConfiguration().save();
+        if (INSTANCE != null)
+        {
+            INSTANCE.getConfiguration().save();
+        }
+    }
+
+    public static Logger getLogger()
+    {
+        return LOG;
     }
 }

@@ -1,17 +1,12 @@
 package goblinbob.mobends.core.configuration;
 
-import net.minecraftforge.common.config.Configuration;
-
-import java.io.File;
-
+/**
+ * Base configuration class for Mo' Bends 1.20.1.
+ * Uses the new Forge config spec system.
+ */
 public abstract class CoreConfig
 {
-    protected Configuration configuration;
-
-    CoreConfig(File file)
-    {
-        configuration = new Configuration(file);
-    }
-
     public abstract void save();
+
+    public abstract void load();
 }

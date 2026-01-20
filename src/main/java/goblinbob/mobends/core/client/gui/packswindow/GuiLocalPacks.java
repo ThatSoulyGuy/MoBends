@@ -10,16 +10,16 @@ import goblinbob.mobends.core.pack.PackManager;
 import goblinbob.mobends.core.util.ErrorReporter;
 import goblinbob.mobends.core.util.IDisposable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.resources.I18n;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class GuiLocalPacks extends Gui implements ISubscriber, IDisposable
+public class GuiLocalPacks implements ISubscriber, IDisposable
 {
 
     private final GuiPackList availablePacksList;
@@ -28,14 +28,14 @@ public class GuiLocalPacks extends Gui implements ISubscriber, IDisposable
     private final LinkedList<GuiPackEntry> appliedPacks;
 
     private final GuiDragger<GuiPackEntry> dragger;
-    private final FontRenderer fontRenderer;
+    private final Font font;
     private int x, y;
 
     private List<Subscription<?>> subscriptions = new LinkedList<>();
 
     public GuiLocalPacks()
     {
-        this.fontRenderer = Minecraft.getMinecraft().fontRenderer;
+        this.font = Minecraft.getInstance().font;
         this.availablePacks = new LinkedList<>();
         this.appliedPacks = new LinkedList<>();
         this.availablePacksList = new GuiPackList(this.availablePacks);
@@ -95,10 +95,10 @@ public class GuiLocalPacks extends Gui implements ISubscriber, IDisposable
         resolveAppliedPacks();
     }
 
-    public boolean handleMouseInput()
+    public boolean handleMouseScroll(double mouseX, double mouseY, double delta)
     {
-        boolean handled = availablePacksList.handleMouseInput();
-        handled |= appliedPacksList.handleMouseInput();
+        boolean handled = availablePacksList.handleMouseScroll(mouseX, mouseY, delta);
+        handled |= appliedPacksList.handleMouseScroll(mouseX, mouseY, delta);
         return handled;
     }
 
@@ -127,18 +127,20 @@ public class GuiLocalPacks extends Gui implements ISubscriber, IDisposable
         }
     }
 
-    public void draw(float partialTicks)
+    public void draw(GuiGraphics guiGraphics, float partialTicks)
     {
-        availablePacksList.draw(partialTicks);
-        appliedPacksList.draw(partialTicks);
+        availablePacksList.draw(guiGraphics, partialTicks);
+        appliedPacksList.draw(guiGraphics, partialTicks);
 
-        drawCenteredString(fontRenderer, I18n.format("mobends.gui.unusedpacks"), x + GuiPacksWindow.EDITOR_WIDTH / 4, y + 8, 0xffffff);
-        drawCenteredString(fontRenderer, I18n.format("mobends.gui.appliedpacks"), x + GuiPacksWindow.EDITOR_WIDTH * 3 / 4 + 6, y + 8, 0xffffff);
+        String unusedText = I18n.get("mobends.gui.unusedpacks");
+        String appliedText = I18n.get("mobends.gui.appliedpacks");
+        guiGraphics.drawCenteredString(font, unusedText, x + GuiPacksWindow.EDITOR_WIDTH / 4, y + 8, 0xffffff);
+        guiGraphics.drawCenteredString(font, appliedText, x + GuiPacksWindow.EDITOR_WIDTH * 3 / 4 + 6, y + 8, 0xffffff);
 
         final GuiPackEntry element = dragger.getDraggedElement();
         if (element != null)
         {
-            element.draw(partialTicks);
+            element.draw(guiGraphics, partialTicks);
         }
     }
 

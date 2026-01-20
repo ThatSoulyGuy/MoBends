@@ -2,13 +2,13 @@ package goblinbob.mobends.standard.animation.bit.player;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.world.entity.HumanoidArm;
 
 public class PunchAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-	private final EnumHandSide fistPunchArm;
+	private final HumanoidArm fistPunchArm;
 
-	public PunchAnimationBit(EnumHandSide fistPunchArm)
+	public PunchAnimationBit(HumanoidArm fistPunchArm)
 	{
 		this.fistPunchArm = fistPunchArm;
 	}
@@ -35,7 +35,7 @@ public class PunchAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.leftForeLeg.rotation.setSmoothness(.3F).orientX(30);
 		}
 
-		if (this.fistPunchArm == EnumHandSide.RIGHT)
+		if (this.fistPunchArm == HumanoidArm.RIGHT)
 		{
 			data.rightArm.rotation.setSmoothness(.9F).orientY(-90).rotateX(-90.0f + data.headPitch.get()).rotateY(10);
 			data.rightForeArm.rotation.setSmoothness(.9F).orientX(0);

@@ -3,9 +3,10 @@ package goblinbob.mobends.core.env;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.module.IModule;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.loading.FMLPaths;
+import org.slf4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,6 +25,7 @@ import java.util.Map;
  */
 public class EnvironmentModule
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static EnvironmentModule INSTANCE;
     private static final EnvironmentConfig DEFAULT_CONFIG = new EnvironmentConfig();
     static
@@ -72,7 +74,7 @@ public class EnvironmentModule
         }
         catch(IOException e)
         {
-            Core.LOG.warning("Couldn't load the local environment configuration.");
+            LOGGER.warn("Couldn't load the local environment configuration.");
         }
 
         return null;
@@ -86,9 +88,9 @@ public class EnvironmentModule
     public static class Factory implements IModule
     {
         @Override
-        public void preInit(FMLPreInitializationEvent event)
+        public void init()
         {
-            EnvironmentModule.INSTANCE = new EnvironmentModule(event.getModConfigurationDirectory());
+            EnvironmentModule.INSTANCE = new EnvironmentModule(FMLPaths.CONFIGDIR.get().toFile());
         }
 
         @Override

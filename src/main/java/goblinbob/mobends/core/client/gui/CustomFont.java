@@ -1,7 +1,7 @@
 package goblinbob.mobends.core.client.gui;
 
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
 

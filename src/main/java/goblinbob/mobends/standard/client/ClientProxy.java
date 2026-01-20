@@ -4,23 +4,23 @@ import goblinbob.mobends.core.Core;
 import goblinbob.mobends.core.addon.AddonHelper;
 import goblinbob.mobends.standard.DefaultAddon;
 import goblinbob.mobends.standard.client.event.RenderingEventHandler;
-import goblinbob.mobends.standard.client.renderer.entity.RenderBendsSpectralArrow;
-import goblinbob.mobends.standard.client.renderer.entity.RenderBendsTippedArrow;
 import goblinbob.mobends.standard.main.CommonProxy;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraft.entity.projectile.EntitySpectralArrow;
-import net.minecraft.entity.projectile.EntityTippedArrow;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 
+/**
+ * Client-side proxy for Mo' Bends.
+ * Updated for Minecraft 1.20.1 - entity rendering registration is now done
+ * through the FMLClientSetupEvent in the main mod class.
+ */
 public class ClientProxy extends CommonProxy
 {
-	
+
 	@Override
 	public void preInit()
 	{
-		RenderingRegistry.registerEntityRenderingHandler(EntitySpectralArrow.class, RenderBendsSpectralArrow::new);
-		RenderingRegistry.registerEntityRenderingHandler(EntityTippedArrow.class, RenderBendsTippedArrow::new);
+		// Entity rendering registration is now done through EntityRenderers.register()
+		// in the main mod class during FMLClientSetupEvent
 	}
 
 	@Override
@@ -31,14 +31,14 @@ public class ClientProxy extends CommonProxy
 		// Registering the standard set of animations.
 		AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());
 	}
-	
+
 	@Override
 	public void postInit() {}
-	
+
 	@Override
 	public void createCore()
 	{
 		Core.createAsClient();
 	}
-	
+
 }

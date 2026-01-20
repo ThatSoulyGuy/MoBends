@@ -1,22 +1,32 @@
 package goblinbob.mobends.standard.client.model.armor;
 
-import net.minecraft.client.model.ModelBox;
-import net.minecraft.client.model.ModelRenderer;
+import goblinbob.mobends.core.client.model.MutatedBox;
+import net.minecraft.client.model.geom.ModelPart;
 
 import java.util.*;
 
+/**
+ * Stores MutatedBox instances mapped to ModelPart instances.
+ * Updated for Minecraft 1.20.1 - uses modern ModelPart and our custom MutatedBox.
+ *
+ * @deprecated This class is part of the legacy armor rendering system.
+ *             Use the three-tier rendering system caching infrastructure
+ *             (ArmorStructureCache, ArmorGeometryCache) instead.
+ *             This class is kept for backward compatibility and will be removed in a future version.
+ */
+@Deprecated
 public class PartBoxes
 {
-    protected HashMap<ModelRenderer, List<ModelBox>> modelToBoxesMap = new HashMap<>();
+    protected HashMap<ModelPart, List<MutatedBox>> modelToBoxesMap = new HashMap<>();
 
-    public void put(ModelRenderer renderer, ModelBox box)
+    public void put(ModelPart part, MutatedBox box)
     {
-        if (!modelToBoxesMap.containsKey(renderer))
+        if (!modelToBoxesMap.containsKey(part))
         {
-            modelToBoxesMap.put(renderer, new LinkedList<>());
+            modelToBoxesMap.put(part, new LinkedList<>());
         }
 
-        modelToBoxesMap.get(renderer).add(box);
+        modelToBoxesMap.get(part).add(box);
     }
 
     public void clear()
@@ -24,17 +34,17 @@ public class PartBoxes
         this.modelToBoxesMap.clear();
     }
 
-    public void clearRenderer(ModelRenderer renderer)
+    public void clearPart(ModelPart part)
     {
-        modelToBoxesMap.remove(renderer);
+        modelToBoxesMap.remove(part);
     }
 
-    public Set<Map.Entry<ModelRenderer, List<ModelBox>>> entrySet()
+    public Set<Map.Entry<ModelPart, List<MutatedBox>>> entrySet()
     {
         return modelToBoxesMap.entrySet();
     }
 
-    public Set<ModelRenderer> keySet()
+    public Set<ModelPart> keySet()
     {
         return modelToBoxesMap.keySet();
     }

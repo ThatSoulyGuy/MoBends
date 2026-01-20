@@ -1,103 +1,113 @@
 package goblinbob.mobends.core.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import goblinbob.mobends.core.util.IColorRead;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.vertex.VertexBuffer;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.client.renderer.vertex.VertexFormatElement;
-
-import java.nio.ByteBuffer;
-import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 
 public class Mesh
 {
-	
+
 	private VertexFormat vertexFormat;
 	private BufferBuilder bufferBuilder;
-	private VertexBuffer buffer;
-	
+	private VertexFormat.Mode drawMode;
+
 	public Mesh(VertexFormat vertexFormat, int maxVertices)
 	{
 		this.vertexFormat = vertexFormat;
-		this.bufferBuilder = new BufferBuilder(vertexFormat.getNextOffset() * maxVertices);
+		this.bufferBuilder = Tesselator.getInstance().getBuilder();
 	}
-	
-	public void beginDrawing(int drawMode)
+
+	/**
+	 * Legacy constructor for backward compatibility.
+	 * Uses POSITION_TEX_COLOR_NORMAL format.
+	 */
+	public Mesh(int maxVertices)
 	{
-		this.bufferBuilder.begin(drawMode, this.vertexFormat);
+		this(DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL, maxVertices);
 	}
-	
+
+	public void beginDrawing(VertexFormat.Mode mode)
+	{
+		this.drawMode = mode;
+		this.bufferBuilder.begin(mode, this.vertexFormat);
+	}
+
+	/**
+	 * Legacy beginDrawing for backward compatibility.
+	 * Uses QUADS mode by default.
+	 */
+	public void beginDrawing()
+	{
+		this.beginDrawing(VertexFormat.Mode.QUADS);
+	}
+
 	public void finishDrawing()
 	{
-		this.bufferBuilder.finishDrawing();
-		this.buffer = new VertexBuffer(this.vertexFormat);
-		this.buffer.bufferData(this.bufferBuilder.getByteBuffer());
+		BufferUploader.drawWithShader(this.bufferBuilder.end());
 	}
-	
+
 	public Mesh pos(double x, double y, double z)
 	{
-		this.bufferBuilder.pos(x, y, z);
+		this.bufferBuilder.vertex(x, y, z);
 		return this;
 	}
-	
+
 	public Mesh normal(float x, float y, float z)
 	{
 		this.bufferBuilder.normal(x, y, z);
 		return this;
 	}
-	
+
 	public Mesh tex(double u, double v)
 	{
-		this.bufferBuilder.tex(u, v);
+		this.bufferBuilder.uv((float) u, (float) v);
 		return this;
 	}
-	
+
 	public Mesh color(IColorRead color)
 	{
 		this.bufferBuilder.color(color.getR(), color.getG(), color.getB(), color.getA());
 		return this;
 	}
-	
+
 	public void endVertex()
 	{
 		this.bufferBuilder.endVertex();
 	}
-	
+
 	public void display()
 	{
-		if (this.bufferBuilder.getVertexCount() > 0)
-        {
-            int i = this.vertexFormat.getNextOffset();
-            ByteBuffer bytebuffer = this.bufferBuilder.getByteBuffer();
-            List<VertexFormatElement> list = this.vertexFormat.getElements();
+		// In 1.20.1, drawing is done automatically via finishDrawing()
+		// This method is kept for compatibility but mesh should use finishDrawing() instead
+	}
 
-            for (int j = 0; j < list.size(); ++j)
-            {
-                VertexFormatElement vertexformatelement = list.get(j);
-                VertexFormatElement.EnumUsage usage = vertexformatelement.getUsage();
-                bytebuffer.position(this.vertexFormat.getOffset(j));
-
-                // moved to VertexFormatElement.preDraw
-                usage.preDraw(this.vertexFormat, j, i, bytebuffer);
-            }
-
-            GlStateManager.glDrawArrays(this.bufferBuilder.getDrawMode(), 0, this.bufferBuilder.getVertexCount());
-            int i1 = 0;
-
-            for (int j1 = list.size(); i1 < j1; ++i1)
-            {
-                VertexFormatElement vertexformatelement1 = list.get(i1);
-
-                // moved to VertexFormatElement.postDraws
-                vertexformatelement1.getUsage().postDraw(this.vertexFormat, i1, i, bytebuffer);
-            }
-        }
+	/**
+	 * Render the mesh using MultiBufferSource.
+	 * TODO: This needs proper implementation with stored vertex data.
+	 * Currently a stub that does nothing since mesh data isn't stored after finishDrawing().
+	 */
+	public void render(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, int packedLight)
+	{
+		// TODO: Implement proper mesh rendering with stored vertex data
+		// For now, this is a no-op as the mesh rendering system needs redesign for 1.20.1
+		// The mesh data is consumed by finishDrawing() and not stored for later rendering.
 	}
 
 	public BufferBuilder getBufferBuilder()
 	{
 		return this.bufferBuilder;
 	}
-	
+
 }

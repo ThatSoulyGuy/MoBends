@@ -1,5 +1,7 @@
 package goblinbob.mobends.core.mutators;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.data.IEntityDataFactory;
@@ -9,18 +11,26 @@ import goblinbob.mobends.core.math.vector.SmoothVector3f;
 import goblinbob.mobends.core.network.NetworkConfiguration;
 import goblinbob.mobends.core.pack.BendsPackPerformer;
 import goblinbob.mobends.core.util.GUtil;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.math.MathHelper;
+import goblinbob.mobends.mixin.LivingEntityRendererAccessor;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Collection;
 import java.util.List;
 
-public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLivingBase, M extends ModelBase>
+/**
+ * Base class for entity model mutators.
+ * Updated for Minecraft 1.20.1.
+ *
+ * @param <D> The entity data type
+ * @param <E> The entity type
+ * @param <M> The model type
+ */
+public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEntity, M extends EntityModel<E>>
 {
-
     protected M vanillaModel;
     protected float headYaw;
     protected float headPitch;
@@ -28,8 +38,8 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
     protected float limbSwingAmount;
     protected float swingProgress;
 
-    private IEntityDataFactory<E> dataFactory;
-    protected List<LayerRenderer<?>> layerRenderers;
+    private final IEntityDataFactory<E> dataFactory;
+    protected List<RenderLayer<E, M>> layerRenderers;
 
     public Mutator(IEntityDataFactory<E> dataFactory)
     {
@@ -37,20 +47,23 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
     }
 
     /**
-     * Used to fetch private data from the original
-     * renderer.
+     * Used to fetch private data from the original renderer.
      */
-    public void fetchFields(RenderLivingBase<? extends E> renderer)
+    @SuppressWarnings("unchecked")
+    public void fetchFields(LivingEntityRenderer<E, M> renderer)
     {
-        // Getting the layer renderers
-        this.layerRenderers = (List<LayerRenderer<?>>) ((Object) renderer.layerRenderers); // Type safety hack...
+        // Getting the layer renderers using the accessor mixin
+        if (renderer instanceof LivingEntityRendererAccessor)
+        {
+            this.layerRenderers = (List<RenderLayer<E, M>>) ((LivingEntityRendererAccessor) renderer).getLayers();
+        }
     }
 
     public abstract void storeVanillaModel(M model);
 
     /**
-     * Sets the model parameter back to it's vanilla
-     * state. Used to demutate the model.
+     * Sets the model parameter back to its vanilla state.
+     * Used to demutate the model.
      */
     public abstract void applyVanillaModel(M model);
 
@@ -59,13 +72,13 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
      * and if it's a vanilla model, it stores the vanilla layers
      * for future mutation reversal.
      */
-    public abstract void swapLayer(RenderLivingBase<? extends E> renderer, int index, boolean isModelVanilla);
+    public abstract void swapLayer(LivingEntityRenderer<E, M> renderer, int index, boolean isModelVanilla);
 
     /**
      * Swaps the custom layers back with the vanilla layers.
      * Used to demutate the model.
      */
-    public abstract void deswapLayer(RenderLivingBase<? extends E> renderer, int index);
+    public abstract void deswapLayer(LivingEntityRenderer<E, M> renderer, int index);
 
     /**
      * Creates all the custom parts you need! It swaps all the
@@ -73,14 +86,17 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
      */
     public abstract boolean createParts(M original, float scaleFactor);
 
-    public boolean mutate(RenderLivingBase<? extends E> renderer)
+    /**
+     * Mutate the renderer's model.
+     */
+    public boolean mutate(LivingEntityRenderer<E, M> renderer)
     {
-        if (renderer.getMainModel() == null || this.shouldModelBeSkipped(renderer.getMainModel()))
+        M model = renderer.getModel();
+        if (model == null || this.shouldModelBeSkipped(model))
             return false;
 
         this.fetchFields(renderer);
 
-        M model = (M) renderer.getMainModel();
         float scaleFactor = 0F;
 
         boolean isModelVanilla = this.isModelVanilla(model);
@@ -107,12 +123,11 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
     /**
      * Performs the steps needed to demutate the model.
      */
-    public void demutate(RenderLivingBase<? extends E> renderer)
+    public void demutate(LivingEntityRenderer<E, M> renderer)
     {
-        if (this.shouldModelBeSkipped(renderer.getMainModel()))
+        M model = renderer.getModel();
+        if (this.shouldModelBeSkipped(model))
             return;
-
-        M model = (M) renderer.getMainModel();
 
         this.applyVanillaModel(model);
 
@@ -125,21 +140,24 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
         }
     }
 
-    public void updateModel(E entity, RenderLivingBase<? extends E> renderer, float partialTicks)
+    /**
+     * Update the model parameters from the entity state.
+     */
+    public void updateModel(E entity, LivingEntityRenderer<E, M> renderer, float partialTicks)
     {
-        boolean shouldSit = entity.isRiding()
-                && (entity.getRidingEntity() != null && entity.getRidingEntity().shouldRiderSit());
-        float f = GUtil.interpolateRotation(entity.prevRenderYawOffset, entity.renderYawOffset, partialTicks);
-        float f1 = GUtil.interpolateRotation(entity.prevRotationYawHead, entity.rotationYawHead, partialTicks);
+        boolean shouldSit = entity.isPassenger()
+                && (entity.getVehicle() != null && entity.getVehicle().shouldRiderSit());
+
+        float f = Mth.rotLerp(partialTicks, entity.yBodyRotO, entity.yBodyRot);
+        float f1 = Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot);
         float yaw = f1 - f;
 
-        if (shouldSit && entity.getRidingEntity() instanceof EntityLivingBase)
+        if (shouldSit && entity.getVehicle() instanceof LivingEntity)
         {
-            EntityLivingBase entitylivingbase = (EntityLivingBase) entity.getRidingEntity();
-            f = GUtil.interpolateRotation(entitylivingbase.prevRenderYawOffset, entitylivingbase.renderYawOffset,
-                    partialTicks);
+            LivingEntity vehicle = (LivingEntity) entity.getVehicle();
+            f = Mth.rotLerp(partialTicks, vehicle.yBodyRotO, vehicle.yBodyRot);
             yaw = f1 - f;
-            float f3 = MathHelper.wrapDegrees(yaw);
+            float f3 = Mth.wrapDegrees(yaw);
 
             if (f3 < -85.0F)
                 f3 = -85.0F;
@@ -154,16 +172,17 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
             yaw = f1 - f;
         }
 
-        float pitch = entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks;
+        float pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
         float f5 = 0.0F;
         float f6 = 0.0F;
 
-        if (!entity.isRiding())
+        if (!entity.isPassenger())
         {
-            f5 = entity.prevLimbSwingAmount + (entity.limbSwingAmount - entity.prevLimbSwingAmount) * partialTicks;
-            f6 = entity.limbSwing - entity.limbSwingAmount * (1.0F - partialTicks);
+            // 1.20.1 uses walkAnimation for limb swing
+            f5 = entity.walkAnimation.speed(partialTicks);
+            f6 = entity.walkAnimation.position(partialTicks);
 
-            if (entity.isChild())
+            if (entity.isBaby())
                 f6 *= 3.0F;
             if (f5 > 1.0F)
                 f5 = 1.0F;
@@ -174,13 +193,16 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
         this.headPitch = pitch;
         this.limbSwing = f6;
         this.limbSwingAmount = f5;
-        this.swingProgress = entity.getSwingProgress(partialTicks);
+        this.swingProgress = entity.getAttackAnim(partialTicks);
     }
 
-    public void performAnimations(D data, String animatedEntityKey, RenderLivingBase<? extends E> renderer, float partialTicks)
+    /**
+     * Perform animations on the entity data.
+     */
+    public void performAnimations(D data, String animatedEntityKey, LivingEntityRenderer<E, M> renderer, float partialTicks)
     {
-        data.headYaw.set(MathHelper.wrapDegrees(this.headYaw));
-        data.headPitch.set(MathHelper.wrapDegrees(this.headPitch));
+        data.headYaw.set(Mth.wrapDegrees(this.headYaw));
+        data.headPitch.set(Mth.wrapDegrees(this.headPitch));
         data.limbSwing.set(this.limbSwing);
         data.limbSwingAmount.set(this.limbSwingAmount);
         data.swingProgress.set(this.swingProgress);
@@ -206,13 +228,22 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
         }
     }
 
+    /**
+     * Sync the mutator state with the entity data.
+     */
     public abstract void syncUpWithData(D data);
 
+    /**
+     * Get existing data for the entity.
+     */
     public D getData(E entity)
     {
         return EntityDatabase.instance.get(entity);
     }
 
+    /**
+     * Get or create data for the entity.
+     */
     public D getOrMakeData(E entity)
     {
         return EntityDatabase.instance.getOrMake(dataFactory, entity);
@@ -226,7 +257,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
     /**
      * Returns true, if this model should skip the mutation process.
      */
-    public abstract boolean shouldModelBeSkipped(ModelBase model);
+    public abstract boolean shouldModelBeSkipped(EntityModel<?> model);
 
     /**
      * Called right after this mutator has been refreshed.
@@ -236,4 +267,32 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends EntityLiv
         // No default behaviour
     }
 
+    /**
+     * Render the mutated model.
+     * This is the new 1.20.1 rendering method using PoseStack and VertexConsumer.
+     */
+    public abstract void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
+                                       int packedLight, int packedOverlay,
+                                       float red, float green, float blue, float alpha);
+
+    /**
+     * Whether the mutator should render custom models.
+     */
+    public abstract boolean shouldRenderCustom();
+
+    /**
+     * Called before rendering to set up the render context.
+     */
+    public void beforeRender(D data, E entity, float partialTicks, PoseStack poseStack)
+    {
+        // Default implementation - subclasses can override
+    }
+
+    /**
+     * Called after rendering to clean up.
+     */
+    public void afterRender(D data, E entity, float partialTicks, PoseStack poseStack)
+    {
+        // Default implementation - subclasses can override
+    }
 }

@@ -47,6 +47,15 @@ public class Quaternion
 	{
 		this.set(0, 0, 0, 1);
 	}
+
+	/**
+	 * Returns true if this quaternion is approximately the identity quaternion (0, 0, 0, 1).
+	 */
+	public boolean isIdentity()
+	{
+		final float epsilon = 0.0001f;
+		return Math.abs(x) < epsilon && Math.abs(y) < epsilon && Math.abs(z) < epsilon && Math.abs(w - 1.0f) < epsilon;
+	}
 	
 	public void normalise()
 	{

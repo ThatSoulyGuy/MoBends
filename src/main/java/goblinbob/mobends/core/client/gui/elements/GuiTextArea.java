@@ -1,20 +1,25 @@
 package goblinbob.mobends.core.client.gui.elements;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ChatAllowedCharacters;
-import net.minecraft.util.math.MathHelper;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.SharedConstants;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.util.Mth;
 
-public class GuiTextArea extends Gui
+import java.util.function.Predicate;
+
+public class GuiTextArea
 {
-    private final FontRenderer fontRendererInstance;
+    private final Font font;
     public int xPosition;
     public int yPosition;
     public int width;
@@ -34,32 +39,32 @@ public class GuiTextArea extends Gui
     private int enabledColor = 14737632;
     private int disabledColor = 7368816;
     private boolean visible = true;
-    private Predicate<String> validator = Predicates.<String>alwaysTrue();
+    private Predicate<String> validator = s -> true;
 
-    public GuiTextArea(FontRenderer fontRenderer, int width, int height)
+    public GuiTextArea(Font font, int width, int height)
     {
-        this.fontRendererInstance = fontRenderer;
+        this.font = font;
         this.xPosition = 0;
         this.yPosition = 0;
         this.width = width;
         this.height = height;
     }
-    
+
     public void update(int mouseX, int mouseY) {
     	if(!this.isEnabled || !this.isFocused() || !this.visible)
     		return;
-    	
+
     	updateCursorCounter();
     }
-    
+
     public void updateCursorCounter()
     {
         ++this.cursorCounter;
     }
-    
+
     public void setText(String textIn)
     {
-        if (this.validator.apply(textIn))
+        if (this.validator.test(textIn))
         {
             if (deosTextFit(textIn))
             {
@@ -78,11 +83,11 @@ public class GuiTextArea extends Gui
     public boolean deosTextFit(String textIn) {
 		return true;
 	}
-    
+
     public void trimTextToFit() {
     	//TODO Do this.
     }
-    
+
     public String getText()
     {
         return this.text;
@@ -109,7 +114,7 @@ public class GuiTextArea extends Gui
     public void writeText(String textToWrite)
     {
         String s = "";
-        String s1 = ChatAllowedCharacters.filterAllowedCharacters(textToWrite);
+        String s1 = SharedConstants.filterText(textToWrite);
         int i = this.cursorPosition < this.selectionEnd ? this.cursorPosition : this.selectionEnd;
         int j = this.cursorPosition < this.selectionEnd ? this.selectionEnd : this.cursorPosition;
 
@@ -120,23 +125,15 @@ public class GuiTextArea extends Gui
 
         int l;
 
-        /*if (k < s1.length())
-        {
-            s = s + s1.substring(0, k);
-            l = k;
-        }
-        else
-        {*/
-            s = s + s1;
-            l = s1.length();
-        //}
+        s = s + s1;
+        l = s1.length();
 
         if (!this.text.isEmpty() && j < this.text.length())
         {
             s = s + this.text.substring(j);
         }
 
-        if (this.validator.apply(s))
+        if (this.validator.test(s))
         {
             this.text = s;
             this.moveCursorBy(i - this.selectionEnd + l);
@@ -191,7 +188,7 @@ public class GuiTextArea extends Gui
                     s = s + this.text.substring(j);
                 }
 
-                if (this.validator.apply(s))
+                if (this.validator.test(s))
                 {
                     this.text = s;
 
@@ -280,7 +277,7 @@ public class GuiTextArea extends Gui
     {
         this.cursorPosition = pos;
         int i = this.text.length();
-        this.cursorPosition = MathHelper.clamp(this.cursorPosition, 0, i);
+        this.cursorPosition = Mth.clamp(this.cursorPosition, 0, i);
         this.setSelectionPos(this.cursorPosition);
     }
 
@@ -303,35 +300,35 @@ public class GuiTextArea extends Gui
     /**
      * Call this method from your GuiScreen to process the keys into the textbox
      */
-    public boolean textboxKeyTyped(char typedChar, int keyCode)
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers)
     {
         if (!this.isFocused)
         {
             return false;
         }
-        else if (GuiScreen.isKeyComboCtrlA(keyCode))
+        else if (Screen.isSelectAll(keyCode))
         {
             this.setCursorPositionEnd();
             this.setSelectionPos(0);
             return true;
         }
-        else if (GuiScreen.isKeyComboCtrlC(keyCode))
+        else if (Screen.isCopy(keyCode))
         {
-            GuiScreen.setClipboardString(this.getSelectedText());
+            Minecraft.getInstance().keyboardHandler.setClipboard(this.getSelectedText());
             return true;
         }
-        else if (GuiScreen.isKeyComboCtrlV(keyCode))
+        else if (Screen.isPaste(keyCode))
         {
             if (this.isEnabled)
             {
-                this.writeText(GuiScreen.getClipboardString());
+                this.writeText(Minecraft.getInstance().keyboardHandler.getClipboard());
             }
 
             return true;
         }
-        else if (GuiScreen.isKeyComboCtrlX(keyCode))
+        else if (Screen.isCut(keyCode))
         {
-            GuiScreen.setClipboardString(this.getSelectedText());
+            Minecraft.getInstance().keyboardHandler.setClipboard(this.getSelectedText());
 
             if (this.isEnabled)
             {
@@ -344,9 +341,9 @@ public class GuiTextArea extends Gui
         {
             switch (keyCode)
             {
-                case 14:
+                case 259: // Backspace
 
-                    if (GuiScreen.isCtrlKeyDown())
+                    if (Screen.hasControlDown())
                     {
                         if (this.isEnabled)
                         {
@@ -359,9 +356,9 @@ public class GuiTextArea extends Gui
                     }
 
                     return true;
-                case 199:
+                case 268: // Home
 
-                    if (GuiScreen.isShiftKeyDown())
+                    if (Screen.hasShiftDown())
                     {
                         this.setSelectionPos(0);
                     }
@@ -371,11 +368,11 @@ public class GuiTextArea extends Gui
                     }
 
                     return true;
-                case 203:
+                case 263: // Left arrow
 
-                    if (GuiScreen.isShiftKeyDown())
+                    if (Screen.hasShiftDown())
                     {
-                        if (GuiScreen.isCtrlKeyDown())
+                        if (Screen.hasControlDown())
                         {
                             this.setSelectionPos(this.getNthWordFromPos(-1, this.getSelectionEnd()));
                         }
@@ -384,7 +381,7 @@ public class GuiTextArea extends Gui
                             this.setSelectionPos(this.getSelectionEnd() - 1);
                         }
                     }
-                    else if (GuiScreen.isCtrlKeyDown())
+                    else if (Screen.hasControlDown())
                     {
                         this.setCursorPosition(this.getNthWordFromCursor(-1));
                     }
@@ -394,11 +391,11 @@ public class GuiTextArea extends Gui
                     }
 
                     return true;
-                case 205:
+                case 262: // Right arrow
 
-                    if (GuiScreen.isShiftKeyDown())
+                    if (Screen.hasShiftDown())
                     {
-                        if (GuiScreen.isCtrlKeyDown())
+                        if (Screen.hasControlDown())
                         {
                             this.setSelectionPos(this.getNthWordFromPos(1, this.getSelectionEnd()));
                         }
@@ -407,7 +404,7 @@ public class GuiTextArea extends Gui
                             this.setSelectionPos(this.getSelectionEnd() + 1);
                         }
                     }
-                    else if (GuiScreen.isCtrlKeyDown())
+                    else if (Screen.hasControlDown())
                     {
                         this.setCursorPosition(this.getNthWordFromCursor(1));
                     }
@@ -417,9 +414,9 @@ public class GuiTextArea extends Gui
                     }
 
                     return true;
-                case 207:
+                case 269: // End
 
-                    if (GuiScreen.isShiftKeyDown())
+                    if (Screen.hasShiftDown())
                     {
                         this.setSelectionPos(this.text.length());
                     }
@@ -429,9 +426,9 @@ public class GuiTextArea extends Gui
                     }
 
                     return true;
-                case 211:
+                case 261: // Delete
 
-                    if (GuiScreen.isCtrlKeyDown())
+                    if (Screen.hasControlDown())
                     {
                         if (this.isEnabled)
                         {
@@ -445,28 +442,38 @@ public class GuiTextArea extends Gui
 
                     return true;
                 default:
-
-                    if (ChatAllowedCharacters.isAllowedCharacter(typedChar))
-                    {
-                        if (this.isEnabled)
-                        {
-                            this.writeText(Character.toString(typedChar));
-                        }
-
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return false;
             }
         }
     }
 
     /**
+     * Called when a character is typed
+     */
+    public boolean charTyped(char typedChar, int modifiers)
+    {
+        if (!this.isFocused)
+        {
+            return false;
+        }
+
+        if (SharedConstants.isAllowedChatCharacter(typedChar))
+        {
+            if (this.isEnabled)
+            {
+                this.writeText(Character.toString(typedChar));
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Called when mouse is clicked, regardless as to whether it is over this button or not.
      */
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton)
+    public void mouseClicked(double mouseX, double mouseY, int mouseButton)
     {
         boolean flag = mouseX >= this.xPosition && mouseX < this.xPosition + this.width && mouseY >= this.yPosition && mouseY < this.yPosition + this.height;
 
@@ -477,35 +484,35 @@ public class GuiTextArea extends Gui
 
         if (this.isFocused && flag && mouseButton == 0)
         {
-            int i = mouseX - this.xPosition;
+            int i = (int)mouseX - this.xPosition;
 
             if (this.enableBackgroundDrawing)
             {
                 i -= 4;
             }
 
-            String s = this.fontRendererInstance.trimStringToWidth(this.text, this.getWidth());
-            this.setCursorPosition(this.fontRendererInstance.trimStringToWidth(s, i).length());
+            String s = this.font.plainSubstrByWidth(this.text, this.getWidth());
+            this.setCursorPosition(this.font.plainSubstrByWidth(s, i).length());
         }
     }
 
     /**
      * Draws the textbox
      */
-    public void drawTextBox()
+    public void drawTextBox(GuiGraphics guiGraphics)
     {
         if (this.getVisible())
         {
             if (this.getEnableBackgroundDrawing())
             {
-                drawRect(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, -6250336);
-                drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, -16777216);
+                guiGraphics.fill(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, -6250336);
+                guiGraphics.fill(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, -16777216);
             }
 
             int i = this.isEnabled ? this.enabledColor : this.disabledColor;
             int j = this.cursorPosition;
             int k = this.selectionEnd;
-            String s = this.fontRendererInstance.trimStringToWidth(this.text, this.getWidth());
+            String s = this.font.plainSubstrByWidth(this.text, this.getWidth());
             boolean flag = j >= 0 && j <= s.length();
             boolean flag1 = this.isFocused && this.cursorCounter / 6 % 2 == 0 && flag;
             int l = this.enableBackgroundDrawing ? this.xPosition + 4 : this.xPosition;
@@ -520,7 +527,7 @@ public class GuiTextArea extends Gui
             if (!s.isEmpty())
             {
                 String s1 = flag ? s.substring(0, j) : s;
-                j1 = this.fontRendererInstance.drawStringWithShadow(s1, (float)l, (float)i1, i);
+                j1 = guiGraphics.drawString(this.font, s1, l, i1, i, true);
             }
 
             boolean flag2 = this.cursorPosition < this.text.length();
@@ -538,25 +545,25 @@ public class GuiTextArea extends Gui
 
             if (!s.isEmpty() && flag && j < s.length())
             {
-                j1 = this.fontRendererInstance.drawStringWithShadow(s.substring(j), (float)j1, (float)i1, i);
+                guiGraphics.drawString(this.font, s.substring(j), j1, i1, i, true);
             }
 
             if (flag1)
             {
                 if (flag2)
                 {
-                    Gui.drawRect(k1, i1 - 1, k1 + 1, i1 + 1 + this.fontRendererInstance.FONT_HEIGHT, -3092272);
+                    guiGraphics.fill(k1, i1 - 1, k1 + 1, i1 + 1 + this.font.lineHeight, -3092272);
                 }
                 else
                 {
-                    this.fontRendererInstance.drawStringWithShadow("_", (float)k1, (float)i1, i);
+                    guiGraphics.drawString(this.font, "_", k1, i1, i, true);
                 }
             }
 
             if (k != j)
             {
-                int l1 = l + this.fontRendererInstance.getStringWidth(s.substring(0, k));
-                this.drawSelectionBox(k1, i1 - 1, l1 - 1, i1 + 1 + this.fontRendererInstance.FONT_HEIGHT);
+                int l1 = l + this.font.width(s.substring(0, k));
+                this.drawSelectionBox(guiGraphics, k1, i1 - 1, l1 - 1, i1 + 1 + this.font.lineHeight);
             }
         }
     }
@@ -564,7 +571,7 @@ public class GuiTextArea extends Gui
     /**
      * Draws the blue selection box.
      */
-    private void drawSelectionBox(int _startX, int _startY, int _endX, int _endY)
+    private void drawSelectionBox(GuiGraphics guiGraphics, int _startX, int _startY, int _endX, int _endY)
     {
         int startX = _startX;
         int startY = _startY;
@@ -595,20 +602,20 @@ public class GuiTextArea extends Gui
             startX = this.xPosition + this.width;
         }
 
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder vertexbuffer = tessellator.getBuffer();
-        GlStateManager.color(0.0F, 0.0F, 255.0F, 255.0F);
-        GlStateManager.disableTexture2D();
-        GlStateManager.enableColorLogic();
-        GlStateManager.colorLogicOp(GlStateManager.LogicOp.OR_REVERSE);
-        vertexbuffer.begin(7, DefaultVertexFormats.POSITION);
-        vertexbuffer.pos((double)startX, (double)endY, 0.0D).endVertex();
-        vertexbuffer.pos((double)endX, (double)endY, 0.0D).endVertex();
-        vertexbuffer.pos((double)endX, (double)startY, 0.0D).endVertex();
-        vertexbuffer.pos((double)startX, (double)startY, 0.0D).endVertex();
-        tessellator.draw();
-        GlStateManager.disableColorLogic();
-        GlStateManager.enableTexture2D();
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder bufferBuilder = tesselator.getBuilder();
+        RenderSystem.setShader(GameRenderer::getPositionShader);
+        RenderSystem.setShaderColor(0.0F, 0.0F, 1.0F, 1.0F);
+        RenderSystem.enableColorLogicOp();
+        RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
+        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+        bufferBuilder.vertex((double)startX, (double)endY, 0.0D).endVertex();
+        bufferBuilder.vertex((double)endX, (double)endY, 0.0D).endVertex();
+        bufferBuilder.vertex((double)endX, (double)startY, 0.0D).endVertex();
+        bufferBuilder.vertex((double)startX, (double)startY, 0.0D).endVertex();
+        BufferUploader.drawWithShader(bufferBuilder.end());
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.disableColorLogicOp();
     }
 
     /**
@@ -740,7 +747,7 @@ public class GuiTextArea extends Gui
     {
         this.visible = isVisible;
     }
-	
+
 	public void setPosition(int x, int y) {
 		this.xPosition = x;
 		this.yPosition = y;

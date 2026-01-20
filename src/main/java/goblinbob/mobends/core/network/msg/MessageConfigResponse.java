@@ -1,67 +1,68 @@
 package goblinbob.mobends.core.network.msg;
 
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.network.NetworkConfiguration;
+import org.slf4j.Logger;
 import goblinbob.mobends.core.network.SharedProperty;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 /**
  * This message is sent by the server to a client as a response
  * to a {@link MessageConfigRequest} message.
  */
-public class MessageConfigResponse implements IMessage
+public class MessageConfigResponse
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    private CompoundTag configData;
 
     /**
-     * Necessary empty constructor, because of dynamic instancing.
+     * Necessary empty constructor.
      */
-    public MessageConfigResponse() {}
-
-    @Override
-    public void toBytes(ByteBuf buf)
+    public MessageConfigResponse()
     {
-        NBTTagCompound tag = new NBTTagCompound();
-
-        NetworkConfiguration.instance.getSharedConfig().writeToNBT(tag);
-
-        ByteBufUtils.writeTag(buf, tag);
+        this.configData = new CompoundTag();
+        NetworkConfiguration.instance.getSharedConfig().writeToNBT(this.configData);
     }
 
-    @Override
-    public void fromBytes(ByteBuf buf)
+    private MessageConfigResponse(CompoundTag configData)
     {
-        NBTTagCompound tag = ByteBufUtils.readTag(buf);
+        this.configData = configData;
+    }
+
+    public static void encode(MessageConfigResponse msg, FriendlyByteBuf buf)
+    {
+        buf.writeNbt(msg.configData);
+    }
+
+    public static MessageConfigResponse decode(FriendlyByteBuf buf)
+    {
+        CompoundTag tag = buf.readNbt();
         if (tag == null)
         {
-            Core.LOG.severe("An error occurred while receiving server configuration.");
-            return;
+            LOGGER.error("An error occurred while receiving server configuration.");
+            return new MessageConfigResponse(new CompoundTag());
         }
-
-        NetworkConfiguration.instance.getSharedConfig().readFromNBT(tag);
+        return new MessageConfigResponse(tag);
     }
 
-    public static class Handler implements IMessageHandler<MessageConfigResponse, IMessage>
+    public static void handle(MessageConfigResponse msg, Supplier<NetworkEvent.Context> ctx)
     {
+        ctx.get().enqueueWork(() -> {
+            NetworkConfiguration.instance.getSharedConfig().readFromNBT(msg.configData);
 
-        @Override
-        public IMessage onMessage(MessageConfigResponse message, MessageContext ctx)
-        {
             final StringBuilder builder = new StringBuilder("Received Mo' Bends server configuration.\n");
             final Iterable<SharedProperty<?>> properties = NetworkConfiguration.instance.getSharedConfig().getProperties();
             for (SharedProperty<?> property : properties)
             {
-                builder.append(String.format(" - %s: %b\n", property.getKey(), property.getValue()));
+                builder.append(String.format(" - %s: %s\n", property.getKey(), property.getValue()));
             }
-            Core.LOG.info(builder.toString());
-
-            return null;
-        }
-
+            LOGGER.info(builder.toString());
+        });
+        ctx.get().setPacketHandled(true);
     }
-
 }

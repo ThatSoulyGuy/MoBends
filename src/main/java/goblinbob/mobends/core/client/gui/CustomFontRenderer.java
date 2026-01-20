@@ -1,9 +1,13 @@
 package goblinbob.mobends.core.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.GameRenderer;
 
 public class CustomFontRenderer
 {
@@ -16,8 +20,11 @@ public class CustomFontRenderer
         this.font = font;
     }
 
-    protected void drawSymbol(CustomFont.Symbol symbol, BufferBuilder vertexBuffer, int x, int y)
+    protected void drawSymbol(CustomFont.Symbol symbol, BufferBuilder bufferBuilder, int x, int y)
     {
+        if (symbol == null)
+            symbol = new CustomFont.Symbol(10, 10, 5, 5, 0, 0);
+
         x += symbol.offsetX;
         y += symbol.offsetY;
         int width = symbol.width;
@@ -27,14 +34,14 @@ public class CustomFontRenderer
         float textureWidth = (float) width / this.font.atlasWidth;
         float textureHeight = (float) height / this.font.atlasHeight;
 
-        vertexBuffer.pos((double) x, (double) (y), 0)
-                .tex(textureX, textureY + textureHeight).endVertex();
-        vertexBuffer.pos((double) (x + width), (double) (y), 0)
-                .tex(textureX + textureWidth, textureY + textureHeight).endVertex();
-        vertexBuffer.pos((double) (x + width), (double) (y - height), 0)
-                .tex(textureX + textureWidth, textureY).endVertex();
-        vertexBuffer.pos((double) x, (double) (y - height), 0)
-                .tex(textureX, textureY).endVertex();
+        bufferBuilder.vertex((double) x, (double) (y), 0)
+                .uv(textureX, textureY + textureHeight).endVertex();
+        bufferBuilder.vertex((double) (x + width), (double) (y), 0)
+                .uv(textureX + textureWidth, textureY + textureHeight).endVertex();
+        bufferBuilder.vertex((double) (x + width), (double) (y - height), 0)
+                .uv(textureX + textureWidth, textureY).endVertex();
+        bufferBuilder.vertex((double) x, (double) (y - height), 0)
+                .uv(textureX, textureY).endVertex();
     }
 
     public int getTextWidth(String textToDraw)
@@ -43,7 +50,12 @@ public class CustomFontRenderer
         for (int i = 0; i < textToDraw.length(); ++i)
         {
             CustomFont.Symbol symbol = this.font.getSymbol(textToDraw.charAt(i));
-            width += symbol.width;
+
+            if (symbol == null)
+                width += 2;
+            else
+                width += symbol.width;
+
             if (i != textToDraw.length() - 1)
                 width += characterSpacing;
         }
@@ -55,18 +67,26 @@ public class CustomFontRenderer
         if (this.font == null)
             return;
 
-        Minecraft.getMinecraft().getTextureManager().bindTexture(this.font.resourceLocation);
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder vertexbuffer = tessellator.getBuffer();
-        vertexbuffer.begin(7, DefaultVertexFormats.POSITION_TEX);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShaderTexture(0, this.font.resourceLocation);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder bufferBuilder = tesselator.getBuilder();
+        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         int nextCharX = x;
         for (int i = 0; i < textToDraw.length(); ++i)
         {
             CustomFont.Symbol symbol = this.font.getSymbol(textToDraw.charAt(i));
-            this.drawSymbol(symbol, vertexbuffer, nextCharX, y);
+
+            if (symbol == null)
+                symbol = new CustomFont.Symbol(10, 10, 5, 5, 0, 0);
+
+            this.drawSymbol(symbol, bufferBuilder, nextCharX, y);
             nextCharX += symbol.width + characterSpacing;
         }
-        tessellator.draw();
+        BufferUploader.drawWithShader(bufferBuilder.end());
+        RenderSystem.disableBlend();
     }
 
     public void drawCenteredText(String textToDraw, int x, int y)

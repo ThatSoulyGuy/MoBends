@@ -3,7 +3,7 @@ package goblinbob.mobends.standard.animation.bit.biped;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class FallingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
@@ -33,19 +33,19 @@ public class FallingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		float legSpan = 10.0F;
 
 		float transition = (data.getTicksFalling() - TICKS_BEFORE_FALLING) / FALLING_TRANSITION_TICKS;
-		transition = MathHelper.clamp(transition, 0.0F, 1.0F);
+		transition = Mth.clamp(transition, 0.0F, 1.0F);
 		float s = 0.0F + transition * 0.9F;
 
-		data.leftArm.rotation.setSmoothness(s).orientZ(-90.0F + MathHelper.sin(ticks) * armSpan)
-				.rotateY(MathHelper.cos(ticks) * armSpan);
-		data.rightArm.rotation.setSmoothness(s).orientZ(90.0F + MathHelper.sin(ticks + rightArmDelay) * armSpan)
-				.rotateY(MathHelper.cos(ticks + rightArmDelay) * armSpan);
+		data.leftArm.rotation.setSmoothness(s).orientZ(-90.0F + Mth.sin(ticks) * armSpan)
+				.rotateY(Mth.cos(ticks) * armSpan);
+		data.rightArm.rotation.setSmoothness(s).orientZ(90.0F + Mth.sin(ticks + rightArmDelay) * armSpan)
+				.rotateY(Mth.cos(ticks + rightArmDelay) * armSpan);
 		data.leftForeArm.rotation.setSmoothness(s).orientX(-15.0F);
 		data.rightForeArm.rotation.setSmoothness(s).orientX(-15.0F);
-		data.leftLeg.rotation.setSmoothness(s).orientX(MathHelper.sin(ticks) * legSpan)
-				.rotateZ(-20.0F + MathHelper.cos(ticks) * legSpan);
-		data.rightLeg.rotation.setSmoothness(s).orientX(MathHelper.sin(ticks + rightArmDelay) * legSpan)
-				.rotateZ(20.0F + MathHelper.cos(ticks + rightArmDelay) * legSpan);
+		data.leftLeg.rotation.setSmoothness(s).orientX(Mth.sin(ticks) * legSpan)
+				.rotateZ(-20.0F + Mth.cos(ticks) * legSpan);
+		data.rightLeg.rotation.setSmoothness(s).orientX(Mth.sin(ticks + rightArmDelay) * legSpan)
+				.rotateZ(20.0F + Mth.cos(ticks + rightArmDelay) * legSpan);
 		data.leftForeLeg.rotation.setSmoothness(s).orientX(20.0F);
 		data.rightForeLeg.rotation.setSmoothness(s).orientX(20.0F);
 		data.renderRotation.setSmoothness(s).orientX(20.0F);

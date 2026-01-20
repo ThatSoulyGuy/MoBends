@@ -5,8 +5,8 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.*;
 import goblinbob.mobends.standard.animation.bit.biped.AttackStanceAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +28,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
             new AttackWhirlSlashAnimationBit()
     );
 
-    public SwordAction(EnumHandSide ignoredHandSide)
+    public SwordAction(HumanoidArm ignoredHandSide)
     {
 
     }
@@ -59,7 +59,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
         }
         lastTicksAfterAttack = ticksAfterAttack;
 
-        EntityLivingBase entity = entityData.getEntity();
+        LivingEntity entity = entityData.getEntity();
 
         int comboClearTime = 20;
 

@@ -2,51 +2,49 @@ package goblinbob.mobends.standard.mutators;
 
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.data.PigZombieData;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelZombie;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.entity.monster.EntityPigZombie;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.ZombieModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
 
-public class PigZombieMutator extends BipedMutator<PigZombieData, EntityPigZombie, ModelZombie>
+public class PigZombieMutator extends BipedMutator<PigZombieData, ZombifiedPiglin, ZombieModel<ZombifiedPiglin>>
 {
 
 	// Should the height of the texture be 64 or 32(half)?
 	protected boolean halfTexture = false;
-	
-	public PigZombieMutator(IEntityDataFactory<EntityPigZombie> dataFactory)
+
+	public PigZombieMutator(IEntityDataFactory<ZombifiedPiglin> dataFactory)
 	{
 		super(dataFactory);
 	}
-	
+
 	@Override
-	public void fetchFields(RenderLivingBase<? extends EntityPigZombie> renderer)
+	public void fetchFields(LivingEntityRenderer<ZombifiedPiglin, ZombieModel<ZombifiedPiglin>> renderer)
 	{
 		super.fetchFields(renderer);
 
-		if (renderer.getMainModel() instanceof ModelZombie)
-		{
-			ModelZombie model = (ModelZombie) renderer.getMainModel();
-			
-			this.halfTexture = model.textureHeight == 32;
-		}
+		// In 1.20.1, the texture height is not easily accessible from the model
+		// Default to full texture
+		this.halfTexture = false;
 	}
-	
+
 	@Override
-	public void storeVanillaModel(ModelZombie model)
+	public void storeVanillaModel(ZombieModel<ZombifiedPiglin> model)
 	{
-		ModelZombie vanillaModel = new ModelZombie(0.0F, this.halfTexture);
-		this.vanillaModel = vanillaModel;
-		
+		// In 1.20.1, models are created differently - using baked model definitions
+		// For now, store a reference to indicate this is vanilla
+		this.vanillaModel = model;
+
 		// Calling the super method here, since it
 		// requires the vanillaModel property to be
 		// set.
 		super.storeVanillaModel(model);
 	}
-	
+
 	@Override
-	public boolean shouldModelBeSkipped(ModelBase model)
+	public boolean shouldModelBeSkipped(EntityModel<?> model)
 	{
-		return !(model instanceof ModelZombie);
+		return !(model instanceof ZombieModel);
 	}
-	
+
 }

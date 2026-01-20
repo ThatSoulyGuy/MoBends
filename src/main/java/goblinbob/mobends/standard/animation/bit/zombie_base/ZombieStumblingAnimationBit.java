@@ -2,7 +2,7 @@ package goblinbob.mobends.standard.animation.bit.zombie_base;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.ZombieDataBase;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class ZombieStumblingAnimationBit extends AnimationBit<ZombieDataBase<?>>
 {
@@ -21,16 +21,16 @@ public class ZombieStumblingAnimationBit extends AnimationBit<ZombieDataBase<?>>
 		limbSwing += Math.cos(limbSwing * 2.0F) * 0.3F;
 		float swingAmount = 45F * data.limbSwingAmount.get();
 
-		data.rightLeg.rotation.setSmoothness(1F).orientX((MathHelper.cos(limbSwing) * swingAmount));
-		data.leftLeg.rotation.setSmoothness(1F).orientX((MathHelper.cos(limbSwing + PI) * swingAmount));
-		data.rightArm.rotation.setSmoothness(1F).orientX((MathHelper.cos(limbSwing + PI) * swingAmount));
-		data.leftArm.rotation.setSmoothness(1F).orientX((MathHelper.cos(limbSwing) * swingAmount));
-		data.body.rotation.setSmoothness(.5F).orientY((MathHelper.cos(limbSwing + PI) * swingAmount));
+		data.rightLeg.rotation.setSmoothness(1F).orientX((Mth.cos(limbSwing) * swingAmount));
+		data.leftLeg.rotation.setSmoothness(1F).orientX((Mth.cos(limbSwing + PI) * swingAmount));
+		data.rightArm.rotation.setSmoothness(1F).orientX((Mth.cos(limbSwing + PI) * swingAmount));
+		data.leftArm.rotation.setSmoothness(1F).orientX((Mth.cos(limbSwing) * swingAmount));
+		data.body.rotation.setSmoothness(.5F).orientY((Mth.cos(limbSwing + PI) * swingAmount));
 		
 		float heavyStompValue = Math.min((limbSwing % PI) / PI, 1F);
 		float heavyStompValueInv = 1F - Math.min((limbSwing % PI) / PI, 1F);
 		data.body.rotation.rotateX(heavyStompValueInv * 40F);
-		data.body.rotation.rotateZ(MathHelper.cos(limbSwing) * 10F);
+		data.body.rotation.rotateZ(Mth.cos(limbSwing) * 10F);
 		
 		data.head.rotation.rotateX(-heavyStompValueInv * 40F);
 		// Head tilt

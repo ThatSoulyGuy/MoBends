@@ -2,9 +2,11 @@ package goblinbob.mobends.core.pack;
 
 import goblinbob.mobends.standard.main.ModStatics;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ThreadDownloadImageData;
-import net.minecraft.client.renderer.texture.ITextureObject;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.HttpTexture;
+import net.minecraft.resources.ResourceLocation;
+
+import javax.annotation.Nullable;
 
 public class ThumbnailProvider
 {
@@ -22,19 +24,22 @@ public class ThumbnailProvider
     {
         final ResourceLocation resourceLocation = new ResourceLocation(ModStatics.MODID,
                 "bendsPackThumbnails/" + packName);
-        ITextureObject itextureobject = Minecraft.getMinecraft().getTextureManager().getTexture(resourceLocation);
+        @Nullable AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(resourceLocation, null);
 
-        if (itextureobject == null)
+        if (texture == null)
         {
-            ThreadDownloadImageData threaddownloadimagedata = new ThreadDownloadImageData(packCache.getThumbnailFile(packName), thumbnailUrl,
-                    DEFAULT_THUMBNAIL_LOCATION, null);
+            HttpTexture httpTexture = new HttpTexture(
+                    packCache.getThumbnailFile(packName),
+                    thumbnailUrl,
+                    DEFAULT_THUMBNAIL_LOCATION,
+                    false,  // legacySkin
+                    null    // callback
+            );
 
-            if (Minecraft.getMinecraft().getTextureManager().loadTexture(resourceLocation, threaddownloadimagedata))
-            {
-                return resourceLocation;
-            }
+            Minecraft.getInstance().getTextureManager().register(resourceLocation, httpTexture);
+            return resourceLocation;
         }
 
-        return DEFAULT_THUMBNAIL_LOCATION;
+        return resourceLocation;
     }
 }

@@ -1,10 +1,11 @@
 package goblinbob.mobends.core.client.gui.settingswindow;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.client.gui.elements.GuiSmallToggleButton;
 import goblinbob.mobends.core.client.gui.elements.IGuiListElement;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.GuiGraphics;
 
 public class GuiBenderSettings implements IGuiListElement
 {
@@ -19,7 +20,7 @@ public class GuiBenderSettings implements IGuiListElement
     public GuiBenderSettings(EntityBender<?> bender)
     {
         this.bender = bender;
-        this.mc = Minecraft.getMinecraft();
+        this.mc = Minecraft.getInstance();
         this.toggleButton = new GuiSmallToggleButton();
         this.toggleButton.setToggleState(bender.isAnimated());
     }
@@ -48,18 +49,13 @@ public class GuiBenderSettings implements IGuiListElement
         toggleButton.update(mouseX, mouseY);
     }
 
-    public void draw(float partialTicks)
+    public void draw(GuiGraphics guiGraphics, float partialTicks)
     {
-        GlStateManager.color(1F, 1F, 1F);
+        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
 
-//        Minecraft.getMinecraft().getTextureManager().bindTexture(GuiSettingsWindow.BACKGROUND_TEXTURE);
-//
-//        // Container
-//        Draw.borderBox(x + 4, y + 4, 100, getHeight(), 4, 36, 126);
+        guiGraphics.drawString(mc.font, bender.getLocalizedName(), this.x + 38, this.y + 10, 0xffffff, true);
 
-        mc.fontRenderer.drawStringWithShadow(bender.getLocalizedName(), this.x + 38, this.y + 10, 0xffffff);
-
-        toggleButton.draw();
+        toggleButton.draw(guiGraphics);
     }
 
     @Override

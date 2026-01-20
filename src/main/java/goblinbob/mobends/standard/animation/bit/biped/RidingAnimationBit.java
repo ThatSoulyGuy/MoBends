@@ -3,9 +3,9 @@ package goblinbob.mobends.standard.animation.bit.biped;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
 public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
@@ -22,7 +22,7 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	@Override
 	public void perform(BipedEntityData<?> data)
 	{
-		final EntityLivingBase living = data.getEntity();
+		final LivingEntity living = data.getEntity();
 
 		data.localOffset.slideToZero(0.3F);
 		data.renderRotation.orientZero();
@@ -44,16 +44,15 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.rightArm.rotation.orientX(0.0F).rotateZ(10F);
 		data.rightForeArm.rotation.orientX(-10.0F);
 		
-		Entity ridden = living.getRidingEntity();
-		if (ridden != null && ridden instanceof EntityLivingBase)
+		Entity ridden = living.getVehicle();
+		if (ridden instanceof LivingEntity riddenLiving)
 		{
-			EntityLivingBase riddenLiving = (EntityLivingBase) ridden;
-			float relativeHeadYaw = MathHelper.wrapDegrees(living.rotationYaw - riddenLiving.renderYawOffset);
-			float relativeYaw = MathHelper.wrapDegrees(living.rotationYaw - data.headYaw.get() - riddenLiving.renderYawOffset);
-			
-			data.body.rotation.orientZ(MathHelper.clamp(-relativeHeadYaw * 0.25F, -20.0F, 20.0F));
-			data.leftLeg.rotation.rotateX(-MathHelper.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
-			data.rightLeg.rotation.rotateX(MathHelper.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
+			float relativeHeadYaw = Mth.wrapDegrees(living.getYRot() - riddenLiving.yBodyRot);
+			float relativeYaw = Mth.wrapDegrees(living.getYRot() - data.headYaw.get() - riddenLiving.yBodyRot);
+
+			data.body.rotation.orientZ(Mth.clamp(-relativeHeadYaw * 0.25F, -20.0F, 20.0F));
+			data.leftLeg.rotation.rotateX(-Mth.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
+			data.rightLeg.rotation.rotateX(Mth.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
 		}
 		
 		if (!data.isStillHorizontally())
@@ -64,16 +63,16 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.rightArm.rotation.orientX(-45.0F).rotateZ(-10F);
 			data.rightForeArm.rotation.orientX(-10.0F);
 			
-			float motionMagnitude = (float) (Math.sqrt(living.motionX*living.motionX + living.motionZ*living.motionZ)) * 100;
+			float motionMagnitude = (float) (Math.sqrt(living.getDeltaMovement().x*living.getDeltaMovement().x + living.getDeltaMovement().z*living.getDeltaMovement().z)) * 100;
 			if (motionMagnitude > 1)
 			{
 				float ticks = DataUpdateHandler.getTicks() * 0.5F;
-				float bodyRotation = 45.0F + MathHelper.cos(ticks) * 10F;
+				float bodyRotation = 45.0F + Mth.cos(ticks) * 10F;
 				data.body.rotation.orientX(bodyRotation);
 				data.head.rotation.rotateX(-bodyRotation);
 				data.leftArm.rotation.rotateX(-bodyRotation);
 				data.rightArm.rotation.rotateX(-bodyRotation);
-				data.globalOffset.slideY(MathHelper.sin(ticks) * 0.3F);
+				data.globalOffset.slideY(Mth.sin(ticks) * 0.3F);
 			}
 			else
 			{

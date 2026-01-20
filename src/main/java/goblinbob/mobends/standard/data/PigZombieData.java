@@ -1,14 +1,14 @@
 package goblinbob.mobends.standard.data;
 
 import goblinbob.mobends.standard.animation.controller.PigZombieController;
-import net.minecraft.entity.monster.EntityPigZombie;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
 
-public class PigZombieData extends BipedEntityData<EntityPigZombie>
+public class PigZombieData extends BipedEntityData<ZombifiedPiglin>
 {
-	
+
 	private final PigZombieController controller = new PigZombieController();
-	
-	public PigZombieData(EntityPigZombie entity)
+
+	public PigZombieData(ZombifiedPiglin entity)
 	{
 		super(entity);
 	}

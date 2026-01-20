@@ -2,8 +2,8 @@ package goblinbob.mobends.standard.animation.bit.biped;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.HumanoidArm;
 
 public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
@@ -18,10 +18,10 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 	@Override
 	public void perform(BipedEntityData<?> data)
 	{
-		EntityLivingBase living = data.getEntity();
-		EnumHandSide primaryHand = living.getPrimaryHand();
+		LivingEntity living = data.getEntity();
+		HumanoidArm primaryHand = living.getMainArm();
 
-		boolean mainHandSwitch = primaryHand == EnumHandSide.RIGHT;
+		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		// Main Hand Direction Multiplier - it helps switch animation sides depending on
 		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;

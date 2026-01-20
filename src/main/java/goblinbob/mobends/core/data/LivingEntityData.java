@@ -1,16 +1,17 @@
 package goblinbob.mobends.core.data;
 
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
-import net.minecraft.block.BlockLadder;
-import net.minecraft.block.BlockVine;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.EnumAction;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.level.block.LadderBlock;
+import net.minecraft.world.level.block.VineBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class LivingEntityData<E extends EntityLivingBase> extends EntityData<E>
+public abstract class LivingEntityData<E extends LivingEntity> extends EntityData<E>
 {
 
     protected float ticksInAir;
@@ -85,7 +86,7 @@ public abstract class LivingEntityData<E extends EntityLivingBase> extends Entit
             this.climbing = false;
         }
 
-        if (this.entity.isSwingInProgress)
+        if (this.entity.swinging)
         {
             if (!this.alreadyAttacked || this.ticksAfterAttack > 5.0F)
             {
@@ -143,48 +144,52 @@ public abstract class LivingEntityData<E extends EntityLivingBase> extends Entit
 
     public float getClimbingRotation()
     {
-        return getLadderFacing().getHorizontalAngle() + 180.0F;
+        return getLadderFacing().toYRot() + 180.0F;
     }
 
-    private static boolean isBlockClimbable(IBlockState state)
+    private static boolean isBlockClimbable(BlockState state)
     {
-        return state.getBlock() instanceof BlockLadder || state.getBlock() instanceof BlockVine;
+        return state.getBlock() instanceof LadderBlock || state.getBlock() instanceof VineBlock;
     }
 
-    private static EnumFacing getClimbableBlockFacing(IBlockState state)
+    private static Direction getClimbableBlockFacing(BlockState state)
     {
-        if (state.getBlock() instanceof BlockLadder)
+        if (state.getBlock() instanceof LadderBlock)
         {
-            return state.getValue(BlockLadder.FACING);
+            return state.getValue(LadderBlock.FACING);
         }
-        else if (state.getBlock() instanceof BlockVine)
+        else if (state.getBlock() instanceof VineBlock)
         {
-            if (state.getValue(BlockVine.EAST))
-                return EnumFacing.WEST;
-            else if (state.getValue(BlockVine.WEST))
-                return EnumFacing.EAST;
-            else if (state.getValue(BlockVine.NORTH))
-                return EnumFacing.SOUTH;
-            else if (state.getValue(BlockVine.SOUTH))
-                return EnumFacing.NORTH;
+            if (state.getValue(VineBlock.EAST))
+                return Direction.WEST;
+            else if (state.getValue(VineBlock.WEST))
+                return Direction.EAST;
+            else if (state.getValue(VineBlock.NORTH))
+                return Direction.SOUTH;
+            else if (state.getValue(VineBlock.SOUTH))
+                return Direction.NORTH;
         }
 
-        return EnumFacing.NORTH;
+        return Direction.NORTH;
     }
 
-    public EnumFacing getLadderFacing()
+    public Direction getLadderFacing()
     {
-        BlockPos position = new BlockPos(Math.floor(entity.posX), Math.floor(entity.posY), Math.floor(entity.posZ));
+        BlockPos position = new BlockPos(
+            Mth.floor(entity.getX()),
+            Mth.floor(entity.getY()),
+            Mth.floor(entity.getZ())
+        );
 
-        IBlockState block = entity.world.getBlockState(position);
-        IBlockState blockBelow = entity.world.getBlockState(position.add(0, -1, 0));
-        IBlockState blockBelow2 = entity.world.getBlockState(position.add(0, -2, 0));
+        BlockState block = entity.level().getBlockState(position);
+        BlockState blockBelow = entity.level().getBlockState(position.offset(0, -1, 0));
+        BlockState blockBelow2 = entity.level().getBlockState(position.offset(0, -2, 0));
 
-        EnumFacing facing = EnumFacing.NORTH;
+        Direction facing = Direction.NORTH;
         facing = getClimbableBlockFacing(block);
-        if (facing == EnumFacing.NORTH)
+        if (facing == Direction.NORTH)
             facing = getClimbableBlockFacing(blockBelow);
-        if (facing == EnumFacing.NORTH)
+        if (facing == Direction.NORTH)
             facing = getClimbableBlockFacing(blockBelow2);
 
         return facing;
@@ -192,27 +197,35 @@ public abstract class LivingEntityData<E extends EntityLivingBase> extends Entit
 
     public boolean calcClimbing()
     {
-        if (entity == null || entity.world == null)
+        if (entity == null || entity.level() == null)
             return false;
 
-        BlockPos position = new BlockPos(Math.floor(entity.posX), Math.floor(entity.posY), Math.floor(entity.posZ));
+        BlockPos position = new BlockPos(
+            Mth.floor(entity.getX()),
+            Mth.floor(entity.getY()),
+            Mth.floor(entity.getZ())
+        );
 
-        IBlockState block = entity.world.getBlockState(position);
-        IBlockState blockBelow = entity.world.getBlockState(position.add(0, -1, 0));
-        IBlockState blockBelow2 = entity.world.getBlockState(position.add(0, -2, 0));
+        BlockState block = entity.level().getBlockState(position);
+        BlockState blockBelow = entity.level().getBlockState(position.offset(0, -1, 0));
+        BlockState blockBelow2 = entity.level().getBlockState(position.offset(0, -2, 0));
 
-        return entity.isOnLadder() && !this.isOnGround() && (isBlockClimbable(block) || isBlockClimbable(blockBelow) || isBlockClimbable(blockBelow2));
+        return entity.onClimbable() && !this.isOnGround() && (isBlockClimbable(block) || isBlockClimbable(blockBelow) || isBlockClimbable(blockBelow2));
     }
 
     public float getLedgeHeight()
     {
-        float clientY = (float) (entity.posY + (entity.posY - entity.prevPosY) * DataUpdateHandler.partialTicks);
+        float clientY = (float) (entity.getY() + (entity.getY() - entity.yOld) * DataUpdateHandler.partialTicks);
 
-        final BlockPos position = new BlockPos(Math.floor(entity.posX), Math.floor(entity.posY), Math.floor(entity.posZ));
+        final BlockPos position = new BlockPos(
+            Mth.floor(entity.getX()),
+            Mth.floor(entity.getY()),
+            Mth.floor(entity.getZ())
+        );
 
-        IBlockState block = entity.world.getBlockState(position.add(0, 2, 0));
-        IBlockState blockBelow = entity.world.getBlockState(position.add(0, 1, 0));
-        IBlockState blockBelow2 = entity.world.getBlockState(position.add(0, 0, 0));
+        BlockState block = entity.level().getBlockState(position.offset(0, 2, 0));
+        BlockState blockBelow = entity.level().getBlockState(position.offset(0, 1, 0));
+        BlockState blockBelow2 = entity.level().getBlockState(position.offset(0, 0, 0));
         if (!isBlockClimbable(block))
         {
             if (!isBlockClimbable(blockBelow))
@@ -233,12 +246,12 @@ public abstract class LivingEntityData<E extends EntityLivingBase> extends Entit
 
     public boolean isDrawingBow()
     {
-        if (entity.getItemInUseCount() > 0)
+        if (entity.getUseItemRemainingTicks() > 0)
         {
-            ItemStack mainItemStack = entity.getHeldItemMainhand();
-            ItemStack offItemStack = entity.getHeldItemOffhand();
-            if ((!mainItemStack.isEmpty() && mainItemStack.getItemUseAction() == EnumAction.BOW)
-                    || (!offItemStack.isEmpty() && offItemStack.getItemUseAction() == EnumAction.BOW))
+            ItemStack mainItemStack = entity.getMainHandItem();
+            ItemStack offItemStack = entity.getOffhandItem();
+            if ((!mainItemStack.isEmpty() && mainItemStack.getUseAnimation() == UseAnim.BOW)
+                    || (!offItemStack.isEmpty() && offItemStack.getUseAnimation() == UseAnim.BOW))
             {
                 return true;
             }

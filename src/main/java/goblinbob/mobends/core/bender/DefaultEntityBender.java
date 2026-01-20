@@ -5,9 +5,9 @@ import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.IMutatorFactory;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.world.entity.LivingEntity;
 
-public class DefaultEntityBender<T extends EntityLivingBase> extends EntityBender<T>
+public class DefaultEntityBender<T extends LivingEntity> extends EntityBender<T>
 {
 
     private final IEntityDataFactory<T> entityDataFactory;

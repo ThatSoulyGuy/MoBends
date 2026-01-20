@@ -1,7 +1,7 @@
 package goblinbob.mobends.standard.client.renderer.entity.mutated;
 
-import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.world.entity.monster.Zombie;
 
-public class ZombieRenderer<T  extends EntityZombie> extends BipedRenderer<T>
+public class ZombieRenderer<T  extends Zombie> extends BipedRenderer<T>
 {
 }

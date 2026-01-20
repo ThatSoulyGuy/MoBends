@@ -38,7 +38,7 @@ public class PingTask implements Runnable
             }
             catch (InterruptedException e)
             {
-                MoBends.LOG.warning("PingTask has been interrupted");
+                MoBends.LOG.warn("PingTask has been interrupted");
                 return;
             }
         }
@@ -60,7 +60,7 @@ public class PingTask implements Runnable
         }
         catch(IOException e)
         {
-            MoBends.LOG.warning("API ping failed.");
+            MoBends.LOG.warn("API ping failed.");
         }
     }
 

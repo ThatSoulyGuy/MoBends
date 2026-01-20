@@ -7,11 +7,9 @@ import goblinbob.mobends.core.util.ConnectionHelper;
 import goblinbob.mobends.core.util.ErrorReporter;
 import goblinbob.mobends.standard.main.MoBends;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.logging.Level;
 
 public class ConnectionManager
 {
@@ -54,7 +52,7 @@ public class ConnectionManager
             ErrorReporter.showErrorToPlayer("Couldn't join the API. Some features may be disabled. " +
                     "Contact the developers if this is a prolonged issue.");
             e.printStackTrace();
-            MoBends.LOG.log(Level.SEVERE, e.getMessage());
+            MoBends.LOG.error(e.getMessage());
             return;
         }
 
@@ -87,7 +85,7 @@ public class ConnectionManager
     public static class Factory implements IModule
     {
         @Override
-        public void preInit(FMLPreInitializationEvent event)
+        public void init()
         {
             ConnectionManager.INSTANCE = new ConnectionManager();
         }

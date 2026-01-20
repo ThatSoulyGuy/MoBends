@@ -1,12 +1,12 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
-import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 
 import java.util.HashMap;
 
 public class ArrowTrailManager
 {
-    private static HashMap<EntityArrow, ArrowTrail> trailMap = new HashMap<>();
+    private static HashMap<AbstractArrow, ArrowTrail> trailMap = new HashMap<>();
     public static long time, lastTime;
 
     static
@@ -15,7 +15,7 @@ public class ArrowTrailManager
         lastTime = System.nanoTime() / 1000;
     }
 
-    public static ArrowTrail getOrMake(EntityArrow arrow)
+    public static ArrowTrail getOrMake(AbstractArrow arrow)
     {
         ArrowTrail trail;
         if (!trailMap.containsKey(arrow))
@@ -31,7 +31,7 @@ public class ArrowTrailManager
         return trail;
     }
 
-    public static void renderTrail(EntityArrow entity, double x, double y, double z, float partialTicks)
+    public static void renderTrail(AbstractArrow entity, double x, double y, double z, float partialTicks)
     {
         getOrMake(entity).render(x, y, z, partialTicks);
     }

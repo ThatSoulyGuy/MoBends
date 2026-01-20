@@ -1,17 +1,20 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.standard.data.PlayerData;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraft.client.model.PositionTextureVertex;
-import net.minecraft.client.model.TexturedQuad;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
+/**
+ * Custom cape renderer for Mo' Bends animations.
+ * Updated for Minecraft 1.20.1 - uses PoseStack and VertexConsumer instead of display lists.
+ */
 public class BendsCapeRenderer
 {
 
@@ -38,7 +41,7 @@ public class BendsCapeRenderer
 
     public void applyAnimation(PlayerData playerData)
     {
-    	double phase = playerData.getCapeWavePhase();
+        double phase = playerData.getCapeWavePhase();
 
         for (int i = 0; i < SLAB_AMOUNT; i++)
         {
@@ -51,9 +54,27 @@ public class BendsCapeRenderer
         this.slabs[0].rotate(-10.0f);
     }
 
-    public void render(float scale)
+    public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay)
     {
-        this.slabs[0].render(scale);
+        this.slabs[0].render(poseStack, vertexConsumer, packedLight, packedOverlay, 1.0F / 16.0F);
+    }
+
+    /**
+     * Render the cape using MultiBufferSource.
+     * This overload gets a VertexConsumer from the bufferSource for the player's cape texture.
+     */
+    public void render(PoseStack poseStack, net.minecraft.client.renderer.MultiBufferSource bufferSource,
+                       int packedLight, net.minecraft.client.player.AbstractClientPlayer player, float scale)
+    {
+        if (player.getCloakTextureLocation() != null)
+        {
+            net.minecraft.client.renderer.RenderType renderType =
+                net.minecraft.client.renderer.RenderType.entitySolid(player.getCloakTextureLocation());
+            VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+            // Use default overlay coords (no hurt overlay)
+            int packedOverlay = net.minecraft.client.renderer.entity.LivingEntityRenderer.getOverlayCoords(player, 0.0F);
+            this.slabs[0].render(poseStack, vertexConsumer, packedLight, packedOverlay, scale);
+        }
     }
 
     static class Slab
@@ -63,14 +84,8 @@ public class BendsCapeRenderer
 
         public float textureWidth = 64;
         public float textureHeight = 32;
-        private int textureOffsetX;
-        private int textureOffsetY;
-        private boolean compiled;
-        /** The GL display list rendered by the Tessellator for this model */
-        private int displayList;
         private Slab childSlab;
         public boolean showModel;
-        /** Hides the model. */
         public boolean isHidden;
         public int offsetX;
         public int offsetY;
@@ -80,19 +95,13 @@ public class BendsCapeRenderer
         public int rotationPointZ;
         public int hingeOffset = 0;
 
-        private final PositionTextureVertex[] vertexPositions;
-        private final TexturedQuad[] quadList;
-        /** X vertex coordinate of lower box corner */
+        private final CapeVertex[] vertexPositions;
+        private final CapeQuad[] quadList;
         public final float posX1;
-        /** Y vertex coordinate of lower box corner */
         public final float posY1;
-        /** Z vertex coordinate of lower box corner */
         public final float posZ1;
-        /** X vertex coordinate of upper box corner */
         public final float posX2;
-        /** Y vertex coordinate of upper box corner */
         public final float posY2;
-        /** Z vertex coordinate of upper box corner */
         public final float posZ2;
 
         public Slab(int texV)
@@ -115,31 +124,52 @@ public class BendsCapeRenderer
             this.posZ2 = this.offsetZ + MODEL_DEPTH;
             int texU = 0;
 
-            this.vertexPositions = new PositionTextureVertex[8];
-            this.quadList = new TexturedQuad[6];
+            this.vertexPositions = new CapeVertex[8];
+            this.quadList = new CapeQuad[6];
 
-            PositionTextureVertex positiontexturevertex7 = new PositionTextureVertex(posX1, posY1, posZ1, 0.0F, 0.0F);
-            PositionTextureVertex positiontexturevertex = new PositionTextureVertex(posX2, posY1, posZ1, 0.0F, 8.0F);
-            PositionTextureVertex positiontexturevertex1 = new PositionTextureVertex(posX2, posY2, posZ1, 8.0F, 8.0F);
-            PositionTextureVertex positiontexturevertex2 = new PositionTextureVertex(posX1, posY2, posZ1, 8.0F, 0.0F);
-            PositionTextureVertex positiontexturevertex3 = new PositionTextureVertex(posX1, posY1, posZ2, 0.0F, 0.0F);
-            PositionTextureVertex positiontexturevertex4 = new PositionTextureVertex(posX2, posY1, posZ2, 0.0F, 8.0F);
-            PositionTextureVertex positiontexturevertex5 = new PositionTextureVertex(posX2, posY2, posZ2, 8.0F, 8.0F);
-            PositionTextureVertex positiontexturevertex6 = new PositionTextureVertex(posX1, posY2, posZ2, 8.0F, 0.0F);
-            this.vertexPositions[0] = positiontexturevertex7;
-            this.vertexPositions[1] = positiontexturevertex;
-            this.vertexPositions[2] = positiontexturevertex1;
-            this.vertexPositions[3] = positiontexturevertex2;
-            this.vertexPositions[4] = positiontexturevertex3;
-            this.vertexPositions[5] = positiontexturevertex4;
-            this.vertexPositions[6] = positiontexturevertex5;
-            this.vertexPositions[7] = positiontexturevertex6;
-            this.quadList[0] = new TexturedQuad(new PositionTextureVertex[] { positiontexturevertex4, positiontexturevertex, positiontexturevertex1, positiontexturevertex5 }, texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH, texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_DEPTH, texV + MODEL_DEPTH + slabLength, textureWidth, textureHeight);
-            this.quadList[1] = new TexturedQuad(new PositionTextureVertex[] { positiontexturevertex7, positiontexturevertex3, positiontexturevertex6, positiontexturevertex2 }, texU, texV + MODEL_DEPTH, texU + MODEL_DEPTH, texV + MODEL_DEPTH + slabLength, textureWidth, textureHeight);
-            this.quadList[2] = new TexturedQuad(new PositionTextureVertex[] { positiontexturevertex4, positiontexturevertex3, positiontexturevertex7, positiontexturevertex }, texU + MODEL_DEPTH, texV, texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH, textureWidth, textureHeight);
-            this.quadList[3] = new TexturedQuad(new PositionTextureVertex[] { positiontexturevertex1, positiontexturevertex2, positiontexturevertex6, positiontexturevertex5 }, texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH, texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_WIDTH, texV, textureWidth, textureHeight);
-            this.quadList[4] = new TexturedQuad(new PositionTextureVertex[] { positiontexturevertex, positiontexturevertex7, positiontexturevertex2, positiontexturevertex1 }, texU + MODEL_DEPTH, texV + MODEL_DEPTH, texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH + slabLength, textureWidth, textureHeight);
-            this.quadList[5] = new TexturedQuad(new PositionTextureVertex[] { positiontexturevertex3, positiontexturevertex4, positiontexturevertex5, positiontexturevertex6 }, texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_DEPTH, texV + MODEL_DEPTH, texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH + slabLength, textureWidth, textureHeight);
+            CapeVertex v0 = new CapeVertex(posX1, posY1, posZ1, 0.0F, 0.0F);
+            CapeVertex v1 = new CapeVertex(posX2, posY1, posZ1, 0.0F, 8.0F);
+            CapeVertex v2 = new CapeVertex(posX2, posY2, posZ1, 8.0F, 8.0F);
+            CapeVertex v3 = new CapeVertex(posX1, posY2, posZ1, 8.0F, 0.0F);
+            CapeVertex v4 = new CapeVertex(posX1, posY1, posZ2, 0.0F, 0.0F);
+            CapeVertex v5 = new CapeVertex(posX2, posY1, posZ2, 0.0F, 8.0F);
+            CapeVertex v6 = new CapeVertex(posX2, posY2, posZ2, 8.0F, 8.0F);
+            CapeVertex v7 = new CapeVertex(posX1, posY2, posZ2, 8.0F, 0.0F);
+
+            this.vertexPositions[0] = v0;
+            this.vertexPositions[1] = v1;
+            this.vertexPositions[2] = v2;
+            this.vertexPositions[3] = v3;
+            this.vertexPositions[4] = v4;
+            this.vertexPositions[5] = v5;
+            this.vertexPositions[6] = v6;
+            this.vertexPositions[7] = v7;
+
+            // Create quads with proper texture coordinates
+            this.quadList[0] = new CapeQuad(new CapeVertex[] { v5, v1, v2, v6 },
+                    texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH,
+                    texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_DEPTH, texV + MODEL_DEPTH + slabLength,
+                    textureWidth, textureHeight);
+            this.quadList[1] = new CapeQuad(new CapeVertex[] { v0, v4, v7, v3 },
+                    texU, texV + MODEL_DEPTH,
+                    texU + MODEL_DEPTH, texV + MODEL_DEPTH + slabLength,
+                    textureWidth, textureHeight);
+            this.quadList[2] = new CapeQuad(new CapeVertex[] { v5, v4, v0, v1 },
+                    texU + MODEL_DEPTH, texV,
+                    texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH,
+                    textureWidth, textureHeight);
+            this.quadList[3] = new CapeQuad(new CapeVertex[] { v2, v3, v7, v6 },
+                    texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH,
+                    texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_WIDTH, texV,
+                    textureWidth, textureHeight);
+            this.quadList[4] = new CapeQuad(new CapeVertex[] { v1, v0, v3, v2 },
+                    texU + MODEL_DEPTH, texV + MODEL_DEPTH,
+                    texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH + slabLength,
+                    textureWidth, textureHeight);
+            this.quadList[5] = new CapeQuad(new CapeVertex[] { v4, v5, v6, v7 },
+                    texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_DEPTH, texV + MODEL_DEPTH,
+                    texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH + slabLength,
+                    textureWidth, textureHeight);
         }
 
         public void rotate(float f)
@@ -159,47 +189,104 @@ public class BendsCapeRenderer
             this.hingeOffset = this.rotateAngle < 0 ? MODEL_DEPTH : 0;
         }
 
-        @SideOnly(Side.CLIENT)
-        public void render(float scale)
+        @OnlyIn(Dist.CLIENT)
+        public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float scale)
         {
-            if (!this.isHidden)
+            if (!this.isHidden && this.showModel)
             {
-                if (this.showModel)
+                poseStack.pushPose();
+
+                // Apply transformations
+                poseStack.translate(this.rotationPointX * scale, this.rotationPointY * scale, (this.rotationPointZ + this.hingeOffset) * scale);
+                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(this.rotateAngle));
+                poseStack.translate(0, 0, -this.hingeOffset * scale);
+
+                // Render quads
+                PoseStack.Pose pose = poseStack.last();
+                Matrix4f matrix = pose.pose();
+                Matrix3f normal = pose.normal();
+
+                for (CapeQuad quad : this.quadList)
                 {
-                    if (!this.compiled)
-                    {
-                        this.compileDisplayList(scale);
-                    }
-
-                    GlStateManager.pushMatrix();
-                    GlStateManager.translate(this.rotationPointX * scale, this.rotationPointY * scale, (this.rotationPointZ + this.hingeOffset) * scale);
-                    GlStateManager.rotate(this.rotateAngle, 1.0F, 0.0F, 0.0F);
-                    GlStateManager.translate(0, 0, -this.hingeOffset * scale);
-
-                    GlStateManager.callList(this.displayList);
-                    if (this.childSlab != null)
-                        this.childSlab.render(scale);
-
-                    GlStateManager.popMatrix();
+                    quad.render(matrix, normal, vertexConsumer, packedLight, packedOverlay, scale);
                 }
+
+                // Render child slab
+                if (this.childSlab != null)
+                {
+                    this.childSlab.render(poseStack, vertexConsumer, packedLight, packedOverlay, scale);
+                }
+
+                poseStack.popPose();
             }
         }
-
-        private void compileDisplayList(float scale)
-        {
-            this.displayList = GLAllocation.generateDisplayLists(1);
-            GlStateManager.glNewList(this.displayList, 4864);
-            BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
-
-            for (TexturedQuad texturedquad : this.quadList)
-            {
-                texturedquad.draw(bufferbuilder, scale);
-            }
-
-            GlStateManager.glEndList();
-            this.compiled = true;
-        }
-
     }
 
+    static class CapeVertex
+    {
+        public final float x, y, z;
+        public float u, v;
+
+        public CapeVertex(float x, float y, float z, float u, float v)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.u = u;
+            this.v = v;
+        }
+
+        public CapeVertex remap(float u, float v)
+        {
+            return new CapeVertex(this.x, this.y, this.z, u, v);
+        }
+    }
+
+    static class CapeQuad
+    {
+        public final CapeVertex[] vertices;
+        public final float normalX, normalY, normalZ;
+
+        public CapeQuad(CapeVertex[] vertices, int u1, int v1, int u2, int v2, float texWidth, float texHeight)
+        {
+            this.vertices = new CapeVertex[4];
+            float uScale = 1.0F / texWidth;
+            float vScale = 1.0F / texHeight;
+
+            this.vertices[0] = vertices[0].remap(u2 * uScale, v1 * vScale);
+            this.vertices[1] = vertices[1].remap(u1 * uScale, v1 * vScale);
+            this.vertices[2] = vertices[2].remap(u1 * uScale, v2 * vScale);
+            this.vertices[3] = vertices[3].remap(u2 * uScale, v2 * vScale);
+
+            // Calculate normal
+            Vector3f v0 = new Vector3f(vertices[1].x - vertices[0].x, vertices[1].y - vertices[0].y, vertices[1].z - vertices[0].z);
+            Vector3f v1Vec = new Vector3f(vertices[2].x - vertices[0].x, vertices[2].y - vertices[0].y, vertices[2].z - vertices[0].z);
+            Vector3f normal = v0.cross(v1Vec).normalize();
+            this.normalX = normal.x;
+            this.normalY = normal.y;
+            this.normalZ = normal.z;
+        }
+
+        public void render(Matrix4f matrix, Matrix3f normalMatrix, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float scale)
+        {
+            Vector3f transformedNormal = new Vector3f(normalX, normalY, normalZ);
+            transformedNormal.mul(normalMatrix);
+
+            for (CapeVertex vertex : this.vertices)
+            {
+                float x = vertex.x * scale;
+                float y = vertex.y * scale;
+                float z = vertex.z * scale;
+
+                Vector3f pos = new Vector3f(x, y, z);
+                pos.mulPosition(matrix);
+
+                vertexConsumer.vertex(pos.x, pos.y, pos.z,
+                        1.0F, 1.0F, 1.0F, 1.0F,
+                        vertex.u, vertex.v,
+                        packedOverlay, packedLight,
+                        transformedNormal.x, transformedNormal.y, transformedNormal.z);
+            }
+        }
+    }
 }

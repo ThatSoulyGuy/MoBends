@@ -1,25 +1,32 @@
 package goblinbob.mobends.core;
 
-import goblinbob.mobends.core.asset.AssetReloadListener;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.asset.AssetsModule;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.event.*;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import goblinbob.mobends.core.connection.ConnectionManager;
 import goblinbob.mobends.core.env.EnvironmentModule;
-import goblinbob.mobends.core.supporters.SupporterContent;
 import goblinbob.mobends.core.pack.PackManager;
+import goblinbob.mobends.core.supporters.SupporterContent;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.IReloadableResourceManager;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 
+/**
+ * Client-side Core implementation for Mo' Bends 1.20.1.
+ */
+@OnlyIn(Dist.CLIENT)
 public class CoreClient extends Core<CoreClientConfig>
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static CoreClient INSTANCE;
 
     private CoreClientConfig configuration;
@@ -27,7 +34,9 @@ public class CoreClient extends Core<CoreClientConfig>
     CoreClient()
     {
         INSTANCE = this;
+        this.configuration = new CoreClientConfig();
 
+        // Register modules
         registerModule(new EnvironmentModule.Factory());
         registerModule(new ConnectionManager.Factory());
         registerModule(new AssetsModule.Factory());
@@ -41,37 +50,35 @@ public class CoreClient extends Core<CoreClientConfig>
     }
 
     @Override
-    public void preInit(FMLPreInitializationEvent event)
+    public void onClientSetup()
     {
-        super.preInit(event);
+        super.onClientSetup();
 
-        configuration = new CoreClientConfig(event.getSuggestedConfigurationFile());
-    }
+        // Initialize all registered modules
+        initModules();
 
-    @Override
-    public void init(FMLInitializationEvent event)
-    {
-        super.init(event);
-
+        // Initialize pack manager
         PackManager.INSTANCE.initialize(configuration);
-        KeyboardHandler.initKeyBindings();
 
+        // Note: Key bindings are registered via RegisterKeyMappingsEvent in MoBends
+
+        // Register event handlers
         MinecraftForge.EVENT_BUS.register(new EntityRenderHandler());
         MinecraftForge.EVENT_BUS.register(new DataUpdateHandler());
         MinecraftForge.EVENT_BUS.register(new KeyboardHandler());
         MinecraftForge.EVENT_BUS.register(new FluxHandler());
         MinecraftForge.EVENT_BUS.register(new WorldJoinHandler());
 
-        // Registering a listener to whenever resources have been reloaded.
-        IReloadableResourceManager resourceManager = (IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager();
-        resourceManager.registerReloadListener(new AssetReloadListener());
+        // Note: Entity bender configuration is applied later in MoBends.clientSetup()
+        // after entity benders are registered by addons
+
+        LOGGER.info("Mo' Bends client core initialized");
     }
 
     @Override
-    public void postInit(FMLPostInitializationEvent event)
+    public void applyConfigurationToEntityBenders()
     {
-        super.postInit(event);
-
+        LOGGER.info("Applying configuration to entity benders");
         EntityBenderRegistry.instance.applyConfiguration(configuration);
     }
 

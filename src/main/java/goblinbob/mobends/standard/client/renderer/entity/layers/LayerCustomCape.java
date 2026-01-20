@@ -1,74 +1,83 @@
 package goblinbob.mobends.standard.client.renderer.entity.layers;
 
-import goblinbob.mobends.core.util.BenderHelper;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.standard.client.renderer.entity.BendsCapeRenderer;
 import goblinbob.mobends.standard.data.PlayerData;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.player.EnumPlayerModelParts;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.PlayerModelPart;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
-public class LayerCustomCape implements LayerRenderer<AbstractClientPlayer>
+/**
+ * Custom cape layer for Mo' Bends animated cape rendering.
+ * Updated for 1.20.1 to use PoseStack and RenderSystem instead of GlStateManager.
+ */
+@OnlyIn(Dist.CLIENT)
+public class LayerCustomCape extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
 
-    private final RenderPlayer playerRenderer;
     private final BendsCapeRenderer capeRenderer;
 
-    public LayerCustomCape(RenderPlayer playerRendererIn)
+    public LayerCustomCape(RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer)
     {
-        this.playerRenderer = playerRendererIn;
+        super(renderer);
         this.capeRenderer = new BendsCapeRenderer();
     }
 
-    public void doRenderLayer(AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale)
+    @Override
+    public void render(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                       AbstractClientPlayer player, float limbSwing, float limbSwingAmount,
+                       float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
-        final PlayerData data = BenderHelper.getData(player, playerRenderer);
-        assert data != null;
+        final EntityData<?> entityData = EntityDatabase.instance.get(player);
+        if (!(entityData instanceof PlayerData))
+            return;
 
-        if (player.hasPlayerInfo() && !player.isInvisible() && player.isWearing(EnumPlayerModelParts.CAPE) && player.getLocationCape() != null)
+        final PlayerData data = (PlayerData) entityData;
+        final float scale = 0.0625F;
+
+        if (player.isCapeLoaded() && !player.isInvisible() && player.isModelPartShown(PlayerModelPart.CAPE) && player.getCloakTextureLocation() != null)
         {
-            final ItemStack itemstack = player.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+            final ItemStack itemstack = player.getItemBySlot(EquipmentSlot.CHEST);
 
-            if (itemstack.getItem() != Items.ELYTRA)
+            if (!itemstack.is(Items.ELYTRA))
             {
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                this.playerRenderer.bindTexture(player.getLocationCape());
-                GlStateManager.pushMatrix();
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                poseStack.pushPose();
 
-                if (player.isSneaking())
+                if (player.isCrouching())
                 {
-                    if (player.capabilities.isFlying)
+                    if (player.getAbilities().flying)
                     {
-                        GlStateManager.translate(0F, 4F * scale, 0F);
+                        poseStack.translate(0F, 4F * scale, 0F);
                     }
                     else
                     {
-                        GlStateManager.translate(0F, 4F * scale, 0F);
+                        poseStack.translate(0F, 4F * scale, 0F);
                     }
                 }
 
-                data.body.applyLocalTransform(0.0625F);
-                GlStateManager.translate(0.0F, -12.0F * scale, 2.2F * scale);
-                data.cape.applyLocalTransform(0.0625F);
-                GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
+                data.body.applyLocalTransform(poseStack, 0.0625F);
+                poseStack.translate(0.0F, -12.0F * scale, 2.2F * scale);
+                data.cape.applyLocalTransform(poseStack, 0.0625F);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 
                 capeRenderer.applyAnimation(data);
-                capeRenderer.render(0.0625F);
+                capeRenderer.render(poseStack, bufferSource, packedLight, player, 0.0625F);
 
-                GlStateManager.popMatrix();
+                poseStack.popPose();
             }
         }
-    }
-
-    public boolean shouldCombineTextures()
-    {
-        return false;
     }
 }

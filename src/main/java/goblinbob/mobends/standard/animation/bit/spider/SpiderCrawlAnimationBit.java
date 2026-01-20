@@ -2,8 +2,8 @@ package goblinbob.mobends.standard.animation.bit.spider;
 
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.data.SpiderData;
-import net.minecraft.entity.monster.EntitySpider;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.util.Mth;
 
 public class SpiderCrawlAnimationBit extends SpiderAnimationBitBase
 {
@@ -20,13 +20,13 @@ public class SpiderCrawlAnimationBit extends SpiderAnimationBitBase
     public void perform(SpiderData data)
     {
         final float pt = DataUpdateHandler.partialTicks;
-        final EntitySpider spider = data.getEntity();
+        final Spider spider = data.getEntity();
 
         final float headYaw = data.headYaw.get();
         final float headPitch = data.headPitch.get();
         final float limbSwing = data.getInterpolatedCrawlProgress() * 5.0F;
 
-        float groundLevel = MathHelper.sin(limbSwing * 0.6F) * 1.2F;
+        float groundLevel = Mth.sin(limbSwing * 0.6F) * 1.2F;
 
         if (startTransition < 1.0F)
             startTransition += DataUpdateHandler.ticksPerFrame * 0.1F;
@@ -51,12 +51,15 @@ public class SpiderCrawlAnimationBit extends SpiderAnimationBitBase
         animateMovingLimb(data, groundLevel, limbSwing + .4F, 7, 10F, 20.0F, 60, 80.0F);
 
         final float climbingRotation = data.getCrawlingRotation();
-        final float yaw = spider.prevRotationYaw + (spider.rotationYaw - spider.prevRotationYaw) * pt;
-        final float renderRotationY = MathHelper.wrapDegrees(yaw - climbingRotation);
+        // Use body yaw, not entity yaw - Minecraft's renderer applies body yaw rotation,
+        // so we need to compensate based on body yaw to avoid mismatch when spider looks around
+        final float bodyYaw = spider.yBodyRotO + (spider.yBodyRot - spider.yBodyRotO) * pt;
+        final float renderRotationY = Mth.wrapDegrees(bodyYaw - climbingRotation);
         data.renderRotation.orientX(-90F);
         data.renderRotation.setSmoothness(.6F).rotateY(renderRotationY);
 
-        data.localOffset.slideTo(0, -10.0F, 0, 0.5F);
+        // Reset local offset - position handled by the rotation transforms
+        data.localOffset.slideToZero();
         data.centerRotation.orientZero();
     }
 

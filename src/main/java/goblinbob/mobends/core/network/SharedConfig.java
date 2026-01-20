@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.network;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.LinkedList;
 
@@ -27,7 +27,7 @@ public class SharedConfig
         return properties;
     }
 
-    public void writeToNBT(NBTTagCompound tag)
+    public void writeToNBT(CompoundTag tag)
     {
         for (SharedProperty<?> property : properties)
         {
@@ -35,7 +35,7 @@ public class SharedConfig
         }
     }
 
-    public void readFromNBT(NBTTagCompound tag)
+    public void readFromNBT(CompoundTag tag)
     {
         for (SharedProperty<?> property : properties)
         {

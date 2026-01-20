@@ -1,27 +1,31 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.standard.main.ModConfig;
-import net.minecraft.client.renderer.entity.RenderArrow;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ArrowRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
-public abstract class RenderBendsArrow<T extends EntityArrow> extends RenderArrow<T>
+@OnlyIn(Dist.CLIENT)
+public abstract class RenderBendsArrow<T extends AbstractArrow> extends ArrowRenderer<T>
 {
-	
-    public RenderBendsArrow(RenderManager renderManagerIn) {
-		super(renderManagerIn);
-	}
-    
-    @Override
-    public void doRender(T entity, double x, double y, double z, float entityYaw, float partialTicks)
+    public RenderBendsArrow(EntityRendererProvider.Context context)
     {
-    	if(ModConfig.showArrowTrails)
-    		ArrowTrailManager.renderTrail(entity, x, y, z, partialTicks);
-
-    	super.doRender(entity, x, y, z, entityYaw, partialTicks);
+        super(context);
     }
-    
+
+    @Override
+    public void render(T entity, float entityYaw, float partialTicks, PoseStack poseStack,
+                       MultiBufferSource buffer, int packedLight)
+    {
+        if (ModConfig.showArrowTrails)
+        {
+            ArrowTrailManager.renderTrail(entity, entity.getX(), entity.getY(), entity.getZ(), partialTicks);
+        }
+
+        super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
+    }
 }

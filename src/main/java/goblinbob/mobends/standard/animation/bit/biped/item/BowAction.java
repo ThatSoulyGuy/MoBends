@@ -4,15 +4,15 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.util.GUtil;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumHandSide;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 
 public class BowAction extends AnimationBit<BipedEntityData<?>>
 {
-	protected final EnumHandSide actionHand;
+	protected final HumanoidArm actionHand;
 
-	public BowAction(EnumHandSide handSide)
+	public BowAction(HumanoidArm handSide)
 	{
 		this.actionHand = handSide;
 	}
@@ -22,11 +22,11 @@ public class BowAction extends AnimationBit<BipedEntityData<?>>
 	{
 		data.localOffset.slideToZero(0.3F);
 
-		final EntityLivingBase living = data.getEntity();
+		final LivingEntity living = data.getEntity();
 		final float headPitch = data.headPitch.get();
 		final float headYaw = data.headYaw.get();
 
-		boolean mainHandSwitch = this.actionHand == EnumHandSide.RIGHT;
+		boolean mainHandSwitch = this.actionHand == HumanoidArm.RIGHT;
 		// Main Hand Direction Multiplier - it helps switch animation sides depending on
 		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -35,7 +35,7 @@ public class BowAction extends AnimationBit<BipedEntityData<?>>
 		ModelPartTransform mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		ModelPartTransform offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 
-		int aimedBowDuration = living != null ? Math.min(living.getItemInUseMaxCount(), 15) : 0;
+		int aimedBowDuration = living != null ? Math.min(living.getTicksUsingItem(), 15) : 0;
 
 		float bodyTwistY = (((aimedBowDuration - 10) / 5.0f) * -25) * handDirMtp;
 		float var2 = (aimedBowDuration / 10.0f);
@@ -46,8 +46,8 @@ public class BowAction extends AnimationBit<BipedEntityData<?>>
 		if (data.isClimbing())
 		{
 			float climbingRotation = data.getClimbingRotation();
-			float renderRotationY = MathHelper.wrapDegrees(living.rotationYaw - headYaw - climbingRotation);
-			bodyRotationY = MathHelper.wrapDegrees(headYaw + renderRotationY);
+			float renderRotationY = Mth.wrapDegrees(living.getYRot() - headYaw - climbingRotation);
+			bodyRotationY = Mth.wrapDegrees(headYaw + renderRotationY);
 
 			data.head.rotation.setSmoothness(0.5F).orientX(headPitch);
 		}
@@ -63,7 +63,7 @@ public class BowAction extends AnimationBit<BipedEntityData<?>>
 				.rotateY(bodyTwistY);
 		offArm.rotation.setSmoothness(1F).orientY(80F * handDirMtp)
 				// Keeping it close to the arm no matter the head pitch
-				.rotateZ((-MathHelper.cos(headPitch/180F * GUtil.PI) * 40F + 40F) * handDirMtp)
+				.rotateZ((-Mth.cos(headPitch/180F * GUtil.PI) * 40F + 40F) * handDirMtp)
 				.rotateX(var5);
 
 		mainForeArm.rotation.setSmoothness(1F).orientX(0);

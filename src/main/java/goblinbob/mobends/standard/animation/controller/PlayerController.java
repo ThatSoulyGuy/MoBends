@@ -9,10 +9,12 @@ import goblinbob.mobends.standard.animation.bit.biped.item.*;
 import goblinbob.mobends.standard.animation.bit.player.*;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PlayerData;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.*;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,16 +66,16 @@ public class PlayerController implements IAnimationController<PlayerData>
 
     public void performActionAnimations(PlayerData data, AbstractClientPlayer player)
     {
-        if (player.isEntityAlive() && player.isPlayerSleeping())
+        if (player.isAlive() && player.isSleeping())
         {
             actionController.clearAction();
             return;
         }
 
-        final EnumHandSide primaryHand = player.getPrimaryHand();
-        final ItemStack heldItemMainhand = player.getHeldItemMainhand();
-        final ItemStack heldItemOffhand = player.getHeldItemOffhand();
-        final Item activeItem = player.getActiveItemStack().getItem();
+        final HumanoidArm primaryHand = player.getMainArm();
+        final ItemStack heldItemMainhand = player.getMainHandItem();
+        final ItemStack heldItemOffhand = player.getOffhandItem();
+        final Item activeItem = player.getUseItem().getItem();
 
         actionController.perform(data, primaryHand, heldItemMainhand, heldItemOffhand, activeItem);
     }
@@ -85,14 +87,14 @@ public class PlayerController implements IAnimationController<PlayerData>
 
         layerCape.playOrContinueBit(bitCape, data);
 
-        if (player.isEntityAlive() && player.isPlayerSleeping())
+        if (player.isAlive() && player.isSleeping())
         {
             layerBase.playOrContinueBit(bitSleeping, data);
             layerSneak.clearAnimation();
         }
-        else if (player.isRiding())
+        else if (player.isPassenger())
         {
-            if (player.getRidingEntity() instanceof EntityLivingBase)
+            if (player.getVehicle() instanceof LivingEntity)
             {
                 layerBase.playOrContinueBit(bitRiding, data);
             }
@@ -104,7 +106,7 @@ public class PlayerController implements IAnimationController<PlayerData>
         }
         else
         {
-            if (player.getTicksElytraFlying() > 4)
+            if (player.getFallFlyingTicks() > 4)
             {
                 layerBase.playOrContinueBit(bitElytra, data);
                 layerSneak.clearAnimation();
@@ -169,7 +171,7 @@ public class PlayerController implements IAnimationController<PlayerData>
                     }
                 }
 
-                if (player.isSneaking())
+                if (player.isCrouching())
                     layerSneak.playOrContinueBit(bitSneak, data);
                 else
                     layerSneak.clearAnimation();

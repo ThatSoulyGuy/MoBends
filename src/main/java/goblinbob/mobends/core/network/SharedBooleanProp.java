@@ -1,7 +1,7 @@
 package goblinbob.mobends.core.network;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.config.Configuration;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public class SharedBooleanProp extends SharedProperty<Boolean>
 {
@@ -18,21 +18,21 @@ public class SharedBooleanProp extends SharedProperty<Boolean>
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound tag)
+    public void writeToNBT(CompoundTag tag)
     {
-        tag.setBoolean(key, value);
+        tag.putBoolean(key, value);
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound tag)
+    public void readFromNBT(CompoundTag tag)
     {
         value = tag.getBoolean(key);
     }
 
     @Override
-    public void updateWithConfig(Configuration configuration, String category)
+    public void updateWithConfigValue(ForgeConfigSpec.ConfigValue<Boolean> configValue)
     {
-        value = configuration.get(category, key, defaultValue, description).getBoolean();
+        value = configValue.get();
     }
 
 }

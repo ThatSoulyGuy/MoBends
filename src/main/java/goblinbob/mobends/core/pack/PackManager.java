@@ -1,11 +1,12 @@
 package goblinbob.mobends.core.pack;
 
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
+import org.slf4j.Logger;
 import goblinbob.mobends.core.flux.ObservableMap;
 import goblinbob.mobends.core.util.ErrorReporter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.List;
 
 public class PackManager
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final PackManager INSTANCE = new PackManager();
 
@@ -34,7 +36,7 @@ public class PackManager
 
     public void initialize(CoreClientConfig config)
     {
-        localDirectory = new File(Minecraft.getMinecraft().mcDataDir, "bendspacks");
+        localDirectory = new File(Minecraft.getInstance().gameDirectory, "bendspacks");
         localDirectory.mkdir();
 
         cache = new PackCache(new File(localDirectory, "public_cache"));
@@ -75,13 +77,13 @@ public class PackManager
                 }
                 catch(IOException ex)
                 {
-                    Core.LOG.severe(String.format("Couldn't load local bends pack: '%s'", file.getName()));
+                    LOGGER.error(String.format("Couldn't load local bends pack: '%s'", file.getName()));
                 }
             }
         }
 
         // Re-adding the applied packs.
-        for (String key : config.appliedPackKeys)
+        for (String key : config.getAppliedPacks())
         {
             IBendsPack pack = localPacks.get(key);
             if (pack != null)

@@ -10,7 +10,7 @@ import goblinbob.mobends.standard.data.PlayerData;
 import goblinbob.mobends.standard.main.ModStatics;
 import goblinbob.mobends.standard.mutators.PlayerMutator;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
-import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.player.AbstractClientPlayer;
 
 public class PlayerBender extends EntityBender<AbstractClientPlayer>
 {

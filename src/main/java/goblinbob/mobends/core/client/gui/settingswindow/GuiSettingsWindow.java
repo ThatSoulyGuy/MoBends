@@ -1,5 +1,6 @@
 package goblinbob.mobends.core.client.gui.settingswindow;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.core.Core;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
@@ -9,24 +10,20 @@ import goblinbob.mobends.core.client.gui.elements.GuiCompactTextField;
 import goblinbob.mobends.core.util.Draw;
 import goblinbob.mobends.core.util.GuiHelper;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.ResourceLocation;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
-import java.io.IOException;
-
-public class GuiSettingsWindow extends GuiScreen
+public class GuiSettingsWindow extends Screen
 {
 
     public static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(ModStatics.MODID,
             "textures/gui/pack_window.png");
     public static final int EDITOR_WIDTH = 280;
     public static final int EDITOR_HEIGHT = 177;
-    private static final int COMPONENT_BUTTON_BACK = 0;
-    private static final int COMPONENT_QUERY_INPUT = 1;
 
     private int x, y;
 
@@ -37,35 +34,37 @@ public class GuiSettingsWindow extends GuiScreen
 
     public GuiSettingsWindow()
     {
-        super();
+        super(Component.translatable("mobends.gui.settings"));
 
         fetchBenders();
     }
 
     @Override
-    public void initGui()
+    protected void init()
     {
-        super.initGui();
-
-        Keyboard.enableRepeatEvents(true);
+        super.init();
 
         this.x = (this.width - EDITOR_WIDTH) / 2;
         this.y = (this.height - EDITOR_HEIGHT) / 2;
 
-        buttonList.clear();
-        buttonList.add(new GuiButton(COMPONENT_BUTTON_BACK, 10, height - 30, 60, 20, I18n.format("mobends.gui.back")));
-        filterQueryInput = new GuiCompactTextField(COMPONENT_QUERY_INPUT, this.fontRenderer, x + 6, y + 6, 150, 16);
+        clearWidgets();
+        addRenderableWidget(Button.builder(Component.translatable("mobends.gui.back"), button -> goBack())
+                .bounds(10, height - 30, 60, 20)
+                .build());
+        filterQueryInput = new GuiCompactTextField(this.font, x + 6, y + 6, 150, 16);
         filterQueryInput.setFocused(true);
-        filterQueryInput.setPlaceholderText(I18n.format("mobends.gui.search"));
+        filterQueryInput.setPlaceholderText(I18n.get("mobends.gui.search"));
+        addRenderableWidget(filterQueryInput);
         bendsSettingsListUI.initGui(this.x + 9, this.y + 9 + 20);
     }
 
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks)
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        this.drawDefaultBackground();
+        this.renderBackground(guiGraphics);
 
-        mc.getTextureManager().bindTexture(BACKGROUND_TEXTURE);
+        RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         // Container
         Draw.borderBox(x + 4, y + 4, EDITOR_WIDTH, EDITOR_HEIGHT, 4, 36, 126);
         // Title background
@@ -73,92 +72,103 @@ public class GuiSettingsWindow extends GuiScreen
         Draw.texturedModalRect(x + 4, y - 13, EDITOR_WIDTH - 16, 16, 105, 0, 1, 16);
         Draw.texturedModalRect(x + EDITOR_WIDTH - 17, y - 13, 106, 0, 19, 16);
 
-        bendsSettingsListUI.draw(DataUpdateHandler.partialTicks);
+        bendsSettingsListUI.draw(guiGraphics, DataUpdateHandler.partialTicks);
 
-        fontRenderer.drawStringWithShadow(I18n.format("mobends.gui.settings"), this.x + 6, this.y - 9, 0xffffff);
-        filterQueryInput.drawTextBox();
+        guiGraphics.drawString(font, I18n.get("mobends.gui.settings"), this.x + 6, this.y - 9, 0xffffff, true);
 
-        super.drawScreen(mouseX, mouseY, partialTicks);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
-    public void updateScreen()
+    public void tick()
     {
-        super.updateScreen();
+        super.tick();
 
-        final int mouseX = Mouse.getEventX() * this.width / this.mc.displayWidth;
-        final int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+        if (this.minecraft == null) return;
 
-        bendsSettingsListUI.update(mouseX, mouseY);
-        filterQueryInput.updateCursorCounter();
+        final double mouseX = this.minecraft.mouseHandler.xpos() * (double)this.width / (double)this.minecraft.getWindow().getScreenWidth();
+        final double mouseY = this.minecraft.mouseHandler.ypos() * (double)this.height / (double)this.minecraft.getWindow().getScreenHeight();
+
+        bendsSettingsListUI.update((int)mouseX, (int)mouseY);
     }
 
     @Override
-    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton)
     {
-        super.mouseClicked(mouseX, mouseY, mouseButton);
+        if (super.mouseClicked(mouseX, mouseY, mouseButton)) return true;
 
-        bendsSettingsListUI.handleMouseClicked(mouseX, mouseY, mouseButton);
-        filterQueryInput.mouseClicked(mouseX, mouseY, mouseButton);
+        bendsSettingsListUI.handleMouseClicked((int)mouseX, (int)mouseY, mouseButton);
+        return true;
     }
 
     @Override
-    protected void mouseReleased(int mouseX, int mouseY, int mouseButton)
+    public boolean mouseReleased(double mouseX, double mouseY, int mouseButton)
     {
         super.mouseReleased(mouseX, mouseY, mouseButton);
 
-        bendsSettingsListUI.handleMouseReleased(mouseX, mouseY, mouseButton);
+        bendsSettingsListUI.handleMouseReleased((int)mouseX, (int)mouseY, mouseButton);
+        return true;
     }
 
     @Override
-    public void handleMouseInput() throws IOException
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta)
     {
-        super.handleMouseInput();
-
-        bendsSettingsListUI.handleMouseInput();
-    }
-
-    @Override
-    public void keyTyped(char typedChar, int keyCode)
-    {
-        filterQueryInput.textboxKeyTyped(typedChar, keyCode);
-        if (!filterQueryInput.getText().equals(filter.query))
+        if (bendsSettingsListUI.handleMouseScroll(mouseX, mouseY, delta))
         {
-            filter.query = filterQueryInput.getText();
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers)
+    {
+        // Let the text field handle key presses first
+        if (filterQueryInput.isFocused() && filterQueryInput.keyPressed(keyCode, scanCode, modifiers))
+        {
+            checkFilterChanged();
+            return true;
+        }
+
+        // ESC key
+        if (keyCode == 256)
+        {
+            Core.saveConfiguration();
+            GuiHelper.closeGui();
+            return true;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char chr, int modifiers)
+    {
+        if (filterQueryInput.isFocused() && filterQueryInput.charTyped(chr, modifiers))
+        {
+            checkFilterChanged();
+            return true;
+        }
+        return super.charTyped(chr, modifiers);
+    }
+
+    private void checkFilterChanged()
+    {
+        if (!filterQueryInput.getValue().equals(filter.query))
+        {
+            filter.query = filterQueryInput.getValue();
             fetchBenders();
-        }
-
-        switch (keyCode)
-        {
-            case 1:
-                Core.saveConfiguration();
-                GuiHelper.closeGui();
-                break;
-        }
-    }
-
-    @Override
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
-        super.actionPerformed(button);
-
-        switch (button.id)
-        {
-            case COMPONENT_BUTTON_BACK:
-                goBack();
-                break;
-            default:
-                break;
         }
     }
 
     private void goBack()
     {
         Core.saveConfiguration();
-        this.mc.displayGuiScreen(new GuiBendsMenu());
+        this.minecraft.setScreen(new GuiBendsMenu());
     }
 
-    public boolean doesGuiPauseGame()
+    @Override
+    public boolean isPauseScreen()
     {
         return false;
     }

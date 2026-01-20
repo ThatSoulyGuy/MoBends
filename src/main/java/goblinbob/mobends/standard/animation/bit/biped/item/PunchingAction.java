@@ -5,20 +5,20 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.FistGuardAnimationBit;
 import goblinbob.mobends.standard.animation.bit.player.PunchAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.world.entity.HumanoidArm;
 
 public class PunchingAction extends AnimationBit<BipedEntityData<?>>
 {
     protected final HardAnimationLayer<BipedEntityData<?>> layerBase = new HardAnimationLayer<>();
 
     protected final FistGuardAnimationBit bitFistGuard = new FistGuardAnimationBit();
-    protected final PunchAnimationBit bitPunchLeft = new PunchAnimationBit(EnumHandSide.LEFT);
-    protected final PunchAnimationBit bitPunchRight = new PunchAnimationBit(EnumHandSide.RIGHT);
+    protected final PunchAnimationBit bitPunchLeft = new PunchAnimationBit(HumanoidArm.LEFT);
+    protected final PunchAnimationBit bitPunchRight = new PunchAnimationBit(HumanoidArm.RIGHT);
 
-    protected EnumHandSide punchingFist = EnumHandSide.LEFT;
+    protected HumanoidArm punchingFist = HumanoidArm.LEFT;
     protected float lastTicksAfterAttack = 0;
 
-    public PunchingAction(EnumHandSide ignoredHandSide)
+    public PunchingAction(HumanoidArm ignoredHandSide)
     {
 
     }
@@ -30,14 +30,14 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
         float ticksAfterAttack = entityData.getTicksAfterAttack();
         if (ticksAfterAttack < lastTicksAfterAttack)
         {
-            punchingFist = punchingFist == EnumHandSide.LEFT ? EnumHandSide.RIGHT : EnumHandSide.LEFT;
+            punchingFist = punchingFist == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
         }
         lastTicksAfterAttack = ticksAfterAttack;
 
         // Playing appropriate bits
         if (ticksAfterAttack < 10)
         {
-            this.layerBase.playOrContinueBit(punchingFist == EnumHandSide.LEFT ? bitPunchLeft : bitPunchRight, entityData);
+            this.layerBase.playOrContinueBit(punchingFist == HumanoidArm.LEFT ? bitPunchLeft : bitPunchRight, entityData);
         }
         else if (ticksAfterAttack < 60)
         {

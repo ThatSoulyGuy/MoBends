@@ -3,7 +3,7 @@ package goblinbob.mobends.core.pack;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import goblinbob.mobends.core.util.BendsPackHelper;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.io.File;

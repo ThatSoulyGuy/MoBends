@@ -1,9 +1,10 @@
 package goblinbob.mobends.core.bender;
 
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
+import org.slf4j.Logger;
 import goblinbob.mobends.standard.main.ModConfig;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.*;
 
@@ -12,19 +13,20 @@ import java.util.*;
  */
 public class EntityBenderRegistry
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final EntityBenderRegistry instance = new EntityBenderRegistry();
 
-    private final Map<Class<? extends EntityLivingBase>, EntityBender<?>> entityClassToBenderMap = new HashMap<>();
+    private final Map<Class<? extends LivingEntity>, EntityBender<?>> entityClassToBenderMap = new HashMap<>();
 
     /**
      * Used to cache entity-to-bender relationships, so they won't be calculated every time.
      */
-    private final Map<EntityLivingBase, EntityBender<?>> entityToBenderMap = new HashMap<>();
+    private final Map<LivingEntity, EntityBender<?>> entityToBenderMap = new HashMap<>();
 
     public void registerBender(EntityBender<?> entityBender)
     {
-        Core.LOG.info(String.format("Registering %s", entityBender.getKey()));
+        LOGGER.info(String.format("Registering %s", entityBender.getKey()));
         entityClassToBenderMap.put(entityBender.entityClass, entityBender);
     }
 
@@ -55,13 +57,13 @@ public class EntityBenderRegistry
         return benderList;
     }
 
-    public <E extends EntityLivingBase> EntityBender<E> getForEntityClass(Class<E> c)
+    public <E extends LivingEntity> EntityBender<E> getForEntityClass(Class<E> c)
     {
         // noinspection unchecked
         return (EntityBender<E>) entityClassToBenderMap.get(c);
     }
 
-    public <E extends EntityLivingBase> EntityBender<E> getForEntity(E entity)
+    public <E extends LivingEntity> EntityBender<E> getForEntity(E entity)
     {
         // noinspection unchecked
         return (EntityBender<E>) entityToBenderMap.computeIfAbsent(entity, key -> {
@@ -70,7 +72,7 @@ public class EntityBenderRegistry
                 return null;
 
             // Checking direct registration
-            Class<? extends EntityLivingBase> entityClass = entity.getClass();
+            Class<? extends LivingEntity> entityClass = entity.getClass();
             for (EntityBender<?> entityBender : entityClassToBenderMap.values())
                 if (entityBender.entityClass.equals(entityClass))
                     return entityBender;
@@ -84,7 +86,7 @@ public class EntityBenderRegistry
         });
     }
 
-    public <E extends EntityLivingBase> void clearCache(E entity)
+    public <E extends LivingEntity> void clearCache(E entity)
     {
         entityToBenderMap.remove(entity);
     }

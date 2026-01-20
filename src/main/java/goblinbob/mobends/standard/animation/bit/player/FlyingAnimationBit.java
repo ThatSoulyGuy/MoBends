@@ -4,8 +4,8 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.util.GUtil;
 import goblinbob.mobends.standard.data.PlayerData;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.util.Mth;
 
 public class FlyingAnimationBit extends AnimationBit<PlayerData>
 {
@@ -32,23 +32,23 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 
 		float ticks = DataUpdateHandler.getTicks();
 
-		float forwardMomentum = MathHelper.clamp((float) data.getForwardMomentum(), -1F, 1F);
-		float sideMomentum = MathHelper.clamp((float) data.getSidewaysMomentum(), -1F, 1F);
+		float forwardMomentum = Mth.clamp((float) data.getForwardMomentum(), -1F, 1F);
+		float sideMomentum = Mth.clamp((float) data.getSidewaysMomentum(), -1F, 1F);
 		double xzMomentum = data.getInterpolatedXZMotionMagnitude();
 		
 		float headPitch = data.headPitch.get();
 		float headYaw = data.headYaw.get();
-		float headYawAbs = MathHelper.abs(headYaw);
-		float yMomentumAngle = (float) MathHelper.atan2(xzMomentum,  data.getMotionY()) * 180.0F / GUtil.PI;
+		float headYawAbs = Mth.abs(headYaw);
+		float yMomentumAngle = (float) Mth.atan2(xzMomentum,  data.getMotionY()) * 180.0F / GUtil.PI;
 		
 		if (player.isSprinting() && !data.isDrawingBow() && data.getTicksAfterAttack() >= 10)
 		{
-			float speedFactor = MathHelper.clamp((float) magnitude, 0.0F, 0.2F) / 0.2F;
+			float speedFactor = Mth.clamp((float) magnitude, 0.0F, 0.2F) / 0.2F;
 			
 			// Full Speed
 			data.centerRotation.setSmoothness(1.0F).orientX(yMomentumAngle * speedFactor).rotateZ(headYaw);
 			
-			float bodyRotationX = MathHelper.clamp(headPitch * 0.8F, -60.0F, 0.0F);
+			float bodyRotationX = Mth.clamp(headPitch * 0.8F, -60.0F, 0.0F);
 			data.head.rotation.setSmoothness(1.0F).orientY(headYaw).rotateX(headPitch - bodyRotationX - yMomentumAngle * speedFactor);
 			data.body.rotation.setSmoothness(0.7F).orientX(bodyRotationX);
 			data.leftArm.rotation.setSmoothness(0.7F).orientX(-bodyRotationX).rotateZ(-60F + 55F * speedFactor - headYawAbs * 0.5F);
@@ -64,10 +64,10 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 		{
 			// Hovering Still
 			
-			float armSway = (MathHelper.cos(ticks * .0825F) + 1) / 2;
-			float armSway2 = (-MathHelper.sin(ticks * .0825F) + 1) / 2;
-			float legFlap = MathHelper.cos(ticks * .125F);
-			float legFlap2 = MathHelper.sin(ticks * .125F);
+			float armSway = (Mth.cos(ticks * .0825F) + 1) / 2;
+			float armSway2 = (-Mth.sin(ticks * .0825F) + 1) / 2;
+			float legFlap = Mth.cos(ticks * .125F);
+			float legFlap2 = Mth.sin(ticks * .125F);
 			float foreArmSway = ((ticks * .1625F) % PI_2)/PI_2;
 			float foreArmStretch = armSway * 2F;
 			foreArmStretch -= 1F;

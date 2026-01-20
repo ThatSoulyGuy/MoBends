@@ -2,7 +2,7 @@ package goblinbob.mobends.standard.animation.bit.biped;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
@@ -29,25 +29,25 @@ public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit
 		final float PI = (float) Math.PI;
 		float limbSwing = data.limbSwing.get() * 0.6662F;
 		float armSwingAmount = data.limbSwingAmount.get() * 0.5F / PI * 180F;
-		data.rightArm.rotation.setSmoothness(0.8F).orientX(MathHelper.cos(limbSwing + PI) * armSwingAmount)
+		data.rightArm.rotation.setSmoothness(0.8F).orientX(Mth.cos(limbSwing + PI) * armSwingAmount)
 				.rotateZ(5);
-		data.leftArm.rotation.setSmoothness(0.8F).orientX(MathHelper.cos(limbSwing) * armSwingAmount)
+		data.leftArm.rotation.setSmoothness(0.8F).orientX(Mth.cos(limbSwing) * armSwingAmount)
 				.rotateZ(-5);
 
 		float legSwingAmount = 0.7F * data.limbSwingAmount.get() / PI * 180F;
-		data.rightLeg.rotation.setSmoothness(1.0F).orientX(-5F + MathHelper.cos(limbSwing) * legSwingAmount)
+		data.rightLeg.rotation.setSmoothness(1.0F).orientX(-5F + Mth.cos(limbSwing) * legSwingAmount)
 				.rotateZ(2);
-		data.leftLeg.rotation.setSmoothness(1.0F).orientX(-5F + MathHelper.cos(limbSwing + PI) * legSwingAmount)
+		data.leftLeg.rotation.setSmoothness(1.0F).orientX(-5F + Mth.cos(limbSwing + PI) * legSwingAmount)
 				.rotateZ(-2);
 		
 		float var = (limbSwing / PI) % 2;
 		data.leftForeLeg.rotation.setSmoothness(0.5F).orientX(var > 1 ? 45F : 0F);
 		data.rightForeLeg.rotation.setSmoothness(0.5F).orientX(var > 1 ? 0F : 45F);
-		data.leftForeArm.rotation.setSmoothness(0.8F).orientX(MathHelper.cos(limbSwing + PI/2) * -10F - 10F);
-		data.rightForeArm.rotation.setSmoothness(0.8F).orientX(MathHelper.cos(limbSwing) * -10F - 10F);
+		data.leftForeArm.rotation.setSmoothness(0.8F).orientX(Mth.cos(limbSwing + PI/2) * -10F - 10F);
+		data.rightForeArm.rotation.setSmoothness(0.8F).orientX(Mth.cos(limbSwing) * -10F - 10F);
 
-		float bodyRotationY = MathHelper.cos(limbSwing) * -20F;
-		float bodyRotationX = MathHelper.cos(limbSwing * 2F) * 5F + 3F;
+		float bodyRotationY = Mth.cos(limbSwing) * -20F;
+		float bodyRotationX = Mth.cos(limbSwing * 2F) * 5F + 3F;
 		float var10 = data.headYaw.get() * .1F;
 		var10 = Math.max(-10, Math.min(var10, 10));
 		data.body.rotation.setSmoothness(0.5F).orientY(bodyRotationY)
@@ -57,7 +57,7 @@ public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit
 		data.head.rotation.setSmoothness(0.5F).orientX(data.headPitch.get() - bodyRotationX)
 										  	  .rotateY(data.headYaw.get() - bodyRotationY);
 
-		data.globalOffset.slideY(MathHelper.cos(limbSwing * 2) * 0.6F);
+		data.globalOffset.slideY(Mth.cos(limbSwing * 2) * 0.6F);
 		
 		float touchdown = Math.min(data.getTicksAfterTouchdown() * KNEEL_DURATION, 1.0F);
 		if (touchdown < 1.0F)

@@ -13,7 +13,7 @@ import goblinbob.mobends.core.kumo.state.condition.ITriggerConditionFactory;
 import goblinbob.mobends.core.kumo.state.condition.TriggerConditionRegistry;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 import goblinbob.mobends.core.mutators.IMutatorFactory;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.world.entity.LivingEntity;
 
 public class AddonAnimationRegistry
 {
@@ -29,9 +29,9 @@ public class AddonAnimationRegistry
      * Works like {@link #registerNewEntity(String, String, Class, IEntityDataFactory, IMutatorFactory, MutatedRenderer,
      * String...)}, but the key and unlocalizedName are decided based on how the entity was registered.
      */
-    public <T extends EntityLivingBase> String registerNewEntity(Class<T> entityClass,
-                                                                 IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
-                                                                 MutatedRenderer<T> renderer, String... alterableParts)
+    public <T extends LivingEntity> String registerNewEntity(Class<T> entityClass,
+                                                             IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
+                                                             MutatedRenderer<T> renderer, String... alterableParts)
     {
         return registerNewEntity(null, null, entityClass, entityDataFactory, mutatorFactory, renderer, alterableParts);
     }
@@ -40,9 +40,9 @@ public class AddonAnimationRegistry
      * Works like {@link #registerNewEntity(Class, IEntityDataFactory, IMutatorFactory, MutatedRenderer, IPreviewer,
      * String...)}, but the key and unlocalizedName are decided based on how the entity was registered.
      */
-    public <T extends EntityLivingBase> String registerNewEntity(Class<T> entityClass,
-                                                                 IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
-                                                                 MutatedRenderer<T> renderer, IPreviewer<?> previewer, String... alterableParts)
+    public <T extends LivingEntity> String registerNewEntity(Class<T> entityClass,
+                                                             IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
+                                                             MutatedRenderer<T> renderer, IPreviewer<?> previewer, String... alterableParts)
     {
         return registerNewEntity(null, null, entityClass, entityDataFactory, mutatorFactory, renderer, previewer, alterableParts);
     }
@@ -61,9 +61,9 @@ public class AddonAnimationRegistry
      *
      * @return The entity's identifier key.
      */
-    public <T extends EntityLivingBase> String registerNewEntity(String key, String unlocalizedName, Class<T> entityClass,
-                                                                 IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
-                                                                 MutatedRenderer<T> renderer, String... alterableParts)
+    public <T extends LivingEntity> String registerNewEntity(String key, String unlocalizedName, Class<T> entityClass,
+                                                             IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
+                                                             MutatedRenderer<T> renderer, String... alterableParts)
     {
         EntityBender<T> entityBender = new DefaultEntityBender<T>(modId, key, unlocalizedName, entityClass, entityDataFactory, mutatorFactory, renderer, null, alterableParts);
         return registerEntity(entityBender);
@@ -73,9 +73,9 @@ public class AddonAnimationRegistry
      * Works like {@link #registerNewEntity(String, String, Class, IEntityDataFactory, IMutatorFactory, MutatedRenderer,
      * String...)}, but you can specify a custom previewer.
      */
-    public <T extends EntityLivingBase> String registerNewEntity(String key, String unlocalizedName, Class<T> entityClass,
-                                                                 IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
-                                                                 MutatedRenderer<T> renderer, IPreviewer<?> previewer, String... alterableParts)
+    public <T extends LivingEntity> String registerNewEntity(String key, String unlocalizedName, Class<T> entityClass,
+                                                             IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
+                                                             MutatedRenderer<T> renderer, IPreviewer<?> previewer, String... alterableParts)
     {
         EntityBender<T> entityBender = new DefaultEntityBender<T>(modId, key, unlocalizedName, entityClass, entityDataFactory, mutatorFactory, renderer, previewer, alterableParts);
         return registerEntity(entityBender);
@@ -88,7 +88,7 @@ public class AddonAnimationRegistry
      *
      * @return The entity's identifier key.
      */
-    public <T extends EntityLivingBase> String registerEntity(EntityBender<T> entityBender)
+    public <T extends LivingEntity> String registerEntity(EntityBender<T> entityBender)
     {
         String key = entityBender.getKey();
         if (!key.startsWith(this.modId))

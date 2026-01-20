@@ -1,30 +1,35 @@
 package goblinbob.mobends.core.client.gui.elements;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
 
-public class GuiCompactTextField extends GuiTextField
+public class GuiCompactTextField extends EditBox
 {
 
-    String placeholderText;
+    private String placeholderText;
 
-    public GuiCompactTextField(FontRenderer fontrendererObj, int width, int height)
+    public GuiCompactTextField(Font font, int width, int height)
     {
-        super(0, fontrendererObj, 0, 0, width, height);
+        super(font, 0, 0, width, height, Component.empty());
     }
 
-    public GuiCompactTextField(int componentId, FontRenderer fontrendererObj, int x, int y, int width,
-                               int height)
+    public GuiCompactTextField(Font font, int x, int y, int width, int height)
     {
-        super(componentId, fontrendererObj, x, y, width, height);
+        super(font, x, y, width, height, Component.empty());
     }
 
-    public void drawTextBox()
+    @Override
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        super.drawTextBox();
-        if (!this.isFocused() && this.getText().length() == 0)
-            Minecraft.getMinecraft().fontRenderer.drawStringWithShadow(this.placeholderText, this.x + 4, this.y + (this.height - 8) / 2, 0x707070);
+        super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+        if (!this.isFocused() && this.getValue().isEmpty() && this.placeholderText != null)
+        {
+            Font font = Minecraft.getInstance().font;
+            guiGraphics.drawString(font, this.placeholderText, this.getX() + 4, this.getY() + (this.getHeight() - 8) / 2, 0x707070, true);
+        }
     }
 
     public GuiCompactTextField setPlaceholderText(String placeholderText)
@@ -35,8 +40,8 @@ public class GuiCompactTextField extends GuiTextField
 
     public void setPosition(int x, int y)
     {
-        this.x = x;
-        this.y = y;
+        this.setX(x);
+        this.setY(y);
     }
 
 }

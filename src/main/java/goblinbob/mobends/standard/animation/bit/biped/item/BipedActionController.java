@@ -10,12 +10,11 @@ import goblinbob.mobends.standard.animation.bit.biped.EatingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.ShieldAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Items;
-import net.minecraft.item.*;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumHandSide;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,44 +53,50 @@ public class BipedActionController
         }
     }
 
-    private static ModelBiped.ArmPose getAction(EntityLivingBase entity, ItemStack heldItem)
+    private static HumanoidModel.ArmPose getAction(LivingEntity entity, ItemStack heldItem)
     {
         if (!heldItem.isEmpty())
         {
-            if (entity.getItemInUseCount() > 0)
+            if (entity.getUseItemRemainingTicks() > 0)
             {
-                EnumAction enumaction = heldItem.getItemUseAction();
+                UseAnim useAnim = heldItem.getUseAnimation();
 
-                if (enumaction == EnumAction.BLOCK)
-                    return ModelBiped.ArmPose.BLOCK;
-                else if (enumaction == EnumAction.BOW)
-                    return ModelBiped.ArmPose.BOW_AND_ARROW;
+                if (useAnim == UseAnim.BLOCK)
+                    return HumanoidModel.ArmPose.BLOCK;
+                else if (useAnim == UseAnim.BOW)
+                    return HumanoidModel.ArmPose.BOW_AND_ARROW;
+                else if (useAnim == UseAnim.CROSSBOW)
+                    return HumanoidModel.ArmPose.CROSSBOW_HOLD;
+                else if (useAnim == UseAnim.SPYGLASS)
+                    return HumanoidModel.ArmPose.SPYGLASS;
             }
 
-            return ModelBiped.ArmPose.ITEM;
+            return HumanoidModel.ArmPose.ITEM;
         }
 
-        return ModelBiped.ArmPose.EMPTY;
+        return HumanoidModel.ArmPose.EMPTY;
     }
 
-    public static UseActionType getBuiltInItemUseAction(Item item, ModelBiped.ArmPose armPoseMain, ModelBiped.ArmPose armPoseOff)
+    public static UseActionType getBuiltInItemUseAction(Item item, HumanoidModel.ArmPose armPoseMain, HumanoidModel.ArmPose armPoseOff)
     {
         if (item == Items.AIR)
             return null;
 
-        if (item instanceof ItemFood)
+        if (item.isEdible())
             return UseActionType.FOOD;
 
-        if (item instanceof ItemBow || armPoseMain == ModelBiped.ArmPose.BOW_AND_ARROW || armPoseOff == ModelBiped.ArmPose.BOW_AND_ARROW)
+        if (item instanceof BowItem || item instanceof CrossbowItem ||
+                armPoseMain == HumanoidModel.ArmPose.BOW_AND_ARROW || armPoseOff == HumanoidModel.ArmPose.BOW_AND_ARROW ||
+                armPoseMain == HumanoidModel.ArmPose.CROSSBOW_HOLD || armPoseOff == HumanoidModel.ArmPose.CROSSBOW_HOLD)
             return UseActionType.BOW;
 
-        if (armPoseMain == ModelBiped.ArmPose.BLOCK || armPoseOff == ModelBiped.ArmPose.BLOCK)
+        if (armPoseMain == HumanoidModel.ArmPose.BLOCK || armPoseOff == HumanoidModel.ArmPose.BLOCK)
             return UseActionType.SHIELD;
 
         return UseActionType.FOOD;
     }
 
-    public static UseActionType getItemUseAction(Item item, ModelBiped.ArmPose armPoseMain, ModelBiped.ArmPose armPoseOff)
+    public static UseActionType getItemUseAction(Item item, HumanoidModel.ArmPose armPoseMain, HumanoidModel.ArmPose armPoseOff)
     {
         UseActionType useActionType = ModConfig.getItemUseAction(item);
 
@@ -100,7 +105,7 @@ public class BipedActionController
 
     public static AttackActionType getBuiltInItemAttackAction(Item item)
     {
-        if (item instanceof ItemSword)
+        if (item instanceof SwordItem)
             return AttackActionType.SWORD;
 
         if (item == Items.AIR)
@@ -118,16 +123,16 @@ public class BipedActionController
 
     public void perform(
             BipedEntityData<?> data,
-            EnumHandSide primaryHand,
+            HumanoidArm primaryHand,
             ItemStack heldItemMainhand,
             ItemStack heldItemOffhand,
             Item activeItem
     ) {
-        final EntityLivingBase entity = data.getEntity();
-        final EnumHandSide offHand = primaryHand == EnumHandSide.RIGHT ? EnumHandSide.LEFT : EnumHandSide.RIGHT;
-        final ModelBiped.ArmPose armPoseMain = getAction(entity, heldItemMainhand);
-        final ModelBiped.ArmPose armPoseOff = getAction(entity, heldItemOffhand);
-        final EnumHandSide activeHandSide = entity.getActiveHand() == EnumHand.MAIN_HAND ? primaryHand : offHand;
+        final LivingEntity entity = data.getEntity();
+        final HumanoidArm offHand = primaryHand == HumanoidArm.RIGHT ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
+        final HumanoidModel.ArmPose armPoseMain = getAction(entity, heldItemMainhand);
+        final HumanoidModel.ArmPose armPoseOff = getAction(entity, heldItemOffhand);
+        final HumanoidArm activeHandSide = entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? primaryHand : offHand;
 
         UseActionType useActionType = getItemUseAction(activeItem, armPoseMain, armPoseOff);
         if (useActionType != currentUseActionType)

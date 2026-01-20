@@ -1,64 +1,97 @@
 package goblinbob.mobends.core.configuration;
 
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
+import goblinbob.mobends.standard.main.ModStatics;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.config.ModConfig;
+import org.slf4j.Logger;
 
-import java.io.File;
-import java.util.Collection;
+import java.util.*;
 
+/**
+ * Client-side configuration for Mo' Bends 1.20.1.
+ */
 public class CoreClientConfig extends CoreConfig
 {
-    private static final String[] emptyStringList = new String[0];
+    private static final Logger LOGGER = LogUtils.getLogger();
 
-    // General
-    private static final String CATEGORY_GENERAL = "General";
-    private static final String PROP_APPLIED_PACKS = "AppliedPacks";
+    private static ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static ForgeConfigSpec SPEC;
 
-    // Animated
-    private static final String CATEGORY_ANIMATED = "Animated";
+    // General settings
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> APPLIED_PACKS;
 
-    public String[] appliedPackKeys;
+    // Animated entities settings stored separately since they're dynamic
+    private final Map<String, Boolean> animatedEntities = new HashMap<>();
 
-    public CoreClientConfig(File file)
+    static
     {
-        super(file);
-        appliedPackKeys = new String[] {};
+        BUILDER.comment("Mo' Bends Client Configuration").push("general");
+
+        APPLIED_PACKS = BUILDER
+                .comment("List of applied animation pack keys")
+                .defineListAllowEmpty(Collections.singletonList("appliedPacks"),
+                        ArrayList::new,
+                        obj -> obj instanceof String);
+
+        BUILDER.pop();
+        SPEC = BUILDER.build();
+    }
+
+    public CoreClientConfig()
+    {
         load();
     }
 
+    @Override
     public void save()
     {
-        for (EntityBender<?> entityBender : EntityBenderRegistry.instance.getRegistered())
-        {
-            configuration.get(CATEGORY_ANIMATED, entityBender.getKey(), true).setValue(entityBender.isAnimated());
-        }
-
-        configuration.save();
+        // Entity animation states are stored in memory and applied to benders
+        // The applied packs are saved via the config spec
+        LOGGER.debug("Saving Mo' Bends client configuration");
     }
 
+    @Override
     public void load()
     {
-        appliedPackKeys = configuration.get(CATEGORY_GENERAL, PROP_APPLIED_PACKS, emptyStringList).getStringList();
+        LOGGER.debug("Loading Mo' Bends client configuration");
     }
 
     public String[] getAppliedPacks()
     {
-        return appliedPackKeys;
+        List<? extends String> packs = APPLIED_PACKS.get();
+        return packs.toArray(new String[0]);
     }
 
     public void setAppliedPacks(String[] packNames)
     {
-        appliedPackKeys = packNames;
-        configuration.get(CATEGORY_GENERAL, PROP_APPLIED_PACKS, emptyStringList).set(packNames);
+        APPLIED_PACKS.set(Arrays.asList(packNames));
     }
 
     public void setAppliedPacks(Collection<String> packNames)
     {
-        setAppliedPacks(packNames.toArray(new String[0]));
+        APPLIED_PACKS.set(new ArrayList<>(packNames));
     }
 
     public boolean isEntityAnimated(String alterEntryKey)
     {
-        return configuration.get(CATEGORY_ANIMATED, alterEntryKey, true).getBoolean();
+        return animatedEntities.getOrDefault(alterEntryKey, true);
+    }
+
+    public void setEntityAnimated(String alterEntryKey, boolean animated)
+    {
+        animatedEntities.put(alterEntryKey, animated);
+    }
+
+    /**
+     * Register this config with Forge.
+     * Call during mod construction.
+     */
+    public static void register()
+    {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, SPEC, ModStatics.MODID + "-client.toml");
     }
 }

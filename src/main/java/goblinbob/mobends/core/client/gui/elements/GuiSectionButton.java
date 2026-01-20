@@ -1,5 +1,6 @@
 package goblinbob.mobends.core.client.gui.elements;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.client.gui.CustomFont;
 import goblinbob.mobends.core.client.gui.CustomFontRenderer;
@@ -9,9 +10,9 @@ import goblinbob.mobends.core.util.GuiHelper;
 import goblinbob.mobends.core.util.IColorRead;
 import goblinbob.mobends.standard.main.ModStatics;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 public class GuiSectionButton
 {
@@ -43,7 +44,7 @@ public class GuiSectionButton
 
     public GuiSectionButton(int x, int y, String label, IColorRead bgColor)
     {
-        this.mc = Minecraft.getMinecraft();
+        this.mc = Minecraft.getInstance();
         this.label = label;
         this.x = x;
         this.y = y;
@@ -105,7 +106,7 @@ public class GuiSectionButton
     {
         if (this.hover)
         {
-            GuiHelper.playButtonSound(mc.getSoundHandler());
+            GuiHelper.playButtonSound(mc.getSoundManager());
             this.pressed = true;
         }
 
@@ -122,15 +123,15 @@ public class GuiSectionButton
         this.ticksAfterHovered = 0F;
     }
 
-    public void display()
+    public void display(GuiGraphics guiGraphics)
     {
         this.ticksAfterHovered += DataUpdateHandler.ticksPerFrame;
 
         if (this.hover)
-            GlStateManager.color(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
+            RenderSystem.setShaderColor(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
         else
-            GlStateManager.color(this.neutralColor.r, this.neutralColor.g, this.neutralColor.b, this.neutralColor.a);
-        Minecraft.getMinecraft().getTextureManager().bindTexture(BUTTONS_TEXTURE);
+            RenderSystem.setShaderColor(this.neutralColor.r, this.neutralColor.g, this.neutralColor.b, this.neutralColor.a);
+        RenderSystem.setShaderTexture(0, BUTTONS_TEXTURE);
 
         int tX = this.bgTextureU;
         int tY = this.bgTextureV;
@@ -139,13 +140,11 @@ public class GuiSectionButton
         float vScale = 0.0078125F;
 
         if (this.hover)
-            GlStateManager.color(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
+            RenderSystem.setShaderColor(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
         else
-            GlStateManager.color(this.neutralColor.r, this.neutralColor.g, this.neutralColor.b, this.neutralColor.a);
+            RenderSystem.setShaderColor(this.neutralColor.r, this.neutralColor.g, this.neutralColor.b, this.neutralColor.a);
 
-        GlStateManager.disableTexture2D();
         Draw.rectangle(x, y, width, height);
-        GlStateManager.enableTexture2D();
 
         float bgt = 1;
         if (this.hover)
@@ -163,6 +162,7 @@ public class GuiSectionButton
 
         int mountainOffsetY = (int) (bgt * 10);
 
+        RenderSystem.setShaderTexture(0, BUTTONS_TEXTURE);
         Draw.texturedRectangle(x, y + mountainOffsetY, width, height - 2 - mountainOffsetY, tX * uScale, tY * vScale, (tX + width) * uScale, (tY + height - 2 - mountainOffsetY) * vScale);
         // Bottom bar
         Draw.texturedRectangle(x, y + height - 2, width, 2, tX * uScale, (tY + height - 2) * vScale, (tX + width) * uScale, (tY + 2) * vScale);
@@ -174,36 +174,36 @@ public class GuiSectionButton
             {
                 float PI = (float) Math.PI;
                 float t = this.ticksAfterHovered / HOVER_ICON_ANIMATION_DURATION;
-                scale = (1F - MathHelper.cos(t * PI * 1.5F));
-                scale = MathHelper.sqrt(scale);
+                scale = (1F - Mth.cos(t * PI * 1.5F));
+                scale = Mth.sqrt(scale);
             }
 
             int iconSpacing = 30;
 
             if (leftIcon != null)
             {
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(x + iconSpacing, y + height / 2F, 0);
-                GlStateManager.scale(scale, scale, 1);
-                leftIcon.draw(uScale, vScale);
-                GlStateManager.popMatrix();
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(x + iconSpacing, y + height / 2F, 0);
+                guiGraphics.pose().scale(scale, scale, 1);
+                leftIcon.draw(guiGraphics, uScale, vScale);
+                guiGraphics.pose().popPose();
             }
 
             if (rightIcon != null)
             {
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(x + width - iconSpacing, y + height / 2F, 0);
-                GlStateManager.scale(scale, scale, 1);
-                rightIcon.draw(uScale, vScale);
-                GlStateManager.popMatrix();
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(x + width - iconSpacing, y + height / 2F, 0);
+                guiGraphics.pose().scale(scale, scale, 1);
+                rightIcon.draw(guiGraphics, uScale, vScale);
+                guiGraphics.pose().popPose();
             }
         }
 
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         this.fontRenderer.drawCenteredText(this.label, x + width / 2, y + height / 2 + 6);
 
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public void setPosition(int i, int j)
@@ -228,8 +228,9 @@ public class GuiSectionButton
             this.texHeight = height;
         }
 
-        public void draw(float uScale, float vScale)
+        public void draw(GuiGraphics guiGraphics, float uScale, float vScale)
         {
+            RenderSystem.setShaderTexture(0, BUTTONS_TEXTURE);
             Draw.texturedRectangle(-texWidth / 2, -texHeight / 2,
                     texWidth, texHeight,
                     texU * uScale, texV * vScale,

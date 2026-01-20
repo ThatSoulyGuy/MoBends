@@ -6,7 +6,7 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.core.math.SmoothOrientation;
 import goblinbob.mobends.standard.animation.bit.spider.*;
 import goblinbob.mobends.standard.data.SpiderData;
-import net.minecraft.entity.monster.EntitySpider;
+import net.minecraft.world.entity.monster.Spider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +34,7 @@ public class SpiderController implements IAnimationController<SpiderData>
 	@Override
 	public Collection<String> perform(SpiderData spiderData)
 	{
-		final EntitySpider spider = spiderData.getEntity();
+		final Spider spider = spiderData.getEntity();
 
 		if (spider.getHealth() <= 0F)
 		{
@@ -42,7 +42,7 @@ public class SpiderController implements IAnimationController<SpiderData>
 		}
 		else
 		{
-			if (spider.isBesideClimbableBlock())
+			if (spider.onClimbable())
 			{
 				this.layerBase.playOrContinueBit(bitClimb, spiderData);
 			}

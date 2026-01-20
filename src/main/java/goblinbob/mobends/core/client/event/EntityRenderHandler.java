@@ -1,56 +1,96 @@
 package goblinbob.mobends.core.client.event;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
+import goblinbob.mobends.core.client.MoBendsRenderContext;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.Mutator;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.entity.EntityLivingBase;
+import goblinbob.mobends.standard.mutators.BipedMutator;
+import goblinbob.mobends.standard.mutators.SpiderMutator;
+import goblinbob.mobends.standard.mutators.WolfMutator;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EntityRenderHandler
 {
     @SubscribeEvent
-    public void beforeLivingRender(RenderLivingEvent.Pre<? extends EntityLivingBase> event)
+    @SuppressWarnings("unchecked")
+    public void beforeLivingRender(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<?>> event)
     {
-        final EntityLivingBase living = event.getEntity();
-        final EntityBender<EntityLivingBase> entityBender = EntityBenderRegistry.instance.getForEntity(living);
+        final LivingEntity living = event.getEntity();
+        final EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(living);
 
         if (entityBender == null)
+        {
             return;
+        }
 
-        final RenderLivingBase<?> renderer = event.getRenderer();
-        final float pt = event.getPartialRenderTick();
+        final LivingEntityRenderer<LivingEntity, EntityModel<LivingEntity>> renderer =
+            (LivingEntityRenderer<LivingEntity, EntityModel<LivingEntity>>) event.getRenderer();
+        final float pt = event.getPartialTick();
+        final PoseStack poseStack = event.getPoseStack();
 
-        GlStateManager.pushMatrix();
+        poseStack.pushPose();
 
         if (entityBender.isAnimated())
         {
             if (entityBender.applyMutation(renderer, living, pt))
             {
-                final Mutator mutator = entityBender.getMutator(renderer);
-                final LivingEntityData<EntityLivingBase> data = mutator.getData(living);
-                entityBender.beforeRender(data, living, pt);
+                final Object rawMutator = entityBender.getMutator(renderer);
+                final Mutator<?, LivingEntity, ?> mutator =
+                    (Mutator<?, LivingEntity, ?>) rawMutator;
+                final LivingEntityData<LivingEntity> data =
+                    (LivingEntityData<LivingEntity>) mutator.getData(living);
+
+                // Set the mutator in the render context so the mixin can intercept rendering
+                if (rawMutator instanceof BipedMutator<?, ?, ?> bipedMutator)
+                {
+                    MoBendsRenderContext.setCurrentBipedMutator(bipedMutator);
+
+                    // Sync animated poses to vanilla model so layers (armor, held items) can use them
+                    EntityModel<?> model = renderer.getModel();
+                    if (model instanceof HumanoidModel<?> humanoidModel)
+                    {
+                        bipedMutator.syncPosesToVanillaModel(humanoidModel);
+                    }
+                }
+                else if (rawMutator instanceof SpiderMutator spiderMutator)
+                {
+                    MoBendsRenderContext.setCurrentSpiderMutator(spiderMutator);
+                }
+                else if (rawMutator instanceof WolfMutator wolfMutator)
+                {
+                    MoBendsRenderContext.setCurrentWolfMutator(wolfMutator);
+                }
+
+                entityBender.beforeRender(data, living, pt, poseStack);
             }
         }
         else
         {
-            entityBender.deapplyMutation(event.getRenderer(), living);
+            entityBender.deapplyMutation(renderer, living);
         }
     }
 
     @SubscribeEvent
-    public void afterLivingRender(RenderLivingEvent.Post<? extends EntityLivingBase> event)
+    @SuppressWarnings("unchecked")
+    public void afterLivingRender(RenderLivingEvent.Post<? extends LivingEntity, ? extends EntityModel<?>> event)
     {
-        final EntityBender<EntityLivingBase> entityBender = EntityBenderRegistry.instance.getForEntity(event.getEntity());
+        // Always clear the render context after rendering
+        MoBendsRenderContext.clear();
+
+        final EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(event.getEntity());
 
         if (entityBender == null)
             return;
 
-        entityBender.afterRender(event.getEntity(), event.getPartialRenderTick());
+        entityBender.afterRender((LivingEntity) event.getEntity(), event.getPartialTick(), event.getPoseStack());
 
-        GlStateManager.popMatrix();
+        event.getPoseStack().popPose();
     }
 }

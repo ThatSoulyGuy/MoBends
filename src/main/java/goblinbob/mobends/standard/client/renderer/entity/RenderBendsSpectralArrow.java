@@ -1,35 +1,25 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.projectile.EntitySpectralArrow;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.client.registry.IRenderFactory;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.projectile.SpectralArrow;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
-public class RenderBendsSpectralArrow extends RenderBendsArrow<EntitySpectralArrow>
+@OnlyIn(Dist.CLIENT)
+public class RenderBendsSpectralArrow extends RenderBendsArrow<SpectralArrow>
 {
-	public static final ResourceLocation RES_SPECTRAL_ARROW = new ResourceLocation(
-			"textures/entity/projectiles/spectral_arrow.png");
+    public static final ResourceLocation RES_SPECTRAL_ARROW = new ResourceLocation(
+            "textures/entity/projectiles/spectral_arrow.png");
 
-	public RenderBendsSpectralArrow(RenderManager manager)
-	{
-		super(manager);
-	}
+    public RenderBendsSpectralArrow(EntityRendererProvider.Context context)
+    {
+        super(context);
+    }
 
-	protected ResourceLocation getEntityTexture(EntitySpectralArrow entity)
-	{
-		return RES_SPECTRAL_ARROW;
-	}
-
-	public static class Factory implements IRenderFactory
-	{
-		@Override
-		public Render createRenderFor(RenderManager manager)
-		{
-			return new RenderBendsSpectralArrow(manager);
-		}
-	}
+    @Override
+    public ResourceLocation getTextureLocation(SpectralArrow entity)
+    {
+        return RES_SPECTRAL_ARROW;
+    }
 }

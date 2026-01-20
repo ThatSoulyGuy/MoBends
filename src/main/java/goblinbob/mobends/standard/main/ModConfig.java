@@ -4,88 +4,152 @@ import goblinbob.mobends.core.util.ErrorReporter;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.core.util.WildcardPattern;
 import goblinbob.mobends.standard.UseActionType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 import java.util.function.Function;
 
-@Config(modid = ModStatics.MODID)
+@Mod.EventBusSubscriber(modid = ModStatics.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModConfig
 {
-    @Config.LangKey(ModStatics.MODID + ".config.show_arrow_trails")
+    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ForgeConfigSpec SPEC;
+
+    private static final ForgeConfigSpec.BooleanValue SHOW_ARROW_TRAILS;
+    private static final ForgeConfigSpec.BooleanValue SHOW_SWORD_TRAIL;
+    private static final ForgeConfigSpec.BooleanValue PERFORM_SPIN_ATTACK;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ITEM_USE_CLASSIFICATIONS;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ITEM_ATTACK_CLASSIFICATIONS;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> KEEP_ARMOR_AS_VANILLA;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> KEEP_ENTITY_AS_VANILLA;
+
+    // Public accessors for backwards compatibility
     public static boolean showArrowTrails = true;
-    @Config.LangKey(ModStatics.MODID + ".config.show_sword_trails")
     public static boolean showSwordTrail = true;
-    @Config.LangKey(ModStatics.MODID + ".config.perform_spin_attack")
     public static boolean performSpinAttack = true;
-    @Config.LangKey(ModStatics.MODID + ".config.item_use_classifications")
     public static String[] itemUseClassifications = new String[] {};
-    @Config.LangKey(ModStatics.MODID + ".config.item_attack_classifications")
     public static String[] itemAttackClassifications = new String[] {};
-    @Config.LangKey(ModStatics.MODID + ".config.keep_armor_as_vanilla")
     public static String[] keepArmorAsVanilla = new String[] {};
-    @Config.LangKey(ModStatics.MODID + ".config.keep_entity_as_vanilla")
     public static String[] keepEntityAsVanilla = new String[] {};
 
-    @Config.Ignore
-    private static Map<Item, Boolean> keepArmorAsVanillaCache;
-    @Config.Ignore
-    private static Map<Entity, Boolean> keepEntityAsVanillaCache;
-    @Config.Ignore
-    private static Map<Item, UseActionType> itemUseClassificationCache;
-    @Config.Ignore
-    private static Map<Item, AttackActionType> itemAttackClassificationCache;
-    @Config.Ignore
+    static {
+        BUILDER.push("general");
+
+        SHOW_ARROW_TRAILS = BUILDER
+                .comment("Show arrow trails when arrows are in flight")
+                .translation(ModStatics.MODID + ".config.show_arrow_trails")
+                .define("showArrowTrails", true);
+
+        SHOW_SWORD_TRAIL = BUILDER
+                .comment("Show sword trail effects during attacks")
+                .translation(ModStatics.MODID + ".config.show_sword_trails")
+                .define("showSwordTrail", true);
+
+        PERFORM_SPIN_ATTACK = BUILDER
+                .comment("Enable spin attack animation")
+                .translation(ModStatics.MODID + ".config.perform_spin_attack")
+                .define("performSpinAttack", true);
+
+        ITEM_USE_CLASSIFICATIONS = BUILDER
+                .comment("Item use classifications (format: modid:item=ACTION)")
+                .translation(ModStatics.MODID + ".config.item_use_classifications")
+                .defineList("itemUseClassifications", ArrayList::new, obj -> obj instanceof String);
+
+        ITEM_ATTACK_CLASSIFICATIONS = BUILDER
+                .comment("Item attack classifications (format: modid:item=ACTION)")
+                .translation(ModStatics.MODID + ".config.item_attack_classifications")
+                .defineList("itemAttackClassifications", ArrayList::new, obj -> obj instanceof String);
+
+        KEEP_ARMOR_AS_VANILLA = BUILDER
+                .comment("Armor items to keep as vanilla rendering")
+                .translation(ModStatics.MODID + ".config.keep_armor_as_vanilla")
+                .defineList("keepArmorAsVanilla", ArrayList::new, obj -> obj instanceof String);
+
+        KEEP_ENTITY_AS_VANILLA = BUILDER
+                .comment("Entities to keep as vanilla rendering")
+                .translation(ModStatics.MODID + ".config.keep_entity_as_vanilla")
+                .defineList("keepEntityAsVanilla", ArrayList::new, obj -> obj instanceof String);
+
+        BUILDER.pop();
+        SPEC = BUILDER.build();
+    }
+
+    private static Map<Item, Boolean> keepArmorAsVanillaCache = new HashMap<>();
+    private static Map<Entity, Boolean> keepEntityAsVanillaCache = new HashMap<>();
+    private static Map<Item, UseActionType> itemUseClassificationCache = new HashMap<>();
+    private static Map<Item, AttackActionType> itemAttackClassificationCache = new HashMap<>();
     private static LinkedList<ItemClassificationEntry<UseActionType>> itemUseClassificationEntries = new LinkedList<>();
-    @Config.Ignore
     private static LinkedList<ItemClassificationEntry<AttackActionType>> itemAttackClassificationEntries = new LinkedList<>();
 
-    @Config.Ignore
     private static List<Map<?, ?>> caches = Arrays.asList(
-        keepArmorAsVanillaCache = new HashMap<>(),
-        keepEntityAsVanillaCache = new HashMap<>(),
-        itemUseClassificationCache = new HashMap<>(),
-        itemAttackClassificationCache = new HashMap<>()
+        keepArmorAsVanillaCache,
+        keepEntityAsVanillaCache,
+        itemUseClassificationCache,
+        itemAttackClassificationCache
     );
 
-    @Mod.EventBusSubscriber(modid = ModStatics.MODID)
-    private static class EventHandler
+    private static boolean configLoaded = false;
+
+    @SubscribeEvent
+    public static void onConfigLoading(final ModConfigEvent.Loading event)
     {
-        /**
-         * Inject the new values and save to the config file when the config has been changed from the GUI.
-         *
-         * @param event The event
-         */
-        @SubscribeEvent
-        public static void onConfigChanged(final ConfigChangedEvent.OnConfigChangedEvent event)
+        if (event.getConfig().getModId().equals(ModStatics.MODID))
         {
-            if (event.getModID().equals(ModStatics.MODID))
-            {
-                ConfigManager.sync(ModStatics.MODID, Config.Type.INSTANCE);
-
-                // Clearing the caches
-                for (Map<?, ?> cache : caches)
-                {
-                    cache.clear();
-                }
-
-                itemUseClassificationEntries.clear();
-                getOrMakeEntries(itemUseClassificationEntries, itemUseClassifications, UseActionType::valueOf);
-
-                itemAttackClassificationEntries.clear();
-                getOrMakeEntries(itemAttackClassificationEntries, itemAttackClassifications, AttackActionType::valueOf);
-
-                MoBends.refreshSystems();
-            }
+            configLoaded = true;
+            syncConfigValues();
         }
+    }
+
+    @SubscribeEvent
+    public static void onConfigReloading(final ModConfigEvent.Reloading event)
+    {
+        if (event.getConfig().getModId().equals(ModStatics.MODID))
+        {
+            syncConfigValues();
+        }
+    }
+
+    public static boolean isConfigLoaded()
+    {
+        return configLoaded;
+    }
+
+    private static void syncConfigValues()
+    {
+        if (!SPEC.isLoaded())
+        {
+            return;
+        }
+
+        // Sync values from config spec to static fields
+        showArrowTrails = SHOW_ARROW_TRAILS.get();
+        showSwordTrail = SHOW_SWORD_TRAIL.get();
+        performSpinAttack = PERFORM_SPIN_ATTACK.get();
+        itemUseClassifications = ITEM_USE_CLASSIFICATIONS.get().toArray(new String[0]);
+        itemAttackClassifications = ITEM_ATTACK_CLASSIFICATIONS.get().toArray(new String[0]);
+        keepArmorAsVanilla = KEEP_ARMOR_AS_VANILLA.get().toArray(new String[0]);
+        keepEntityAsVanilla = KEEP_ENTITY_AS_VANILLA.get().toArray(new String[0]);
+
+        // Clearing the caches
+        for (Map<?, ?> cache : caches)
+        {
+            cache.clear();
+        }
+
+        itemUseClassificationEntries.clear();
+        getOrMakeEntries(itemUseClassificationEntries, itemUseClassifications, UseActionType::valueOf);
+
+        itemAttackClassificationEntries.clear();
+        getOrMakeEntries(itemAttackClassificationEntries, itemAttackClassifications, AttackActionType::valueOf);
+
+        MoBends.refreshSystems();
     }
 
     private static <T> LinkedList<ItemClassificationEntry<T>> getOrMakeEntries(LinkedList<ItemClassificationEntry<T>> entries, String[] rawEntries, Function<String, T> parseFunction)
@@ -118,17 +182,20 @@ public class ModConfig
         if (resourceLocation.equals(patternLocation))
             return true;
 
-        WildcardPattern domainPattern = new WildcardPattern(patternLocation.getResourceDomain());
-        WildcardPattern pathPattern = new WildcardPattern(patternLocation.getResourcePath());
+        WildcardPattern domainPattern = new WildcardPattern(patternLocation.getNamespace());
+        WildcardPattern pathPattern = new WildcardPattern(patternLocation.getPath());
 
-        return domainPattern.matches(resourceLocation.getResourceDomain()) &&
-               pathPattern.matches(resourceLocation.getResourcePath());
+        return domainPattern.matches(resourceLocation.getNamespace()) &&
+               pathPattern.matches(resourceLocation.getPath());
     }
 
     private static boolean checkForPatterns(ResourceLocation resourceLocation, String[] patterns)
     {
-        final String resourceDomain = resourceLocation.getResourceDomain();
-        final String resourcePath = resourceLocation.getResourcePath();
+        if (resourceLocation == null)
+            return false;
+
+        final String resourceNamespace = resourceLocation.getNamespace();
+        final String resourcePath = resourceLocation.getPath();
 
         for (String pattern : patterns)
         {
@@ -137,10 +204,10 @@ public class ModConfig
             if (resourceLocation.equals(patternLocation))
                 return true;
 
-            WildcardPattern domainPattern = new WildcardPattern(patternLocation.getResourceDomain());
-            WildcardPattern pathPattern = new WildcardPattern(patternLocation.getResourcePath());
+            WildcardPattern domainPattern = new WildcardPattern(patternLocation.getNamespace());
+            WildcardPattern pathPattern = new WildcardPattern(patternLocation.getPath());
 
-            if (!domainPattern.matches(resourceDomain))
+            if (!domainPattern.matches(resourceNamespace))
                 continue;
 
             if (pathPattern.matches(resourcePath))
@@ -154,7 +221,7 @@ public class ModConfig
     {
         // If cached before, returning the cached classification.
         return itemUseClassificationCache.computeIfAbsent(item, (i) -> {
-            ResourceLocation location = item.getRegistryName();
+            ResourceLocation location = ForgeRegistries.ITEMS.getKey(item);
 
             if (location != null)
             {
@@ -177,7 +244,7 @@ public class ModConfig
     {
         // If cached before, returning the cached classification.
         return itemAttackClassificationCache.computeIfAbsent(item, (i) -> {
-            ResourceLocation location = item.getRegistryName();
+            ResourceLocation location = ForgeRegistries.ITEMS.getKey(item);
 
             if (location != null)
             {
@@ -195,18 +262,18 @@ public class ModConfig
             return null;
         });
     }
-    
+
     public static boolean shouldKeepArmorAsVanilla(Item item)
     {
         // If cached before, returning the cached result.
-        return keepArmorAsVanillaCache.computeIfAbsent(item, (i) -> checkForPatterns(i.getRegistryName(), keepArmorAsVanilla));
+        return keepArmorAsVanillaCache.computeIfAbsent(item, (i) -> checkForPatterns(ForgeRegistries.ITEMS.getKey(i), keepArmorAsVanilla));
     }
 
     public static boolean shouldKeepEntityAsVanilla(Entity entity)
     {
         // If cached before, returning the cached result.
         return keepEntityAsVanillaCache.computeIfAbsent(entity, (e) -> {
-            ResourceLocation location = EntityList.getKey(entity);
+            ResourceLocation location = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
 
             // The player, for example, doesn't have a key.
             return location != null && checkForPatterns(location, keepEntityAsVanilla);

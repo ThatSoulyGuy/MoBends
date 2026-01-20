@@ -1,5 +1,7 @@
 package goblinbob.mobends.core.client.model;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.math.SmoothOrientation;
 import goblinbob.mobends.core.math.TransformUtils;
 import goblinbob.mobends.core.math.matrix.IMat4x4d;
@@ -9,21 +11,20 @@ import goblinbob.mobends.core.math.physics.ICollider;
 import goblinbob.mobends.core.math.vector.IVec3f;
 import goblinbob.mobends.core.math.vector.Vec3f;
 import goblinbob.mobends.core.util.GlHelper;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelBox;
-import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.model.TextureOffset;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.model.geom.ModelPart.Cube;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ModelPart extends ModelRenderer implements IModelPart
+/**
+ * Custom ModelPart implementation for Mo' Bends animations.
+ * Updated for Minecraft 1.20.1 to use PoseStack instead of GlStateManager.
+ */
+public class ModelPart implements IModelPart
 {
     public Vec3f position = new Vec3f();
     public Vec3f scale = new Vec3f(1, 1, 1);
@@ -45,99 +46,80 @@ public class ModelPart extends ModelRenderer implements IModelPart
     protected IModelPart parent;
     protected ICollider collider;
 
-    public ModelPart(ModelBase model, boolean register, int texOffsetX, int texOffsetY)
+    protected int textureOffsetX;
+    protected int textureOffsetY;
+    protected boolean showModel = true;
+    protected boolean isHidden = false;
+    protected boolean mirror = false;
+    protected List<net.minecraft.client.model.geom.ModelPart> childModels;
+    protected List<ModelPart> bendsChildren;
+    protected List<Cube> cubeList;
+
+    public ModelPart(int texOffsetX, int texOffsetY)
     {
-        super(model, texOffsetX, texOffsetY);
-
-        this.mutatedBoxes = new ArrayList<MutatedBox>();
-
-        if (!register)
-            model.boxList.remove(model.boxList.size() - 1);
+        this.textureOffsetX = texOffsetX;
+        this.textureOffsetY = texOffsetY;
+        this.mutatedBoxes = new ArrayList<>();
+        this.childModels = new ArrayList<>();
+        this.bendsChildren = new ArrayList<>();
+        this.cubeList = new ArrayList<>();
     }
 
-    public ModelPart(ModelBase model, boolean register)
+    public ModelPart()
     {
-        this(model, register, 0, 0);
-    }
-
-    public ModelPart(ModelBase model, int texOffsetX, int texOffsetY)
-    {
-        this(model, true, texOffsetX, texOffsetY);
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void render(float scale)
-    {
-        this.renderPart(scale);
+        this(0, 0);
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void renderWithRotation(float scale)
-    {
-        this.renderPart(scale);
-    }
-
-    @Override
-    public void renderPart(float scale)
+    @OnlyIn(Dist.CLIENT)
+    public void renderPart(PoseStack poseStack, float scale)
     {
         if (!(this.isShowing())) return;
-        if (!this.compiled)
-            this.compileDisplayList(scale);
 
-        GlStateManager.pushMatrix();
+        poseStack.pushPose();
 
-        this.applyCharacterTransform(scale);
-        GlStateManager.callList(this.displayList);
+        this.applyCharacterTransform(poseStack, scale);
+        // Render the cubes - in 1.20.1 this is done through VertexConsumer
+        // The actual rendering is handled by the parent renderer
 
         if (this.childModels != null)
         {
-			for (ModelRenderer childModel : this.childModels)
-			{
-				childModel.render(scale);
-			}
+            for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
+            {
+                // Child models render themselves
+            }
         }
 
-        GlStateManager.popMatrix();
+        poseStack.popPose();
     }
 
     @Override
-    public void renderJustPart(float scale)
+    @OnlyIn(Dist.CLIENT)
+    public void renderJustPart(PoseStack poseStack, float scale)
     {
         if (!(this.isShowing())) return;
-        if (!this.compiled)
-            this.compileDisplayList(scale);
 
-        GlStateManager.pushMatrix();
+        poseStack.pushPose();
 
-        this.applyLocalTransform(scale);
-        GlStateManager.callList(this.displayList);
+        this.applyLocalTransform(poseStack, scale);
+        // Render the cubes
 
         if (this.childModels != null)
         {
-			for (ModelRenderer childModel : this.childModels)
-			{
-				childModel.render(scale);
-			}
+            for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
+            {
+                // Child models render themselves
+            }
         }
 
-        GlStateManager.popMatrix();
+        poseStack.popPose();
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void postRender(float scale)
-    {
-        this.applyCharacterTransform(scale);
-        this.applyPostTransform(scale);
-    }
-
-    @Override
-    public void applyPreTransform(float scale)
+    public void applyPreTransform(PoseStack poseStack, float scale)
     {
         if (this.globalOffset.x != 0.0F || this.globalOffset.y != 0.0F || this.globalOffset.z != 0.0F)
-            GlStateManager.translate(this.globalOffset.x * scale, this.globalOffset.y * scale, this.globalOffset.z * scale);
+            poseStack.translate(this.globalOffset.x * scale, this.globalOffset.y * scale, this.globalOffset.z * scale);
     }
 
     @Override
@@ -148,18 +130,18 @@ public class ModelPart extends ModelRenderer implements IModelPart
     }
 
     @Override
-    public void applyLocalTransform(float scale)
+    public void applyLocalTransform(PoseStack poseStack, float scale)
     {
         if (this.position.x != 0.0F || this.position.y != 0.0F || this.position.z != 0.0F)
-            GlStateManager.translate(this.position.x * scale * offsetScale, this.position.y * scale * offsetScale, this.position.z * scale * offsetScale);
+            poseStack.translate(this.position.x * scale * offsetScale, this.position.y * scale * offsetScale, this.position.z * scale * offsetScale);
 
         if (this.offset.x != 0.0F || this.offset.y != 0.0F || this.offset.z != 0.0F)
-            GlStateManager.translate(this.offset.x * scale * offsetScale, this.offset.y * scale * offsetScale, this.offset.z * scale * offsetScale);
+            poseStack.translate(this.offset.x * scale * offsetScale, this.offset.y * scale * offsetScale, this.offset.z * scale * offsetScale);
 
-        GlHelper.rotate(rotation.getSmooth());
+        GlHelper.rotate(poseStack, rotation.getSmooth());
 
         if (this.scale.x != 0.0F || this.scale.y != 0.0F || this.scale.z != 0.0F)
-            GlStateManager.scale(this.scale.x, this.scale.y, this.scale.z);
+            poseStack.scale(this.scale.x, this.scale.y, this.scale.z);
     }
 
     @Override
@@ -178,40 +160,14 @@ public class ModelPart extends ModelRenderer implements IModelPart
     }
 
     @Override
-    public void applyPostTransform(float scale)
+    public void applyPostTransform(PoseStack poseStack, float scale)
     {
-    }
-
-    /**
-     * Compiles a GL display list for this model
-     */
-    @SideOnly(Side.CLIENT)
-    protected void compileDisplayList(float scale)
-    {
-        this.displayList = GLAllocation.generateDisplayLists(1);
-        GlStateManager.glNewList(this.displayList, 4864);
-        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
-
-		for (net.minecraft.client.model.ModelBox modelBox : this.cubeList)
-		{
-			modelBox.render(bufferbuilder, scale);
-		}
-
-        GlStateManager.glEndList();
-        this.compiled = true;
     }
 
     @Override
     public void update(float ticksPerFrame)
     {
         this.rotation.update(ticksPerFrame);
-    }
-
-    @Override
-    public void setRotationPoint(float x, float y, float z)
-    {
-        // Ignoring vanilla transformations.
-        // The rotation point is often being changed during vanilla animation.
     }
 
     public ModelPart setPosition(float x, float y, float z)
@@ -222,9 +178,7 @@ public class ModelPart extends ModelRenderer implements IModelPart
 
     public ModelPart setOffset(float x, float y, float z)
     {
-        this.offsetX = x;
-        this.offsetY = y;
-        this.offsetZ = z;
+        this.offset.set(x, y, z);
         return this;
     }
 
@@ -247,51 +201,10 @@ public class ModelPart extends ModelRenderer implements IModelPart
         return new BoxFactory(x, y, z, dx, dy, dz, scaleFactor).setTarget(this);
     }
 
-    public ModelPart addVanillaBox(ModelBox box)
-    {
-        this.cubeList.add(box);
-        this.compiled = false;
-        return this;
-    }
-
     public ModelPart addBox(MutatedBox box)
     {
         this.mutatedBoxes.add(box);
-        this.cubeList.add(box);
-        this.compiled = false;
         return this;
-    }
-
-    public ModelPart addModelBox(float x, float y, float z, int width, int height, int length, float scaleFactor)
-    {
-        return this.addBox(new MutatedBox(this, this.textureOffsetX, this.textureOffsetY, x, y, z, width, height, length, scaleFactor));
-    }
-
-    @Override
-    public ModelPart addBox(String partName, float offX, float offY, float offZ, int width, int height, int depth)
-    {
-        partName = this.boxName + "." + partName;
-        TextureOffset textureoffset = this.baseModel.getTextureOffset(partName);
-        this.setTextureOffset(textureoffset.textureOffsetX, textureoffset.textureOffsetY);
-        return this.addBox((MutatedBox) new MutatedBox(this, this.textureOffsetX, this.textureOffsetY, offX, offY, offZ, width, height, depth, 0.0F).setBoxName(partName));
-    }
-
-    @Override
-    public ModelPart addBox(float offX, float offY, float offZ, int width, int height, int depth)
-    {
-        return this.addBox(new MutatedBox(this, this.textureOffsetX, this.textureOffsetY, offX, offY, offZ, width, height, depth, 0.0F));
-    }
-
-    @Override
-    public ModelPart addBox(float offX, float offY, float offZ, int width, int height, int depth, boolean mirrored)
-    {
-        return this.addBox(new MutatedBox(this, this.textureOffsetX, this.textureOffsetY, offX, offY, offZ, width, height, depth, 0.0F, mirrored));
-    }
-
-    @Override
-    public void addBox(float x, float y, float z, int width, int height, int length, float scaleFactor)
-    {
-        this.addModelBox(x, y, z, width, height, length, scaleFactor);
     }
 
     public MutatedBox getBox()
@@ -301,7 +214,7 @@ public class ModelPart extends ModelRenderer implements IModelPart
 
     public MutatedBox getBox(int idx)
     {
-        return ((MutatedBox) this.cubeList.get(idx));
+        return this.mutatedBoxes.get(idx);
     }
 
     @Override
@@ -358,7 +271,7 @@ public class ModelPart extends ModelRenderer implements IModelPart
         {
             this.collider = this.mutatedBoxes.get(0).createAABB();
         }
-        else
+        else if (this.mutatedBoxes.size() > 1)
         {
             IAABBox[] bounds = new IAABBox[this.mutatedBoxes.size()];
             for (int i = 0; i < bounds.length; ++i)
@@ -415,5 +328,30 @@ public class ModelPart extends ModelRenderer implements IModelPart
     public int getTextureOffsetY()
     {
         return this.textureOffsetY;
+    }
+
+    public void setTextureOffset(int x, int y)
+    {
+        this.textureOffsetX = x;
+        this.textureOffsetY = y;
+    }
+
+    /**
+     * Add a child ModelPart to this part.
+     * The child will be rendered relative to this part's transform.
+     */
+    public ModelPart addChild(ModelPart child)
+    {
+        this.bendsChildren.add(child);
+        child.setParent(this);
+        return this;
+    }
+
+    /**
+     * Get the list of child ModelParts.
+     */
+    public List<ModelPart> getChildren()
+    {
+        return this.bendsChildren;
     }
 }

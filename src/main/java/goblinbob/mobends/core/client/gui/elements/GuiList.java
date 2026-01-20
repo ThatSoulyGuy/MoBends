@@ -1,5 +1,7 @@
 package goblinbob.mobends.core.client.gui.elements;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -125,11 +127,11 @@ public abstract class GuiList<T extends IGuiListElement> extends GuiScrollPanel
     }
 
     @Override
-    protected void drawContent(float partialTicks)
+    protected void drawContent(GuiGraphics guiGraphics, float partialTicks)
     {
         for (T element : this.getListElements())
         {
-            element.draw(partialTicks);
+            element.draw(guiGraphics, partialTicks);
         }
     }
 

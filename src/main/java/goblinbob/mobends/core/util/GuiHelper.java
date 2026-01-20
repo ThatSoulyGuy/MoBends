@@ -1,24 +1,26 @@
 package goblinbob.mobends.core.util;
 
-import goblinbob.mobends.core.Core;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.sounds.SoundEvents;
+import org.slf4j.Logger;
 
 import java.net.URI;
 
 public class GuiHelper
 {
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void closeGui()
     {
-        Minecraft.getMinecraft().displayGuiScreen(null);
+        Minecraft.getInstance().setScreen(null);
     }
 
-    public static void playButtonSound(SoundHandler soundHandler)
+    public static void playButtonSound(SoundManager soundManager)
     {
-        soundHandler.playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+        soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     public static boolean openUrlInBrowser(String url)
@@ -32,7 +34,7 @@ public class GuiHelper
         }
         catch (Throwable throwable)
         {
-            Core.LOG.warning(String.format("Couldn't open link %s", url));
+            LOGGER.warn(String.format("Couldn't open link %s", url));
             return false;
         }
     }

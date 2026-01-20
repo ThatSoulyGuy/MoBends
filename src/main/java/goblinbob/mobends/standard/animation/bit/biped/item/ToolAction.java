@@ -3,15 +3,15 @@ package goblinbob.mobends.standard.animation.bit.biped.item;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumHandSide;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 
 public class ToolAction extends AnimationBit<BipedEntityData<?>>
 {
-    protected final EnumHandSide actionHand;
+    protected final HumanoidArm actionHand;
 
-    public ToolAction(EnumHandSide actionHand)
+    public ToolAction(HumanoidArm actionHand)
     {
         this.actionHand = actionHand;
     }
@@ -19,8 +19,8 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
     @Override
     public void perform(BipedEntityData<?> data)
     {
-        EntityLivingBase entity = data.getEntity();
-        if (!entity.isSwingInProgress)
+        LivingEntity entity = data.getEntity();
+        if (!entity.swinging)
         {
             return;
         }
@@ -28,10 +28,10 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
         final float headPitch = data.headPitch.get();
         final float headYaw = data.headYaw.get();
 
-        boolean mainHandSwitch = actionHand == EnumHandSide.RIGHT;
+        boolean mainHandSwitch = actionHand == HumanoidArm.RIGHT;
         // Side Multiplier - it helps switch animation sides depending on
         // what is your main hand.
-        float sideMultiplier = actionHand == EnumHandSide.RIGHT ? 1.0F : -1.0F;
+        float sideMultiplier = actionHand == HumanoidArm.RIGHT ? 1.0F : -1.0F;
         ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
         ModelPartTransform offArm = mainHandSwitch ? data.leftArm : data.rightArm;
         ModelPartTransform mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
@@ -41,11 +41,11 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
         data.centerRotation.setSmoothness(.3F).orientZero();
 
         float swingProgress = data.swingProgress.get();
-        final float bodyYaw = MathHelper.sin(MathHelper.sqrt(swingProgress) * ((float)Math.PI * 2F)) * 30.0F * sideMultiplier;
+        final float bodyYaw = Mth.sin(Mth.sqrt(swingProgress) * ((float)Math.PI * 2F)) * 30.0F * sideMultiplier;
         data.body.rotation.setSmoothness(0.8F).orientY(bodyYaw);
 
         float bodyPitch = 0;
-        if (data.getEntity().isSneaking())
+        if (data.getEntity().isCrouching())
         {
             data.body.rotation.rotateX(20.0F);
             bodyPitch = 20.0F;
@@ -54,7 +54,7 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
         data.head.rotation.setSmoothness(0.8F).orientX(headPitch - bodyPitch)
                 .rotateY(headYaw - bodyYaw);
 
-        mainArm.rotation.orientInstantX(MathHelper.sin(MathHelper.sqrt(swingProgress) * ((float)Math.PI * 2F)) * 50.0F - 30.0F);
-        mainArm.rotation.localRotateZ(MathHelper.cos(MathHelper.sqrt(swingProgress) * ((float)Math.PI * 2F)) * -20.0F + 10.0F).finish();
+        mainArm.rotation.orientInstantX(Mth.sin(Mth.sqrt(swingProgress) * ((float)Math.PI * 2F)) * 50.0F - 30.0F);
+        mainArm.rotation.localRotateZ(Mth.cos(Mth.sqrt(swingProgress) * ((float)Math.PI * 2F)) * -20.0F + 10.0F).finish();
     }
 }

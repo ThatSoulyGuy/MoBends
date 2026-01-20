@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.bender;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 
 import java.util.HashSet;
 import java.util.Set;

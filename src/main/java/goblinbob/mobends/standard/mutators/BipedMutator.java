@@ -1,259 +1,414 @@
 package goblinbob.mobends.standard.mutators;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import goblinbob.mobends.core.client.model.BendsCube;
+import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.IModelPart;
-import goblinbob.mobends.core.client.model.ModelPart;
-import goblinbob.mobends.core.client.model.ModelPartExtended;
-import goblinbob.mobends.core.client.model.ModelPartPostOffset;
-import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
+import goblinbob.mobends.core.math.Quaternion;
 import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomBipedArmor;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldItem;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.client.renderer.entity.layers.LayerBipedArmor;
-import net.minecraft.client.renderer.entity.layers.LayerCustomHead;
-import net.minecraft.client.renderer.entity.layers.LayerHeldItem;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.world.entity.LivingEntity;
 
 public abstract class BipedMutator<D extends BipedEntityData<E>,
-								   E extends EntityLivingBase,
-								   M extends ModelBiped>
-								  extends Mutator<D, E, M>
+                                   E extends LivingEntity,
+                                   M extends HumanoidModel<E>>
+                                  extends Mutator<D, E, M>
 {
 
-	protected ModelPartPostOffset body;
-	protected ModelPart head;
-	protected ModelPart headwear;
-	protected ModelPartExtended leftArm;
-	protected ModelPartExtended rightArm;
-	protected ModelPartPostOffset leftForeArm;
-	protected ModelPartPostOffset rightForeArm;
-	protected ModelPartExtended leftLeg;
-	protected ModelPartExtended rightLeg;
-	protected ModelPart leftForeLeg;
-	protected ModelPart rightForeLeg;
+    // Custom bendable parts
+    protected BendsModelPart body;
+    protected BendsModelPart head;
+    protected BendsModelPart headwear;
+    protected BendsModelPart leftArm;
+    protected BendsModelPart rightArm;
+    protected BendsModelPart leftForeArm;
+    protected BendsModelPart rightForeArm;
+    protected BendsModelPart leftLeg;
+    protected BendsModelPart rightLeg;
+    protected BendsModelPart leftForeLeg;
+    protected BendsModelPart rightForeLeg;
 
-	protected LayerCustomBipedArmor 	layerArmor;
-	protected LayerBipedArmor 			layerArmorVanilla;
-	protected LayerCustomHeldItem 		layerHeldItem;
-	protected LayerHeldItem 			layerHeldItemVanilla;
-	protected LayerCustomHead 			layerCustomHead;
-	protected LayerCustomHead 			layerCustomHeadVanilla;
+    // Store vanilla model parts for demutation
+    protected ModelPart vanillaBody;
+    protected ModelPart vanillaHead;
+    protected ModelPart vanillaHat;
+    protected ModelPart vanillaLeftArm;
+    protected ModelPart vanillaRightArm;
+    protected ModelPart vanillaLeftLeg;
+    protected ModelPart vanillaRightLeg;
 
+    protected LayerCustomBipedArmor<E, M> layerArmor;
+    protected HumanoidArmorLayer<E, M, ?> layerArmorVanilla;
+    protected LayerCustomHeldItem<E, M> layerHeldItem;
+    protected ItemInHandLayer<E, M> layerHeldItemVanilla;
+    protected CustomHeadLayer<E, M> layerCustomHead;
+    protected CustomHeadLayer<E, M> layerCustomHeadVanilla;
 
-	public BipedMutator(IEntityDataFactory<E> dataFactory)
-	{
-		super(dataFactory);
-	}
+    public BipedMutator(IEntityDataFactory<E> dataFactory)
+    {
+        super(dataFactory);
+    }
 
-	/**
-	 * Used to store the model parameter as the
-	 * vanilla model, so then the mutation can be
-	 * reversed.
-	 */
-	@Override
-	public void storeVanillaModel(M model)
-	{
-		this.vanillaModel.bipedBody = model.bipedBody;
-		this.vanillaModel.bipedHead = model.bipedHead;
-		this.vanillaModel.bipedHeadwear = model.bipedHeadwear;
-		this.vanillaModel.bipedLeftArm = model.bipedLeftArm;
-		this.vanillaModel.bipedLeftLeg = model.bipedLeftLeg;
-		this.vanillaModel.bipedRightArm = model.bipedRightArm;
-		this.vanillaModel.bipedRightLeg = model.bipedRightLeg;
-	}
+    /**
+     * Used to store the model parameter as the
+     * vanilla model, so then the mutation can be
+     * reversed.
+     */
+    @Override
+    public void storeVanillaModel(M model)
+    {
+        this.vanillaBody = model.body;
+        this.vanillaHead = model.head;
+        this.vanillaHat = model.hat;
+        this.vanillaLeftArm = model.leftArm;
+        this.vanillaRightArm = model.rightArm;
+        this.vanillaLeftLeg = model.leftLeg;
+        this.vanillaRightLeg = model.rightLeg;
+    }
 
-	/**
-	 * Sets the model parameter back to it's vanilla
-	 * state. Used to demutate the model.
-	 */
-	@Override
-	public void applyVanillaModel(M model)
-	{
-		model.bipedBody = this.vanillaModel.bipedBody;
-		model.bipedHead = this.vanillaModel.bipedHead;
-		model.bipedHeadwear = this.vanillaModel.bipedHeadwear;
-		model.bipedLeftArm = this.vanillaModel.bipedLeftArm;
-		model.bipedLeftLeg = this.vanillaModel.bipedLeftLeg;
-		model.bipedRightArm = this.vanillaModel.bipedRightArm;
-		model.bipedRightLeg = this.vanillaModel.bipedRightLeg;
-	}
+    /**
+     * Sets the model parameter back to it's vanilla
+     * state. Used to demutate the model.
+     */
+    @Override
+    public void applyVanillaModel(M model)
+    {
+        // In 1.20.1, model parts are final and cannot be directly replaced
+        // The demutation will need to handle this differently
+        // For now, we just track that we need to restore vanilla rendering
+    }
 
-	/**
-	 * Swaps out the vanilla layers for their custom counterparts,
-	 * and if it's a vanilla model, it stores the vanilla layers
-	 * for future mutation reversal.
-	 */
-	@Override
-	public void swapLayer(RenderLivingBase<? extends E> renderer, int index, boolean isModelVanilla)
-	{
-		LayerRenderer<?> layer = layerRenderers.get(index);
-		if (layer instanceof LayerBipedArmor)
-		{
-			this.layerArmor = new LayerCustomBipedArmor(renderer);
-			if (isModelVanilla)
-				this.layerArmorVanilla = (LayerBipedArmor) layer;
-			layerRenderers.set(index, this.layerArmor);
-		}
-		else if (layer instanceof LayerHeldItem)
-		{
-			this.layerHeldItem = new LayerCustomHeldItem(renderer);
-			if (isModelVanilla)
-				this.layerHeldItemVanilla = (LayerHeldItem) layer;
-			layerRenderers.set(index, this.layerHeldItem);
-		}
-		else if (layer instanceof LayerCustomHead)
-		{
-			this.layerCustomHead = new LayerCustomHead(this.head);
-			if (isModelVanilla)
-				this.layerCustomHeadVanilla = (LayerCustomHead) layer;
-			layerRenderers.set(index, this.layerCustomHead);
-		}
-	}
+    /**
+     * Swaps out the vanilla layers for their custom counterparts,
+     * and if it's a vanilla model, it stores the vanilla layers
+     * for future mutation reversal.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public void swapLayer(LivingEntityRenderer<E, M> renderer, int index, boolean isModelVanilla)
+    {
+        RenderLayer<E, M> layer = layerRenderers.get(index);
+        if (layer instanceof HumanoidArmorLayer)
+        {
+            HumanoidArmorLayer<E, M, ?> vanillaArmor = (HumanoidArmorLayer<E, M, ?>) layer;
+            if (isModelVanilla)
+                this.layerArmorVanilla = vanillaArmor;
 
-	/**
-	 * Swaps the custom layers back with the vanilla layers.
-	 * Used to demutate the model.
-	 */
-	@Override
-	public void deswapLayer(RenderLivingBase<? extends E> renderer, int index)
-	{
-		LayerRenderer<? extends EntityLivingBase> layer = layerRenderers.get(index);
-		if (layer instanceof LayerCustomBipedArmor)
-		{
-			layerRenderers.set(index, this.layerArmorVanilla);
-		}
-		else if (layer instanceof LayerCustomHeldItem)
-		{
-			layerRenderers.set(index, this.layerHeldItemVanilla);
-		}
-		else if (layer instanceof LayerCustomHead)
-		{
-			layerRenderers.set(index, this.layerCustomHeadVanilla);
-		}
-	}
+            // Create our custom armor layer
+            this.layerArmor = new LayerCustomBipedArmor<>(renderer, this);
+            this.layerArmor.setVanillaArmorLayer(vanillaArmor);
 
-	/**
-	 * Creates all the custom parts you need! It swaps all the
-	 * original parts with newly created custom parts.
-	 */
-	@Override
-	public boolean createParts(M original, float scaleFactor)
-	{
-		// Body
-		original.bipedBody = body = (ModelPartPostOffset) new ModelPartPostOffset(original, 16, 16)
-				.setPostOffset(0.0F, -12.0F, 0.0F)
-				.setPosition(0.0F, 12.0F, 0.0F);
-		body.addBox(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
+            // Try to get armor models from the vanilla layer using reflection or standard models
+            try
+            {
+                // Use standard humanoid armor models
+                net.minecraft.client.model.geom.ModelLayerLocation innerLocation =
+                    net.minecraft.client.model.geom.ModelLayers.PLAYER_INNER_ARMOR;
+                net.minecraft.client.model.geom.ModelLayerLocation outerLocation =
+                    net.minecraft.client.model.geom.ModelLayers.PLAYER_OUTER_ARMOR;
 
-		// Head
-		original.bipedHead = head = new ModelPart(original, 0, 0)
-				.setParent(body)
-				.setPosition(0.0F, -12.0F, 0.0F);
-		head.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor);
+                net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+                HumanoidModel<?> innerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(innerLocation));
+                HumanoidModel<?> outerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(outerLocation));
 
-		// Arms
-		int armWidth = 4;
-		float armY = -10F;
+                this.layerArmor.setArmorModels(innerModel, outerModel);
+            }
+            catch (Exception e)
+            {
+                // Log warning but continue - vanilla fallback will be used
+                goblinbob.mobends.standard.main.MoBends.LOG.warn("Could not create armor models for custom layer: " + e.getMessage());
+            }
 
-		original.bipedLeftArm = leftArm = (ModelPartExtended) new ModelPartExtended(original, 40, 16)
-				.setParent(body)
-				.setPosition(5.0F, armY, 0.0F)
-				.setMirror(true);
-		leftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
-				.inflate(0.01F, 0, 0.01F)
-				.hideFace(BoxSide.BOTTOM)
-				.create();
+            layerRenderers.set(index, this.layerArmor);
+        }
+        else if (layer instanceof ItemInHandLayer)
+        {
+            this.layerHeldItem = new LayerCustomHeldItem<>(renderer, this);
+            if (isModelVanilla)
+                this.layerHeldItemVanilla = (ItemInHandLayer<E, M>) layer;
+            layerRenderers.set(index, this.layerHeldItem);
+        }
+        else if (layer instanceof CustomHeadLayer)
+        {
+            // For custom head layer, we need special handling
+            if (isModelVanilla)
+                this.layerCustomHeadVanilla = (CustomHeadLayer<E, M>) layer;
+            // Don't swap - let vanilla handle it for now
+        }
+    }
 
-		original.bipedRightArm = rightArm = (ModelPartExtended) new ModelPartExtended(original, 40, 16)
-				.setParent(body)
-				.setPosition(-5.0F, armY, 0.0F);
-		rightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
-				.inflate(0.01F, 0, 0.1F)
-				.hideFace(BoxSide.BOTTOM)
-				.create();
+    /**
+     * Swaps the custom layers back with the vanilla layers.
+     * Used to demutate the model.
+     */
+    @Override
+    public void deswapLayer(LivingEntityRenderer<E, M> renderer, int index)
+    {
+        RenderLayer<E, M> layer = layerRenderers.get(index);
+        if (layer instanceof LayerCustomBipedArmor && this.layerArmorVanilla != null)
+        {
+            layerRenderers.set(index, this.layerArmorVanilla);
+        }
+        else if (layer instanceof LayerCustomHeldItem && this.layerHeldItemVanilla != null)
+        {
+            layerRenderers.set(index, this.layerHeldItemVanilla);
+        }
+        else if (layer == this.layerCustomHead && this.layerCustomHeadVanilla != null)
+        {
+            layerRenderers.set(index, this.layerCustomHeadVanilla);
+        }
+    }
 
-		leftForeArm = (ModelPartPostOffset) new ModelPartPostOffset(original, 40, 16 + 6)
-				.setPostOffset(0, -4F, -2F)
-				.setParent(leftArm)
-				.setPosition(0.0F, 4.0F, 2.0F)
-				.setMirror(true);
-		leftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
-				.hideFace(BoxSide.TOP)
-				.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-				.create();
+    /**
+     * Creates all the custom parts you need! It creates custom
+     * BendsModelPart instances for bendable limbs.
+     */
+    @Override
+    public boolean createParts(M original, float scaleFactor)
+    {
+        // Create custom bendable parts
+        // Body - the root of the upper body hierarchy
+        body = new BendsModelPart(16, 16)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 12.0F, 0.0F);
+        body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
 
-		leftArm.setExtension(leftForeArm);
-		rightForeArm = (ModelPartPostOffset) new ModelPartPostOffset(original, 40, 16 + 6)
-				.setPostOffset(0, -4F, -2F)
-				.setParent(rightArm)
-				.setPosition(0.0F, 4.0F, 2.0F);
-		rightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
-				.hideFace(BoxSide.TOP)
-				.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-				.create();
-		rightArm.setExtension(rightForeArm);
+        // Head - child of body
+        head = new BendsModelPart(0, 0)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, -12.0F, 0.0F);
+        head.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor);
+        body.addChild(head);
 
-		// Legs
-		original.bipedRightLeg = rightLeg = (ModelPartExtended) new ModelPartExtended(original, 0, 16)
-				.setPosition(0.0F, 12F, 0F);
-		rightLeg.addBox(-3.9F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
-		original.bipedLeftLeg = leftLeg = (ModelPartExtended) new ModelPartExtended(original, 0, 16)
-				.setPosition(0.0F, 12.0F, 0.0F)
-				.setMirror(true);
-		leftLeg.addBox(-0.1F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
-		leftForeLeg = new ModelPart(original, 0, 16 + 6)
-				.setParent(leftLeg)
-				.setPosition(0, 6.0F, -2.0F)
-				.setMirror(true);
+        // Headwear - child of head
+        headwear = new BendsModelPart(32, 0)
+                .setTextureSize(64, 64);
+        headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
+        head.addChild(headwear);
 
-		leftForeLeg.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
-				.inflate(0.01F, 0, 0.01F)
-				.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-				.create();
-		leftLeg.setExtension(leftForeLeg);
-		rightForeLeg = new ModelPart(original, 0, 16 + 6)
-				.setParent(rightLeg)
-				.setPosition(0, 6.0F, -2.0F);
+        // Arms
+        int armWidth = 4;
+        float armY = -10F;
 
-		rightForeLeg.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
-				.inflate(0.01F, 0, 0.01F)
-				.offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
-				.create();
-		rightLeg.setExtension(rightForeLeg);
+        // Left arm - child of body
+        leftArm = new BendsModelPart(40, 16)
+                .setTextureSize(64, 64)
+                .setPosition(5.0F, armY, 0.0F)
+                .setMirror(true);
+        leftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
+        body.addChild(leftArm);
 
-		// Wear
-		original.bipedHeadwear = headwear = (ModelPart) new ModelPart(original, 32, 0).setParent(head);
-		headwear.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
+        // Right arm - child of body
+        rightArm = new BendsModelPart(40, 16)
+                .setTextureSize(64, 64)
+                .setPosition(-5.0F, armY, 0.0F);
+        rightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
+        body.addChild(rightArm);
 
-		return true;
-	}
+        // Left forearm - child of left arm
+        leftForeArm = new BendsModelPart(40, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 4.0F, 2.0F)
+                .setMirror(true);
+        leftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor);
+        leftArm.addChild(leftForeArm);
 
-	@Override
-	public void syncUpWithData(D data)
-	{
-		head.syncUp(data.head);
-		body.syncUp(data.body);
-		leftArm.syncUp(data.leftArm);
-		rightArm.syncUp(data.rightArm);
-		leftLeg.syncUp(data.leftLeg);
-		rightLeg.syncUp(data.rightLeg);
-		leftForeArm.syncUp(data.leftForeArm);
-		rightForeArm.syncUp(data.rightForeArm);
-		leftForeLeg.syncUp(data.leftForeLeg);
-		rightForeLeg.syncUp(data.rightForeLeg);
-	}
+        // Right forearm - child of right arm
+        rightForeArm = new BendsModelPart(40, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 4.0F, 2.0F);
+        rightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor);
+        rightArm.addChild(rightForeArm);
 
-	/**
-	 * True, if this renderer wasn't mutated before.
-	 */
-	@Override
-	public boolean isModelVanilla(M model)
-	{
-		return !(model.bipedBody instanceof IModelPart);
-	}
+        // Legs - independent roots (not children of body)
+        rightLeg = new BendsModelPart(0, 16)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 12F, 0F);
+        rightLeg.addCube(-3.9F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
+
+        leftLeg = new BendsModelPart(0, 16)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 12.0F, 0.0F)
+                .setMirror(true);
+        leftLeg.addCube(-0.1F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
+
+        // Left foreleg - child of left leg
+        leftForeLeg = new BendsModelPart(0, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0, 6.0F, -2.0F)
+                .setMirror(true);
+        leftForeLeg.addCube(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor);
+        leftLeg.addChild(leftForeLeg);
+
+        // Right foreleg - child of right leg
+        rightForeLeg = new BendsModelPart(0, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0, 6.0F, -2.0F);
+        rightForeLeg.addCube(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor);
+        rightLeg.addChild(rightForeLeg);
+
+        return true;
+    }
+
+    @Override
+    public void syncUpWithData(D data)
+    {
+        head.syncUp(data.head);
+        body.syncUp(data.body);
+        leftArm.syncUp(data.leftArm);
+        rightArm.syncUp(data.rightArm);
+        leftLeg.syncUp(data.leftLeg);
+        rightLeg.syncUp(data.rightLeg);
+        leftForeArm.syncUp(data.leftForeArm);
+        rightForeArm.syncUp(data.rightForeArm);
+        leftForeLeg.syncUp(data.leftForeLeg);
+        rightForeLeg.syncUp(data.rightForeLeg);
+    }
+
+    /**
+     * True, if this renderer wasn't mutated before.
+     */
+    @Override
+    public boolean isModelVanilla(M model)
+    {
+        // Check if we've already created custom parts
+        return this.body == null;
+    }
+
+    @Override
+    public boolean shouldModelBeSkipped(EntityModel<?> model)
+    {
+        return !(model instanceof HumanoidModel);
+    }
+
+    @Override
+    public boolean shouldRenderCustom()
+    {
+        return this.body != null;
+    }
+
+    @Override
+    public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
+                              int packedLight, int packedOverlay,
+                              float red, float green, float blue, float alpha)
+    {
+        // Render body and attached parts
+        if (body != null)
+        {
+            body.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+
+        // Render legs (not attached to body)
+        if (leftLeg != null)
+        {
+            leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+        if (rightLeg != null)
+        {
+            rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        }
+    }
+
+    // Getters for layers to access parts
+    public BendsModelPart getBody() { return body; }
+    public BendsModelPart getHead() { return head; }
+    public BendsModelPart getLeftArm() { return leftArm; }
+    public BendsModelPart getRightArm() { return rightArm; }
+    public BendsModelPart getLeftForeArm() { return leftForeArm; }
+    public BendsModelPart getRightForeArm() { return rightForeArm; }
+    public BendsModelPart getLeftLeg() { return leftLeg; }
+    public BendsModelPart getRightLeg() { return rightLeg; }
+    public BendsModelPart getLeftForeLeg() { return leftForeLeg; }
+    public BendsModelPart getRightForeLeg() { return rightForeLeg; }
+
+    /**
+     * Sync animated poses from BendsModelParts to vanilla HumanoidModel ModelParts.
+     * This allows vanilla layers (armor, held items) to use our animated poses.
+     */
+    public void syncPosesToVanillaModel(HumanoidModel<?> model)
+    {
+        if (model == null) return;
+
+        syncPartToModelPart(head, model.head);
+        syncPartToModelPart(body, model.body);
+        syncPartToModelPart(leftArm, model.leftArm);
+        syncPartToModelPart(rightArm, model.rightArm);
+        syncPartToModelPart(leftLeg, model.leftLeg);
+        syncPartToModelPart(rightLeg, model.rightLeg);
+
+        // Sync hat visibility with head
+        if (model.hat != null && head != null)
+        {
+            model.hat.visible = head.isShowing();
+        }
+    }
+
+    /**
+     * Sync a single BendsModelPart's transform to a vanilla ModelPart.
+     * Only syncs rotation and visibility - NOT position, because position defines
+     * the pivot point and changing it would distort the armor geometry/textures.
+     */
+    private void syncPartToModelPart(BendsModelPart bendsPart, ModelPart modelPart)
+    {
+        if (bendsPart == null || modelPart == null) return;
+
+        // DON'T sync position - the armor model's pivot points must stay at vanilla values
+        // to avoid texture stretching. The armor follows the body through rotation only.
+
+        // Convert quaternion rotation to Euler angles (XYZ order)
+        Quaternion q = bendsPart.rotation.getSmooth();
+        float[] euler = quaternionToEulerXYZ(q);
+        modelPart.xRot = euler[0];
+        modelPart.yRot = euler[1];
+        modelPart.zRot = euler[2];
+
+        // Sync visibility
+        modelPart.visible = bendsPart.isShowing();
+    }
+
+    /**
+     * Convert quaternion to Euler angles in XYZ rotation order (radians).
+     * Returns [xRot, yRot, zRot].
+     */
+    private static float[] quaternionToEulerXYZ(Quaternion q)
+    {
+        float[] euler = new float[3];
+
+        // X rotation (pitch)
+        float sinX = 2.0f * (q.w * q.x + q.y * q.z);
+        float cosX = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+        euler[0] = (float) Math.atan2(sinX, cosX);
+
+        // Y rotation (yaw)
+        float sinY = 2.0f * (q.w * q.y - q.z * q.x);
+        if (Math.abs(sinY) >= 1.0f)
+        {
+            euler[1] = (float) Math.copySign(Math.PI / 2, sinY);
+        }
+        else
+        {
+            euler[1] = (float) Math.asin(sinY);
+        }
+
+        // Z rotation (roll)
+        float sinZ = 2.0f * (q.w * q.z + q.x * q.y);
+        float cosZ = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+        euler[2] = (float) Math.atan2(sinZ, cosZ);
+
+        return euler;
+    }
 
 }

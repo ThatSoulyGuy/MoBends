@@ -1,5 +1,7 @@
 package goblinbob.mobends.core.client.gui.elements;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 public interface IGuiListElement
 {
 
@@ -9,7 +11,7 @@ public interface IGuiListElement
 
     void update(int mouseX, int mouseY);
 
-    void draw(float partialTicks);
+    void draw(GuiGraphics guiGraphics, float partialTicks);
 
     int getX();
 

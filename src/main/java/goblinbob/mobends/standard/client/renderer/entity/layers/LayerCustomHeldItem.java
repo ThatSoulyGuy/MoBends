@@ -1,99 +1,180 @@
 package goblinbob.mobends.standard.client.renderer.entity.layers;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.math.SmoothOrientation;
 import goblinbob.mobends.core.util.GlHelper;
 import goblinbob.mobends.standard.data.BipedEntityData;
+import goblinbob.mobends.standard.mutators.BipedMutator;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.entity.RenderLivingBase;
-import net.minecraft.client.renderer.entity.layers.LayerRenderer;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHandSide;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.model.ArmedModel;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SideOnly(Side.CLIENT)
-public class LayerCustomHeldItem implements LayerRenderer<EntityLivingBase>
+@OnlyIn(Dist.CLIENT)
+public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel<E>> extends RenderLayer<E, M>
 {
 
-    protected final RenderLivingBase<?> livingEntityRenderer;
+    private final BipedMutator<?, E, M> mutator;
 
-    public LayerCustomHeldItem(RenderLivingBase<?> livingEntityRendererIn)
+    public LayerCustomHeldItem(LivingEntityRenderer<E, M> renderer, BipedMutator<?, E, M> mutator)
     {
-        this.livingEntityRenderer = livingEntityRendererIn;
+        super(renderer);
+        this.mutator = mutator;
     }
 
-    public void doRenderLayer(EntityLivingBase entitylivingbaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale)
+    @Override
+    public void render(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                       E entity, float limbSwing, float limbSwingAmount,
+                       float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
-        boolean flag = entitylivingbaseIn.getPrimaryHand() == EnumHandSide.RIGHT;
-        ItemStack itemstack = flag ? entitylivingbaseIn.getHeldItemOffhand() : entitylivingbaseIn.getHeldItemMainhand();
-        ItemStack itemstack1 = flag ? entitylivingbaseIn.getHeldItemMainhand() : entitylivingbaseIn.getHeldItemOffhand();
+        boolean rightHanded = entity.getMainArm() == HumanoidArm.RIGHT;
+        ItemStack mainHandItem = rightHanded ? entity.getMainHandItem() : entity.getOffhandItem();
+        ItemStack offHandItem = rightHanded ? entity.getOffhandItem() : entity.getMainHandItem();
 
-        if (!itemstack.isEmpty() || !itemstack1.isEmpty())
+        if (!mainHandItem.isEmpty() || !offHandItem.isEmpty())
         {
-            GlStateManager.pushMatrix();
+            poseStack.pushPose();
 
-            if (this.livingEntityRenderer.getMainModel().isChild)
+            if (this.getParentModel().young)
             {
-                GlStateManager.translate(0.0F, 0.75F, 0.0F);
-                GlStateManager.scale(0.5F, 0.5F, 0.5F);
+                poseStack.translate(0.0F, 0.75F, 0.0F);
+                poseStack.scale(0.5F, 0.5F, 0.5F);
             }
 
-            this.renderHeldItem(entitylivingbaseIn, itemstack1, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, EnumHandSide.RIGHT);
-            this.renderHeldItem(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND, EnumHandSide.LEFT);
-            GlStateManager.popMatrix();
+            this.renderHeldItem(entity, mainHandItem, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
+                    HumanoidArm.RIGHT, poseStack, bufferSource, packedLight);
+            this.renderHeldItem(entity, offHandItem, ItemDisplayContext.THIRD_PERSON_LEFT_HAND,
+                    HumanoidArm.LEFT, poseStack, bufferSource, packedLight);
+
+            poseStack.popPose();
         }
     }
 
-    private void renderHeldItem(EntityLivingBase entity, ItemStack p_188358_2_, ItemCameraTransforms.TransformType p_188358_3_, EnumHandSide handSide)
+    private void renderHeldItem(E entity, ItemStack itemStack, ItemDisplayContext displayContext,
+                                HumanoidArm arm, PoseStack poseStack,
+                                MultiBufferSource bufferSource, int packedLight)
     {
-        if (!p_188358_2_.isEmpty())
+        if (!itemStack.isEmpty())
         {
-            GlStateManager.pushMatrix();
+            poseStack.pushPose();
 
-            if (entity.isSneaking())
+            if (entity.isCrouching())
             {
-                GlStateManager.translate(0.0F, 0.2F, 0.0F);
+                poseStack.translate(0.0F, 0.2F, 0.0F);
             }
-            // Forge: moved this call down, fixes incorrect offset while sneaking.
-            this.translateToHand(handSide, entity);
-            GlStateManager.rotate(-90.0F, 1.0F, 0.0F, 0.0F);
-            GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
-            boolean flag = handSide == EnumHandSide.LEFT;
-            GlStateManager.translate((float)(flag ? -1 : 1) / 16.0F, 0.125F, -0.625F);
-            Minecraft.getMinecraft().getItemRenderer().renderItemSide(entity, p_188358_2_, p_188358_3_, flag);
-            GlStateManager.popMatrix();
+
+            // Translate to the hand position
+            this.translateToHand(arm, entity, poseStack);
+
+            poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+
+            boolean leftHanded = arm == HumanoidArm.LEFT;
+            poseStack.translate((float)(leftHanded ? -1 : 1) / 16.0F, 0.125F, -0.625F);
+
+            Minecraft.getInstance().getItemRenderer().renderStatic(
+                    entity, itemStack, displayContext, leftHanded,
+                    poseStack, bufferSource, entity.level(), packedLight,
+                    LivingEntityRenderer.getOverlayCoords(entity, 0.0F), entity.getId());
+
+            poseStack.popPose();
         }
     }
 
     /**
-     * MO BENDS
-     * This is the only function that had it's code changed
+     * Translates to the hand position with Mo' Bends custom animation transforms applied.
+     * This replicates the original Mo' Bends postRenderArm behavior:
+     * 1. arm.applyCharacterTransform (body + arm transforms)
+     * 2. arm.applyPostTransform -> forearm.propagateTransform (forearm local + postOffset)
+     * 3. Item rotation adjustment with translate/rotate/untranslate
      */
-    protected void translateToHand(EnumHandSide handSide, EntityLivingBase entity)
+    protected void translateToHand(HumanoidArm arm, E entity, PoseStack poseStack)
     {
-    	((ModelBiped)this.livingEntityRenderer.getMainModel()).postRenderArm(0.0625F, handSide);
-    	
-    	EntityData<?> entityData = EntityDatabase.instance.get(entity);
-    	if (entityData instanceof BipedEntityData)
-    	{
-    		BipedEntityData<?> bipedData = (BipedEntityData<?>) entityData;
-    		SmoothOrientation itemRotation = handSide == EnumHandSide.RIGHT ? bipedData.renderRightItemRotation : bipedData.renderLeftItemRotation;
-    		
-    		GlStateManager.translate(0, 8F * 0.0625F, 0);
-    		GlHelper.rotate(itemRotation.getSmooth());
-            GlStateManager.translate(0, -8F * 0.0625F, 0);
-    	}
-    }
+        // Apply the full Mo' Bends transform chain matching the original postRenderArm behavior
+        if (mutator != null && mutator.shouldRenderCustom())
+        {
+            var body = mutator.getBody();
+            var armPart = arm == HumanoidArm.RIGHT ? mutator.getRightArm() : mutator.getLeftArm();
+            var foreArm = arm == HumanoidArm.RIGHT ? mutator.getRightForeArm() : mutator.getLeftForeArm();
 
-    public boolean shouldCombineTextures()
-    {
-        return false;
-    }
+            if (body != null && armPart != null && foreArm != null)
+            {
+                float scale = 1.0F / 16.0F;
 
+                // === arm.applyCharacterTransform ===
+                // Apply body transform (position + offset + rotation)
+                poseStack.translate(body.position.x * scale, body.position.y * scale, body.position.z * scale);
+                if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
+                {
+                    poseStack.translate(body.offset.x * scale, body.offset.y * scale, body.offset.z * scale);
+                }
+                GlHelper.rotate(poseStack, body.rotation.getSmooth());
+
+                // Apply arm transform (position + offset + rotation)
+                poseStack.translate(armPart.position.x * scale, armPart.position.y * scale, armPart.position.z * scale);
+                if (armPart.offset.x != 0 || armPart.offset.y != 0 || armPart.offset.z != 0)
+                {
+                    poseStack.translate(armPart.offset.x * scale, armPart.offset.y * scale, armPart.offset.z * scale);
+                }
+                GlHelper.rotate(poseStack, armPart.rotation.getSmooth());
+
+                // === arm.applyPostTransform -> forearm.propagateTransform ===
+                // Apply forearm local transform (position + offset + rotation)
+                poseStack.translate(foreArm.position.x * scale, foreArm.position.y * scale, foreArm.position.z * scale);
+                if (foreArm.offset.x != 0 || foreArm.offset.y != 0 || foreArm.offset.z != 0)
+                {
+                    poseStack.translate(foreArm.offset.x * scale, foreArm.offset.y * scale, foreArm.offset.z * scale);
+                }
+                GlHelper.rotate(poseStack, foreArm.rotation.getSmooth());
+
+                // Apply forearm postOffset (0, -4, -2) - this positions the held item correctly
+                // In the original, this was set via ModelPartPostOffset.setPostOffset(0, -4F, -2F)
+                poseStack.translate(0, -4.0F * scale, -2.0F * scale);
+
+                // === Item rotation adjustment ===
+                // Apply custom item rotation with translate/rotate/untranslate pattern
+                EntityData<?> entityData = EntityDatabase.instance.get(entity);
+                if (entityData instanceof BipedEntityData<?> bipedData)
+                {
+                    SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
+                            ? bipedData.renderRightItemRotation
+                            : bipedData.renderLeftItemRotation;
+
+                    poseStack.translate(0, 8.0F * scale, 0);
+                    GlHelper.rotate(poseStack, itemRotation.getSmooth());
+                    poseStack.translate(0, -8.0F * scale, 0);
+                }
+
+                return;
+            }
+        }
+
+        // Fallback to vanilla transform if Mo' Bends parts not available
+        M model = this.getParentModel();
+        ((ArmedModel) model).translateToHand(arm, poseStack);
+
+        // Apply Mo' Bends custom item rotation
+        EntityData<?> entityData = EntityDatabase.instance.get(entity);
+        if (entityData instanceof BipedEntityData<?> bipedData)
+        {
+            SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
+                    ? bipedData.renderRightItemRotation
+                    : bipedData.renderLeftItemRotation;
+
+            poseStack.translate(0, 8F * 0.0625F, 0);
+            GlHelper.rotate(poseStack, itemRotation.getSmooth());
+            poseStack.translate(0, -8F * 0.0625F, 0);
+        }
+    }
 }

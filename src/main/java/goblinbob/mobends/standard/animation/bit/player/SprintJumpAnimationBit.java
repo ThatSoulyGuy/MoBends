@@ -4,7 +4,7 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.standard.data.PlayerData;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 {
@@ -45,7 +45,7 @@ public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 		IModelPart offForeLeg = sprintLegSwitch ? data.leftForeLeg : data.rightForeLeg;
 		
 		float bodyRotationY = 20 * legSwitchMtp;
-		float bodyLean = MathHelper.clamp((float) data.getMotionY(), -.2F, .2F);
+		float bodyLean = Mth.clamp((float) data.getMotionY(), -.2F, .2F);
 		bodyLean = bodyLean * -100F + 20F;
 		
 		if (this.relax < 1F)
@@ -54,7 +54,7 @@ public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 			this.relax = Math.min(this.relax, 1F);
 		}
 		
-		float relaxAngle = MathHelper.sqrt(MathHelper.sqrt(this.relax));
+		float relaxAngle = Mth.sqrt(Mth.sqrt(this.relax));
 
 		data.centerRotation.setSmoothness(.3F).orientZero();
 		data.globalOffset.slideToZero(0.5F);

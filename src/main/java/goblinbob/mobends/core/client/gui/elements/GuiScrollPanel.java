@@ -1,10 +1,11 @@
 package goblinbob.mobends.core.client.gui.elements;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.util.Draw;
 import goblinbob.mobends.core.util.GUtil;
 import goblinbob.mobends.core.util.UIScissorHelper;
-import net.minecraft.client.renderer.GlStateManager;
-import org.lwjgl.input.Mouse;
+import net.minecraft.client.gui.GuiGraphics;
 
 public abstract class GuiScrollPanel extends GuiElement
 {
@@ -106,15 +107,14 @@ public abstract class GuiScrollPanel extends GuiElement
         return false;
     }
 
-    public boolean handleMouseInput()
+    public boolean handleMouseScroll(double mouseX, double mouseY, double scrollDelta)
     {
-        int mouseWheelRoll = -Mouse.getEventDWheel();
         if (this.hovered)
         {
-            if (mouseWheelRoll != 0)
+            if (scrollDelta != 0)
             {
-                mouseWheelRoll = mouseWheelRoll > 0 ? 1 : -1;
-                this.scroll(mouseWheelRoll * getScrollSpeed());
+                int direction = scrollDelta > 0 ? -1 : 1;
+                this.scroll(direction * getScrollSpeed());
             }
             return true;
         }
@@ -144,40 +144,41 @@ public abstract class GuiScrollPanel extends GuiElement
     }
 
     @Override
-    public void draw(float partialTicks)
+    public void draw(GuiGraphics guiGraphics, float partialTicks)
     {
         final float scroll = GUtil.lerp(this.prevScrollAmount, this.scrollAmount, partialTicks);
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(this.getViewX(), this.getViewY(), 0);
+        PoseStack poseStack = guiGraphics.pose();
+        poseStack.pushPose();
+        poseStack.translate(this.getViewX(), this.getViewY(), 0);
 
-        this.drawBackground(partialTicks);
+        this.drawBackground(guiGraphics, partialTicks);
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(0, -scroll, 0);
+        poseStack.pushPose();
+        poseStack.translate(0, -scroll, 0);
         UIScissorHelper.INSTANCE.setUIBounds((int) this.getAbsoluteX(), (int) this.getAbsoluteY(), this.width - this.scrollBarWidth, this.height);
         UIScissorHelper.INSTANCE.enable();
 
-        this.drawChildren(partialTicks);
-        this.drawContent(partialTicks);
+        this.drawChildren(guiGraphics, partialTicks);
+        this.drawContent(guiGraphics, partialTicks);
 
         UIScissorHelper.INSTANCE.disable();
-        GlStateManager.popMatrix();
+        poseStack.popPose();
 
-        this.drawForeground(partialTicks);
+        this.drawForeground(guiGraphics, partialTicks);
 
-        GlStateManager.popMatrix();
+        poseStack.popPose();
     }
 
-    protected abstract void drawContent(float partialTicks);
+    protected abstract void drawContent(GuiGraphics guiGraphics, float partialTicks);
 
     @Override
-    protected void drawForeground(float partialTicks)
+    protected void drawForeground(GuiGraphics guiGraphics, float partialTicks)
     {
-        this.drawScrollBar(partialTicks);
+        this.drawScrollBar(guiGraphics, partialTicks);
     }
 
-    protected void drawScrollBar(float partialTicks)
+    protected void drawScrollBar(GuiGraphics guiGraphics, float partialTicks)
     {
         if (contentSize <= height)
             return;
@@ -185,16 +186,16 @@ public abstract class GuiScrollPanel extends GuiElement
         final int scrollBarHeight = this.getScrollHandleHeight();
 
         // Background
-        Draw.rectangle(width - scrollBarWidth, 0, scrollBarWidth, height, this.getBackgroundColor());
+        guiGraphics.fill(width - scrollBarWidth, 0, width, height, this.getBackgroundColor());
 
         final int barColor = this.scrollBarGrabbed
                 ? getScrollBarGrabbedColor()
                 : (this.scrollHandleHovered ? this.getScrollBarHoveredColor() : this.getScrollBarColor());
 
         // Handle
-        Draw.rectangle(width - scrollBarWidth, this.getScrollHandleY(partialTicks), scrollBarWidth, scrollBarHeight, barColor);
+        guiGraphics.fill(width - scrollBarWidth, this.getScrollHandleY(partialTicks), width, this.getScrollHandleY(partialTicks) + scrollBarHeight, barColor);
 
-        GlStateManager.color(1, 1, 1, 1);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
     }
 
     public int getScrollAmount()

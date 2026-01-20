@@ -1,14 +1,16 @@
 package goblinbob.mobends.core.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.util.GlHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 
-public abstract class MutatedRenderer<T extends EntityLivingBase>
+public abstract class MutatedRenderer<T extends LivingEntity>
 {
 
     protected final float scale = 0.0625F;
@@ -16,56 +18,62 @@ public abstract class MutatedRenderer<T extends EntityLivingBase>
 
     public MutatedRenderer()
     {
-        textureManager = Minecraft.getMinecraft().getTextureManager();
+        textureManager = Minecraft.getInstance().getTextureManager();
     }
 
     /**
      * Called right before the entity is rendered
      */
-    public void beforeRender(EntityData<T> data, T entity, float partialTicks)
+    public void beforeRender(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
     {
-        double entityX = entity.prevPosX + (entity.posX - entity.prevPosX) * partialTicks;
-        double entityY = entity.prevPosY + (entity.posY - entity.prevPosY) * partialTicks;
-        double entityZ = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * partialTicks;
+        double entityX = Mth.lerp(partialTicks, entity.xOld, entity.getX());
+        double entityY = Mth.lerp(partialTicks, entity.yOld, entity.getY());
+        double entityZ = Mth.lerp(partialTicks, entity.zOld, entity.getZ());
 
-        Entity viewEntity = Minecraft.getMinecraft().getRenderViewEntity();
+        Entity viewEntity = Minecraft.getInstance().getCameraEntity();
         double viewX = entityX, viewY = entityY, viewZ = entityZ;
         if (viewEntity != null)
         {
             // Checking in case of Main Menu or GUI rendering.
-            viewX = viewEntity.prevPosX + (viewEntity.posX - viewEntity.prevPosX) * partialTicks;
-            viewY = viewEntity.prevPosY + (viewEntity.posY - viewEntity.prevPosY) * partialTicks;
-            viewZ = viewEntity.prevPosZ + (viewEntity.posZ - viewEntity.prevPosZ) * partialTicks;
+            viewX = Mth.lerp(partialTicks, viewEntity.xOld, viewEntity.getX());
+            viewY = Mth.lerp(partialTicks, viewEntity.yOld, viewEntity.getY());
+            viewZ = Mth.lerp(partialTicks, viewEntity.zOld, viewEntity.getZ());
         }
-        GlStateManager.translate(entityX - viewX, entityY - viewY, entityZ - viewZ);
-        GlStateManager.rotate(-interpolateRotation(entity.prevRenderYawOffset, entity.renderYawOffset, partialTicks), 0F, 1F, 0F);
+        poseStack.translate(entityX - viewX, entityY - viewY, entityZ - viewZ);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
 
-        this.renderLocalAccessories(entity, data, partialTicks);
+        this.renderLocalAccessories(entity, data, partialTicks, poseStack);
 
-        float globalScale = entity.isChild() ? getChildScale() : 1;
+        float globalScale = entity.isBaby() ? getChildScale() : 1;
 
-        GlStateManager.translate(data.globalOffset.getX() * scale * globalScale,
+        // Scale down the model for baby entities (vanilla uses 0.5x scale for babies)
+        if (globalScale != 1.0f)
+        {
+            poseStack.scale(globalScale, globalScale, globalScale);
+        }
+
+        poseStack.translate(data.globalOffset.getX() * scale * globalScale,
                 data.globalOffset.getY() * scale * globalScale,
                 data.globalOffset.getZ() * scale * globalScale);
-        GlStateManager.translate(0, entity.height / 2, 0);
-        GlHelper.rotate(data.centerRotation.getSmooth());
-        GlStateManager.translate(0, -entity.height / 2, 0);
-        GlHelper.rotate(data.renderRotation.getSmooth());
+        poseStack.translate(0, entity.getBbHeight() / 2, 0);
+        GlHelper.rotate(poseStack, data.centerRotation.getSmooth());
+        poseStack.translate(0, -entity.getBbHeight() / 2, 0);
+        GlHelper.rotate(poseStack, data.renderRotation.getSmooth());
 
-        GlStateManager.translate(data.localOffset.getX() * scale * globalScale,
+        poseStack.translate(data.localOffset.getX() * scale * globalScale,
                 data.localOffset.getY() * scale * globalScale,
                 data.localOffset.getZ() * scale * globalScale);
 
-        this.transformLocally(entity, data, partialTicks);
+        this.transformLocally(entity, data, partialTicks, poseStack);
 
-        GlStateManager.rotate(interpolateRotation(entity.prevRenderYawOffset, entity.renderYawOffset, partialTicks), 0F, 1F, 0F);
-        GlStateManager.translate(viewX - entityX, viewY - entityY, viewZ - entityZ);
+        poseStack.mulPose(Axis.YP.rotationDegrees(interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
+        poseStack.translate(viewX - entityX, viewY - entityY, viewZ - entityZ);
     }
 
     /**
      * Called right after the entity is rendered.
      */
-    public void afterRender(T entity, float partialTicks)
+    public void afterRender(T entity, float partialTicks, PoseStack poseStack)
     {
         // No default behaviour
     }
@@ -74,12 +82,12 @@ public abstract class MutatedRenderer<T extends EntityLivingBase>
      * Used to render accessories for that entity, e.g. Sword trails. Also used to transform the entity, like offset or
      * rotate it.
      */
-    protected void renderLocalAccessories(T entity, EntityData<?> data, float partialTicks)
+    protected void renderLocalAccessories(T entity, EntityData<?> data, float partialTicks, PoseStack poseStack)
     {
         // No default behaviour
     }
 
-    protected void transformLocally(T entity, EntityData<?> data, float partialTicks)
+    protected void transformLocally(T entity, EntityData<?> data, float partialTicks, PoseStack poseStack)
     {
         // No default behaviour
     }
