@@ -1,8 +1,8 @@
 package goblinbob.mobends.standard.client.model.armor;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,9 @@ import java.util.List;
 /**
  * A VertexConsumer that captures all vertex data instead of (or in addition to) rendering.
  * Used to intercept armor rendering and capture the vertices for bone assignment.
+ *
+ * In 1.21.1, the pattern is: addVertex(x,y,z).setColor().setUv().setOverlay().setLight().setNormal()
+ * The vertex is complete when the next addVertex() is called or when getVertices() is called.
  */
 @OnlyIn(Dist.CLIENT)
 public class CapturingVertexConsumer implements VertexConsumer
@@ -17,6 +20,7 @@ public class CapturingVertexConsumer implements VertexConsumer
     private final List<CapturedVertex> vertices = new ArrayList<>();
 
     // Current vertex being built
+    private boolean hasCurrentVertex = false;
     private float x, y, z;
     private float red = 1.0f, green = 1.0f, blue = 1.0f, alpha = 1.0f;
     private float u, v;
@@ -29,10 +33,30 @@ public class CapturingVertexConsumer implements VertexConsumer
     }
 
     /**
+     * Flush the current vertex to the list if one is pending.
+     */
+    private void flushCurrentVertex()
+    {
+        if (hasCurrentVertex)
+        {
+            vertices.add(new CapturedVertex(
+                    x, y, z,
+                    red, green, blue, alpha,
+                    u, v,
+                    overlayUV, lightmapUV,
+                    normalX, normalY, normalZ
+            ));
+            hasCurrentVertex = false;
+        }
+    }
+
+    /**
      * Get all captured vertices.
      */
     public List<CapturedVertex> getVertices()
     {
+        // Flush any pending vertex before returning
+        flushCurrentVertex();
         return vertices;
     }
 
@@ -42,6 +66,14 @@ public class CapturingVertexConsumer implements VertexConsumer
     public void clear()
     {
         vertices.clear();
+        hasCurrentVertex = false;
+        // Reset state
+        red = green = blue = 1.0f;
+        alpha = 1.0f;
+        u = v = 0.0f;
+        overlayUV = 0;
+        lightmapUV = 0;
+        normalX = normalY = normalZ = 0.0f;
     }
 
     /**
@@ -49,20 +81,51 @@ public class CapturingVertexConsumer implements VertexConsumer
      */
     public int getVertexCount()
     {
-        return vertices.size();
+        // Include pending vertex in count
+        return vertices.size() + (hasCurrentVertex ? 1 : 0);
     }
 
     @Override
-    public VertexConsumer vertex(double x, double y, double z)
+    public VertexConsumer addVertex(float x, float y, float z)
     {
-        this.x = (float) x;
-        this.y = (float) y;
-        this.z = (float) z;
+        // Flush the previous vertex first
+        flushCurrentVertex();
+
+        // Start a new vertex
+        this.x = x;
+        this.y = y;
+        this.z = z;
+
+        // Reset other attributes to defaults for this new vertex
+        this.red = 1.0f;
+        this.green = 1.0f;
+        this.blue = 1.0f;
+        this.alpha = 1.0f;
+        this.u = 0.0f;
+        this.v = 0.0f;
+        this.overlayUV = 0;
+        this.lightmapUV = 0;
+        this.normalX = 0.0f;
+        this.normalY = 0.0f;
+        this.normalZ = 0.0f;
+
+        this.hasCurrentVertex = true;
+
         return this;
     }
 
     @Override
-    public VertexConsumer color(int red, int green, int blue, int alpha)
+    public VertexConsumer setColor(int packedColor)
+    {
+        this.alpha = ((packedColor >> 24) & 0xFF) / 255.0f;
+        this.red = ((packedColor >> 16) & 0xFF) / 255.0f;
+        this.green = ((packedColor >> 8) & 0xFF) / 255.0f;
+        this.blue = (packedColor & 0xFF) / 255.0f;
+        return this;
+    }
+
+    @Override
+    public VertexConsumer setColor(int red, int green, int blue, int alpha)
     {
         this.red = red / 255.0f;
         this.green = green / 255.0f;
@@ -72,7 +135,7 @@ public class CapturingVertexConsumer implements VertexConsumer
     }
 
     @Override
-    public VertexConsumer uv(float u, float v)
+    public VertexConsumer setUv(float u, float v)
     {
         this.u = u;
         this.v = v;
@@ -80,21 +143,21 @@ public class CapturingVertexConsumer implements VertexConsumer
     }
 
     @Override
-    public VertexConsumer overlayCoords(int u, int v)
+    public VertexConsumer setOverlay(int overlay)
     {
-        this.overlayUV = u | (v << 16);
+        this.overlayUV = overlay;
         return this;
     }
 
     @Override
-    public VertexConsumer uv2(int u, int v)
+    public VertexConsumer setLight(int light)
     {
-        this.lightmapUV = u | (v << 16);
+        this.lightmapUV = light;
         return this;
     }
 
     @Override
-    public VertexConsumer normal(float x, float y, float z)
+    public VertexConsumer setNormal(float x, float y, float z)
     {
         this.normalX = x;
         this.normalY = y;
@@ -103,49 +166,18 @@ public class CapturingVertexConsumer implements VertexConsumer
     }
 
     @Override
-    public void endVertex()
+    public VertexConsumer setUv1(int u, int v)
     {
-        vertices.add(new CapturedVertex(
-                x, y, z,
-                red, green, blue, alpha,
-                u, v,
-                overlayUV, lightmapUV,
-                normalX, normalY, normalZ
-        ));
-
-        // Reset for next vertex
-        red = green = blue = alpha = 1.0f;
+        // This is the overlay UV (alternative UV coordinates for overlays)
+        this.overlayUV = (v << 16) | (u & 0xFFFF);
+        return this;
     }
 
     @Override
-    public void defaultColor(int red, int green, int blue, int alpha)
+    public VertexConsumer setUv2(int u, int v)
     {
-        // Default color hint - we track color per vertex
-    }
-
-    @Override
-    public void unsetDefaultColor()
-    {
-        // Nothing to do
-    }
-
-    /**
-     * The compact vertex method used by Minecraft 1.20.1.
-     * This is the primary method called during model rendering.
-     */
-    @Override
-    public void vertex(float x, float y, float z,
-                       float red, float green, float blue, float alpha,
-                       float u, float v,
-                       int overlayUV, int lightmapUV,
-                       float normalX, float normalY, float normalZ)
-    {
-        vertices.add(new CapturedVertex(
-                x, y, z,
-                red, green, blue, alpha,
-                u, v,
-                overlayUV, lightmapUV,
-                normalX, normalY, normalZ
-        ));
+        // This is the lightmap UV (alternative UV coordinates)
+        this.lightmapUV = (v << 16) | (u & 0xFFFF);
+        return this;
     }
 }

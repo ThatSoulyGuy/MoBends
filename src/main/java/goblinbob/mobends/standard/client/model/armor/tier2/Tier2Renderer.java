@@ -16,8 +16,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -188,7 +188,7 @@ public class Tier2Renderer
                     vertexConsumer,
                     context.getPackedLight(),
                     context.getPackedOverlay(),
-                    1.0f, 1.0f, 1.0f, 1.0f
+                    0xFFFFFFFF
             );
 
             poseStack.popPose();
@@ -351,7 +351,7 @@ public class Tier2Renderer
                 bufferSource.getBuffer(renderType),
                 context.getPackedLight(),
                 context.getPackedOverlay(),
-                1.0f, 1.0f, 1.0f, 1.0f
+                0xFFFFFFFF
         );
 
         poseStack.popPose();

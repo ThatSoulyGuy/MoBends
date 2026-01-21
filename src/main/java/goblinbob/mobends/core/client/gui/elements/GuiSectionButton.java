@@ -17,7 +17,7 @@ import net.minecraft.util.Mth;
 public class GuiSectionButton
 {
 
-    public static final ResourceLocation BUTTONS_TEXTURE = new ResourceLocation(ModStatics.MODID,
+    public static final ResourceLocation BUTTONS_TEXTURE = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
             "textures/gui/buttons.png");
 
     // Expressed in ticks

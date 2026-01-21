@@ -11,6 +11,7 @@ import goblinbob.mobends.standard.animation.bit.biped.ShieldAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
@@ -82,7 +83,7 @@ public class BipedActionController
         if (item == Items.AIR)
             return null;
 
-        if (item.isEdible())
+        if (item.components().has(DataComponents.FOOD))
             return UseActionType.FOOD;
 
         if (item instanceof BowItem || item instanceof CrossbowItem ||

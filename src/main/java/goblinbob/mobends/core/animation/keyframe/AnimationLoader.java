@@ -95,7 +95,7 @@ public class AnimationLoader
             final String domain = key.substring(0, colonIndex);
             final String path = key.substring(colonIndex + 1);
 
-            return loadFromResource(new ResourceLocation(domain, path));
+            return loadFromResource(ResourceLocation.fromNamespaceAndPath(domain, path));
         }
 
         return internalRegistry.get(key);

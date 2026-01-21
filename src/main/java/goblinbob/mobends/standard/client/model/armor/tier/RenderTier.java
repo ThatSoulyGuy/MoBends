@@ -1,7 +1,7 @@
 package goblinbob.mobends.standard.client.model.armor.tier;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Defines the three rendering tiers for armor.

@@ -269,11 +269,10 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
 
     /**
      * Render the mutated model.
-     * This is the new 1.20.1 rendering method using PoseStack and VertexConsumer.
+     * This is the new 1.21.1 rendering method using PoseStack and VertexConsumer.
      */
     public abstract void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
-                                       int packedLight, int packedOverlay,
-                                       float red, float green, float blue, float alpha);
+                                       int packedLight, int packedOverlay, int color);
 
     /**
      * Whether the mutator should render custom models.

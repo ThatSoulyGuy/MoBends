@@ -223,68 +223,66 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
 
     @Override
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
-                              int packedLight, int packedOverlay,
-                              float red, float green, float blue, float alpha)
+                              int packedLight, int packedOverlay, int color)
     {
         if (currentData == null)
         {
             // Fallback: just render without transforms
-            renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             return;
         }
 
         poseStack.pushPose();
 
         // Render all wolf parts
-        renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
         poseStack.popPose();
     }
 
     private void renderParts(PoseStack poseStack, VertexConsumer vertexConsumer,
-                             int packedLight, int packedOverlay,
-                             float red, float green, float blue, float alpha)
+                             int packedLight, int packedOverlay, int color)
     {
         // Render body first as it's the main part
         if (wolfBody != null)
         {
-            wolfBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         // Render head (with nose, mouth, ears as children)
         if (wolfHeadMain != null)
         {
-            wolfHeadMain.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfHeadMain.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         // Render mane
         if (wolfMane != null)
         {
-            wolfMane.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfMane.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         // Render legs (with forelegs as children)
         if (wolfLeg1 != null)
         {
-            wolfLeg1.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfLeg1.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
         if (wolfLeg2 != null)
         {
-            wolfLeg2.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfLeg2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
         if (wolfLeg3 != null)
         {
-            wolfLeg3.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfLeg3.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
         if (wolfLeg4 != null)
         {
-            wolfLeg4.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfLeg4.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         // Render tail
         if (wolfTail != null)
         {
-            wolfTail.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            wolfTail.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
     }
 

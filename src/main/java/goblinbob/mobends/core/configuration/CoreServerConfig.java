@@ -4,9 +4,9 @@ import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.network.NetworkConfiguration;
 import goblinbob.mobends.core.network.SharedProperty;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.slf4j.Logger;
 
 /**
@@ -16,8 +16,8 @@ public class CoreServerConfig extends CoreConfig
 {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static ForgeConfigSpec SPEC;
+    private static ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static ModConfigSpec SPEC;
 
     static
     {
@@ -56,11 +56,11 @@ public class CoreServerConfig extends CoreConfig
     }
 
     /**
-     * Register this config with Forge.
+     * Register this config with NeoForge.
      * Call during mod construction.
      */
-    public static void register()
+    public static void register(ModContainer container)
     {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, SPEC, ModStatics.MODID + "-server.toml");
+        container.registerConfig(ModConfig.Type.SERVER, SPEC, ModStatics.MODID + "-server.toml");
     }
 }

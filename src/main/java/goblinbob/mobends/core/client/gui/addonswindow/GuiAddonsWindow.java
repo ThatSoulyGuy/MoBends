@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class GuiAddonsWindow
 {
-    public static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(ModStatics.MODID,
+    public static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
             "textures/gui/addons_window.png");
 
     private static final int WIDTH = 210;

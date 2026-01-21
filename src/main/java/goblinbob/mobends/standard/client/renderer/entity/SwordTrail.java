@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -132,8 +133,7 @@ public class SwordTrail
         Matrix4f matrix = poseStack.last().pose();
 
         Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder bufferBuilder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
         Iterator<TrailPart> it = trailPartList.iterator();
         TrailPart prevPart = null;
@@ -153,18 +153,24 @@ public class SwordTrail
             if (prevPart != null && prevTransformedPoints != null)
             {
                 // Draw quad connecting previous part to current
-                bufferBuilder.vertex(prevTransformedPoints[0].x, prevTransformedPoints[0].y, prevTransformedPoints[0].z)
-                        .color(color.getR(), color.getG(), color.getB(), prevAlpha)
-                        .endVertex();
-                bufferBuilder.vertex(prevTransformedPoints[1].x, prevTransformedPoints[1].y, prevTransformedPoints[1].z)
-                        .color(color.getR(), color.getG(), color.getB(), prevAlpha)
-                        .endVertex();
-                bufferBuilder.vertex(transformedPoints[1].x, transformedPoints[1].y, transformedPoints[1].z)
-                        .color(color.getR(), color.getG(), color.getB(), alpha)
-                        .endVertex();
-                bufferBuilder.vertex(transformedPoints[0].x, transformedPoints[0].y, transformedPoints[0].z)
-                        .color(color.getR(), color.getG(), color.getB(), alpha)
-                        .endVertex();
+                // Convert RGBA float to packed int for 1.21.1
+                int prevColor = ((int)(prevAlpha * 255.0F) << 24) |
+                               ((int)(color.getR() * 255.0F) << 16) |
+                               ((int)(color.getG() * 255.0F) << 8) |
+                               (int)(color.getB() * 255.0F);
+                int currColor = ((int)(alpha * 255.0F) << 24) |
+                               ((int)(color.getR() * 255.0F) << 16) |
+                               ((int)(color.getG() * 255.0F) << 8) |
+                               (int)(color.getB() * 255.0F);
+
+                bufferBuilder.addVertex(prevTransformedPoints[0].x, prevTransformedPoints[0].y, prevTransformedPoints[0].z)
+                        .setColor(prevColor);
+                bufferBuilder.addVertex(prevTransformedPoints[1].x, prevTransformedPoints[1].y, prevTransformedPoints[1].z)
+                        .setColor(prevColor);
+                bufferBuilder.addVertex(transformedPoints[1].x, transformedPoints[1].y, transformedPoints[1].z)
+                        .setColor(currColor);
+                bufferBuilder.addVertex(transformedPoints[0].x, transformedPoints[0].y, transformedPoints[0].z)
+                        .setColor(currColor);
             }
 
             prevPart = part;
@@ -172,7 +178,12 @@ public class SwordTrail
             prevAlpha = alpha;
         }
 
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        // Only draw if we actually added vertices (need at least 2 trail parts to draw quads)
+        MeshData meshData = bufferBuilder.build();
+        if (meshData != null)
+        {
+            BufferUploader.drawWithShader(meshData);
+        }
 
         RenderSystem.enableCull();
     }

@@ -89,8 +89,7 @@ public class ArrowTrail
         RenderSystem.defaultBlendFunc();
 
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder vertexbuffer = tessellator.getBuilder();
-        vertexbuffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder vertexbuffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
         for (int i = 1; i < MAX_LENGTH; i++)
         {
@@ -111,26 +110,26 @@ public class ArrowTrail
             final Vec3f right1 = node1.right;
 
             vertexbuffer
-                    .vertex(pos0.x + (-right0.x) * scale0, pos0.y + (-right0.y) * scale0, pos0.z + (-right0.z) * scale0)
-                    .uv(0.0F, 0.15625F).endVertex();
-            vertexbuffer.vertex(pos0.x + (right0.x) * scale0, pos0.y + (right0.y) * scale0, pos0.z + (right0.z) * scale0)
-                    .uv(0.0F, 0.15625F).endVertex();
-            vertexbuffer.vertex(pos1.x + (right1.x) * scale1, pos1.y + (right1.y) * scale1, pos1.z + (right1.z) * scale1)
-                    .uv(0.0F, 0.15625F).endVertex();
+                    .addVertex((float)(pos0.x + (-right0.x) * scale0), (float)(pos0.y + (-right0.y) * scale0), (float)(pos0.z + (-right0.z) * scale0))
+                    .setUv(0.0F, 0.15625F);
+            vertexbuffer.addVertex((float)(pos0.x + (right0.x) * scale0), (float)(pos0.y + (right0.y) * scale0), (float)(pos0.z + (right0.z) * scale0))
+                    .setUv(0.0F, 0.15625F);
+            vertexbuffer.addVertex((float)(pos1.x + (right1.x) * scale1), (float)(pos1.y + (right1.y) * scale1), (float)(pos1.z + (right1.z) * scale1))
+                    .setUv(0.0F, 0.15625F);
             vertexbuffer
-                    .vertex(pos1.x + (-right1.x) * scale1, pos1.y + (-right1.y) * scale1, pos1.z + (-right1.z) * scale1)
-                    .uv(0.0F, 0.15625F).endVertex();
+                    .addVertex((float)(pos1.x + (-right1.x) * scale1), (float)(pos1.y + (-right1.y) * scale1), (float)(pos1.z + (-right1.z) * scale1))
+                    .setUv(0.0F, 0.15625F);
 
-            vertexbuffer.vertex(pos0.x + (-up0.x) * scale0, pos0.y + (-up0.y) * scale0, pos0.z + (-up0.z) * scale0)
-                    .uv(0.0F, 0.15625F).endVertex();
-            vertexbuffer.vertex(pos0.x + (up0.x) * scale0, pos0.y + (up0.y) * scale0, pos0.z + (up0.z) * scale0)
-                    .uv(0.0F, 0.15625F).endVertex();
-            vertexbuffer.vertex(pos1.x + (up1.x) * scale1, pos1.y + (up1.y) * scale1, pos1.z + (up1.z) * scale1)
-                    .uv(0.0F, 0.15625F).endVertex();
-            vertexbuffer.vertex(pos1.x + (-up1.x) * scale1, pos1.y + (-up1.y) * scale1, pos1.z + (-up1.z) * scale1)
-                    .uv(0.0F, 0.15625F).endVertex();
+            vertexbuffer.addVertex((float)(pos0.x + (-up0.x) * scale0), (float)(pos0.y + (-up0.y) * scale0), (float)(pos0.z + (-up0.z) * scale0))
+                    .setUv(0.0F, 0.15625F);
+            vertexbuffer.addVertex((float)(pos0.x + (up0.x) * scale0), (float)(pos0.y + (up0.y) * scale0), (float)(pos0.z + (up0.z) * scale0))
+                    .setUv(0.0F, 0.15625F);
+            vertexbuffer.addVertex((float)(pos1.x + (up1.x) * scale1), (float)(pos1.y + (up1.y) * scale1), (float)(pos1.z + (up1.z) * scale1))
+                    .setUv(0.0F, 0.15625F);
+            vertexbuffer.addVertex((float)(pos1.x + (-up1.x) * scale1), (float)(pos1.y + (-up1.y) * scale1), (float)(pos1.z + (-up1.z) * scale1))
+                    .setUv(0.0F, 0.15625F);
         }
-        tessellator.end();
+        BufferUploader.drawWithShader(vertexbuffer.buildOrThrow());
 
         RenderSystem.enableCull();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

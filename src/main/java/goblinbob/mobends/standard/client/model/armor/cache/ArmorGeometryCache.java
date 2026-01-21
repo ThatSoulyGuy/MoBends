@@ -3,8 +3,8 @@ package goblinbob.mobends.standard.client.model.armor.cache;
 import goblinbob.mobends.standard.client.model.armor.BoneRegion;
 import goblinbob.mobends.standard.client.model.armor.SliceResult;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;

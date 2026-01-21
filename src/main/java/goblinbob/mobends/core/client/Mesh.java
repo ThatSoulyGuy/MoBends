@@ -26,7 +26,8 @@ public class Mesh
 	public Mesh(VertexFormat vertexFormat, int maxVertices)
 	{
 		this.vertexFormat = vertexFormat;
-		this.bufferBuilder = Tesselator.getInstance().getBuilder();
+		// BufferBuilder is now created in beginDrawing() in 1.21.1
+		this.bufferBuilder = null;
 	}
 
 	/**
@@ -41,7 +42,7 @@ public class Mesh
 	public void beginDrawing(VertexFormat.Mode mode)
 	{
 		this.drawMode = mode;
-		this.bufferBuilder.begin(mode, this.vertexFormat);
+		this.bufferBuilder = Tesselator.getInstance().begin(mode, this.vertexFormat);
 	}
 
 	/**
@@ -55,36 +56,59 @@ public class Mesh
 
 	public void finishDrawing()
 	{
-		BufferUploader.drawWithShader(this.bufferBuilder.end());
+		BufferUploader.drawWithShader(this.bufferBuilder.buildOrThrow());
 	}
+
+	// Temporary vertex data for building
+	private float pendingX, pendingY, pendingZ;
+	private float pendingU, pendingV;
+	private float pendingR = 1.0f, pendingG = 1.0f, pendingB = 1.0f, pendingA = 1.0f;
+	private float pendingNX, pendingNY, pendingNZ;
 
 	public Mesh pos(double x, double y, double z)
 	{
-		this.bufferBuilder.vertex(x, y, z);
+		this.pendingX = (float) x;
+		this.pendingY = (float) y;
+		this.pendingZ = (float) z;
 		return this;
 	}
 
 	public Mesh normal(float x, float y, float z)
 	{
-		this.bufferBuilder.normal(x, y, z);
+		this.pendingNX = x;
+		this.pendingNY = y;
+		this.pendingNZ = z;
 		return this;
 	}
 
 	public Mesh tex(double u, double v)
 	{
-		this.bufferBuilder.uv((float) u, (float) v);
+		this.pendingU = (float) u;
+		this.pendingV = (float) v;
 		return this;
 	}
 
 	public Mesh color(IColorRead color)
 	{
-		this.bufferBuilder.color(color.getR(), color.getG(), color.getB(), color.getA());
+		this.pendingR = color.getR();
+		this.pendingG = color.getG();
+		this.pendingB = color.getB();
+		this.pendingA = color.getA();
 		return this;
 	}
 
 	public void endVertex()
 	{
-		this.bufferBuilder.endVertex();
+		// Pack RGBA into single int for 1.21.1
+		int packedColor = ((int)(pendingA * 255.0F) << 24) | ((int)(pendingR * 255.0F) << 16) | ((int)(pendingG * 255.0F) << 8) | (int)(pendingB * 255.0F);
+		this.bufferBuilder.addVertex(pendingX, pendingY, pendingZ)
+				.setUv(pendingU, pendingV)
+				.setColor(packedColor)
+				.setNormal(pendingNX, pendingNY, pendingNZ);
+		// Reset to defaults
+		pendingR = pendingG = pendingB = 1.0f;
+		pendingA = 1.0f;
+		pendingNX = pendingNY = pendingNZ = 0.0f;
 	}
 
 	public void display()

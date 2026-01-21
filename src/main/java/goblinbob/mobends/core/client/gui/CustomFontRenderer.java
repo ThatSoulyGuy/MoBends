@@ -34,14 +34,14 @@ public class CustomFontRenderer
         float textureWidth = (float) width / this.font.atlasWidth;
         float textureHeight = (float) height / this.font.atlasHeight;
 
-        bufferBuilder.vertex((double) x, (double) (y), 0)
-                .uv(textureX, textureY + textureHeight).endVertex();
-        bufferBuilder.vertex((double) (x + width), (double) (y), 0)
-                .uv(textureX + textureWidth, textureY + textureHeight).endVertex();
-        bufferBuilder.vertex((double) (x + width), (double) (y - height), 0)
-                .uv(textureX + textureWidth, textureY).endVertex();
-        bufferBuilder.vertex((double) x, (double) (y - height), 0)
-                .uv(textureX, textureY).endVertex();
+        bufferBuilder.addVertex((float) x, (float) (y), 0)
+                .setUv(textureX, textureY + textureHeight);
+        bufferBuilder.addVertex((float) (x + width), (float) (y), 0)
+                .setUv(textureX + textureWidth, textureY + textureHeight);
+        bufferBuilder.addVertex((float) (x + width), (float) (y - height), 0)
+                .setUv(textureX + textureWidth, textureY);
+        bufferBuilder.addVertex((float) x, (float) (y - height), 0)
+                .setUv(textureX, textureY);
     }
 
     public int getTextWidth(String textToDraw)
@@ -71,9 +71,7 @@ public class CustomFontRenderer
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderTexture(0, this.font.resourceLocation);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         int nextCharX = x;
         for (int i = 0; i < textToDraw.length(); ++i)
         {
@@ -85,7 +83,7 @@ public class CustomFontRenderer
             this.drawSymbol(symbol, bufferBuilder, nextCharX, y);
             nextCharX += symbol.width + characterSpacing;
         }
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 

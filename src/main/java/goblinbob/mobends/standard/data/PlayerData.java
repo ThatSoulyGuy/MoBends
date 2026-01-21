@@ -80,7 +80,7 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
         leftLeg.position.set(1.9F, 12.0F, 0.0F);
 
         // Check if player has slim arms by checking the skin model name
-        if (this.entity.getModelName().equals("slim"))
+        if (this.entity.getSkin().model().id().equals("slim"))
         {
             rightArm.position.set(-5F, -9.5F, 0F);
             leftArm.position.set(5F, -9.5F, 0F);

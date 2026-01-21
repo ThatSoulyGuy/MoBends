@@ -26,8 +26,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
@@ -218,15 +218,14 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         // Render the armor model to capture its vertices
         // We use an identity pose stack since we want rest-pose vertices
         PoseStack capturePoseStack = new PoseStack();
-        armorModel.renderToBuffer(capturePoseStack, captureConsumer, packedLight, OverlayTexture.NO_OVERLAY,
-                                  1.0F, 1.0F, 1.0F, 1.0F);
+        armorModel.renderToBuffer(capturePoseStack, captureConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 
         // Restore original poses
         restoreModelPoses(armorModel, snapshot);
 
         // Now render the captured vertices with Mo' Bends transforms
         VertexConsumer outputConsumer = ItemRenderer.getArmorFoilBuffer(
-                bufferSource, RenderType.armorCutoutNoCull(texture), false, itemStack.hasFoil());
+                bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
 
         rigidRenderer.renderCapturedVertices(poseStack, outputConsumer, packedLight, OverlayTexture.NO_OVERLAY, bipedData);
     }
@@ -282,7 +281,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         // Get the render type
         VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
-                bufferSource, RenderType.armorCutoutNoCull(texture), false, itemStack.hasFoil());
+                bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
 
         // Sync poses to vanilla model from our mutator
         if (mutator != null)
@@ -291,8 +290,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
 
         // Render using vanilla model
-        armorModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY,
-                                  1.0F, 1.0F, 1.0F, 1.0F);
+        armorModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
     }
 
     /**
@@ -301,21 +299,18 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
     private ResourceLocation getArmorTexture(ArmorItem armorItem, EquipmentSlot slot, @Nullable String overlay)
     {
         // Use vanilla texture location logic
-        String material = armorItem.getMaterial().getName();
-        String domain = "minecraft";
-        String path = material;
+        // In 1.21.1, getMaterial() returns Holder<ArmorMaterial>
+        ResourceLocation materialLocation = armorItem.getMaterial().unwrapKey()
+                .map(key -> key.location())
+                .orElse(ResourceLocation.withDefaultNamespace("leather"));
 
-        if (material.contains(":"))
-        {
-            String[] split = material.split(":", 2);
-            domain = split[0];
-            path = split[1];
-        }
+        String domain = materialLocation.getNamespace();
+        String path = materialLocation.getPath();
 
         int layer = usesInnerModel(slot) ? 2 : 1;
         String suffix = overlay == null ? "" : "_" + overlay;
 
-        return new ResourceLocation(domain, "textures/models/armor/" + path + "_layer_" + layer + suffix + ".png");
+        return ResourceLocation.fromNamespaceAndPath(domain, "textures/models/armor/" + path + "_layer_" + layer + suffix + ".png");
     }
 
     /**

@@ -19,33 +19,29 @@ public class Draw
         float green = (float) (color >> 8 & 255) / 255.0F;
         float blue = (float) (color & 255) / 255.0F;
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.defaultBlendFunc();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.vertex((double) left, (double) top + height, 0.0D).color(red, green, blue, alpha).endVertex();
-        bufferBuilder.vertex((double) left + width, (double) top + height, 0.0D).color(red, green, blue, alpha).endVertex();
-        bufferBuilder.vertex((double) left + width, (double) top, 0.0D).color(red, green, blue, alpha).endVertex();
-        bufferBuilder.vertex((double) left, (double) top, 0.0D).color(red, green, blue, alpha).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        bufferBuilder.addVertex((float) left, (float) (top + height), 0.0F).setColor(red, green, blue, alpha);
+        bufferBuilder.addVertex((float) (left + width), (float) (top + height), 0.0F).setColor(red, green, blue, alpha);
+        bufferBuilder.addVertex((float) (left + width), (float) top, 0.0F).setColor(red, green, blue, alpha);
+        bufferBuilder.addVertex((float) left, (float) top, 0.0F).setColor(red, green, blue, alpha);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
     public static void rectangle(float left, float top, float width, float height)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.setShader(GameRenderer::getPositionShader);
         RenderSystem.defaultBlendFunc();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        bufferBuilder.vertex((double) left, (double) top + height, 0.0D).endVertex();
-        bufferBuilder.vertex((double) left + width, (double) top + height, 0.0D).endVertex();
-        bufferBuilder.vertex((double) left + width, (double) top, 0.0D).endVertex();
-        bufferBuilder.vertex((double) left, (double) top, 0.0D).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+        bufferBuilder.addVertex(left, top + height, 0.0F);
+        bufferBuilder.addVertex(left + width, top + height, 0.0F);
+        bufferBuilder.addVertex(left + width, top, 0.0F);
+        bufferBuilder.addVertex(left, top, 0.0F);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
@@ -67,14 +63,12 @@ public class Draw
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.vertex((double) x, (double) (y + h), 0.0D).color(color0.getR(), color0.getG(), color0.getB(), color0.getA()).endVertex();
-        bufferBuilder.vertex((double) (x + w), (double) (y + h), 0.0D).color(color1.getR(), color1.getG(), color1.getB(), color1.getA()).endVertex();
-        bufferBuilder.vertex((double) (x + w), (double) y, 0.0D).color(color1.getR(), color1.getG(), color1.getB(), color1.getA()).endVertex();
-        bufferBuilder.vertex((double) x, (double) y, 0.0D).color(color0.getR(), color0.getG(), color0.getB(), color0.getA()).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        bufferBuilder.addVertex(x, y + h, 0.0F).setColor(color0.getR(), color0.getG(), color0.getB(), color0.getA());
+        bufferBuilder.addVertex(x + w, y + h, 0.0F).setColor(color1.getR(), color1.getG(), color1.getB(), color1.getA());
+        bufferBuilder.addVertex(x + w, y, 0.0F).setColor(color1.getR(), color1.getG(), color1.getB(), color1.getA());
+        bufferBuilder.addVertex(x, y, 0.0F).setColor(color0.getR(), color0.getG(), color0.getB(), color0.getA());
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
 
         RenderSystem.disableBlend();
     }
@@ -85,14 +79,12 @@ public class Draw
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.vertex((double) (x + w), (double) y, 0.0D).color(color0.getR(), color0.getG(), color0.getB(), color0.getA()).endVertex();
-        bufferBuilder.vertex((double) x, (double) y, 0.0D).color(color0.getR(), color0.getG(), color0.getB(), color0.getA()).endVertex();
-        bufferBuilder.vertex((double) x, (double) (y + h), 0.0D).color(color1.getR(), color1.getG(), color1.getB(), color1.getA()).endVertex();
-        bufferBuilder.vertex((double) (x + w), (double) (y + h), 0.0D).color(color1.getR(), color1.getG(), color1.getB(), color1.getA()).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        bufferBuilder.addVertex(x + w, y, 0.0F).setColor(color0.getR(), color0.getG(), color0.getB(), color0.getA());
+        bufferBuilder.addVertex(x, y, 0.0F).setColor(color0.getR(), color0.getG(), color0.getB(), color0.getA());
+        bufferBuilder.addVertex(x, y + h, 0.0F).setColor(color1.getR(), color1.getG(), color1.getB(), color1.getA());
+        bufferBuilder.addVertex(x + w, y + h, 0.0F).setColor(color1.getR(), color1.getG(), color1.getB(), color1.getA());
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
 
         RenderSystem.disableBlend();
     }
@@ -108,17 +100,15 @@ public class Draw
         float g1 = (float) (color1 >> 8 & 255) / 255.0F;
         float b1 = (float) (color1 & 255) / 255.0F;
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.defaultBlendFunc();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.vertex((double) x, (double) y + height, 0.0D).color(r0, g0, b0, a0).endVertex();
-        bufferBuilder.vertex((double) x + width, (double) y + height, 0.0D).color(r1, g1, b1, a1).endVertex();
-        bufferBuilder.vertex((double) x + width, (double) y, 0.0D).color(r1, g1, b1, a1).endVertex();
-        bufferBuilder.vertex((double) x, (double) y, 0.0D).color(r0, g0, b0, a0).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        bufferBuilder.addVertex(x, y + height, 0.0F).setColor(r0, g0, b0, a0);
+        bufferBuilder.addVertex(x + width, y + height, 0.0F).setColor(r1, g1, b1, a1);
+        bufferBuilder.addVertex(x + width, y, 0.0F).setColor(r1, g1, b1, a1);
+        bufferBuilder.addVertex(x, y, 0.0F).setColor(r0, g0, b0, a0);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
@@ -135,35 +125,31 @@ public class Draw
         float g1 = (float) (color1 >> 8 & 255) / 255.0F;
         float b1 = (float) (color1 & 255) / 255.0F;
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.defaultBlendFunc();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.vertex((double) x, (double) y + h, 0.0D).color(r1, g1, b1, a1).endVertex();
-        bufferBuilder.vertex((double) x + w, (double) y + h, 0.0D).color(r1, g1, b1, a1).endVertex();
-        bufferBuilder.vertex((double) x + w, (double) y, 0.0D).color(r0, g0, b0, a0).endVertex();
-        bufferBuilder.vertex((double) x, (double) y, 0.0D).color(r0, g0, b0, a0).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        bufferBuilder.addVertex(x, y + h, 0.0F).setColor(r1, g1, b1, a1);
+        bufferBuilder.addVertex(x + w, y + h, 0.0F).setColor(r1, g1, b1, a1);
+        bufferBuilder.addVertex(x + w, y, 0.0F).setColor(r0, g0, b0, a0);
+        bufferBuilder.addVertex(x, y, 0.0F).setColor(r0, g0, b0, a0);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
     public static void circle(double x, double y, double radius, int vertices)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.enableBlend();
         RenderSystem.setShader(GameRenderer::getPositionShader);
         RenderSystem.defaultBlendFunc();
-        bufferBuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION);
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION);
 
         for (int i = 0; i <= vertices; i++)
         {
             double angle = ((double) (i % vertices) / vertices) * Math.PI * 2;
-            bufferBuilder.vertex((double) (x + Math.cos(angle) * radius), (double) (y + Math.sin(angle) * radius), 0.0D).endVertex();
+            bufferBuilder.addVertex((float) (x + Math.cos(angle) * radius), (float) (y + Math.sin(angle) * radius), 0.0F);
         }
 
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
@@ -179,93 +165,85 @@ public class Draw
 		final float b = color.getB();
 		final float a = color.getA();
 
-		Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
-        RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         // NEG_X
-        bufferBuilder.vertex(minX, maxY, minZ).uv(0, 0).color(r, g, b, a).normal(-1, 0, 0).endVertex();
-        bufferBuilder.vertex(minX, minY, minZ).uv(0, 0).color(r, g, b, a).normal(-1, 0, 0).endVertex();
-        bufferBuilder.vertex(minX, minY, maxZ).uv(0, 0).color(r, g, b, a).normal(-1, 0, 0).endVertex();
-        bufferBuilder.vertex(minX, maxY, maxZ).uv(0, 0).color(r, g, b, a).normal(-1, 0, 0).endVertex();
+        bufferBuilder.addVertex((float) minX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         // POS_X
-        bufferBuilder.vertex(maxX, maxY, maxZ).uv(0, 0).color(r, g, b, a).normal(1, 0, 0).endVertex();
-        bufferBuilder.vertex(maxX, minY, maxZ).uv(0, 0).color(r, g, b, a).normal(1, 0, 0).endVertex();
-        bufferBuilder.vertex(maxX, minY, minZ).uv(0, 0).color(r, g, b, a).normal(1, 0, 0).endVertex();
-        bufferBuilder.vertex(maxX, maxY, minZ).uv(0, 0).color(r, g, b, a).normal(1, 0, 0).endVertex();
+        bufferBuilder.addVertex((float) maxX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         // NEG_Z
-        bufferBuilder.vertex(maxX, maxY, minZ).uv(0, 0).color(r, g, b, a).normal(0, 0, -1).endVertex();
-        bufferBuilder.vertex(maxX, minY, minZ).uv(0, 0).color(r, g, b, a).normal(0, 0, -1).endVertex();
-        bufferBuilder.vertex(minX, minY, minZ).uv(0, 0).color(r, g, b, a).normal(0, 0, -1).endVertex();
-        bufferBuilder.vertex(minX, maxY, minZ).uv(0, 0).color(r, g, b, a).normal(0, 0, -1).endVertex();
+        bufferBuilder.addVertex((float) maxX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         // POS_Z
-        bufferBuilder.vertex(minX, maxY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, 0, 1).endVertex();
-        bufferBuilder.vertex(minX, minY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, 0, 1).endVertex();
-        bufferBuilder.vertex(maxX, minY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, 0, 1).endVertex();
-        bufferBuilder.vertex(maxX, maxY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, 0, 1).endVertex();
+        bufferBuilder.addVertex((float) minX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         // NEG_Y
-        bufferBuilder.vertex(minX, minY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, -1, 0).endVertex();
-        bufferBuilder.vertex(minX, minY, minZ).uv(0, 0).color(r, g, b, a).normal(0, -1, 0).endVertex();
-        bufferBuilder.vertex(maxX, minY, minZ).uv(0, 0).color(r, g, b, a).normal(0, -1, 0).endVertex();
-        bufferBuilder.vertex(maxX, minY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, -1, 0).endVertex();
+        bufferBuilder.addVertex((float) minX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         // POS_Y
-        bufferBuilder.vertex(maxX, maxY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, 1, 0).endVertex();
-        bufferBuilder.vertex(maxX, maxY, minZ).uv(0, 0).color(r, g, b, a).normal(0, 1, 0).endVertex();
-        bufferBuilder.vertex(minX, maxY, minZ).uv(0, 0).color(r, g, b, a).normal(0, 1, 0).endVertex();
-        bufferBuilder.vertex(minX, maxY, maxZ).uv(0, 0).color(r, g, b, a).normal(0, 1, 0).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        bufferBuilder.addVertex((float) maxX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) maxX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
+        bufferBuilder.addVertex((float) minX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
 	}
 
 	public static void texturedModalRect(int x, int y, int textureX, int textureY, int width, int height)
     {
         float f = 0.00390625F;
         float f1 = 0.00390625F;
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferBuilder.vertex((double)(x + 0), (double)(y + height), 0).uv((float)(textureX + 0) * 0.00390625F, (float)(textureY + height) * 0.00390625F).endVertex();
-        bufferBuilder.vertex((double)(x + width), (double)(y + height), 0).uv((float)(textureX + width) * 0.00390625F, (float)(textureY + height) * 0.00390625F).endVertex();
-        bufferBuilder.vertex((double)(x + width), (double)(y + 0), 0).uv((float)(textureX + width) * 0.00390625F, (float)(textureY + 0) * 0.00390625F).endVertex();
-        bufferBuilder.vertex((double)(x + 0), (double)(y + 0), 0).uv((float)(textureX + 0) * 0.00390625F, (float)(textureY + 0) * 0.00390625F).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferBuilder.addVertex((float)(x + 0), (float)(y + height), 0).setUv((float)(textureX + 0) * 0.00390625F, (float)(textureY + height) * 0.00390625F);
+        bufferBuilder.addVertex((float)(x + width), (float)(y + height), 0).setUv((float)(textureX + width) * 0.00390625F, (float)(textureY + height) * 0.00390625F);
+        bufferBuilder.addVertex((float)(x + width), (float)(y + 0), 0).setUv((float)(textureX + width) * 0.00390625F, (float)(textureY + 0) * 0.00390625F);
+        bufferBuilder.addVertex((float)(x + 0), (float)(y + 0), 0).setUv((float)(textureX + 0) * 0.00390625F, (float)(textureY + 0) * 0.00390625F);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
 	public static void texturedModalRect(int x, int y, int width, int height, int textureX, int textureY, int textureWidth, int textureHeight)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferBuilder.vertex((double)(x + 0), (double)(y + height), 0).uv((float)(textureX + 0) * 0.00390625F, (float)(textureY + textureHeight) * 0.00390625F).endVertex();
-        bufferBuilder.vertex((double)(x + width), (double)(y + height), 0).uv((float)(textureX + textureWidth) * 0.00390625F, (float)(textureY + textureHeight) * 0.00390625F).endVertex();
-        bufferBuilder.vertex((double)(x + width), (double)(y + 0), 0).uv((float)(textureX + textureWidth) * 0.00390625F, (float)(textureY + 0) * 0.00390625F).endVertex();
-        bufferBuilder.vertex((double)(x + 0), (double)(y + 0), 0).uv((float)(textureX + 0) * 0.00390625F, (float)(textureY + 0) * 0.00390625F).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferBuilder.addVertex((float)(x + 0), (float)(y + height), 0).setUv((float)(textureX + 0) * 0.00390625F, (float)(textureY + textureHeight) * 0.00390625F);
+        bufferBuilder.addVertex((float)(x + width), (float)(y + height), 0).setUv((float)(textureX + textureWidth) * 0.00390625F, (float)(textureY + textureHeight) * 0.00390625F);
+        bufferBuilder.addVertex((float)(x + width), (float)(y + 0), 0).setUv((float)(textureX + textureWidth) * 0.00390625F, (float)(textureY + 0) * 0.00390625F);
+        bufferBuilder.addVertex((float)(x + 0), (float)(y + 0), 0).setUv((float)(textureX + 0) * 0.00390625F, (float)(textureY + 0) * 0.00390625F);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 
     public static void texturedRectangle(int x, int y, int width, int height, float textureX, float textureY, float textureWidth, float textureHeight)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferBuilder.vertex((double) (x + 0), (double) (y + height), 0).uv(textureX, textureY + textureHeight).endVertex();
-        bufferBuilder.vertex((double) (x + width), (double) (y + height), 0).uv(textureX + textureWidth, textureY + textureHeight).endVertex();
-        bufferBuilder.vertex((double) (x + width), (double) (y + 0), 0).uv(textureX + textureWidth, textureY).endVertex();
-        bufferBuilder.vertex((double) (x + 0), (double) (y + 0), 0).uv(textureX, textureY).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferBuilder.addVertex((float) (x + 0), (float) (y + height), 0).setUv(textureX, textureY + textureHeight);
+        bufferBuilder.addVertex((float) (x + width), (float) (y + height), 0).setUv(textureX + textureWidth, textureY + textureHeight);
+        bufferBuilder.addVertex((float) (x + width), (float) (y + 0), 0).setUv(textureX + textureWidth, textureY);
+        bufferBuilder.addVertex((float) (x + 0), (float) (y + 0), 0).setUv(textureX, textureY);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
     //Trimmed - HalfStretched
@@ -292,15 +270,13 @@ public class Draw
 
     public static void line(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, IColorRead color)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        bufferBuilder.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
-        bufferBuilder.vertex(minX, minY, minZ).color(color.getR(), color.getG(), color.getB(), color.getA()).endVertex();
-        bufferBuilder.vertex(maxX, maxY, maxZ).color(color.getR(), color.getG(), color.getB(), color.getA()).endVertex();
+        bufferBuilder.addVertex((float) minX, (float) minY, (float) minZ).setColor(color.getR(), color.getG(), color.getB(), color.getA());
+        bufferBuilder.addVertex((float) maxX, (float) maxY, (float) maxZ).setColor(color.getR(), color.getG(), color.getB(), color.getA());
 
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 
 }

@@ -22,8 +22,7 @@ public abstract class SpiderModelMixin<T extends Entity> {
 
     @Inject(method = "renderToBuffer", at = @At("HEAD"), cancellable = true)
     private void mobends$interceptRender(PoseStack poseStack, VertexConsumer vertexConsumer,
-                                         int packedLight, int packedOverlay,
-                                         float red, float green, float blue, float alpha,
+                                         int packedLight, int packedOverlay, int color,
                                          CallbackInfo ci) {
         // Only intercept if this is a SpiderModel and we have an active spider mutator
         if (!((Object) this instanceof SpiderModel)) {
@@ -33,8 +32,7 @@ public abstract class SpiderModelMixin<T extends Entity> {
         SpiderMutator mutator = MoBendsRenderContext.getCurrentSpiderMutator();
 
         if (mutator != null && mutator.shouldRenderCustom()) {
-            mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay,
-                                 red, green, blue, alpha);
+            mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             ci.cancel();
         }
     }

@@ -1,4 +1,4 @@
-# This is an example mods.toml file. It contains the data relating to the loading mods.
+# This is an example neoforge.mods.toml file. It contains the data relating to the loading mods.
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
@@ -16,15 +16,18 @@ authors="${mod_authors}"
 description='''${mod_description}'''
 
 [[dependencies.${mod_id}]]
-    modId="forge"
-    mandatory=true
-    versionRange="${forge_version_range}"
+    modId="neoforge"
+    type="required"
+    versionRange="${neoforge_version_range}"
     ordering="NONE"
-    side="BOTH"
+    side="CLIENT"
 
 [[dependencies.${mod_id}]]
     modId="minecraft"
-    mandatory=true
+    type="required"
     versionRange="${minecraft_version_range}"
     ordering="NONE"
-    side="BOTH"
+    side="CLIENT"
+
+[[mixins]]
+config="mobends.mixins.json"

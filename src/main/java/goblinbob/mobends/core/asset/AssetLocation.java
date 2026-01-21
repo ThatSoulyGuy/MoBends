@@ -8,17 +8,17 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.io.IOException;
 
-public class AssetLocation extends ResourceLocation
+public class AssetLocation
 {
     private static final String PREFIX = "assets/";
 
+    private final ResourceLocation resourceLocation;
     private final AssetType assetType;
     private final String assetPath;
 
     public AssetLocation(String assetPath)
     {
-        super(ModStatics.MODID, PREFIX + assetPath);
-
+        this.resourceLocation = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID, PREFIX + assetPath);
         this.assetPath = assetPath;
 
         if (assetPath.startsWith("models/"))
@@ -41,10 +41,24 @@ public class AssetLocation extends ResourceLocation
 
     public AssetLocation(String assetPath, AssetType assetType)
     {
-        super(ModStatics.MODID, PREFIX + assetPath);
-
+        this.resourceLocation = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID, PREFIX + assetPath);
         this.assetPath = assetPath;
         this.assetType = assetType;
+    }
+
+    public ResourceLocation getResourceLocation()
+    {
+        return resourceLocation;
+    }
+
+    public String getNamespace()
+    {
+        return resourceLocation.getNamespace();
+    }
+
+    public String getPath()
+    {
+        return resourceLocation.getPath();
     }
 
     public String getAssetPath()
@@ -55,6 +69,12 @@ public class AssetLocation extends ResourceLocation
     public AssetType getAssetType()
     {
         return assetType;
+    }
+
+    @Override
+    public String toString()
+    {
+        return resourceLocation.toString();
     }
 
     public static class Adapter extends TypeAdapter<AssetLocation>

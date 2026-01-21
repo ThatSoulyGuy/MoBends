@@ -34,12 +34,26 @@ public class NetworkConfiguration
 
     /**
      * Sets up the default permissions before receiving the server's config.
+     * Used when connecting to a server that has Mo' Bends installed.
+     * Sets restrictive defaults that the server can then relax via config response.
      */
 	public void onWorldJoin()
     {
         this.modelScalingAllowed.setValue(Minecraft.getInstance().isSingleplayer());
         this.bendsPacksAllowed.setValue(true);
         this.movementLimited.setValue(!Minecraft.getInstance().isSingleplayer());
+    }
+
+    /**
+     * Sets up permissive defaults for vanilla servers that don't have Mo' Bends.
+     * Allows all features since there's no server-side enforcement anyway.
+     */
+    public void onVanillaServerJoin()
+    {
+        // Vanilla servers can't enforce restrictions, so allow everything (like singleplayer)
+        this.modelScalingAllowed.setValue(true);
+        this.bendsPacksAllowed.setValue(true);
+        this.movementLimited.setValue(false);
     }
 
     public SharedConfig getSharedConfig()

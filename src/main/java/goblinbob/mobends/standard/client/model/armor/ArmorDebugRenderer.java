@@ -17,8 +17,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -186,15 +186,12 @@ public class ArmorDebugRenderer
      */
     private static void renderTestGeometry(PoseStack poseStack)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.getBuilder();
-
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.lineWidth(2.0f);
 
         Matrix4f matrix = poseStack.last().pose();
 
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         // Draw wireframe cubes matching vanilla armor model positions (in model units, scaled by SCALE)
         // These are the ACTUAL vanilla HumanoidModel cube positions
@@ -217,7 +214,7 @@ public class ArmorDebugRenderer
         // Right leg: pivot (-1.9, 12, 0), cube (-2, 0, -2) size (4, 12, 4) → world (-3.9, 12, -2) to (0.1, 24, 2)
         drawWireBox(buffer, matrix, -3.9f, 12, -2, 0.1f, 24, 2, 0.5f, 0.0f, 1.0f, 1.0f);
 
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     /**
@@ -260,15 +257,12 @@ public class ArmorDebugRenderer
      */
     private static void renderOriginMarker(PoseStack poseStack)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.getBuilder();
-
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.lineWidth(3.0f);
 
         Matrix4f matrix = poseStack.last().pose();
 
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         float len = 0.5f; // Length in render units
 
@@ -279,7 +273,7 @@ public class ArmorDebugRenderer
         // Z axis (blue) - points forward
         addLine(buffer, matrix, 0, 0, 0, 0, 0, len, 0, 0, 1, 1);
 
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     /**
@@ -337,7 +331,7 @@ public class ArmorDebugRenderer
         // Render to capture
         PoseStack capturePoseStack = new PoseStack();
         outerArmorModel.renderToBuffer(capturePoseStack, captureConsumer, 15728880,
-                                       OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                                       OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
     }
 
     /**
@@ -387,7 +381,7 @@ public class ArmorDebugRenderer
         // Render to capture consumer with identity transform
         PoseStack capturePoseStack = new PoseStack();
         armorModel.renderToBuffer(capturePoseStack, captureConsumer, 15728880, OverlayTexture.NO_OVERLAY,
-                                  1.0F, 1.0F, 1.0F, 1.0F);
+                                  0xFFFFFFFF);
     }
 
     /**
@@ -420,16 +414,13 @@ public class ArmorDebugRenderer
     {
         ArmorBoneAssignment assignment = new ArmorBoneAssignment();
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.getBuilder();
-
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.lineWidth(2.0f);
 
         Matrix4f matrix = poseStack.last().pose();
 
         // Render as wireframe quads
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         for (int i = 0; i < vertices.size(); i += 4)
         {
@@ -454,7 +445,7 @@ public class ArmorDebugRenderer
             addLine(buffer, matrix, v3.x, v3.y, v3.z, v0.x, v0.y, v0.z, r, g, b, a);
         }
 
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     /**
@@ -470,15 +461,12 @@ public class ArmorDebugRenderer
         java.util.Map<BoneRegion, float[]> transforms = computeTransforms(poseStack, data);
         java.util.Map<BoneRegion, float[]> restPositions = computeRestPositions(data);
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.getBuilder();
-
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.lineWidth(2.0f);
 
         Matrix4f matrix = poseStack.last().pose();
 
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         for (int i = 0; i < vertices.size(); i += 4)
         {
@@ -512,7 +500,7 @@ public class ArmorDebugRenderer
             addLine(buffer, matrix, t3[0], t3[1], t3[2], t0[0], t0[1], t0[2], r, g, b, a);
         }
 
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     private static float[] transformVertex(CapturedVertex v, float[] transform, float[] restPos)
@@ -544,15 +532,12 @@ public class ArmorDebugRenderer
      */
     private static void renderBoneRegions(PoseStack poseStack, Map<BoneRegion, Boolean> boneEnabled)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.getBuilder();
-
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.lineWidth(1.0f);
 
         Matrix4f matrix = poseStack.last().pose();
 
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         float a = 0.8f;
 
@@ -592,7 +577,7 @@ public class ArmorDebugRenderer
         if (boneEnabled.getOrDefault(BoneRegion.RIGHT_LEG_LOWER, true))
             drawBox(buffer, matrix, -3.9f, 18, -2, 0.1f, 24, 2, 0.0f, 0.7f, 0.7f, a);
 
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     private static void drawBox(BufferBuilder buffer, Matrix4f matrix,
@@ -633,13 +618,10 @@ public class ArmorDebugRenderer
     private static void renderBoneAxes(PoseStack poseStack, BipedEntityData<?> data,
                                         Map<BoneRegion, Boolean> boneEnabled)
     {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.getBuilder();
-
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.lineWidth(3.0f);
 
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         float axisLength = 0.15f;
 
@@ -669,7 +651,7 @@ public class ArmorDebugRenderer
             poseStack.popPose();
         }
 
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     private static void addLine(BufferBuilder buffer, Matrix4f matrix,
@@ -677,8 +659,10 @@ public class ArmorDebugRenderer
                                  float x2, float y2, float z2,
                                  float r, float g, float b, float a)
     {
-        buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).endVertex();
-        buffer.vertex(matrix, x2, y2, z2).color(r, g, b, a).endVertex();
+        // Pack RGBA into single int for 1.21.1
+        int color = ((int)(a * 255.0F) << 24) | ((int)(r * 255.0F) << 16) | ((int)(g * 255.0F) << 8) | (int)(b * 255.0F);
+        buffer.addVertex(matrix, x1, y1, z1).setColor(color);
+        buffer.addVertex(matrix, x2, y2, z2).setColor(color);
     }
 
     private static IModelPart getBoneModelPart(BoneRegion region, BipedEntityData<?> data)

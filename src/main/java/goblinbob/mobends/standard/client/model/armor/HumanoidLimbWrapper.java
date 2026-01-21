@@ -6,8 +6,8 @@ import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.List;
 import java.util.Map;

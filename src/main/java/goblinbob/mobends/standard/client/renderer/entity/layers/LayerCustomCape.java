@@ -12,12 +12,13 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Custom cape layer for Mo' Bends animated cape rendering.
@@ -47,7 +48,8 @@ public class LayerCustomCape extends RenderLayer<AbstractClientPlayer, PlayerMod
         final PlayerData data = (PlayerData) entityData;
         final float scale = 0.0625F;
 
-        if (player.isCapeLoaded() && !player.isInvisible() && player.isModelPartShown(PlayerModelPart.CAPE) && player.getCloakTextureLocation() != null)
+        ResourceLocation capeTexture = player.getSkin().capeTexture();
+        if (capeTexture != null && !player.isInvisible() && player.isModelPartShown(PlayerModelPart.CAPE))
         {
             final ItemStack itemstack = player.getItemBySlot(EquipmentSlot.CHEST);
 

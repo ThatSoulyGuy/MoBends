@@ -119,8 +119,7 @@ public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
 
 	@Override
 	public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
-	                          int packedLight, int packedOverlay,
-	                          float red, float green, float blue, float alpha)
+	                          int packedLight, int packedOverlay, int color)
 	{
 		// Not implemented yet
 	}

@@ -47,7 +47,7 @@ public class AssetReloadListener implements ResourceManagerReloadListener
             if (assetType == AssetType.TEXTURE)
             {
                 AssetTexture assetTexture = new AssetTexture(location);
-                Minecraft.getInstance().getTextureManager().register(location, assetTexture);
+                Minecraft.getInstance().getTextureManager().register(location.getResourceLocation(), assetTexture);
             }
             else if (assetType == AssetType.MODEL)
             {

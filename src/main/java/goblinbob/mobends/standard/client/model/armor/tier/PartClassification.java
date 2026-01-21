@@ -2,8 +2,8 @@ package goblinbob.mobends.standard.client.model.armor.tier;
 
 import goblinbob.mobends.standard.client.model.armor.BoneRegion;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.Collections;

@@ -16,8 +16,8 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.animal.Wolf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Layer for rendering wolf mouth and tongue with Mo' Bends animations.
@@ -27,7 +27,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class LayerWolfMisc extends RenderLayer<Wolf, WolfModel<Wolf>>
 {
 
-    private static final ResourceLocation WOLF_MISC_TEXTURE = new ResourceLocation(ModStatics.MODID,
+    private static final ResourceLocation WOLF_MISC_TEXTURE = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
             "textures/entity/wolf_misc.png");
     private static final int textureWidth = 8;
     private static final int textureHeight = 8;

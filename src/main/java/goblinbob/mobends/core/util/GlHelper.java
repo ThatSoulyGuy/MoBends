@@ -5,8 +5,8 @@ import goblinbob.mobends.core.math.Quaternion;
 import goblinbob.mobends.core.math.matrix.IMat4x4d;
 import goblinbob.mobends.core.math.vector.IVec3dRead;
 import goblinbob.mobends.core.math.vector.IVec3fRead;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
@@ -60,7 +60,7 @@ public class GlHelper
                 (float) matrixIn.get(3, 0), (float) matrixIn.get(3, 1), (float) matrixIn.get(3, 2), (float) matrixIn.get(3, 3)
         );
 
-        poseStack.mulPoseMatrix(jomlMatrix);
+        poseStack.last().pose().mul(jomlMatrix);
     }
 
     /**

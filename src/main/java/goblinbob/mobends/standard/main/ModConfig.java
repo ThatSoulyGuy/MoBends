@@ -7,28 +7,28 @@ import goblinbob.mobends.standard.UseActionType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.*;
 import java.util.function.Function;
 
-@Mod.EventBusSubscriber(modid = ModStatics.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ModStatics.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class ModConfig
 {
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public static final ForgeConfigSpec SPEC;
+    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static final ModConfigSpec SPEC;
 
-    private static final ForgeConfigSpec.BooleanValue SHOW_ARROW_TRAILS;
-    private static final ForgeConfigSpec.BooleanValue SHOW_SWORD_TRAIL;
-    private static final ForgeConfigSpec.BooleanValue PERFORM_SPIN_ATTACK;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ITEM_USE_CLASSIFICATIONS;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ITEM_ATTACK_CLASSIFICATIONS;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> KEEP_ARMOR_AS_VANILLA;
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> KEEP_ENTITY_AS_VANILLA;
+    private static final ModConfigSpec.BooleanValue SHOW_ARROW_TRAILS;
+    private static final ModConfigSpec.BooleanValue SHOW_SWORD_TRAIL;
+    private static final ModConfigSpec.BooleanValue PERFORM_SPIN_ATTACK;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_USE_CLASSIFICATIONS;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_ATTACK_CLASSIFICATIONS;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> KEEP_ARMOR_AS_VANILLA;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> KEEP_ENTITY_AS_VANILLA;
 
     // Public accessors for backwards compatibility
     public static boolean showArrowTrails = true;
@@ -177,7 +177,7 @@ public class ModConfig
 
     private static boolean doesLocationMatchPattern(ResourceLocation resourceLocation, String pattern)
     {
-        final ResourceLocation patternLocation = new ResourceLocation(pattern);
+        final ResourceLocation patternLocation = ResourceLocation.parse(pattern);
 
         if (resourceLocation.equals(patternLocation))
             return true;
@@ -199,7 +199,7 @@ public class ModConfig
 
         for (String pattern : patterns)
         {
-            final ResourceLocation patternLocation = new ResourceLocation(pattern);
+            final ResourceLocation patternLocation = ResourceLocation.parse(pattern);
 
             if (resourceLocation.equals(patternLocation))
                 return true;
@@ -221,7 +221,7 @@ public class ModConfig
     {
         // If cached before, returning the cached classification.
         return itemUseClassificationCache.computeIfAbsent(item, (i) -> {
-            ResourceLocation location = ForgeRegistries.ITEMS.getKey(item);
+            ResourceLocation location = BuiltInRegistries.ITEM.getKey(item);
 
             if (location != null)
             {
@@ -244,7 +244,7 @@ public class ModConfig
     {
         // If cached before, returning the cached classification.
         return itemAttackClassificationCache.computeIfAbsent(item, (i) -> {
-            ResourceLocation location = ForgeRegistries.ITEMS.getKey(item);
+            ResourceLocation location = BuiltInRegistries.ITEM.getKey(item);
 
             if (location != null)
             {
@@ -266,14 +266,14 @@ public class ModConfig
     public static boolean shouldKeepArmorAsVanilla(Item item)
     {
         // If cached before, returning the cached result.
-        return keepArmorAsVanillaCache.computeIfAbsent(item, (i) -> checkForPatterns(ForgeRegistries.ITEMS.getKey(i), keepArmorAsVanilla));
+        return keepArmorAsVanillaCache.computeIfAbsent(item, (i) -> checkForPatterns(BuiltInRegistries.ITEM.getKey(i), keepArmorAsVanilla));
     }
 
     public static boolean shouldKeepEntityAsVanilla(Entity entity)
     {
         // If cached before, returning the cached result.
         return keepEntityAsVanillaCache.computeIfAbsent(entity, (e) -> {
-            ResourceLocation location = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+            ResourceLocation location = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
 
             // The player, for example, doesn't have a key.
             return location != null && checkForPatterns(location, keepEntityAsVanilla);

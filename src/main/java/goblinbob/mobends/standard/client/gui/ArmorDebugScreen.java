@@ -206,7 +206,7 @@ public class ArmorDebugScreen extends Screen
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
         // Title
         guiGraphics.drawCenteredString(font, "Armor Debug - Drag to rotate", width / 2, 10, 0xFFFFFF);
@@ -340,9 +340,9 @@ public class ArmorDebugScreen extends Screen
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
-        debugScale += (float) delta * 5;
+        debugScale += (float) scrollY * 5;
         debugScale = Math.max(10, Math.min(200, debugScale));
         return true;
     }

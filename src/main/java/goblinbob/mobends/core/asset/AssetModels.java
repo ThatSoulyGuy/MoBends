@@ -91,7 +91,7 @@ public class AssetModels
     {
         // Get missing texture sprite as fallback
         TextureAtlasSprite missingSprite = Minecraft.getInstance()
-                .getTextureAtlas(new ResourceLocation("minecraft", "textures/atlas/blocks.png"))
+                .getTextureAtlas(ResourceLocation.fromNamespaceAndPath("minecraft", "textures/atlas/blocks.png"))
                 .apply(MissingTextureAtlasSprite.getLocation());
 
         List<BakedQuad> generalQuads = new ArrayList<>();

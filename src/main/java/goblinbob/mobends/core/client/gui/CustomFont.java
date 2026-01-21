@@ -50,7 +50,7 @@ public class CustomFont
     {
         this.atlasWidth = atlasWidth;
         this.atlasHeight = atlasHeight;
-        this.resourceLocation = new ResourceLocation(ModStatics.MODID,
+        this.resourceLocation = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
                 "textures/gui/fonts/" + textureName + ".png");
         this.symbolMap = symbolMap;
     }

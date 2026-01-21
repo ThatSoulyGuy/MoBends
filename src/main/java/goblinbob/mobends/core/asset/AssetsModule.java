@@ -6,7 +6,7 @@ import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.env.EnvironmentModule;
 import goblinbob.mobends.core.module.IModule;
 import goblinbob.mobends.core.util.ConnectionHelper;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import org.apache.http.conn.HttpHostConnectException;
 import org.slf4j.Logger;
 

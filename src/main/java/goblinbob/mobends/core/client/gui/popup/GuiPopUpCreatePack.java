@@ -34,8 +34,7 @@ public class GuiPopUpCreatePack extends GuiPopUp
     public void update(int mouseX, int mouseY)
     {
         super.update(mouseX, mouseY);
-        if (titleTextField.isFocused())
-            titleTextField.tick();
+        // Note: tick() method removed in 1.21.1, cursor animation handled internally
     }
 
     public void mouseClicked(int mouseX, int mouseY, int button)

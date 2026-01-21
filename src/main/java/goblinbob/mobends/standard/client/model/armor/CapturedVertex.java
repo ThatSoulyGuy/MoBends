@@ -1,7 +1,7 @@
 package goblinbob.mobends.standard.client.model.armor;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Stores all data for a captured vertex from armor rendering.

@@ -19,9 +19,9 @@ import net.minecraft.resources.ResourceLocation;
 public class GuiBendsMenu extends Screen
 {
 
-	private static final ResourceLocation MENU_TITLE_TEXTURE = new ResourceLocation(ModStatics.MODID,
+	private static final ResourceLocation MENU_TITLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
 			"textures/gui/title.png");
-	public static final ResourceLocation ICONS_TEXTURE = new ResourceLocation(ModStatics.MODID,
+	public static final ResourceLocation ICONS_TEXTURE = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
 			"textures/gui/icons.png");
 
 	private GuiSectionButton settingsButton;
@@ -182,7 +182,7 @@ public class GuiBendsMenu extends Screen
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
 	{
-		this.renderBackground(guiGraphics);
+		this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
 		RenderSystem.enableBlend();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -204,7 +204,7 @@ public class GuiBendsMenu extends Screen
 
 		if (this.popUp != null)
 		{
-			this.renderBackground(guiGraphics);
+			this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 			this.popUp.display(guiGraphics, mouseX, mouseY, partialTicks);
 		}
 	}

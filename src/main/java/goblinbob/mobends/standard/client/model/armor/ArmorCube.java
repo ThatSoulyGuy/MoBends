@@ -2,8 +2,8 @@ package goblinbob.mobends.standard.client.model.armor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -388,11 +388,14 @@ public class ArmorCube
                     float ty = matrix.m01() * x + matrix.m11() * y + matrix.m21() * z + matrix.m31();
                     float tz = matrix.m02() * x + matrix.m12() * y + matrix.m22() * z + matrix.m32();
 
-                    vertexConsumer.vertex(tx, ty, tz,
-                            red, green, blue, alpha,
-                            vertex.u, vertex.v,
-                            packedOverlay, packedLight,
-                            normal.x(), normal.y(), normal.z());
+                    // Pack RGBA into single int for 1.21.1
+                    int color = ((int)(alpha * 255.0F) << 24) | ((int)(red * 255.0F) << 16) | ((int)(green * 255.0F) << 8) | (int)(blue * 255.0F);
+                    vertexConsumer.addVertex(tx, ty, tz)
+                            .setColor(color)
+                            .setUv(vertex.u, vertex.v)
+                            .setOverlay(packedOverlay)
+                            .setLight(packedLight)
+                            .setNormal(normal.x(), normal.y(), normal.z());
                 }
             }
             tempFlag >>= 1;

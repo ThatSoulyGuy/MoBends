@@ -24,16 +24,14 @@ public abstract class ColorableAgeableListModelMixin<T extends Entity> {
 
     @Inject(method = "renderToBuffer", at = @At("HEAD"), cancellable = true)
     private void mobends$interceptRender(PoseStack poseStack, VertexConsumer vertexConsumer,
-                                         int packedLight, int packedOverlay,
-                                         float red, float green, float blue, float alpha,
+                                         int packedLight, int packedOverlay, int color,
                                          CallbackInfo ci) {
         // Check if this is a WolfModel
         if ((Object) this instanceof WolfModel) {
             WolfMutator mutator = MoBendsRenderContext.getCurrentWolfMutator();
 
             if (mutator != null && mutator.shouldRenderCustom()) {
-                mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay,
-                                     red, green, blue, alpha);
+                mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 ci.cancel();
             }
         }

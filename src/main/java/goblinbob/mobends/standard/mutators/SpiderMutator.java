@@ -151,12 +151,11 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
 
     @Override
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
-                              int packedLight, int packedOverlay,
-                              float red, float green, float blue, float alpha)
+                              int packedLight, int packedOverlay, int color)
     {
         if (currentData == null)
         {
-            renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             return;
         }
 
@@ -234,33 +233,32 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
         }
 
         // Render all spider parts
-        renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+        renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
         poseStack.popPose();
     }
 
     private void renderParts(PoseStack poseStack, VertexConsumer vertexConsumer,
-                             int packedLight, int packedOverlay,
-                             float red, float green, float blue, float alpha)
+                             int packedLight, int packedOverlay, int color)
     {
         if (spiderHead != null)
         {
-            spiderHead.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            spiderHead.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
         if (spiderNeck != null)
         {
-            spiderNeck.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            spiderNeck.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
         if (spiderBody != null)
         {
-            spiderBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            spiderBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         for (int i = 0; i < 8; ++i)
         {
             if (spiderUpperLimbs[i] != null)
             {
-                spiderUpperLimbs[i].render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                spiderUpperLimbs[i].render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             }
         }
     }

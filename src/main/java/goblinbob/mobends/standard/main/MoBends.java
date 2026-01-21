@@ -14,14 +14,13 @@ import goblinbob.mobends.core.network.NetworkHandler;
 import goblinbob.mobends.core.pack.PackDataProvider;
 import goblinbob.mobends.core.util.GsonResources;
 import goblinbob.mobends.standard.DefaultAddon;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
 /**
@@ -35,27 +34,23 @@ public class MoBends
     public static final Logger LOG = LOGGER;
     public static MoBends instance;
 
-    public MoBends()
+    public MoBends(IEventBus modEventBus, ModContainer container)
     {
         instance = this;
 
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
         // Register configurations
-        CoreServerConfig.register();
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> CoreClientConfig::register);
+        CoreServerConfig.register(container);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            CoreClientConfig.register(container);
+            modEventBus.addListener(this::clientSetup);
+            modEventBus.addListener(KeyboardHandler::registerKeyMappings);
+        }
 
         // Register lifecycle event listeners
         modEventBus.addListener(this::commonSetup);
 
-        // Client-specific setup
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            modEventBus.addListener(this::clientSetup);
-            modEventBus.addListener(KeyboardHandler::registerKeyMappings);
-        });
-
-        // Register ourselves for server and other game events
-        MinecraftForge.EVENT_BUS.register(this);
+        // Register network handler
+        modEventBus.addListener(NetworkHandler::register);
 
         LOGGER.info("Mo' Bends {} initializing...", ModStatics.VERSION);
     }
@@ -65,11 +60,7 @@ public class MoBends
      */
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-        event.enqueueWork(() -> {
-            // Register network messages
-            NetworkHandler.register();
-            LOGGER.info("Mo' Bends network handler registered");
-        });
+        LOGGER.info("Mo' Bends common setup complete");
     }
 
     /**

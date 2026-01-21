@@ -11,12 +11,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
@@ -54,7 +54,7 @@ public abstract class EntityBender<T extends LivingEntity>
             if (entityType == null)
                 throw new RuntimeException("Unable to find an EntityType for " + entityClass.getName());
 
-            ResourceLocation resourceLocation = ForgeRegistries.ENTITY_TYPES.getKey(entityType);
+            ResourceLocation resourceLocation = BuiltInRegistries.ENTITY_TYPE.getKey(entityType);
             if (resourceLocation == null)
                 throw new RuntimeException("Unable to find a key for " + entityClass.getName());
 
@@ -71,14 +71,14 @@ public abstract class EntityBender<T extends LivingEntity>
     @SuppressWarnings("unchecked")
     private static <T extends LivingEntity> EntityType<T> getEntityTypeForClass(Class<T> entityClass)
     {
-        for (EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES)
+        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE)
         {
             // We need to check if this entity type creates instances of our class
             // This is a simplified check - in practice, this should work for most entities
             try
             {
                 if (entityClass.getSimpleName().equalsIgnoreCase(
-                        ForgeRegistries.ENTITY_TYPES.getKey(entityType).getPath().replace("_", "")))
+                        BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath().replace("_", "")))
                 {
                     return (EntityType<T>) entityType;
                 }
@@ -211,8 +211,7 @@ public abstract class EntityBender<T extends LivingEntity>
                     ? Minecraft.getInstance().getSingleplayerServer().overworld()
                     : null,
                 level.getCurrentDifficultyAt(entity.blockPosition()),
-                null,
-                null,
+                net.minecraft.world.entity.MobSpawnType.COMMAND,
                 null
             );
             PreviewHelper.registerPreviewEntity(entity);

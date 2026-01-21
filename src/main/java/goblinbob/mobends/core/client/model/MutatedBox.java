@@ -139,11 +139,14 @@ public class MutatedBox
                 Vector3f normal = new Vector3f(normalX, normalY, normalZ);
                 normal.mul(normalMatrix);
 
-                vertexConsumer.vertex(pos.x, pos.y, pos.z,
-                        red, green, blue, alpha,
-                        vertex.u, vertex.v,
-                        packedOverlay, packedLight,
-                        normal.x, normal.y, normal.z);
+                // Pack RGBA into single int for 1.21.1
+                int color = ((int)(alpha * 255.0F) << 24) | ((int)(red * 255.0F) << 16) | ((int)(green * 255.0F) << 8) | (int)(blue * 255.0F);
+                vertexConsumer.addVertex(pos.x, pos.y, pos.z)
+                        .setColor(color)
+                        .setUv(vertex.u, vertex.v)
+                        .setOverlay(packedOverlay)
+                        .setLight(packedLight)
+                        .setNormal(normal.x, normal.y, normal.z);
             }
         }
     }

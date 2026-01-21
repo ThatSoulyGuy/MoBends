@@ -20,7 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 public class GuiSettingsWindow extends Screen
 {
 
-    public static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(ModStatics.MODID,
+    public static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
             "textures/gui/pack_window.png");
     public static final int EDITOR_WIDTH = 280;
     public static final int EDITOR_HEIGHT = 177;
@@ -61,7 +61,7 @@ public class GuiSettingsWindow extends Screen
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
         RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -111,13 +111,13 @@ public class GuiSettingsWindow extends Screen
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
-        if (bendsSettingsListUI.handleMouseScroll(mouseX, mouseY, delta))
+        if (bendsSettingsListUI.handleMouseScroll(mouseX, mouseY, scrollY))
         {
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

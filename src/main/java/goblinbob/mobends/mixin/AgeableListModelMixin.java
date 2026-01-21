@@ -23,16 +23,14 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
 
     @Inject(method = "renderToBuffer", at = @At("HEAD"), cancellable = true)
     private void mobends$interceptRender(PoseStack poseStack, VertexConsumer vertexConsumer,
-                                         int packedLight, int packedOverlay,
-                                         float red, float green, float blue, float alpha,
+                                         int packedLight, int packedOverlay, int color,
                                          CallbackInfo ci) {
         // Check for HumanoidModel (biped entities)
         if ((Object) this instanceof HumanoidModel) {
             BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
 
             if (mutator != null && mutator.shouldRenderCustom()) {
-                mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay,
-                                     red, green, blue, alpha);
+                mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 ci.cancel();
             }
         }

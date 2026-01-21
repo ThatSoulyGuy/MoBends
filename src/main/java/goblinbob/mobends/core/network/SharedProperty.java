@@ -1,7 +1,7 @@
 package goblinbob.mobends.core.network;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
  * Represents a value that is stored in the server's config, then shared with clients
@@ -53,9 +53,9 @@ public abstract class SharedProperty<T>
     public abstract void readFromNBT(CompoundTag tag);
 
     /**
-     * Updates this property's value from a ForgeConfigSpec value.
+     * Updates this property's value from a ModConfigSpec value.
      * This replaces the old Configuration-based system.
      */
-    public abstract void updateWithConfigValue(ForgeConfigSpec.ConfigValue<T> configValue);
+    public abstract void updateWithConfigValue(ModConfigSpec.ConfigValue<T> configValue);
 
 }

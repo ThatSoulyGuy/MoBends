@@ -6,7 +6,7 @@ import goblinbob.mobends.standard.DefaultAddon;
 import goblinbob.mobends.standard.client.event.RenderingEventHandler;
 import goblinbob.mobends.standard.main.CommonProxy;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 
 /**
  * Client-side proxy for Mo' Bends.
@@ -26,7 +26,7 @@ public class ClientProxy extends CommonProxy
 	@Override
 	public void init()
 	{
-		MinecraftForge.EVENT_BUS.register(new RenderingEventHandler());
+		NeoForge.EVENT_BUS.register(new RenderingEventHandler());
 
 		// Registering the standard set of animations.
 		AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());

@@ -8,8 +8,8 @@ import goblinbob.mobends.core.math.matrix.IMat4x4d;
 import goblinbob.mobends.core.math.vector.IVec3f;
 import goblinbob.mobends.core.math.vector.Vec3f;
 import goblinbob.mobends.core.util.GlHelper;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,10 +90,29 @@ public class BendsModelPart implements IModelPart
      * Render this part and all children using the modern PoseStack/VertexConsumer system.
      * This applies the full character transform chain (including all parent transforms).
      * Use this method for root parts that need to be positioned in world space.
+     *
+     * @deprecated Use the overload with int color parameter for 1.21.1+
      */
+    @Deprecated
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer,
                        int packedLight, int packedOverlay,
                        float red, float green, float blue, float alpha)
+    {
+        // Convert RGBA floats to packed ARGB int (range 0.0-1.0 to 0-255)
+        int color = ((int)(alpha * 255.0F) << 24) |
+                    ((int)(red * 255.0F) << 16) |
+                    ((int)(green * 255.0F) << 8) |
+                    (int)(blue * 255.0F);
+        render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+    }
+
+    /**
+     * Render this part and all children using the modern PoseStack/VertexConsumer system (1.21.1+).
+     * This applies the full character transform chain (including all parent transforms).
+     * Use this method for root parts that need to be positioned in world space.
+     */
+    public void render(PoseStack poseStack, VertexConsumer vertexConsumer,
+                       int packedLight, int packedOverlay, int color)
     {
         if (!isShowing()) return;
 
@@ -104,13 +123,13 @@ public class BendsModelPart implements IModelPart
         // Render all cubes
         for (BendsCube cube : cubes)
         {
-            cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
         }
 
         // Render children using renderJust since our transform is already on the stack
         for (BendsModelPart child : children)
         {
-            child.renderJust(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            child.renderJust(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         poseStack.popPose();
@@ -118,10 +137,27 @@ public class BendsModelPart implements IModelPart
 
     /**
      * Render just this part without the full character transform.
+     *
+     * @deprecated Use the overload with int color parameter for 1.21.1+
      */
+    @Deprecated
     public void renderJust(PoseStack poseStack, VertexConsumer vertexConsumer,
                            int packedLight, int packedOverlay,
                            float red, float green, float blue, float alpha)
+    {
+        // Convert RGBA floats to packed ARGB int (range 0.0-1.0 to 0-255)
+        int color = ((int)(alpha * 255.0F) << 24) |
+                    ((int)(red * 255.0F) << 16) |
+                    ((int)(green * 255.0F) << 8) |
+                    (int)(blue * 255.0F);
+        renderJust(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+    }
+
+    /**
+     * Render just this part without the full character transform (1.21.1+).
+     */
+    public void renderJust(PoseStack poseStack, VertexConsumer vertexConsumer,
+                           int packedLight, int packedOverlay, int color)
     {
         if (!isShowing()) return;
 
@@ -132,13 +168,13 @@ public class BendsModelPart implements IModelPart
         // Render all cubes
         for (BendsCube cube : cubes)
         {
-            cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
         }
 
         // Render children
         for (BendsModelPart child : children)
         {
-            child.renderJust(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            child.renderJust(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         poseStack.popPose();

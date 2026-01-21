@@ -7,8 +7,8 @@ import goblinbob.mobends.core.math.Quaternion;
 import goblinbob.mobends.core.math.SmoothOrientation;
 import goblinbob.mobends.core.math.vector.IVec3f;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -121,13 +121,14 @@ public class RigidArmorRenderer
             if (transform == null || restPos == null)
             {
                 // Fallback: output vertex unchanged
-                outputConsumer.vertex(
-                        v.x, v.y, v.z,
-                        v.red, v.green, v.blue, v.alpha,
-                        v.u, v.v,
-                        packedOverlay, packedLight,
-                        v.normalX, v.normalY, v.normalZ
-                );
+                // Pack RGBA into single int for 1.21.1
+                int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+                outputConsumer.addVertex(v.x, v.y, v.z)
+                        .setColor(color)
+                        .setUv(v.u, v.v)
+                        .setOverlay(packedOverlay)
+                        .setLight(packedLight)
+                        .setNormal(v.normalX, v.normalY, v.normalZ);
                 continue;
             }
 
@@ -147,13 +148,14 @@ public class RigidArmorRenderer
             float nz = transform.n02 * v.normalX + transform.n12 * v.normalY + transform.n22 * v.normalZ;
 
             // Output transformed vertex
-            outputConsumer.vertex(
-                    tx, ty, tz,
-                    v.red, v.green, v.blue, v.alpha,
-                    v.u, v.v,
-                    packedOverlay, packedLight,
-                    nx, ny, nz
-            );
+            // Pack RGBA into single int for 1.21.1
+            int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+            outputConsumer.addVertex(tx, ty, tz)
+                    .setColor(color)
+                    .setUv(v.u, v.v)
+                    .setOverlay(packedOverlay)
+                    .setLight(packedLight)
+                    .setNormal(nx, ny, nz);
         }
 
         poseStack.popPose();

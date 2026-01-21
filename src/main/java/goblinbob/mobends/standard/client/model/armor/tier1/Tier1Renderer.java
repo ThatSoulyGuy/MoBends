@@ -24,8 +24,8 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -310,13 +310,14 @@ public class Tier1Renderer
             float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
             // Output transformed vertex
-            vertexConsumer.vertex(
-                    tx, ty, tz,
-                    v.red, v.green, v.blue, v.alpha,
-                    v.u, v.v,
-                    packedOverlay, packedLight,
-                    nx, ny, nz
-            );
+            // Pack RGBA into single int for 1.21.1
+            int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+            vertexConsumer.addVertex(tx, ty, tz)
+                    .setColor(color)
+                    .setUv(v.u, v.v)
+                    .setOverlay(packedOverlay)
+                    .setLight(packedLight)
+                    .setNormal(nx, ny, nz);
         }
 
         poseStack.popPose();
@@ -974,13 +975,14 @@ public class Tier1Renderer
         float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
         // Output transformed vertex
-        consumer.vertex(
-                tx, ty, tz,
-                v.red, v.green, v.blue, v.alpha,
-                v.u, v.v,
-                packedOverlay, packedLight,
-                nx, ny, nz
-        );
+        // Pack RGBA into single int for 1.21.1
+        int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+        consumer.addVertex(tx, ty, tz)
+                .setColor(color)
+                .setUv(v.u, v.v)
+                .setOverlay(packedOverlay)
+                .setLight(packedLight)
+                .setNormal(nx, ny, nz);
     }
 
     /**
@@ -1041,7 +1043,7 @@ public class Tier1Renderer
                 bufferSource.getBuffer(renderType),
                 context.getPackedLight(),
                 context.getPackedOverlay(),
-                1.0f, 1.0f, 1.0f, 1.0f
+                0xFFFFFFFF
         );
 
         poseStack.popPose();

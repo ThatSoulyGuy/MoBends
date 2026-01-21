@@ -22,8 +22,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Custom elytra layer for Mo' Bends animated elytra rendering.
@@ -33,7 +33,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
     /** The basic Elytra texture. */
-    private static final ResourceLocation TEXTURE_ELYTRA = new ResourceLocation("textures/entity/elytra.png");
+    private static final ResourceLocation TEXTURE_ELYTRA = ResourceLocation.parse("textures/entity/elytra.png");
     /** The model used by the Elytra. */
     private final ElytraModel<AbstractClientPlayer> elytraModel;
 
@@ -64,13 +64,15 @@ public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerM
             RenderSystem.defaultBlendFunc();
 
             ResourceLocation texture;
-            if (player.isCapeLoaded() && player.getElytraTextureLocation() != null)
+            ResourceLocation elytraTexture = player.getSkin().elytraTexture();
+            ResourceLocation capeTexture = player.getSkin().capeTexture();
+            if (elytraTexture != null)
             {
-                texture = player.getElytraTextureLocation();
+                texture = elytraTexture;
             }
-            else if (player.isCapeLoaded() && player.getCloakTextureLocation() != null && player.isModelPartShown(PlayerModelPart.CAPE))
+            else if (capeTexture != null && player.isModelPartShown(PlayerModelPart.CAPE))
             {
-                texture = player.getCloakTextureLocation();
+                texture = capeTexture;
             }
             else
             {
@@ -84,9 +86,9 @@ public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerM
             this.elytraModel.setupAnim(player, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
             VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
-                    bufferSource, RenderType.armorCutoutNoCull(texture), false, itemstack.hasFoil());
+                    bufferSource, RenderType.armorCutoutNoCull(texture), itemstack.hasFoil());
             this.elytraModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY,
-                    1.0F, 1.0F, 1.0F, 1.0F);
+                    0xFFFFFFFF);
 
             RenderSystem.disableBlend();
             poseStack.popPose();

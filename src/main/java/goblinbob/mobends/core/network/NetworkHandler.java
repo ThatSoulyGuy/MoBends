@@ -1,81 +1,43 @@
 package goblinbob.mobends.core.network;
 
-import goblinbob.mobends.core.network.msg.ConfigRequestPacket;
-import goblinbob.mobends.core.network.msg.ConfigResponsePacket;
+import goblinbob.mobends.core.network.msg.ConfigRequestPayload;
+import goblinbob.mobends.core.network.msg.ConfigResponsePayload;
 import goblinbob.mobends.standard.main.ModStatics;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
-
-import java.util.Optional;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /**
  * Network handler for Mo' Bends.
- * Handles packet registration and sending for 1.20.1.
+ * Handles packet registration for NeoForge 1.21.
+ *
+ * Packets are registered as optional, allowing the mod to work on vanilla servers
+ * that don't have Mo' Bends installed.
  */
-public class NetworkHandler
-{
-    private static final String PROTOCOL_VERSION = "1";
-
-    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation(ModStatics.MODID, "main"),
-            () -> PROTOCOL_VERSION,
-            PROTOCOL_VERSION::equals,
-            PROTOCOL_VERSION::equals
-    );
-
-    private static int packetId = 0;
-
-    private static int nextId()
-    {
-        return packetId++;
-    }
+public class NetworkHandler {
 
     /**
-     * Register all network packets.
-     * Call this during common setup.
+     * Register all network packets as optional.
+     * This method is called automatically when the RegisterPayloadHandlersEvent is fired.
+     *
+     * Using optional() means the connection will work even if the server doesn't have
+     * this mod installed - packets simply won't be sent/received in that case.
      */
-    public static void register()
-    {
-        INSTANCE.registerMessage(nextId(),
-                ConfigRequestPacket.class,
-                ConfigRequestPacket::encode,
-                ConfigRequestPacket::decode,
-                ConfigRequestPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+    @SubscribeEvent
+    public static void register(RegisterPayloadHandlersEvent event) {
+        // Use optional() to allow connections to vanilla servers
+        final PayloadRegistrar registrar = event.registrar(ModStatics.MODID).optional();
 
-        INSTANCE.registerMessage(nextId(),
-                ConfigResponsePacket.class,
-                ConfigResponsePacket::encode,
-                ConfigResponsePacket::decode,
-                ConfigResponsePacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-    }
+        registrar.playToServer(
+            ConfigRequestPayload.TYPE,
+            ConfigRequestPayload.STREAM_CODEC,
+            ConfigRequestPayload::handle
+        );
 
-    /**
-     * Send a packet to the server.
-     */
-    public static <MSG> void sendToServer(MSG message)
-    {
-        INSTANCE.sendToServer(message);
-    }
-
-    /**
-     * Send a packet to a specific player.
-     */
-    public static <MSG> void sendToPlayer(MSG message, ServerPlayer player)
-    {
-        INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
-    }
-
-    /**
-     * Send a packet to all players.
-     */
-    public static <MSG> void sendToAll(MSG message)
-    {
-        INSTANCE.send(PacketDistributor.ALL.noArg(), message);
+        registrar.playToClient(
+            ConfigResponsePayload.TYPE,
+            ConfigResponsePayload.STREAM_CODEC,
+            ConfigResponsePayload::handle
+        );
     }
 }

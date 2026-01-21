@@ -3,8 +3,8 @@ package goblinbob.mobends.core.client;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
 import goblinbob.mobends.standard.mutators.WolfMutator;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Thread-local context for passing mutation state during rendering.

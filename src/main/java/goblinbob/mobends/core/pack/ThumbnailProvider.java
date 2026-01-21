@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 
 public class ThumbnailProvider
 {
-    public static final ResourceLocation DEFAULT_THUMBNAIL_LOCATION = new ResourceLocation(ModStatics.MODID,
+    public static final ResourceLocation DEFAULT_THUMBNAIL_LOCATION = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
             "textures/gui/default_pack_thumbnail.png");
 
     private final PackCache packCache;
@@ -22,8 +22,8 @@ public class ThumbnailProvider
 
     public ResourceLocation getThumbnailLocation(String packName, String thumbnailUrl)
     {
-        final ResourceLocation resourceLocation = new ResourceLocation(ModStatics.MODID,
-                "bendsPackThumbnails/" + packName);
+        final ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
+                "bendspackthumbnails/" + packName);
         @Nullable AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(resourceLocation, null);
 
         if (texture == null)

@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.SharedConstants;
+import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.Minecraft;
@@ -14,6 +15,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.util.Mth;
+import net.minecraft.util.StringUtil;
 
 import java.util.function.Predicate;
 
@@ -114,7 +116,7 @@ public class GuiTextArea
     public void writeText(String textToWrite)
     {
         String s = "";
-        String s1 = SharedConstants.filterText(textToWrite);
+        String s1 = StringUtil.filterText(textToWrite);
         int i = this.cursorPosition < this.selectionEnd ? this.cursorPosition : this.selectionEnd;
         int j = this.cursorPosition < this.selectionEnd ? this.selectionEnd : this.cursorPosition;
 
@@ -457,7 +459,7 @@ public class GuiTextArea
             return false;
         }
 
-        if (SharedConstants.isAllowedChatCharacter(typedChar))
+        if (StringUtil.isAllowedChatCharacter(typedChar))
         {
             if (this.isEnabled)
             {
@@ -603,17 +605,16 @@ public class GuiTextArea
         }
 
         Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.getBuilder();
         RenderSystem.setShader(GameRenderer::getPositionShader);
         RenderSystem.setShaderColor(0.0F, 0.0F, 1.0F, 1.0F);
         RenderSystem.enableColorLogicOp();
         RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        bufferBuilder.vertex((double)startX, (double)endY, 0.0D).endVertex();
-        bufferBuilder.vertex((double)endX, (double)endY, 0.0D).endVertex();
-        bufferBuilder.vertex((double)endX, (double)startY, 0.0D).endVertex();
-        bufferBuilder.vertex((double)startX, (double)startY, 0.0D).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        BufferBuilder bufferBuilder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+        bufferBuilder.addVertex((float)startX, (float)endY, 0.0F);
+        bufferBuilder.addVertex((float)endX, (float)endY, 0.0F);
+        bufferBuilder.addVertex((float)endX, (float)startY, 0.0F);
+        bufferBuilder.addVertex((float)startX, (float)startY, 0.0F);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.disableColorLogicOp();
     }

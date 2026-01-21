@@ -1,7 +1,7 @@
 package goblinbob.mobends.core.network;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class SharedBooleanProp extends SharedProperty<Boolean>
 {
@@ -30,7 +30,7 @@ public class SharedBooleanProp extends SharedProperty<Boolean>
     }
 
     @Override
-    public void updateWithConfigValue(ForgeConfigSpec.ConfigValue<Boolean> configValue)
+    public void updateWithConfigValue(ModConfigSpec.ConfigValue<Boolean> configValue)
     {
         value = configValue.get();
     }

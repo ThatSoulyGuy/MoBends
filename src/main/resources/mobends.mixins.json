@@ -1,9 +1,8 @@
 {
     "required": true,
-    "minVersion": "0.8",
+    "minVersion": "0.8.5",
     "package": "goblinbob.mobends.mixin",
-    "compatibilityLevel": "JAVA_17",
-    "refmap": "mobends.refmap.json",
+    "compatibilityLevel": "JAVA_21",
     "mixins": [
     ],
     "client": [

@@ -13,9 +13,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
@@ -63,11 +63,11 @@ public class CoreClient extends Core<CoreClientConfig>
         // Note: Key bindings are registered via RegisterKeyMappingsEvent in MoBends
 
         // Register event handlers
-        MinecraftForge.EVENT_BUS.register(new EntityRenderHandler());
-        MinecraftForge.EVENT_BUS.register(new DataUpdateHandler());
-        MinecraftForge.EVENT_BUS.register(new KeyboardHandler());
-        MinecraftForge.EVENT_BUS.register(new FluxHandler());
-        MinecraftForge.EVENT_BUS.register(new WorldJoinHandler());
+        NeoForge.EVENT_BUS.register(new EntityRenderHandler());
+        NeoForge.EVENT_BUS.register(new DataUpdateHandler());
+        NeoForge.EVENT_BUS.register(new KeyboardHandler());
+        NeoForge.EVENT_BUS.register(new FluxHandler());
+        NeoForge.EVENT_BUS.register(new WorldJoinHandler());
 
         // Note: Entity bender configuration is applied later in MoBends.clientSetup()
         // after entity benders are registered by addons

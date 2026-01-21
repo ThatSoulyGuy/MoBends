@@ -16,8 +16,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
@@ -221,7 +221,7 @@ public class Tier3Renderer
                 captureConsumer,
                 context.getPackedLight(),
                 context.getPackedOverlay(),
-                1.0f, 1.0f, 1.0f, 1.0f
+                0xFFFFFFFF
         );
 
         // Restore original model poses
@@ -321,7 +321,7 @@ public class Tier3Renderer
             RenderType renderType = renderTypeProvider.apply(texture);
             configureModelVisibility(model, slot);
             model.renderToBuffer(poseStack, bufferSource.getBuffer(renderType),
-                    packedLight, packedOverlay, 1.0f, 1.0f, 1.0f, 1.0f);
+                    packedLight, packedOverlay, 0xFFFFFFFF);
             return;
         }
 
@@ -344,8 +344,7 @@ public class Tier3Renderer
         PoseStack capturePoseStack = new PoseStack();
 
         RenderType renderType = renderTypeProvider.apply(texture);
-        model.renderToBuffer(capturePoseStack, captureConsumer, packedLight, packedOverlay,
-                1.0f, 1.0f, 1.0f, 1.0f);
+        model.renderToBuffer(capturePoseStack, captureConsumer, packedLight, packedOverlay, 0xFFFFFFFF);
 
         // Restore original model poses
         if (snapshot != null && model instanceof HumanoidModel<?> humanoid)
@@ -396,7 +395,7 @@ public class Tier3Renderer
                 bufferSource.getBuffer(renderType),
                 context.getPackedLight(),
                 context.getPackedOverlay(),
-                1.0f, 1.0f, 1.0f, 1.0f
+                0xFFFFFFFF
         );
 
         poseStack.popPose();

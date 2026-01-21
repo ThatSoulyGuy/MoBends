@@ -20,7 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 public class GuiPacksWindow extends Screen
 {
 
-    public static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(ModStatics.MODID,
+    public static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath(ModStatics.MODID,
             "textures/gui/pack_window.png");
     public static final int EDITOR_WIDTH = 280;
     public static final int EDITOR_HEIGHT = 177;
@@ -118,19 +118,19 @@ public class GuiPacksWindow extends Screen
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
-        if (this.localPacks.handleMouseScroll(mouseX, mouseY, delta))
+        if (this.localPacks.handleMouseScroll(mouseX, mouseY, scrollY))
         {
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
         float delta = this.timer.tick();
 

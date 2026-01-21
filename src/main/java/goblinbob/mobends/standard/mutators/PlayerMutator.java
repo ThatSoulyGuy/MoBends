@@ -161,7 +161,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     {
         if (player != null)
         {
-            this.smallArms = player.getModelName().equals("slim");
+            this.smallArms = player.getSkin().model().id().equals("slim");
         }
     }
 
@@ -434,7 +434,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         // This ensures correct detection even if initial reflection failed
         if (entity != null && !PlayerPreviewer.isPreviewInProgress())
         {
-            boolean playerIsSlim = entity.getModelName().equals("slim");
+            boolean playerIsSlim = entity.getSkin().model().id().equals("slim");
             if (playerIsSlim != this.smallArms)
             {
                 goblinbob.mobends.standard.main.MoBends.LOG.debug(
@@ -457,22 +457,22 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     @Override
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                               int packedLight, int packedOverlay,
-                              float red, float green, float blue, float alpha)
+                              int packedColor)
     {
         // Render body and all attached parts (head, arms)
         if (body != null)
         {
-            body.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            body.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
         }
 
         // Render legs (not attached to body)
         if (leftLeg != null)
         {
-            leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
         }
         if (rightLeg != null)
         {
-            rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
         }
     }
 

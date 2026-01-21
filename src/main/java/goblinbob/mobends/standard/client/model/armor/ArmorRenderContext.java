@@ -8,8 +8,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
@@ -66,7 +66,7 @@ public class ArmorRenderContext<E extends LivingEntity>
     {
         if (entity instanceof net.minecraft.client.player.AbstractClientPlayer player)
         {
-            return "slim".equals(player.getModelName());
+            return "slim".equals(player.getSkin().model().id());
         }
         return false;
     }

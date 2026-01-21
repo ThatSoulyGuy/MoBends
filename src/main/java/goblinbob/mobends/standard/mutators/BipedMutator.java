@@ -302,23 +302,22 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     @Override
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
-                              int packedLight, int packedOverlay,
-                              float red, float green, float blue, float alpha)
+                              int packedLight, int packedOverlay, int color)
     {
         // Render body and attached parts
         if (body != null)
         {
-            body.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            body.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
         // Render legs (not attached to body)
         if (leftLeg != null)
         {
-            leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
         if (rightLeg != null)
         {
-            rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+            rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
     }
 

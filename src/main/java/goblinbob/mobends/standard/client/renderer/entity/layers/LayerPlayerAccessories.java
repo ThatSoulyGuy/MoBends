@@ -19,8 +19,8 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Vector3f;
 
 import java.util.Map;
@@ -133,14 +133,14 @@ public class LayerPlayerAccessories extends RenderLayer<AbstractClientPlayer, Pl
         // being updated to support the new rendering system
 
         // Diffuse pass
-        textureManager.bindForSetup(part.getDiffuseTexturePath());
+        textureManager.bindForSetup(part.getDiffuseTexturePath().getResourceLocation());
         // Model rendering is handled through the new render pipeline
 
         // Inked pass
         AssetLocation inkedLocation = part.getInkedTexturePath();
         if (inkedLocation != null)
         {
-            textureManager.bindForSetup(inkedLocation);
+            textureManager.bindForSetup(inkedLocation.getResourceLocation());
             RenderSystem.setShaderColor(1, 0, 0, 1);
             // Render with color from settings
             int color = Color.asHex(settings.getColor());

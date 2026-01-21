@@ -6,9 +6,9 @@ import goblinbob.mobends.standard.client.gui.ArmorDebugScreen;
 import goblinbob.mobends.standard.main.MoBends;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.lwjgl.glfw.GLFW;
 
 public class KeyboardHandler
@@ -17,17 +17,14 @@ public class KeyboardHandler
     private static final String MAIN_CATEGORY = "Mo' Bends";
     private static final KeyMapping KEY_MENU = new KeyMapping(
             "key.mobends.menu",
-            InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_G,
             MAIN_CATEGORY);
     private static final KeyMapping KEY_REFRESH = new KeyMapping(
             "key.mobends.refresh",
-            InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_F10,
             MAIN_CATEGORY);
     private static final KeyMapping KEY_ARMOR_DEBUG = new KeyMapping(
             "key.mobends.armor_debug",
-            InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_F9,
             MAIN_CATEGORY);
 

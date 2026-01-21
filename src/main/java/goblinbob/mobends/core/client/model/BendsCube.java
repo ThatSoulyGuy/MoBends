@@ -3,8 +3,8 @@ package goblinbob.mobends.core.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.math.physics.AABBox;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -175,10 +175,27 @@ public class BendsCube
 
     /**
      * Compile and render this cube to the vertex consumer.
+     *
+     * @deprecated Use the overload with int color parameter for 1.21.1+
      */
+    @Deprecated
     public void compile(PoseStack.Pose pose, VertexConsumer vertexConsumer,
                         int packedLight, int packedOverlay,
                         float red, float green, float blue, float alpha)
+    {
+        // Convert RGBA floats to packed ARGB int (range 0.0-1.0 to 0-255)
+        int color = ((int)(alpha * 255.0F) << 24) |
+                    ((int)(red * 255.0F) << 16) |
+                    ((int)(green * 255.0F) << 8) |
+                    (int)(blue * 255.0F);
+        compile(pose, vertexConsumer, packedLight, packedOverlay, color);
+    }
+
+    /**
+     * Compile and render this cube to the vertex consumer (1.21.1+).
+     */
+    public void compile(PoseStack.Pose pose, VertexConsumer vertexConsumer,
+                        int packedLight, int packedOverlay, int color)
     {
         Matrix4f matrix = pose.pose();
         Matrix3f normalMatrix = pose.normal();
@@ -206,8 +223,8 @@ public class BendsCube
                     float ty = matrix.m01() * x + matrix.m11() * y + matrix.m21() * z + matrix.m31();
                     float tz = matrix.m02() * x + matrix.m12() * y + matrix.m22() * z + matrix.m32();
 
-                    vertexConsumer.vertex(tx, ty, tz,
-                            red, green, blue, alpha,
+                    vertexConsumer.addVertex(tx, ty, tz,
+                            color,
                             vertex.u, vertex.v,
                             packedOverlay, packedLight,
                             normal.x(), normal.y(), normal.z());

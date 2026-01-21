@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 public class GuiSmallToggleButton
 {
 
-    protected static final ResourceLocation BUTTON_TEXTURES = new ResourceLocation("textures/gui/widgets.png");
+    protected static final ResourceLocation BUTTON_TEXTURES = ResourceLocation.parse("textures/gui/widgets.png");
 
     private static final int WIDTH = 30;
     private static final int HEIGHT = 20;
