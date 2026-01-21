@@ -11,6 +11,7 @@
         "ColorableAgeableListModelMixin",
         "LivingEntityRendererAccessor",
         "SpiderModelMixin",
+        "SquidModelMixin",
         "armor.ModelPartAccessor",
         "armor.HumanoidArmorLayerMixin",
         "armor.ArmorTrimLayerMixin",

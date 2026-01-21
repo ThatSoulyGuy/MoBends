@@ -42,32 +42,31 @@ public abstract class MutatedRenderer<T extends LivingEntity>
         poseStack.translate(entityX - viewX, entityY - viewY, entityZ - viewZ);
         poseStack.mulPose(Axis.YP.rotationDegrees(-interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
 
+        // Apply scaling for baby entities (same as vanilla Minecraft)
+        float babyScale = entity.isBaby() ? getChildScale() : 1.0f;
+        poseStack.scale(babyScale, babyScale, babyScale);
+
         this.renderLocalAccessories(entity, data, partialTicks, poseStack);
 
-        float globalScale = entity.isBaby() ? getChildScale() : 1;
-
-        // Scale down the model for baby entities (vanilla uses 0.5x scale for babies)
-        if (globalScale != 1.0f)
-        {
-            poseStack.scale(globalScale, globalScale, globalScale);
-        }
-
-        poseStack.translate(data.globalOffset.getX() * scale * globalScale,
-                data.globalOffset.getY() * scale * globalScale,
-                data.globalOffset.getZ() * scale * globalScale);
+        // Animation offsets are in scaled space, so translations are automatically scaled
+        poseStack.translate(data.globalOffset.getX() * scale,
+                data.globalOffset.getY() * scale,
+                data.globalOffset.getZ() * scale);
         poseStack.translate(0, entity.getBbHeight() / 2, 0);
         GlHelper.rotate(poseStack, data.centerRotation.getSmooth());
         poseStack.translate(0, -entity.getBbHeight() / 2, 0);
         GlHelper.rotate(poseStack, data.renderRotation.getSmooth());
 
-        poseStack.translate(data.localOffset.getX() * scale * globalScale,
-                data.localOffset.getY() * scale * globalScale,
-                data.localOffset.getZ() * scale * globalScale);
+        poseStack.translate(data.localOffset.getX() * scale,
+                data.localOffset.getY() * scale,
+                data.localOffset.getZ() * scale);
 
         this.transformLocally(entity, data, partialTicks, poseStack);
 
         poseStack.mulPose(Axis.YP.rotationDegrees(interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
-        poseStack.translate(viewX - entityX, viewY - entityY, viewZ - entityZ);
+        // Reverse translation must account for scale (divide by babyScale to undo in world space)
+        double invScale = 1.0 / babyScale;
+        poseStack.translate((viewX - entityX) * invScale, (viewY - entityY) * invScale, (viewZ - entityZ) * invScale);
     }
 
     /**

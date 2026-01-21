@@ -36,9 +36,9 @@ public class SquidController implements IAnimationController<SquidData>
 
         for (int i = 0; i < data.squidTentacles.length; ++i)
         {
-
             double d0 = (double) i * -360.0D / (double) data.squidTentacles.length + 90.0D;
-            data.squidTentacles[i][0].rotation.setSmoothness(0.1F).orientX(baseTentacleAngle).rotateY((float) d0);
+            // Use finish() to instantly apply rotations (orient() resets progress each frame)
+            data.squidTentacles[i][0].rotation.orientX(baseTentacleAngle).rotateY((float) d0).finish();
 
             float f2 = squidRotation / (GUtil.PI * 2);
             f2 = Math.max(0.0F, f2);
@@ -49,7 +49,7 @@ public class SquidController implements IAnimationController<SquidData>
                 {
                     tentacleAngle = Mth.sin(f2 * GUtil.PI * 2 + j * 0.1F) * 10.0F;
                 }
-                data.squidTentacles[i][j].rotation.setSmoothness(0.1F).orientX(-tentacleAngle);
+                data.squidTentacles[i][j].rotation.orientX(-tentacleAngle).finish();
             }
         }
 

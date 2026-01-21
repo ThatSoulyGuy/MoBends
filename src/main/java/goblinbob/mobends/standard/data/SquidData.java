@@ -50,7 +50,9 @@ public class SquidData extends LivingEntityData<Squid>
 			float z = (float) Math.sin(d0) * 4.0F;
 
 			this.squidTentacles[i][0] = new ModelPartTransform();
+			this.squidTentacles[i][0].rotation.finish();
 			this.squidTentacles[i][0].position.set(x, 16.0F, z);
+			nameToPartMap.put("tentacle_" + i + "_0", this.squidTentacles[i][0]);
 
 			for (int j = 1; j < SquidData.TENTACLE_SECTIONS; ++j)
 			{

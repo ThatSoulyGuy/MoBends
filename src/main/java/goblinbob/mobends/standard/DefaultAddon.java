@@ -16,7 +16,6 @@ import goblinbob.mobends.standard.previewer.ZombiePreviewer;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.animal.Wolf;
 
@@ -35,16 +34,6 @@ public class DefaultAddon implements IAddon
 		registry.registerNewEntity(Skeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
 						"rightLeg", "leftForeLeg", "rightForeLeg");
-
-//		registry.registerNewEntity(ZombieVillager.class, ZombieVillagerData::new, ZombieVillagerMutator::new, new ZombieRenderer<>(),
-//				new BipedPreviewer<>(),
-//				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
-//				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
-//
-		registry.registerNewEntity(ZombifiedPiglin.class, PigZombieData::new, PigZombieMutator::new, new ZombieRenderer<>(),
-				new BipedPreviewer<>(),
-				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
-				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(),

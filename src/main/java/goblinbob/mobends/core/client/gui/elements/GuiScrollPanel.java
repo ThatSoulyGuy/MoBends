@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.util.Draw;
 import goblinbob.mobends.core.util.GUtil;
-import goblinbob.mobends.core.util.UIScissorHelper;
 import net.minecraft.client.gui.GuiGraphics;
 
 public abstract class GuiScrollPanel extends GuiElement
@@ -156,13 +155,18 @@ public abstract class GuiScrollPanel extends GuiElement
 
         poseStack.pushPose();
         poseStack.translate(0, -scroll, 0);
-        UIScissorHelper.INSTANCE.setUIBounds((int) this.getAbsoluteX(), (int) this.getAbsoluteY(), this.width - this.scrollBarWidth, this.height);
-        UIScissorHelper.INSTANCE.enable();
+
+        // Use GuiGraphics scissor which works properly with batched rendering in 1.20+
+        int scissorX = (int) this.getAbsoluteX();
+        int scissorY = (int) this.getAbsoluteY();
+        int scissorWidth = this.width - this.scrollBarWidth;
+        int scissorHeight = this.height;
+        guiGraphics.enableScissor(scissorX, scissorY, scissorX + scissorWidth, scissorY + scissorHeight);
 
         this.drawChildren(guiGraphics, partialTicks);
         this.drawContent(guiGraphics, partialTicks);
 
-        UIScissorHelper.INSTANCE.disable();
+        guiGraphics.disableScissor();
         poseStack.popPose();
 
         this.drawForeground(guiGraphics, partialTicks);

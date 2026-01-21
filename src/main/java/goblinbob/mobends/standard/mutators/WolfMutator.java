@@ -221,6 +221,9 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
         return this.wolfHeadMain != null;
     }
 
+    // Wolf model center height for pivot rotations (similar to spider)
+    private static final float WOLF_MODEL_CENTER_Y = 14.0F / 16.0F;
+
     @Override
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                               int packedLight, int packedOverlay,
@@ -234,6 +237,44 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
         }
 
         poseStack.pushPose();
+
+        float scale = 1.0F / 16.0F;
+
+        // Apply globalOffset
+        float gx = currentData.globalOffset.getX();
+        float gy = currentData.globalOffset.getY();
+        float gz = currentData.globalOffset.getZ();
+        if (gx != 0 || gy != 0 || gz != 0)
+        {
+            poseStack.translate(gx * scale, gy * scale, gz * scale);
+        }
+
+        // Apply centerRotation around the wolf's center height
+        goblinbob.mobends.core.math.Quaternion centerRot = currentData.centerRotation.getSmooth();
+        if (!centerRot.isIdentity())
+        {
+            poseStack.translate(0, WOLF_MODEL_CENTER_Y, 0);
+            goblinbob.mobends.core.util.GlHelper.rotate(poseStack, centerRot);
+            poseStack.translate(0, -WOLF_MODEL_CENTER_Y, 0);
+        }
+
+        // Apply renderRotation
+        goblinbob.mobends.core.math.Quaternion renderRot = currentData.renderRotation.getSmooth();
+        if (!renderRot.isIdentity())
+        {
+            poseStack.translate(0, WOLF_MODEL_CENTER_Y, 0);
+            goblinbob.mobends.core.util.GlHelper.rotate(poseStack, renderRot);
+            poseStack.translate(0, -WOLF_MODEL_CENTER_Y, 0);
+        }
+
+        // Apply localOffset (after rotations)
+        float lx = currentData.localOffset.getX();
+        float ly = currentData.localOffset.getY();
+        float lz = currentData.localOffset.getZ();
+        if (lx != 0 || ly != 0 || lz != 0)
+        {
+            poseStack.translate(lx * scale, ly * scale, lz * scale);
+        }
 
         // Render all wolf parts
         renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);

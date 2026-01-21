@@ -28,7 +28,7 @@ public class GuiSettingsWindow extends Screen
     private int x, y;
 
     private GuiCompactTextField filterQueryInput;
-    private final GuiBenderList bendsSettingsListUI = new GuiBenderList(0, 0, EDITOR_WIDTH - 10, EDITOR_HEIGHT - 10 - 20);
+    private final GuiBenderList bendsSettingsListUI = new GuiBenderList(0, 0, EDITOR_WIDTH - 8, EDITOR_HEIGHT - 8 - 20);
 
     private final EntityBenderRegistry.Filter filter = new EntityBenderRegistry.Filter();
 
@@ -55,7 +55,7 @@ public class GuiSettingsWindow extends Screen
         filterQueryInput.setFocused(true);
         filterQueryInput.setPlaceholderText(I18n.get("mobends.gui.search"));
         addRenderableWidget(filterQueryInput);
-        bendsSettingsListUI.initGui(this.x + 9, this.y + 9 + 20);
+        bendsSettingsListUI.initGui(this.x + 8, this.y + 8 + 20);
     }
 
     @Override

@@ -72,8 +72,8 @@ public class GuiLocalPacks implements ISubscriber, IDisposable
         this.x = x;
         this.y = y;
 
-        availablePacksList.initGui(x + 9, y + 23);
-        appliedPacksList.initGui(x + GuiPacksWindow.EDITOR_WIDTH - GuiPackList.WIDTH - 1, y + 23);
+        availablePacksList.initGui(x + 8, y + 23);
+        appliedPacksList.initGui(x + GuiPacksWindow.EDITOR_WIDTH - GuiPackList.WIDTH, y + 23);
     }
 
     public boolean mouseClicked(int mouseX, int mouseY, int button)

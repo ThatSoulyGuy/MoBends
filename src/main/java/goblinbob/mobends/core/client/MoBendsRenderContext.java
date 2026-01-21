@@ -2,6 +2,7 @@ package goblinbob.mobends.core.client;
 
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
+import goblinbob.mobends.standard.mutators.SquidMutator;
 import goblinbob.mobends.standard.mutators.WolfMutator;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -15,6 +16,7 @@ public class MoBendsRenderContext {
 
     private static final ThreadLocal<BipedMutator<?, ?, ?>> currentBipedMutator = new ThreadLocal<>();
     private static final ThreadLocal<SpiderMutator> currentSpiderMutator = new ThreadLocal<>();
+    private static final ThreadLocal<SquidMutator> currentSquidMutator = new ThreadLocal<>();
     private static final ThreadLocal<WolfMutator> currentWolfMutator = new ThreadLocal<>();
 
     /**
@@ -48,6 +50,20 @@ public class MoBendsRenderContext {
     }
 
     /**
+     * Sets the current squid mutator for the rendering context.
+     */
+    public static void setCurrentSquidMutator(SquidMutator mutator) {
+        currentSquidMutator.set(mutator);
+    }
+
+    /**
+     * Gets the current squid mutator from the rendering context.
+     */
+    public static SquidMutator getCurrentSquidMutator() {
+        return currentSquidMutator.get();
+    }
+
+    /**
      * Sets the current wolf mutator for the rendering context.
      */
     public static void setCurrentWolfMutator(WolfMutator mutator) {
@@ -68,6 +84,7 @@ public class MoBendsRenderContext {
     public static void clear() {
         currentBipedMutator.remove();
         currentSpiderMutator.remove();
+        currentSquidMutator.remove();
         currentWolfMutator.remove();
     }
 }

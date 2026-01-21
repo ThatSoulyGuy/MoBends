@@ -8,6 +8,7 @@ import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
+import goblinbob.mobends.standard.mutators.SquidMutator;
 import goblinbob.mobends.standard.mutators.WolfMutator;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -62,6 +63,10 @@ public class EntityRenderHandler
                 else if (rawMutator instanceof SpiderMutator spiderMutator)
                 {
                     MoBendsRenderContext.setCurrentSpiderMutator(spiderMutator);
+                }
+                else if (rawMutator instanceof SquidMutator squidMutator)
+                {
+                    MoBendsRenderContext.setCurrentSquidMutator(squidMutator);
                 }
                 else if (rawMutator instanceof WolfMutator wolfMutator)
                 {
