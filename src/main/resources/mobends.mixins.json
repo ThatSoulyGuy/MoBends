@@ -12,7 +12,6 @@
         "SpiderModelMixin",
         "armor.ModelPartAccessor",
         "armor.HumanoidArmorLayerMixin",
-        "armor.ArmorTrimLayerMixin",
         "armor.ElytraLayerMixin"
     ],
     "injectors": {

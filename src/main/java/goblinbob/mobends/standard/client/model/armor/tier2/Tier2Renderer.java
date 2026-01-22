@@ -13,6 +13,7 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -109,12 +110,84 @@ public class Tier2Renderer
 
         try
         {
-            render(context, model, texture, tex -> RenderType.armorCutoutNoCull(tex));
+            // Use ItemRenderer.getArmorFoilBuffer to properly handle enchantment glint
+            VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
+                    context.getBufferSource(),
+                    RenderType.armorCutoutNoCull(texture),
+                    hasFoil);
+            renderWithConsumer(context, model, vertexConsumer);
             return true;
         }
         catch (Exception e)
         {
             return false;
+        }
+    }
+
+    /**
+     * Render armor with a pre-configured VertexConsumer (for foil support).
+     */
+    private <E extends LivingEntity> void renderWithConsumer(
+            ArmorRenderContext<E> context,
+            Model model,
+            VertexConsumer vertexConsumer)
+    {
+        if (context.getEntityData() == null)
+        {
+            return;
+        }
+
+        renderCount++;
+
+        // Get or compute part classifications
+        Map<String, PartClassification> classifications = getClassifications(model);
+
+        // Check if we have sufficient classifications
+        if (!hasValidClassifications(classifications, context.getSlot()))
+        {
+            // Fall back to Tier 3
+            fallbackCount++;
+            return;
+        }
+
+        BipedEntityData<?> entityData = context.getEntityData();
+        PoseStack poseStack = context.getPoseStack();
+
+        // Store original part values
+        Map<String, OriginalPartState> originalStates = storePartStates(model, classifications);
+
+        try
+        {
+            // Apply transforms to all classified parts
+            applyTransforms(model, classifications, entityData);
+
+            // Render with modified transforms
+            poseStack.pushPose();
+
+            // Apply baby scale if needed (babies render at 0.5 scale)
+            float entityScale = context.getEntityScale();
+            if (entityScale != 1.0f)
+            {
+                poseStack.scale(entityScale, entityScale, entityScale);
+            }
+
+            model.renderToBuffer(
+                    poseStack,
+                    vertexConsumer,
+                    context.getPackedLight(),
+                    context.getPackedOverlay(),
+                    context.getArmorColor()
+            );
+
+            poseStack.popPose();
+
+            // Record cache statistics
+            CacheManager.getInstance().recordCacheAssistedRender();
+        }
+        finally
+        {
+            // Restore original part states
+            restorePartStates(model, originalStates);
         }
     }
 
@@ -176,9 +249,8 @@ public class Tier2Renderer
                 poseStack.scale(entityScale, entityScale, entityScale);
             }
 
-            // Apply global offset (for crouching, etc.) scaled by entityScale for babies
-            // This matches MutatedRenderer.beforeRender() behavior
-            applyGlobalOffset(poseStack, entityData, entityScale);
+            // Note: Global transforms (globalOffset, centerRotation, renderRotation, localOffset)
+            // are already applied by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
 
             RenderType renderType = renderTypeProvider.apply(texture);
             VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
@@ -188,7 +260,7 @@ public class Tier2Renderer
                     vertexConsumer,
                     context.getPackedLight(),
                     context.getPackedOverlay(),
-                    0xFFFFFFFF
+                    context.getArmorColor()
             );
 
             poseStack.popPose();
@@ -351,7 +423,7 @@ public class Tier2Renderer
                 bufferSource.getBuffer(renderType),
                 context.getPackedLight(),
                 context.getPackedOverlay(),
-                0xFFFFFFFF
+                context.getArmorColor()
         );
 
         poseStack.popPose();
@@ -421,30 +493,6 @@ public class Tier2Renderer
     {
         return String.format("Tier2Renderer: %d renders, %d fallbacks (%.1f%% fallback rate)",
                 renderCount, fallbackCount, getFallbackRate() * 100);
-    }
-
-    private static final float SCALE = 1.0f / 16.0f;
-
-    /**
-     * Apply global offset from entity data, scaled by entityScale for baby entities.
-     * This matches MutatedRenderer.beforeRender() behavior.
-     */
-    private void applyGlobalOffset(PoseStack poseStack, BipedEntityData<?> entityData, float entityScale)
-    {
-        if (entityData.globalOffset != null)
-        {
-            var offset = entityData.globalOffset.getSmooth();
-            if (offset != null && (offset.x != 0 || offset.y != 0 || offset.z != 0))
-            {
-                // Match MutatedRenderer.beforeRender() behavior:
-                // globalOffset is multiplied by entityScale for babies
-                poseStack.translate(
-                    offset.x * SCALE * entityScale,
-                    offset.y * SCALE * entityScale,
-                    offset.z * SCALE * entityScale
-                );
-            }
-        }
     }
 
     /**

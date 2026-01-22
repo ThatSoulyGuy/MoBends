@@ -72,7 +72,7 @@ public class RigidArmorRenderer
             int packedOverlay,
             BipedEntityData<?> data)
     {
-        renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, 1.0f);
+        renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, 1.0f, 0xFFFFFFFF);
     }
 
     /**
@@ -94,16 +94,39 @@ public class RigidArmorRenderer
             BipedEntityData<?> data,
             float entityScale)
     {
+        renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, entityScale, 0xFFFFFFFF);
+    }
+
+    /**
+     * Render captured vertices with Mo' Bends bone transforms.
+     * Each vertex is independently assigned to a bone and transformed.
+     *
+     * @param poseStack The pose stack
+     * @param outputConsumer The vertex consumer
+     * @param packedLight Packed light value
+     * @param packedOverlay Packed overlay value
+     * @param data Entity animation data
+     * @param entityScale Scale factor (1.0 for adults, 0.5 for babies)
+     * @param armorColor ARGB color tint for leather armor (0xFFFFFFFF for no tint)
+     */
+    public void renderCapturedVertices(
+            PoseStack poseStack,
+            VertexConsumer outputConsumer,
+            int packedLight,
+            int packedOverlay,
+            BipedEntityData<?> data,
+            float entityScale,
+            int armorColor)
+    {
         List<CapturedVertex> vertices = captureConsumer.getVertices();
         if (vertices.isEmpty())
         {
             return;
         }
 
-        // Apply global offset (for crouching, etc.) scaled by entityScale for babies
-        // This matches MutatedRenderer.beforeRender() behavior
+        // Note: Global transforms (globalOffset, centerRotation, renderRotation, localOffset)
+        // are already applied by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, data, entityScale);
 
         // IMPORTANT: Compute rest positions FIRST, then transforms (which depend on rest positions)
         computeRestPosePositions(data);
@@ -121,8 +144,15 @@ public class RigidArmorRenderer
             if (transform == null || restPos == null)
             {
                 // Fallback: output vertex unchanged
-                // Pack RGBA into single int for 1.21.1
-                int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+                // Apply armor color tint
+                float tintR = ((armorColor >> 16) & 0xFF) / 255.0F;
+                float tintG = ((armorColor >> 8) & 0xFF) / 255.0F;
+                float tintB = (armorColor & 0xFF) / 255.0F;
+                float tintA = ((armorColor >> 24) & 0xFF) / 255.0F;
+                int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
+                            ((int)(v.red * tintR * 255.0F) << 16) |
+                            ((int)(v.green * tintG * 255.0F) << 8) |
+                            (int)(v.blue * tintB * 255.0F);
                 outputConsumer.addVertex(v.x, v.y, v.z)
                         .setColor(color)
                         .setUv(v.u, v.v)
@@ -148,8 +178,15 @@ public class RigidArmorRenderer
             float nz = transform.n02 * v.normalX + transform.n12 * v.normalY + transform.n22 * v.normalZ;
 
             // Output transformed vertex
-            // Pack RGBA into single int for 1.21.1
-            int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+            // Apply armor color tint
+            float tintR = ((armorColor >> 16) & 0xFF) / 255.0F;
+            float tintG = ((armorColor >> 8) & 0xFF) / 255.0F;
+            float tintB = (armorColor & 0xFF) / 255.0F;
+            float tintA = ((armorColor >> 24) & 0xFF) / 255.0F;
+            int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
+                        ((int)(v.red * tintR * 255.0F) << 16) |
+                        ((int)(v.green * tintG * 255.0F) << 8) |
+                        (int)(v.blue * tintB * 255.0F);
             outputConsumer.addVertex(tx, ty, tz)
                     .setColor(color)
                     .setUv(v.u, v.v)
@@ -159,28 +196,6 @@ public class RigidArmorRenderer
         }
 
         poseStack.popPose();
-    }
-
-    /**
-     * Apply global offset from entity data, scaled by entityScale for baby entities.
-     * This matches MutatedRenderer.beforeRender() behavior.
-     */
-    private void applyGlobalOffset(PoseStack poseStack, BipedEntityData<?> data, float entityScale)
-    {
-        if (data.globalOffset != null)
-        {
-            var offset = data.globalOffset.getSmooth();
-            if (offset != null && (offset.x != 0 || offset.y != 0 || offset.z != 0))
-            {
-                // Match MutatedRenderer.beforeRender() behavior:
-                // globalOffset is multiplied by entityScale for babies
-                poseStack.translate(
-                    offset.x * SCALE * entityScale,
-                    offset.y * SCALE * entityScale,
-                    offset.z * SCALE * entityScale
-                );
-            }
-        }
     }
 
     /**

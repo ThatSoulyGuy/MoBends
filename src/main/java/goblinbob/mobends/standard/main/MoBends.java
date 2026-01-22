@@ -7,6 +7,7 @@ import goblinbob.mobends.core.addon.Addons;
 import goblinbob.mobends.core.animation.keyframe.AnimationLoader;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.event.KeyboardHandler;
+import goblinbob.mobends.core.compat.PlayerAnimationLibCompat;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import goblinbob.mobends.core.configuration.CoreServerConfig;
 import goblinbob.mobends.core.data.EntityDatabase;
@@ -79,6 +80,9 @@ public class MoBends
 
         // Apply configuration AFTER entity benders are registered
         Core.getInstance().applyConfigurationToEntityBenders();
+
+        // Initialize mod compatibility layers
+        PlayerAnimationLibCompat.init();
 
         LOGGER.info("Mo' Bends client setup complete");
     }

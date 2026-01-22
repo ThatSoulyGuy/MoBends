@@ -65,6 +65,10 @@ public class Tier1Renderer
     private long renderCount = 0;
     private long fallbackCount = 0;
 
+    // Current armor color for rendering (set per-render, used by vertex output)
+    // Format: ARGB packed int (0xAARRGGBB)
+    private int currentArmorColor = 0xFFFFFFFF;
+
     public Tier1Renderer()
     {
         this.transformInjector = new TransformInjector();
@@ -120,14 +124,33 @@ public class Tier1Renderer
 
         try
         {
-            render(context, model, texture, tex ->
-                    hasFoil ? RenderType.armorCutoutNoCull(tex) : RenderType.armorCutoutNoCull(tex));
+            // Use ItemRenderer.getArmorFoilBuffer to properly handle enchantment glint
+            renderWithFoil(context, model, texture, hasFoil);
             return true;
         }
         catch (Exception e)
         {
             return false;
         }
+    }
+
+    /**
+     * Render armor with proper foil/glint support.
+     */
+    private <E extends LivingEntity> void renderWithFoil(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> model,
+            ResourceLocation texture,
+            boolean hasFoil)
+    {
+        // Get the proper vertex consumer with foil support
+        VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
+                context.getBufferSource(),
+                RenderType.armorCutoutNoCull(texture),
+                hasFoil);
+
+        // Render with the foil-enabled consumer
+        renderInternal(context, model, vertexConsumer);
     }
 
     /**
@@ -163,6 +186,9 @@ public class Tier1Renderer
 
         renderCount++;
 
+        // Set armor color for leather armor support
+        currentArmorColor = context.getArmorColor();
+
         BipedEntityData<?> entityData = context.getEntityData();
         PoseStack poseStack = context.getPoseStack();
         MultiBufferSource bufferSource = context.getBufferSource();
@@ -173,6 +199,59 @@ public class Tier1Renderer
 
         RenderType renderType = renderTypeProvider.apply(texture);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+
+        // Get entity scale (1.0 for adults, 0.5 for babies)
+        float entityScale = context.getEntityScale();
+
+        // Get slim arm flag for arm position correction
+        boolean isSlimArms = context.isSlimArms();
+
+        // Render based on slot - each method applies proper hierarchical transforms
+        switch (slot)
+        {
+            case HEAD:
+                renderHead(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                break;
+            case CHEST:
+                renderChest(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, isSlimArms);
+                break;
+            case LEGS:
+                renderLegs(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                break;
+            case FEET:
+                renderFeet(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                break;
+        }
+
+        // Record cache statistics
+        CacheManager.getInstance().recordCacheAssistedRender();
+    }
+
+    /**
+     * Internal render method that takes a pre-configured VertexConsumer.
+     * Used by renderWithFoil to properly support enchantment glint.
+     */
+    private <E extends LivingEntity> void renderInternal(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> humanoidModel,
+            VertexConsumer vertexConsumer)
+    {
+        if (context.getEntityData() == null)
+        {
+            return;
+        }
+
+        renderCount++;
+
+        // Set armor color for leather armor support
+        currentArmorColor = context.getArmorColor();
+
+        BipedEntityData<?> entityData = context.getEntityData();
+        PoseStack poseStack = context.getPoseStack();
+        EquipmentSlot slot = context.getSlot();
+
+        // Configure visibility based on slot
+        configureVisibility(humanoidModel, slot);
 
         // Get entity scale (1.0 for adults, 0.5 for babies)
         float entityScale = context.getEntityScale();
@@ -283,8 +362,9 @@ public class Tier1Renderer
         }
 
         // 2. Apply Mo'Bends transforms to PoseStack
+        // Note: Global transforms (globalOffset, centerRotation, etc.) are already applied
+        // by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);
         applyPartTransform(poseStack, entityData.body, true);  // Body transform (head is parented to body)
 
         if (isHead)
@@ -310,8 +390,17 @@ public class Tier1Renderer
             float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
             // Output transformed vertex
-            // Pack RGBA into single int for 1.21.1
-            int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+            // Apply armor color tint (for leather armor dyeing)
+            float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+            float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+            float tintB = (currentArmorColor & 0xFF) / 255.0F;
+            float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
+            // Pack tinted RGBA into single int for 1.21.1
+            int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
+                        ((int)(v.red * tintR * 255.0F) << 16) |
+                        ((int)(v.green * tintG * 255.0F) << 8) |
+                        (int)(v.blue * tintB * 255.0F);
             vertexConsumer.addVertex(tx, ty, tz)
                     .setColor(color)
                     .setUv(v.u, v.v)
@@ -347,8 +436,8 @@ public class Tier1Renderer
         }
 
         // Render body - apply rotation around correct pivot, keep vanilla position
+        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);
         applyBodyTransformWithPivot(poseStack, entityData);
         renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
         poseStack.popPose();
@@ -385,8 +474,8 @@ public class Tier1Renderer
         }
 
         // Render body (waist/skirt part of leggings) - rotation around correct pivot, vanilla position
+        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);
         applyBodyTransformWithPivot(poseStack, entityData);
         renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
         poseStack.popPose();
@@ -428,29 +517,6 @@ public class Tier1Renderer
         renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
 
         poseStack.popPose();
-    }
-
-    /**
-     * Apply the global offset from entity data.
-     * This handles crouching and other whole-body movements.
-     * The offset is scaled by entityScale for baby entities (matching MutatedRenderer behavior).
-     */
-    private void applyGlobalOffset(PoseStack poseStack, BipedEntityData<?> entityData, float entityScale)
-    {
-        if (entityData.globalOffset != null)
-        {
-            var offset = entityData.globalOffset.getSmooth();
-            if (offset != null && (offset.x != 0 || offset.y != 0 || offset.z != 0))
-            {
-                // Match MutatedRenderer.beforeRender() behavior:
-                // globalOffset is multiplied by entityScale for babies
-                poseStack.translate(
-                    offset.x * SCALE * entityScale,
-                    offset.y * SCALE * entityScale,
-                    offset.z * SCALE * entityScale
-                );
-            }
-        }
     }
 
     /**
@@ -498,8 +564,13 @@ public class Tier1Renderer
 
     /**
      * Apply a Mo'Bends part transform to the PoseStack.
-     * For root-level parts (body, legs), only applies offset + rotation.
-     * For child parts (head, arms), applies position + offset + rotation.
+     * This syncs both positions and rotations to match the player model exactly.
+     *
+     * Transform order (matching CoordinateSpaceManager and player model):
+     * 1. Per-part globalOffset (pre-parent offset, e.g., for special positioning)
+     * 2. Position (pivot point, scaled by offsetScale)
+     * 3. Offset (animation offset, scaled by offsetScale)
+     * 4. Rotation
      *
      * @param poseStack The pose stack to modify
      * @param transform The Mo'Bends transform
@@ -512,28 +583,40 @@ public class Tier1Renderer
             return;
         }
 
-        // Apply position only for child parts (relative to parent)
+        float offsetScale = transform.offsetScale;
+
+        // 1. Apply per-part globalOffset (pre-parent transform offset)
+        if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                transform.globalOffset.x * SCALE,
+                transform.globalOffset.y * SCALE,
+                transform.globalOffset.z * SCALE
+            );
+        }
+
+        // 2. Apply position (pivot point) - only for child parts relative to parent
         // Root parts (body, legs) use vanilla armor model positions
         if (isChildPart && (transform.position.x != 0 || transform.position.y != 0 || transform.position.z != 0))
         {
             poseStack.translate(
-                transform.position.x * SCALE,
-                transform.position.y * SCALE,
-                transform.position.z * SCALE
+                transform.position.x * SCALE * offsetScale,
+                transform.position.y * SCALE * offsetScale,
+                transform.position.z * SCALE * offsetScale
             );
         }
 
-        // Apply animation offset
+        // 3. Apply animation offset (animated position change)
         if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
         {
             poseStack.translate(
-                transform.offset.x * SCALE,
-                transform.offset.y * SCALE,
-                transform.offset.z * SCALE
+                transform.offset.x * SCALE * offsetScale,
+                transform.offset.y * SCALE * offsetScale,
+                transform.offset.z * SCALE * offsetScale
             );
         }
 
-        // Apply rotation
+        // 4. Apply rotation
         GlHelper.rotate(poseStack, transform.rotation.getSmooth());
     }
 
@@ -650,8 +733,8 @@ public class Tier1Renderer
         {
             // Simple mode: render whole arm with upper arm transform only
             // This means armor won't bend at elbow, but will render correctly
+            // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
             poseStack.pushPose();
-            applyGlobalOffset(poseStack, entityData, entityScale);
             applyPartTransform(poseStack, entityData.body, true);
             applyPartTransform(poseStack, upperArm, true);
             // Apply slim arm Y offset correction
@@ -692,8 +775,8 @@ public class Tier1Renderer
 
         // 3. Render upper arm portion with upper arm transform
         // Upper portion vertices stay as-is (no offset needed except for slim arms)
+        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
         // Apply slim arm offset to Y
@@ -703,11 +786,11 @@ public class Tier1Renderer
         // 4. Render forearm portion with forearm transform (chained to upper arm)
         // Lower portion vertices need to be offset by forearm's position to be in forearm-local-space
         // foreArm.position is (0, 4, 2) in model units, so we offset by (-0, -0.25, -0.125) in render units
+        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         float foreArmOffsetX = -foreArm.position.x * SCALE;
         float foreArmOffsetY = -foreArm.position.y * SCALE + slimArmOffset;  // Include slim arm offset
         float foreArmOffsetZ = -foreArm.position.z * SCALE;
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
         applyPartTransform(poseStack, foreArm, true);
@@ -741,8 +824,8 @@ public class Tier1Renderer
         {
             // Simple mode: render whole leg with upper leg transform only
             // This means armor won't bend at knee, but will render correctly
+            // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
             poseStack.pushPose();
-            applyGlobalOffset(poseStack, entityData, entityScale);
             applyPartTransform(poseStack, upperLeg, true);
             renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
@@ -773,10 +856,10 @@ public class Tier1Renderer
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
         // 3. Render upper leg portion with upper leg transform
-        // Note: Legs are NOT parented to body in Mo'Bends, but need global offset
+        // Note: Legs are NOT parented to body in Mo'Bends
+        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         // Upper portion vertices stay as-is (no offset needed)
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, upperLeg, true);
         renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay);
         poseStack.popPose();
@@ -784,11 +867,11 @@ public class Tier1Renderer
         // 4. Render lower leg portion with lower leg transform (chained to upper leg)
         // Lower portion vertices need to be offset by lowerLeg's position to be in lower-leg-local-space
         // lowerLeg.position is (0, 6, -2) in model units, so we offset by (-0, -0.375, 0.125) in render units
+        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         float lowerLegOffsetX = -lowerLeg.position.x * SCALE;
         float lowerLegOffsetY = -lowerLeg.position.y * SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * SCALE;
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, upperLeg, true);
         applyPartTransform(poseStack, lowerLeg, true);
         renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
@@ -975,8 +1058,18 @@ public class Tier1Renderer
         float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
         // Output transformed vertex
-        // Pack RGBA into single int for 1.21.1
-        int color = ((int)(v.alpha * 255.0F) << 24) | ((int)(v.red * 255.0F) << 16) | ((int)(v.green * 255.0F) << 8) | (int)(v.blue * 255.0F);
+        // Apply armor color tint (for leather armor dyeing)
+        // Multiply captured vertex color with armor color
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
+        // Pack tinted RGBA into single int for 1.21.1
+        int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
+                    ((int)(v.red * tintR * 255.0F) << 16) |
+                    ((int)(v.green * tintG * 255.0F) << 8) |
+                    (int)(v.blue * tintB * 255.0F);
         consumer.addVertex(tx, ty, tz)
                 .setColor(color)
                 .setUv(v.u, v.v)

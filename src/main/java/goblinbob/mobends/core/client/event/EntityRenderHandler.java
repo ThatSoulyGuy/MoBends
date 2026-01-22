@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
+import goblinbob.mobends.core.compat.PlayerAnimationLibCompat;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.mutators.BipedMutator;
@@ -18,6 +19,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 
 public class EntityRenderHandler
 {
+    // Track which entities we pushed pose for (to avoid imbalanced stack)
+    private static final java.util.Set<Integer> entitiesWithPushedPose = new java.util.HashSet<>();
+
     @SubscribeEvent
     @SuppressWarnings("unchecked")
     public void beforeLivingRender(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<?>> event)
@@ -30,12 +34,24 @@ public class EntityRenderHandler
             return;
         }
 
+        // Check if PlayerAnimationLib has an active animation for this entity
+        // If so, let PlayerAnimationLib handle the animation and skip Mo'Bends
+        if (PlayerAnimationLibCompat.hasActiveAnimation(living))
+        {
+            // De-apply any existing mutation so vanilla/PlayerAnimationLib can render normally
+            final LivingEntityRenderer<LivingEntity, EntityModel<LivingEntity>> renderer =
+                (LivingEntityRenderer<LivingEntity, EntityModel<LivingEntity>>) event.getRenderer();
+            entityBender.deapplyMutation(renderer, living);
+            return;
+        }
+
         final LivingEntityRenderer<LivingEntity, EntityModel<LivingEntity>> renderer =
             (LivingEntityRenderer<LivingEntity, EntityModel<LivingEntity>>) event.getRenderer();
         final float pt = event.getPartialTick();
         final PoseStack poseStack = event.getPoseStack();
 
         poseStack.pushPose();
+        entitiesWithPushedPose.add(living.getId());
 
         if (entityBender.isAnimated())
         {
@@ -84,13 +100,17 @@ public class EntityRenderHandler
         // Always clear the render context after rendering
         MoBendsRenderContext.clear();
 
-        final EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(event.getEntity());
+        final LivingEntity living = event.getEntity();
+        final EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(living);
 
         if (entityBender == null)
             return;
 
-        entityBender.afterRender((LivingEntity) event.getEntity(), event.getPartialTick(), event.getPoseStack());
-
-        event.getPoseStack().popPose();
+        // Only pop if we pushed for this entity
+        if (entitiesWithPushedPose.remove(living.getId()))
+        {
+            entityBender.afterRender(living, event.getPartialTick(), event.getPoseStack());
+            event.getPoseStack().popPose();
+        }
     }
 }

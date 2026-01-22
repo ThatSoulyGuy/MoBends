@@ -13,6 +13,7 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -159,13 +160,101 @@ public class Tier3Renderer
 
         try
         {
-            render(context, model, texture, tex -> RenderType.armorCutoutNoCull(tex));
+            // Use ItemRenderer.getArmorFoilBuffer to properly handle enchantment glint
+            renderWithFoil(context, model, texture, hasFoil);
             return true;
         }
         catch (Exception e)
         {
             return false;
         }
+    }
+
+    /**
+     * Render armor with proper foil/glint support.
+     */
+    private <E extends LivingEntity> void renderWithFoil(
+            ArmorRenderContext<E> context,
+            Model model,
+            ResourceLocation texture,
+            boolean hasFoil)
+    {
+        if (context.getEntityData() == null)
+        {
+            return;
+        }
+
+        PoseStack poseStack = context.getPoseStack();
+        MultiBufferSource bufferSource = context.getBufferSource();
+        BipedEntityData<?> entityData = context.getEntityData();
+
+        // Get the capturing consumer
+        CapturingVertexConsumer captureConsumer = rigidArmorRenderer.getCaptureConsumer();
+
+        // Configure model visibility based on slot
+        configureModelVisibility(model, context.getSlot());
+
+        // CRITICAL: Save model poses, reset to rest pose, then restore after capture
+        ModelPoseSnapshot snapshot = null;
+        if (model instanceof HumanoidModel<?> humanoid)
+        {
+            snapshot = new ModelPoseSnapshot(humanoid);
+            resetToRestPose(humanoid);
+        }
+
+        // CRITICAL: Use a FRESH identity PoseStack for capture
+        PoseStack capturePoseStack = new PoseStack();
+
+        // Render the model to capture rest-pose vertices
+        model.renderToBuffer(
+                capturePoseStack,
+                captureConsumer,
+                context.getPackedLight(),
+                context.getPackedOverlay(),
+                0xFFFFFFFF
+        );
+
+        // Restore original model poses
+        if (snapshot != null && model instanceof HumanoidModel<?> humanoid)
+        {
+            snapshot.restore(humanoid);
+        }
+
+        // Track statistics
+        int vertexCount = captureConsumer.getVertices().size();
+        totalVerticesProcessed += vertexCount;
+        renderCount++;
+
+        // Render with proper foil support
+        poseStack.pushPose();
+
+        // Apply baby scale if needed
+        float entityScale = context.getEntityScale();
+        if (entityScale != 1.0f)
+        {
+            poseStack.scale(entityScale, entityScale, entityScale);
+        }
+
+        // Get foil-enabled vertex consumer
+        VertexConsumer outputConsumer = ItemRenderer.getArmorFoilBuffer(
+                bufferSource,
+                RenderType.armorCutoutNoCull(texture),
+                hasFoil);
+
+        rigidArmorRenderer.renderCapturedVertices(
+                poseStack,
+                outputConsumer,
+                context.getPackedLight(),
+                context.getPackedOverlay(),
+                entityData,
+                entityScale,
+                context.getArmorColor()
+        );
+
+        poseStack.popPose();
+
+        // Record cache statistics
+        CacheManager.getInstance().recordUncachedRender();
     }
 
     /**
@@ -253,7 +342,8 @@ public class Tier3Renderer
                 context.getPackedLight(),
                 context.getPackedOverlay(),
                 entityData,
-                entityScale
+                entityScale,
+                context.getArmorColor()
         );
 
         poseStack.popPose();
@@ -286,7 +376,7 @@ public class Tier3Renderer
             BipedEntityData<?> entityData,
             Function<ResourceLocation, RenderType> renderTypeProvider)
     {
-        renderDirect(poseStack, bufferSource, model, texture, slot, packedLight, packedOverlay, entityData, renderTypeProvider, 1.0f);
+        renderDirect(poseStack, bufferSource, model, texture, slot, packedLight, packedOverlay, entityData, renderTypeProvider, 1.0f, 0xFFFFFFFF);
     }
 
     /**
@@ -315,13 +405,44 @@ public class Tier3Renderer
             Function<ResourceLocation, RenderType> renderTypeProvider,
             float entityScale)
     {
+        renderDirect(poseStack, bufferSource, model, texture, slot, packedLight, packedOverlay, entityData, renderTypeProvider, entityScale, 0xFFFFFFFF);
+    }
+
+    /**
+     * Simplified render method when you have the armor model and want direct rendering.
+     *
+     * @param poseStack The pose stack
+     * @param bufferSource Buffer source for rendering
+     * @param model The armor model
+     * @param texture The armor texture
+     * @param slot The equipment slot
+     * @param packedLight Packed light value
+     * @param packedOverlay Packed overlay value
+     * @param entityData Entity animation data
+     * @param renderTypeProvider Function to get RenderType from texture
+     * @param entityScale Scale factor (1.0 for adults, 0.5 for babies)
+     * @param armorColor ARGB color tint for leather armor (0xFFFFFFFF for no tint)
+     */
+    public void renderDirect(
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            Model model,
+            ResourceLocation texture,
+            EquipmentSlot slot,
+            int packedLight,
+            int packedOverlay,
+            BipedEntityData<?> entityData,
+            Function<ResourceLocation, RenderType> renderTypeProvider,
+            float entityScale,
+            int armorColor)
+    {
         if (entityData == null)
         {
             // No animation data - render normally
             RenderType renderType = renderTypeProvider.apply(texture);
             configureModelVisibility(model, slot);
             model.renderToBuffer(poseStack, bufferSource.getBuffer(renderType),
-                    packedLight, packedOverlay, 0xFFFFFFFF);
+                    packedLight, packedOverlay, armorColor);
             return;
         }
 
@@ -368,7 +489,7 @@ public class Tier3Renderer
 
         VertexConsumer outputConsumer = bufferSource.getBuffer(renderType);
         rigidArmorRenderer.renderCapturedVertices(poseStack, outputConsumer,
-                packedLight, packedOverlay, entityData, entityScale);
+                packedLight, packedOverlay, entityData, entityScale, armorColor);
 
         poseStack.popPose();
     }
@@ -395,7 +516,7 @@ public class Tier3Renderer
                 bufferSource.getBuffer(renderType),
                 context.getPackedLight(),
                 context.getPackedOverlay(),
-                0xFFFFFFFF
+                context.getArmorColor()
         );
 
         poseStack.popPose();
