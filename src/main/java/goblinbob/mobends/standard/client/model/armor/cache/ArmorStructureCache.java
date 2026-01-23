@@ -157,7 +157,7 @@ public class ArmorStructureCache
 
         StructureEntry entry = new StructureEntry(
             modelClass,
-            RenderTier.TIER_1_TRANSFORM_INJECTION,
+            RenderTier.TIER_1_STANDARD,
             Map.of(), // No detailed classifications needed for Tier 1
             partToBone,
             true,

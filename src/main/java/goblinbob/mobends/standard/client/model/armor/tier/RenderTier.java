@@ -4,49 +4,33 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
- * Defines the three rendering tiers for armor.
+ * Defines the two rendering tiers for armor.
  * Each tier represents a different approach to applying Mo'Bends transforms to armor.
  */
 @OnlyIn(Dist.CLIENT)
 public enum RenderTier
 {
     /**
-     * Tier 1: Transform Injection (~85% of armor)
+     * Tier 1: Standard HumanoidModel armor
      * For vanilla and standard modded armor using HumanoidModel.
-     * Uses a proxy model to intercept copyPropertiesFrom() and inject our transforms.
-     * Most efficient approach with the best visual results.
+     * Uses direct ModelPart manipulation with joint slicing at elbows/knees.
+     * Handles the standard 2-layer armor model structure.
      */
-    TIER_1_TRANSFORM_INJECTION(1, "Transform Injection"),
+    TIER_1_STANDARD("Standard HumanoidModel"),
 
     /**
-     * Tier 2: Model Interception (~10% of armor)
-     * For modded armor using ModelPart but not extending HumanoidModel.
+     * Tier 2: Custom Model armor
+     * For modded armor using custom 3D models (not standard HumanoidModel structure).
      * Uses spatial analysis to classify body parts and apply transforms.
-     * Good balance of compatibility and performance.
+     * Handles exotic armor with custom geometry.
      */
-    TIER_2_MODEL_INTERCEPTION(2, "Model Interception"),
+    TIER_2_CUSTOM_MODEL("Custom Model");
 
-    /**
-     * Tier 3: Vertex Capture Fallback (~5% of armor)
-     * For exotic renderers with completely custom geometry.
-     * Captures vertices during render, inverse-transforms to rest pose,
-     * then re-renders with bone transforms.
-     * Most compatible but least efficient.
-     */
-    TIER_3_VERTEX_CAPTURE(3, "Vertex Capture");
-
-    private final int tierNumber;
     private final String displayName;
 
-    RenderTier(int tierNumber, String displayName)
+    RenderTier(String displayName)
     {
-        this.tierNumber = tierNumber;
         this.displayName = displayName;
-    }
-
-    public int getTierNumber()
-    {
-        return tierNumber;
     }
 
     public String getDisplayName()
@@ -55,17 +39,24 @@ public enum RenderTier
     }
 
     /**
-     * Returns true if this tier should attempt to slice limb geometry at joints.
-     * Tier 1 and 2 use pre-analyzed model structure, Tier 3 captures and slices vertices.
+     * Returns true if this is standard HumanoidModel armor.
      */
-    public boolean requiresGeometrySlicing()
+    public boolean isStandardModel()
     {
-        return this != TIER_1_TRANSFORM_INJECTION;
+        return this == TIER_1_STANDARD;
+    }
+
+    /**
+     * Returns true if this is custom model armor.
+     */
+    public boolean isCustomModel()
+    {
+        return this == TIER_2_CUSTOM_MODEL;
     }
 
     @Override
     public String toString()
     {
-        return "Tier " + tierNumber + " (" + displayName + ")";
+        return displayName;
     }
 }

@@ -18,9 +18,8 @@ import java.util.Set;
  * Determines which rendering tier to use for a given armor model.
  *
  * Classification logic:
- * - Tier 1: Model extends HumanoidModel (or is a known vanilla-compatible subclass)
- * - Tier 2: Model uses standard ModelPart structure but doesn't extend HumanoidModel
- * - Tier 3: Fallback for exotic models that don't fit other tiers
+ * - Tier 1 (Standard): Model extends HumanoidModel with standard structure
+ * - Tier 2 (Custom Model): All other models (custom 3D armor)
  *
  * Results are cached for performance.
  */
@@ -30,14 +29,11 @@ public class TierClassifier
     // Singleton instance
     private static TierClassifier instance;
 
-    // Known Tier 1 compatible model classes (added dynamically as discovered)
+    // Known Tier 1 compatible model classes (standard HumanoidModel)
     private final Set<Class<?>> knownTier1Classes = new HashSet<>();
 
-    // Known Tier 2 compatible model classes
+    // Known Tier 2 model classes (custom models)
     private final Set<Class<?>> knownTier2Classes = new HashSet<>();
-
-    // Known Tier 3 only model classes (exotic/incompatible)
-    private final Set<Class<?>> knownTier3Classes = new HashSet<>();
 
     // Configuration: force a specific tier for all models (for debugging)
     private RenderTier forcedTier = null;
@@ -70,7 +66,7 @@ public class TierClassifier
     {
         if (model == null)
         {
-            return RenderTier.TIER_3_VERTEX_CAPTURE;
+            return RenderTier.TIER_2_CUSTOM_MODEL;
         }
 
         // Check for forced tier (debugging)
@@ -114,26 +110,23 @@ public class TierClassifier
         // Check known classes
         if (knownTier1Classes.contains(modelClass))
         {
-            return RenderTier.TIER_1_TRANSFORM_INJECTION;
+            return RenderTier.TIER_1_STANDARD;
         }
         if (knownTier2Classes.contains(modelClass))
         {
-            return RenderTier.TIER_2_MODEL_INTERCEPTION;
-        }
-        if (knownTier3Classes.contains(modelClass))
-        {
-            return RenderTier.TIER_3_VERTEX_CAPTURE;
+            return RenderTier.TIER_2_CUSTOM_MODEL;
         }
 
         // Check inheritance for HumanoidModel
         if (HumanoidModel.class.isAssignableFrom(modelClass))
         {
             knownTier1Classes.add(modelClass);
-            return RenderTier.TIER_1_TRANSFORM_INJECTION;
+            return RenderTier.TIER_1_STANDARD;
         }
 
-        // Default to Tier 3 for unknown classes
-        return RenderTier.TIER_3_VERTEX_CAPTURE;
+        // Default to Tier 2 for custom models
+        knownTier2Classes.add(modelClass);
+        return RenderTier.TIER_2_CUSTOM_MODEL;
     }
 
     /**
@@ -141,28 +134,20 @@ public class TierClassifier
      */
     private RenderTier classifyUncached(Model model, Class<?> modelClass)
     {
-        // Tier 1: Check if model extends HumanoidModel
+        // Tier 1: Check if model extends HumanoidModel with standard structure
         if (model instanceof HumanoidModel<?>)
         {
             // Verify it has the expected structure
             if (hasHumanoidStructure((HumanoidModel<?>) model))
             {
                 knownTier1Classes.add(modelClass);
-                return RenderTier.TIER_1_TRANSFORM_INJECTION;
+                return RenderTier.TIER_1_STANDARD;
             }
-            // Falls through to check for Tier 2
         }
 
-        // Tier 2: Check if model uses ModelPart with analyzable structure
-        if (hasAnalyzableModelPartStructure(model, modelClass))
-        {
-            knownTier2Classes.add(modelClass);
-            return RenderTier.TIER_2_MODEL_INTERCEPTION;
-        }
-
-        // Tier 3: Fallback for everything else
-        knownTier3Classes.add(modelClass);
-        return RenderTier.TIER_3_VERTEX_CAPTURE;
+        // Everything else is Tier 2 (custom model)
+        knownTier2Classes.add(modelClass);
+        return RenderTier.TIER_2_CUSTOM_MODEL;
     }
 
     /**
@@ -186,59 +171,7 @@ public class TierClassifier
         }
         catch (Exception e)
         {
-            // If we can't access parts, fall back
-            return false;
-        }
-    }
-
-    /**
-     * Check if a model has ModelPart fields that can be analyzed spatially.
-     */
-    private boolean hasAnalyzableModelPartStructure(Model model, Class<?> modelClass)
-    {
-        try
-        {
-            int modelPartFieldCount = 0;
-
-            // Scan for ModelPart fields
-            for (Field field : modelClass.getDeclaredFields())
-            {
-                if (Modifier.isStatic(field.getModifiers()))
-                {
-                    continue;
-                }
-
-                if (ModelPart.class.isAssignableFrom(field.getType()))
-                {
-                    modelPartFieldCount++;
-                }
-            }
-
-            // Also check superclass fields
-            Class<?> superClass = modelClass.getSuperclass();
-            while (superClass != null && Model.class.isAssignableFrom(superClass))
-            {
-                for (Field field : superClass.getDeclaredFields())
-                {
-                    if (Modifier.isStatic(field.getModifiers()))
-                    {
-                        continue;
-                    }
-
-                    if (ModelPart.class.isAssignableFrom(field.getType()))
-                    {
-                        modelPartFieldCount++;
-                    }
-                }
-                superClass = superClass.getSuperclass();
-            }
-
-            // If the model has at least 3 ModelPart fields, it's likely analyzable
-            // (head, body, and at least one limb)
-            return modelPartFieldCount >= 3;
-        }
-        catch (Exception e)
-        {
+            // If we can't access parts, it's not a standard model
             return false;
         }
     }
@@ -250,7 +183,7 @@ public class TierClassifier
     {
         ArmorStructureCache cache = CacheManager.getInstance().getStructureCache();
 
-        if (tier == RenderTier.TIER_1_TRANSFORM_INJECTION && HumanoidModel.class.isAssignableFrom(modelClass))
+        if (tier == RenderTier.TIER_1_STANDARD && HumanoidModel.class.isAssignableFrom(modelClass))
         {
             @SuppressWarnings("unchecked")
             Class<? extends HumanoidModel<?>> humanoidClass = (Class<? extends HumanoidModel<?>>) modelClass;
@@ -258,14 +191,14 @@ public class TierClassifier
         }
         else
         {
-            // Create a basic structure entry for non-Tier1 models
+            // Create a basic structure entry for Tier 2 models
             ArmorStructureCache.StructureEntry entry = new ArmorStructureCache.StructureEntry(
                 modelClass,
                 tier,
                 java.util.Map.of(),
                 java.util.Map.of(),
                 HumanoidModel.class.isAssignableFrom(modelClass),
-                tier == RenderTier.TIER_1_TRANSFORM_INJECTION
+                tier == RenderTier.TIER_1_STANDARD
             );
             cache.put(modelClass, entry);
         }
@@ -296,7 +229,6 @@ public class TierClassifier
     {
         knownTier1Classes.add(modelClass);
         knownTier2Classes.remove(modelClass);
-        knownTier3Classes.remove(modelClass);
     }
 
     /**
@@ -306,17 +238,6 @@ public class TierClassifier
     {
         knownTier2Classes.add(modelClass);
         knownTier1Classes.remove(modelClass);
-        knownTier3Classes.remove(modelClass);
-    }
-
-    /**
-     * Register a model class as Tier 3 only.
-     */
-    public void registerTier3Class(Class<?> modelClass)
-    {
-        knownTier3Classes.add(modelClass);
-        knownTier1Classes.remove(modelClass);
-        knownTier2Classes.remove(modelClass);
     }
 
     /**
@@ -326,9 +247,8 @@ public class TierClassifier
     {
         return switch (tier)
         {
-            case TIER_1_TRANSFORM_INJECTION -> knownTier1Classes.contains(modelClass);
-            case TIER_2_MODEL_INTERCEPTION -> knownTier2Classes.contains(modelClass);
-            case TIER_3_VERTEX_CAPTURE -> knownTier3Classes.contains(modelClass);
+            case TIER_1_STANDARD -> knownTier1Classes.contains(modelClass);
+            case TIER_2_CUSTOM_MODEL -> knownTier2Classes.contains(modelClass);
         };
     }
 
@@ -339,7 +259,6 @@ public class TierClassifier
     {
         knownTier1Classes.clear();
         knownTier2Classes.clear();
-        knownTier3Classes.clear();
 
         // Re-add base known classes
         knownTier1Classes.add(HumanoidModel.class);
@@ -352,7 +271,7 @@ public class TierClassifier
      */
     public String getStats()
     {
-        return String.format("TierClassifier: %d Tier1, %d Tier2, %d Tier3 known classes",
-            knownTier1Classes.size(), knownTier2Classes.size(), knownTier3Classes.size());
+        return String.format("TierClassifier: %d Tier1 (Standard), %d Tier2 (Custom) known classes",
+            knownTier1Classes.size(), knownTier2Classes.size());
     }
 }

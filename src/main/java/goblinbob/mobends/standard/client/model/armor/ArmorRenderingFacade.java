@@ -7,13 +7,11 @@ import goblinbob.mobends.standard.client.model.armor.tier.RenderTier;
 import goblinbob.mobends.standard.client.model.armor.tier.TierClassifier;
 import goblinbob.mobends.standard.client.model.armor.tier1.Tier1Renderer;
 import goblinbob.mobends.standard.client.model.armor.tier2.Tier2Renderer;
-import goblinbob.mobends.standard.client.model.armor.tier3.Tier3Renderer;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -28,14 +26,13 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 /**
- * Unified facade for the three-tier armor rendering system.
+ * Unified facade for the two-tier armor rendering system.
  * This class coordinates tier selection and delegates to the appropriate renderer.
  *
- * <p>Tier selection priority:</p>
+ * <p>Tier selection:</p>
  * <ul>
- *   <li>Tier 1 (Transform Injection): ~85% of armor - vanilla/standard HumanoidModel</li>
- *   <li>Tier 2 (Model Interception): ~10% of armor - modded using ModelPart</li>
- *   <li>Tier 3 (Vertex Capture): ~5% of armor - exotic renderers</li>
+ *   <li>Tier 1 (Standard): Vanilla/standard HumanoidModel armor with joint slicing</li>
+ *   <li>Tier 2 (Custom Model): Modded armor with custom 3D models</li>
  * </ul>
  */
 @OnlyIn(Dist.CLIENT)
@@ -46,13 +43,10 @@ public class ArmorRenderingFacade
     // Tier renderers
     private final Tier1Renderer tier1Renderer;
     private final Tier2Renderer tier2Renderer;
-    private final Tier3Renderer tier3Renderer;
 
     // Performance tracking
     private long tier1Count = 0;
     private long tier2Count = 0;
-    private long tier3Count = 0;
-    private long fallbackCount = 0;
 
     // Debug mode
     private boolean debugMode = false;
@@ -62,7 +56,6 @@ public class ArmorRenderingFacade
     {
         this.tier1Renderer = new Tier1Renderer();
         this.tier2Renderer = new Tier2Renderer();
-        this.tier3Renderer = new Tier3Renderer();
     }
 
     /**
@@ -112,42 +105,25 @@ public class ArmorRenderingFacade
     }
 
     /**
-     * Render armor with the specified tier, with automatic fallback.
+     * Render armor with the specified tier.
      */
     @SuppressWarnings("unchecked")
     private <T extends LivingEntity> boolean renderWithTier(RenderTier tier, ArmorRenderContext<T> context, Model armorModel)
     {
         switch (tier)
         {
-            case TIER_1_TRANSFORM_INJECTION:
+            case TIER_1_STANDARD:
                 if (armorModel instanceof HumanoidModel<?>)
                 {
-                    boolean result = tier1Renderer.render(context, (HumanoidModel<?>) armorModel);
-                    if (result)
-                    {
-                        return true;
-                    }
-                    // Fall through to Tier 2
-                    LOGGER.debug("Tier 1 failed, falling back to Tier 2");
+                    return tier1Renderer.render(context, (HumanoidModel<?>) armorModel);
                 }
+                // Fall through to Tier 2 if not HumanoidModel
+                LOGGER.debug("Model not HumanoidModel, falling back to Tier 2");
                 // Fall through
 
-            case TIER_2_MODEL_INTERCEPTION:
-                boolean result = tier2Renderer.render(context, armorModel);
-                if (result)
-                {
-                    return true;
-                }
-                // Fall through to Tier 3
-                if (tier == RenderTier.TIER_2_MODEL_INTERCEPTION)
-                {
-                    LOGGER.debug("Tier 2 failed, falling back to Tier 3");
-                }
-                // Fall through
-
-            case TIER_3_VERTEX_CAPTURE:
+            case TIER_2_CUSTOM_MODEL:
             default:
-                return tier3Renderer.render(context, armorModel);
+                return tier2Renderer.render(context, armorModel);
         }
     }
 
@@ -172,20 +148,16 @@ public class ArmorRenderingFacade
     {
         if (!success)
         {
-            fallbackCount++;
             return;
         }
 
         switch (tier)
         {
-            case TIER_1_TRANSFORM_INJECTION:
+            case TIER_1_STANDARD:
                 tier1Count++;
                 break;
-            case TIER_2_MODEL_INTERCEPTION:
+            case TIER_2_CUSTOM_MODEL:
                 tier2Count++;
-                break;
-            case TIER_3_VERTEX_CAPTURE:
-                tier3Count++;
                 break;
         }
     }
@@ -193,6 +165,7 @@ public class ArmorRenderingFacade
     /**
      * Render armor using the context built from parameters.
      * Convenience method for LayerCustomBipedArmor integration.
+     * Uses default white color (no tint).
      */
     @SuppressWarnings("unchecked")
     public <T extends LivingEntity> boolean renderArmor(
@@ -207,9 +180,27 @@ public class ArmorRenderingFacade
             BipedEntityData<?> entityData,
             ResourceLocation texture)
     {
-        // Render with default white color (no tint)
-        return renderArmor(poseStack, bufferSource, packedLight, entity, slot, armorStack, armorItem,
-                armorModel, entityData, texture, 1.0f, 1.0f, 1.0f);
+        if (texture == null || armorModel == null || entityData == null)
+        {
+            return false;
+        }
+
+        // Build render context with default white color
+        ArmorRenderContext<T> context = ArmorRenderContext.<T>builder()
+                .entity(entity)
+                .entityData(entityData)
+                .slot(slot)
+                .armorStack(armorStack)
+                .poseStack(poseStack)
+                .bufferSource(bufferSource)
+                .packedLight(packedLight)
+                .packedOverlay(OverlayTexture.NO_OVERLAY)
+                .partialTicks(0) // Will be set by caller if needed
+                .armorModel((HumanoidModel<T>) armorModel)
+                .armorColor(0xFFFFFFFF) // White, fully opaque = no tint
+                .build();
+
+        return renderWithTexture(context, armorModel, texture, armorStack.hasFoil());
     }
 
     /**
@@ -239,7 +230,7 @@ public class ArmorRenderingFacade
             return false;
         }
 
-        // Build render context
+        // Build render context with color from RGB floats
         ArmorRenderContext<T> context = ArmorRenderContext.<T>builder()
                 .entity(entity)
                 .entityData(entityData)
@@ -251,14 +242,15 @@ public class ArmorRenderingFacade
                 .packedOverlay(OverlayTexture.NO_OVERLAY)
                 .partialTicks(0) // Will be set by caller if needed
                 .armorModel((HumanoidModel<T>) armorModel)
+                .armorColor(red, green, blue) // Set color from RGB floats
                 .build();
 
-        // Set texture in context or handle separately
-        return renderWithTextureAndColor(context, armorModel, texture, armorStack.hasFoil(), red, green, blue);
+        return renderWithTexture(context, armorModel, texture, armorStack.hasFoil());
     }
 
     /**
      * Render with a specific texture.
+     * Color tinting is applied via context.getArmorColor().
      */
     private <T extends LivingEntity> boolean renderWithTexture(
             ArmorRenderContext<T> context,
@@ -266,42 +258,26 @@ public class ArmorRenderingFacade
             ResourceLocation texture,
             boolean hasFoil)
     {
-        // Render with default white color (no tint)
-        return renderWithTextureAndColor(context, armorModel, texture, hasFoil, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render with a specific texture and color tint.
-     * Used for dyeable armor like leather.
-     */
-    private <T extends LivingEntity> boolean renderWithTextureAndColor(
-            ArmorRenderContext<T> context,
-            Model armorModel,
-            ResourceLocation texture,
-            boolean hasFoil,
-            float red, float green, float blue)
-    {
         // Determine tier and render
         RenderTier tier = determineTier(armorModel);
 
         if (debugMode)
         {
-            LOGGER.debug("Rendering armor with texture {} color ({},{},{}) using {}",
-                    texture, red, green, blue, tier);
+            int color = context.getArmorColor();
+            LOGGER.debug("Rendering armor with texture {} color 0x{} using {}",
+                    texture, Integer.toHexString(color), tier);
         }
 
-        // For Tier 1 and 2, we can render directly
-        // For Tier 3, we need to capture and re-render with proper texture
         boolean success = false;
         try
         {
             switch (tier)
             {
-                case TIER_1_TRANSFORM_INJECTION:
+                case TIER_1_STANDARD:
                     if (armorModel instanceof HumanoidModel<?>)
                     {
-                        success = tier1Renderer.renderWithTextureAndColor(context, (HumanoidModel<?>) armorModel,
-                                texture, hasFoil, red, green, blue);
+                        success = tier1Renderer.renderWithTexture(context, (HumanoidModel<?>) armorModel,
+                                texture, hasFoil);
                         if (success)
                         {
                             break;
@@ -309,17 +285,9 @@ public class ArmorRenderingFacade
                     }
                     // Fall through to Tier 2
 
-                case TIER_2_MODEL_INTERCEPTION:
-                    success = tier2Renderer.renderWithTexture(context, armorModel, texture, hasFoil);
-                    if (success)
-                    {
-                        break;
-                    }
-                    // Fall through to Tier 3
-
-                case TIER_3_VERTEX_CAPTURE:
+                case TIER_2_CUSTOM_MODEL:
                 default:
-                    success = tier3Renderer.renderWithTexture(context, armorModel, texture, hasFoil);
+                    success = tier2Renderer.renderWithTexture(context, armorModel, texture, hasFoil);
                     break;
             }
         }
@@ -362,7 +330,7 @@ public class ArmorRenderingFacade
             return tier1Renderer.renderWithVertexConsumer(context, (HumanoidModel<?>) armorModel, vertexConsumer);
         }
 
-        // Tier 2 and 3 don't support this yet - return false
+        // Tier 2 doesn't support this yet - return false
         return false;
     }
 
@@ -389,7 +357,7 @@ public class ArmorRenderingFacade
      */
     public RenderingStats getStats()
     {
-        return new RenderingStats(tier1Count, tier2Count, tier3Count, fallbackCount);
+        return new RenderingStats(tier1Count, tier2Count);
     }
 
     /**
@@ -399,8 +367,6 @@ public class ArmorRenderingFacade
     {
         tier1Count = 0;
         tier2Count = 0;
-        tier3Count = 0;
-        fallbackCount = 0;
     }
 
     /**
@@ -428,34 +394,22 @@ public class ArmorRenderingFacade
     }
 
     /**
-     * Get the Tier 3 renderer for advanced configuration.
-     */
-    public Tier3Renderer getTier3Renderer()
-    {
-        return tier3Renderer;
-    }
-
-    /**
      * Statistics about armor rendering.
      */
     public static class RenderingStats
     {
         public final long tier1Count;
         public final long tier2Count;
-        public final long tier3Count;
-        public final long fallbackCount;
 
-        public RenderingStats(long tier1, long tier2, long tier3, long fallback)
+        public RenderingStats(long tier1, long tier2)
         {
             this.tier1Count = tier1;
             this.tier2Count = tier2;
-            this.tier3Count = tier3;
-            this.fallbackCount = fallback;
         }
 
         public long totalCount()
         {
-            return tier1Count + tier2Count + tier3Count;
+            return tier1Count + tier2Count;
         }
 
         public float tier1Percentage()
@@ -470,20 +424,12 @@ public class ArmorRenderingFacade
             return total > 0 ? (float) tier2Count / total * 100 : 0;
         }
 
-        public float tier3Percentage()
-        {
-            long total = totalCount();
-            return total > 0 ? (float) tier3Count / total * 100 : 0;
-        }
-
         @Override
         public String toString()
         {
-            return String.format("ArmorRendering[T1: %d (%.1f%%), T2: %d (%.1f%%), T3: %d (%.1f%%), Fallbacks: %d]",
+            return String.format("ArmorRendering[Tier1 (Standard): %d (%.1f%%), Tier2 (Custom): %d (%.1f%%)]",
                     tier1Count, tier1Percentage(),
-                    tier2Count, tier2Percentage(),
-                    tier3Count, tier3Percentage(),
-                    fallbackCount);
+                    tier2Count, tier2Percentage());
         }
     }
 }

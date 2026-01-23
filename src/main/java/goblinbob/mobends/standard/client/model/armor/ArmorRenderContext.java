@@ -35,6 +35,10 @@ public class ArmorRenderContext<E extends LivingEntity>
     @Nullable
     private RenderTier determinedTier;
 
+    // Armor color in packed ARGB format (0xAARRGGBB)
+    // Default is 0xFFFFFFFF (white, fully opaque = no tint)
+    private final int armorColor;
+
     // Cached entity properties
     private final boolean isBaby;
     private final boolean isSlimArms;
@@ -52,6 +56,7 @@ public class ArmorRenderContext<E extends LivingEntity>
         this.partialTicks = builder.partialTicks;
         this.armorModel = builder.armorModel;
         this.determinedTier = builder.determinedTier;
+        this.armorColor = builder.armorColor;
 
         // Cache entity properties for efficient access
         this.isBaby = builder.entity != null && builder.entity.isBaby();
@@ -129,6 +134,16 @@ public class ArmorRenderContext<E extends LivingEntity>
     }
 
     /**
+     * Get the armor color in packed ARGB format (0xAARRGGBB).
+     * Default is 0xFFFFFFFF (white, fully opaque = no tint).
+     * Used for dyeable armor like leather.
+     */
+    public int getArmorColor()
+    {
+        return armorColor;
+    }
+
+    /**
      * Returns true if the entity is a baby (uses 0.5 scale).
      */
     public boolean isBaby()
@@ -189,6 +204,7 @@ public class ArmorRenderContext<E extends LivingEntity>
         private float partialTicks;
         private HumanoidModel<?> armorModel;
         private RenderTier determinedTier;
+        private int armorColor = 0xFFFFFFFF;  // Default: white, fully opaque (no tint)
 
         public Builder<E> entity(E entity)
         {
@@ -253,6 +269,31 @@ public class ArmorRenderContext<E extends LivingEntity>
         public Builder<E> determinedTier(RenderTier determinedTier)
         {
             this.determinedTier = determinedTier;
+            return this;
+        }
+
+        /**
+         * Set the armor color in packed ARGB format (0xAARRGGBB).
+         * Default is 0xFFFFFFFF (white, fully opaque = no tint).
+         * Used for dyeable armor like leather.
+         */
+        public Builder<E> armorColor(int armorColor)
+        {
+            this.armorColor = armorColor;
+            return this;
+        }
+
+        /**
+         * Set the armor color from RGB float components (0.0-1.0).
+         * Alpha is set to 1.0 (fully opaque).
+         * Convenience method for converting from Minecraft's color format.
+         */
+        public Builder<E> armorColor(float red, float green, float blue)
+        {
+            int r = (int)(red * 255.0F) & 0xFF;
+            int g = (int)(green * 255.0F) & 0xFF;
+            int b = (int)(blue * 255.0F) & 0xFF;
+            this.armorColor = 0xFF000000 | (r << 16) | (g << 8) | b;
             return this;
         }
 

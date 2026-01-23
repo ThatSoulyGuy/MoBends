@@ -61,6 +61,11 @@ public class Tier1Renderer
     private final CapturingVertexConsumer limbCapture = new CapturingVertexConsumer();
     private final QuadSlicer quadSlicer = new QuadSlicer();
 
+    // Current armor color for rendering (set per-render, used by vertex output)
+    // Format: ARGB packed int (0xAARRGGBB)
+    // Default is 0xFFFFFFFF (white, fully opaque = no tint)
+    private int currentArmorColor = 0xFFFFFFFF;
+
     // Performance tracking
     private long renderCount = 0;
     private long fallbackCount = 0;
@@ -84,7 +89,7 @@ public class Tier1Renderer
      */
     public RenderTier getTier()
     {
-        return RenderTier.TIER_1_TRANSFORM_INJECTION;
+        return RenderTier.TIER_1_STANDARD;
     }
 
     /**
@@ -113,8 +118,22 @@ public class Tier1Renderer
             ResourceLocation texture,
             boolean hasFoil)
     {
-        // Render with default white color (no tint)
-        return renderWithTextureAndColor(context, model, texture, hasFoil, 1.0f, 1.0f, 1.0f);
+        if (context == null || model == null || context.getEntityData() == null || texture == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            // Set armor color from context (packed ARGB format)
+            currentArmorColor = context.getArmorColor();
+            renderWithFoil(context, model, texture, hasFoil);
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
     }
 
     /**
@@ -140,7 +159,13 @@ public class Tier1Renderer
 
         try
         {
-            renderWithFoilAndColor(context, model, texture, hasFoil, red, green, blue);
+            // Convert RGB floats to packed ARGB and set as current color
+            int r = (int)(red * 255.0F) & 0xFF;
+            int g = (int)(green * 255.0F) & 0xFF;
+            int b = (int)(blue * 255.0F) & 0xFF;
+            currentArmorColor = 0xFF000000 | (r << 16) | (g << 8) | b;
+
+            renderWithFoil(context, model, texture, hasFoil);
             return true;
         }
         catch (Exception e)
@@ -152,31 +177,13 @@ public class Tier1Renderer
     /**
      * Render armor with proper foil (enchantment glint) support.
      * Uses ItemRenderer.getArmorFoilBuffer() to handle both base rendering and glint overlay.
+     * Color tinting is applied using the currentArmorColor field (set before calling this method).
      */
     private <E extends LivingEntity> void renderWithFoil(
             ArmorRenderContext<E> context,
             HumanoidModel<?> model,
             ResourceLocation texture,
             boolean hasFoil)
-    {
-        // Render with default white color (no tint)
-        renderWithFoilAndColor(context, model, texture, hasFoil, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render armor with proper foil (enchantment glint) support and color tint.
-     * Uses ItemRenderer.getArmorFoilBuffer() to handle both base rendering and glint overlay.
-     *
-     * @param red Red color component (0.0-1.0)
-     * @param green Green color component (0.0-1.0)
-     * @param blue Blue color component (0.0-1.0)
-     */
-    private <E extends LivingEntity> void renderWithFoilAndColor(
-            ArmorRenderContext<E> context,
-            HumanoidModel<?> model,
-            ResourceLocation texture,
-            boolean hasFoil,
-            float red, float green, float blue)
     {
         if (context.getEntityData() == null)
         {
@@ -206,20 +213,20 @@ public class Tier1Renderer
         boolean isSlimArms = context.isSlimArms();
 
         // Render based on slot - each method applies proper hierarchical transforms
-        // Color is applied as a multiplier to each vertex
+        // Color is applied via currentArmorColor field in vertex output
         switch (slot)
         {
             case HEAD:
-                renderHead(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, red, green, blue);
+                renderHead(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
                 break;
             case CHEST:
-                renderChest(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, isSlimArms, red, green, blue);
+                renderChest(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, isSlimArms);
                 break;
             case LEGS:
-                renderLegs(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, red, green, blue);
+                renderLegs(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
                 break;
             case FEET:
-                renderFeet(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, red, green, blue);
+                renderFeet(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
                 break;
         }
 
@@ -250,6 +257,7 @@ public class Tier1Renderer
      * Render armor with a custom VertexConsumer (for trims, glint overlays, etc.).
      * Uses the same per-bone transform approach as regular armor rendering.
      * This allows trims to follow Mo'Bends animations.
+     * Uses white color (0xFFFFFFFF) since trims have their own color system.
      *
      * @param context The armor render context
      * @param model The armor model
@@ -265,6 +273,9 @@ public class Tier1Renderer
         {
             return false;
         }
+
+        // Set color to white for trims (they have their own color system)
+        currentArmorColor = 0xFFFFFFFF;
 
         BipedEntityData<?> entityData = context.getEntityData();
         PoseStack poseStack = context.getPoseStack();
@@ -377,6 +388,7 @@ public class Tier1Renderer
      * Head is parented to body, so we apply body transform first, then head transform.
      *
      * Uses vertex capture approach (like arms) for consistent transform handling.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * NOTE: Baby scale and globalOffset are NOT applied here because they're already
      * on the parent PoseStack from MutatedRenderer.beforeRender().
@@ -390,41 +402,25 @@ public class Tier1Renderer
             int packedOverlay,
             float entityScale)
     {
-        // Render with default white color
-        renderHead(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render head armor piece with color tint.
-     */
-    private void renderHead(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            HumanoidModel<?> model,
-            BipedEntityData<?> entityData,
-            int packedLight,
-            int packedOverlay,
-            float entityScale,
-            float red, float green, float blue)
-    {
         // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
 
         // Render helmet
         if (model.head != null && model.head.visible)
         {
-            renderCapturedPart(poseStack, vertexConsumer, model.head, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
+            renderCapturedPart(poseStack, vertexConsumer, model.head, entityData, true, packedLight, packedOverlay, entityScale);
         }
 
         // Render hat overlay
         if (model.hat != null && model.hat.visible)
         {
-            renderCapturedPart(poseStack, vertexConsumer, model.hat, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
+            renderCapturedPart(poseStack, vertexConsumer, model.hat, entityData, true, packedLight, packedOverlay, entityScale);
         }
     }
 
     /**
      * Render a part using vertex capture approach (consistent with arm/leg rendering).
      * This captures geometry at rest pose, then transforms vertices using Mo'Bends data.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
      * from MutatedRenderer.beforeRender(). We only apply per-part transforms (body, head, etc.).
@@ -447,24 +443,6 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay,
             float entityScale)
-    {
-        // Render with default white color
-        renderCapturedPart(poseStack, vertexConsumer, part, entityData, isHead, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render a part using vertex capture approach with color tint.
-     */
-    private void renderCapturedPart(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            ModelPart part,
-            BipedEntityData<?> entityData,
-            boolean isHead,
-            int packedLight,
-            int packedOverlay,
-            float entityScale,
-            float red, float green, float blue)
     {
         if (part == null || !part.visible)
         {
@@ -498,6 +476,12 @@ public class Tier1Renderer
         Matrix4f matrix = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
 
+        // Extract color tint from currentArmorColor (packed ARGB)
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
         // Output vertices directly (head has no slicing, just quads)
         // Apply color tint to each vertex
         for (CapturedVertex v : vertices)
@@ -515,7 +499,7 @@ public class Tier1Renderer
             // Output transformed vertex with color tint applied
             vertexConsumer.vertex(
                     tx, ty, tz,
-                    v.red * red, v.green * green, v.blue * blue, v.alpha,
+                    v.red * tintR, v.green * tintG, v.blue * tintB, v.alpha * tintA,
                     v.u, v.v,
                     packedOverlay, packedLight,
                     nx, ny, nz
@@ -529,6 +513,7 @@ public class Tier1Renderer
      * Render chest armor piece (body + arms).
      * Body uses vanilla position with Mo'Bends rotation.
      * Arms are split at elbow joint for proper bending.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * NOTE: Baby scale and globalOffset are NOT applied here because they're already
      * on the parent PoseStack from MutatedRenderer.beforeRender().
@@ -543,44 +528,27 @@ public class Tier1Renderer
             float entityScale,
             boolean isSlimArms)
     {
-        // Render with default white color
-        renderChest(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, isSlimArms, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render chest armor piece with color tint.
-     */
-    private void renderChest(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            HumanoidModel<?> model,
-            BipedEntityData<?> entityData,
-            int packedLight,
-            int packedOverlay,
-            float entityScale,
-            boolean isSlimArms,
-            float red, float green, float blue)
-    {
         // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
         // NOTE: Don't apply globalOffset here - it's already on parent PoseStack from beforeRender()
 
         // Render body - apply rotation around correct pivot, keep vanilla position
         poseStack.pushPose();
         applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPositionAndColor(model.body, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
+        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
         poseStack.popPose();
 
         // Render left arm (split at elbow joint)
-        renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms, red, green, blue);
+        renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms);
 
         // Render right arm (split at elbow joint)
-        renderSplitArm(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, isSlimArms, red, green, blue);
+        renderSplitArm(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, isSlimArms);
     }
 
     /**
      * Render leg armor piece (body skirt + upper legs).
      * Body waist uses vanilla position with Mo'Bends rotation.
      * Legs are split at knee joint for proper bending.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * NOTE: Baby scale and globalOffset are NOT applied here because they're already
      * on the parent PoseStack from MutatedRenderer.beforeRender().
@@ -593,23 +561,6 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay,
             float entityScale)
-    {
-        // Render with default white color
-        renderLegs(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render leg armor piece with color tint.
-     */
-    private void renderLegs(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            HumanoidModel<?> model,
-            BipedEntityData<?> entityData,
-            int packedLight,
-            int packedOverlay,
-            float entityScale,
-            float red, float green, float blue)
     {
         // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
         // NOTE: Don't apply globalOffset here - it's already on parent PoseStack from beforeRender()
@@ -617,19 +568,20 @@ public class Tier1Renderer
         // Render body (waist/skirt part of leggings) - rotation around correct pivot, vanilla position
         poseStack.pushPose();
         applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPositionAndColor(model.body, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
+        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
         poseStack.popPose();
 
         // Render left leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
 
         // Render right leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, red, green, blue);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
     }
 
     /**
      * Render feet armor piece (boots/lower legs).
      * Legs are split at knee joint for proper bending.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * NOTE: Baby scale and globalOffset are NOT applied here because they're already
      * on the parent PoseStack from MutatedRenderer.beforeRender().
@@ -643,30 +595,13 @@ public class Tier1Renderer
             int packedOverlay,
             float entityScale)
     {
-        // Render with default white color
-        renderFeet(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render feet armor piece with color tint.
-     */
-    private void renderFeet(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            HumanoidModel<?> model,
-            BipedEntityData<?> entityData,
-            int packedLight,
-            int packedOverlay,
-            float entityScale,
-            float red, float green, float blue)
-    {
         // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
 
         // Render left leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
 
         // Render right leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, red, green, blue);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
     }
 
     /**
@@ -815,6 +750,7 @@ public class Tier1Renderer
     /**
      * Render a ModelPart keeping its vanilla position but without rotation.
      * Mo'Bends rotation is already applied to PoseStack.
+     * Color tinting is applied via the currentArmorColor field.
      * Used for body/waist which should stay at vanilla position.
      */
     private void renderPartWithVanillaPosition(
@@ -823,22 +759,6 @@ public class Tier1Renderer
             VertexConsumer vertexConsumer,
             int packedLight,
             int packedOverlay)
-    {
-        renderPartWithVanillaPositionAndColor(part, poseStack, vertexConsumer, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render a ModelPart keeping its vanilla position but without rotation, with color tint.
-     * Mo'Bends rotation is already applied to PoseStack.
-     * Used for body/waist which should stay at vanilla position.
-     */
-    private void renderPartWithVanillaPositionAndColor(
-            ModelPart part,
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            int packedLight,
-            int packedOverlay,
-            float red, float green, float blue)
     {
         if (part == null || !part.visible)
         {
@@ -854,8 +774,14 @@ public class Tier1Renderer
         part.yRot = 0;
         part.zRot = 0;
 
+        // Extract color tint from currentArmorColor (packed ARGB)
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
         // Render with color tint
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, 1.0f);
+        part.render(poseStack, vertexConsumer, packedLight, packedOverlay, tintR, tintG, tintB, tintA);
 
         // Restore original rotation
         part.xRot = origXRot;
@@ -866,6 +792,7 @@ public class Tier1Renderer
     /**
      * Render a ModelPart at the origin (without its own position/rotation).
      * Full Mo'Bends transform is already applied to PoseStack.
+     * Color tinting is applied via the currentArmorColor field.
      * Used for arms, legs, head which use full Mo'Bends positioning.
      */
     private void renderPartAtOrigin(
@@ -874,20 +801,6 @@ public class Tier1Renderer
             VertexConsumer vertexConsumer,
             int packedLight,
             int packedOverlay)
-    {
-        renderPartAtOriginWithColor(part, poseStack, vertexConsumer, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render a ModelPart at the origin with color tint.
-     */
-    private void renderPartAtOriginWithColor(
-            ModelPart part,
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            int packedLight,
-            int packedOverlay,
-            float red, float green, float blue)
     {
         if (part == null || !part.visible)
         {
@@ -906,8 +819,14 @@ public class Tier1Renderer
         part.yRot = 0;
         part.zRot = 0;
 
+        // Extract color tint from currentArmorColor (packed ARGB)
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
         // Render with color tint
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, 1.0f);
+        part.render(poseStack, vertexConsumer, packedLight, packedOverlay, tintR, tintG, tintB, tintA);
 
         // Restore original values
         part.x = origX;
@@ -931,6 +850,7 @@ public class Tier1Renderer
     /**
      * Render an arm split at the elbow joint.
      * Upper arm geometry follows upperArm transform, forearm geometry follows foreArm transform.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
      * from MutatedRenderer.beforeRender().
@@ -945,25 +865,6 @@ public class Tier1Renderer
             int packedOverlay,
             float entityScale,
             boolean isSlimArms)
-    {
-        // Render with default white color
-        renderSplitArm(poseStack, vertexConsumer, model, entityData, isLeft, packedLight, packedOverlay, entityScale, isSlimArms, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render an arm split at the elbow joint with color tint.
-     */
-    private void renderSplitArm(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            HumanoidModel<?> model,
-            BipedEntityData<?> entityData,
-            boolean isLeft,
-            int packedLight,
-            int packedOverlay,
-            float entityScale,
-            boolean isSlimArms,
-            float red, float green, float blue)
     {
         ModelPart armPart = isLeft ? model.leftArm : model.rightArm;
         if (armPart == null || !armPart.visible)
@@ -986,7 +887,7 @@ public class Tier1Renderer
             {
                 poseStack.translate(0, -SLIM_ARM_Y_OFFSET, 0);
             }
-            renderPartAtOriginWithColor(armPart, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
+            renderPartAtOrigin(armPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
         }
@@ -1024,7 +925,7 @@ public class Tier1Renderer
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
         // Apply slim arm offset to Y
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay, red, green, blue);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay);
         poseStack.popPose();
 
         // 4. Render forearm portion with forearm transform (chained to upper arm)
@@ -1038,13 +939,14 @@ public class Tier1Renderer
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
         applyPartTransform(poseStack, foreArm, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, red, green, blue);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
     /**
      * Render a leg split at the knee joint.
      * Upper leg geometry follows leg transform, lower leg geometry follows foreLeg transform.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
      * from MutatedRenderer.beforeRender().
@@ -1058,24 +960,6 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay,
             float entityScale)
-    {
-        // Render with default white color
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, isLeft, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render a leg split at the knee joint with color tint.
-     */
-    private void renderSplitLeg(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            HumanoidModel<?> model,
-            BipedEntityData<?> entityData,
-            boolean isLeft,
-            int packedLight,
-            int packedOverlay,
-            float entityScale,
-            float red, float green, float blue)
     {
         ModelPart legPart = isLeft ? model.leftLeg : model.rightLeg;
         if (legPart == null || !legPart.visible)
@@ -1092,7 +976,7 @@ public class Tier1Renderer
             // NOTE: globalOffset already on parent PoseStack from beforeRender()
             poseStack.pushPose();
             applyPartTransform(poseStack, upperLeg, true);
-            renderPartAtOriginWithColor(legPart, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
+            renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
         }
@@ -1126,7 +1010,7 @@ public class Tier1Renderer
         // NOTE: globalOffset already on parent PoseStack from beforeRender()
         poseStack.pushPose();
         applyPartTransform(poseStack, upperLeg, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, red, green, blue);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay);
         poseStack.popPose();
 
         // 4. Render lower leg portion with lower leg transform (chained to upper leg)
@@ -1139,7 +1023,7 @@ public class Tier1Renderer
         poseStack.pushPose();
         applyPartTransform(poseStack, upperLeg, true);
         applyPartTransform(poseStack, lowerLeg, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, red, green, blue);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -1205,6 +1089,7 @@ public class Tier1Renderer
     /**
      * Render sliced geometry (upper or lower portion of quads).
      * Transforms vertices using current PoseStack and outputs to consumer.
+     * Color tinting is applied via the currentArmorColor field.
      *
      * IMPORTANT: The VertexConsumer expects QUADS (4 vertices each), not triangles.
      * We must output vertices in groups of 4.
@@ -1230,25 +1115,6 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay)
     {
-        // Render with default white color
-        renderSlicedVertices(poseStack, consumer, sliceResults, renderUpper, offsetX, offsetY, offsetZ, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Render sliced geometry with color tint.
-     */
-    private void renderSlicedVertices(
-            PoseStack poseStack,
-            VertexConsumer consumer,
-            List<SliceResult> sliceResults,
-            boolean renderUpper,
-            float offsetX,
-            float offsetY,
-            float offsetZ,
-            int packedLight,
-            int packedOverlay,
-            float red, float green, float blue)
-    {
         Matrix4f matrix = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
 
@@ -1269,31 +1135,31 @@ public class Tier1Renderer
             if (vertexCount == 4)
             {
                 // Standard quad - output 4 vertices directly
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
             }
             else if (vertexCount == 3)
             {
                 // Triangle - create degenerate quad by duplicating last vertex
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue); // Duplicate
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
             }
             else if (vertexCount == 5)
             {
                 // Pentagon - split into 2 quads: (0,1,2,3) and (0,3,4,4)
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
 
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue); // Duplicate
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
             }
             else if (vertexCount >= 6)
             {
@@ -1301,10 +1167,10 @@ public class Tier1Renderer
                 // Each triangle (0, i, i+1) becomes a degenerate quad
                 for (int i = 1; i < vertexCount - 1; i++)
                 {
-                    outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                    outputVertex(matrix, normal, consumer, vertices.get(i), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
-                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue); // Duplicate
+                    outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                    outputVertex(matrix, normal, consumer, vertices.get(i), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
                 }
             }
             // vertexCount < 3 is degenerate, skip
@@ -1314,6 +1180,7 @@ public class Tier1Renderer
     /**
      * Output a single vertex, transformed by the given matrices.
      * Applies an offset to the vertex position before transformation (for local space conversion).
+     * Color tinting is applied via the currentArmorColor field.
      */
     private void outputVertex(
             Matrix4f matrix,
@@ -1325,25 +1192,6 @@ public class Tier1Renderer
             float offsetZ,
             int packedLight,
             int packedOverlay)
-    {
-        // Render with default white color
-        outputVertex(matrix, normal, consumer, v, offsetX, offsetY, offsetZ, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
-    }
-
-    /**
-     * Output a single vertex with color tint.
-     */
-    private void outputVertex(
-            Matrix4f matrix,
-            Matrix3f normal,
-            VertexConsumer consumer,
-            SliceResult.SlicedVertex v,
-            float offsetX,
-            float offsetY,
-            float offsetZ,
-            int packedLight,
-            int packedOverlay,
-            float red, float green, float blue)
     {
         // Apply offset to vertex position (converts to local space for child bones)
         float vx = v.x + offsetX;
@@ -1360,10 +1208,16 @@ public class Tier1Renderer
         float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
         float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
+        // Extract color tint from currentArmorColor (packed ARGB)
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
         // Output transformed vertex with color tint applied
         consumer.vertex(
                 tx, ty, tz,
-                v.red * red, v.green * green, v.blue * blue, v.alpha,
+                v.red * tintR, v.green * tintG, v.blue * tintB, v.alpha * tintA,
                 v.u, v.v,
                 packedOverlay, packedLight,
                 nx, ny, nz

@@ -7,28 +7,26 @@ import goblinbob.mobends.standard.client.model.armor.cache.ArmorStructureCache;
 import goblinbob.mobends.standard.client.model.armor.cache.CacheManager;
 import goblinbob.mobends.standard.client.model.armor.tier.PartClassification;
 import goblinbob.mobends.standard.client.model.armor.tier.RenderTier;
-import goblinbob.mobends.standard.client.model.armor.tier3.Tier3Renderer;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Tier 2 renderer: Model Interception.
+ * Tier 2 renderer: Custom Model armor.
  *
- * This renderer works with armor models that use ModelPart but don't extend HumanoidModel.
+ * This renderer works with armor models that don't extend HumanoidModel.
  * It analyzes the model structure spatially to classify parts, then applies transforms
  * by modifying ModelPart values before vanilla rendering.
  *
@@ -37,35 +35,27 @@ import java.util.function.Function;
  * 2. For each classified part, apply Mo'Bends animation transform
  * 3. Render the model normally (vanilla render with modified part values)
  * 4. Restore original part values after render
- *
- * Falls back to Tier 3 if analysis fails or produces low-confidence results.
  */
 @OnlyIn(Dist.CLIENT)
 public class Tier2Renderer
 {
     private final SpatialAnalyzer spatialAnalyzer;
     private final ModelPartTransformer modelPartTransformer;
-    private final Tier3Renderer tier3Fallback;
-
-    // Threshold for using analyzed results vs falling back to Tier 3
-    private static final float MIN_CONFIDENCE = 0.5f;
 
     // Performance tracking
     private long renderCount = 0;
-    private long fallbackCount = 0;
+    private long unclassifiedCount = 0;
 
     public Tier2Renderer()
     {
         this.spatialAnalyzer = new SpatialAnalyzer();
         this.modelPartTransformer = new ModelPartTransformer();
-        this.tier3Fallback = new Tier3Renderer();
     }
 
-    public Tier2Renderer(SpatialAnalyzer spatialAnalyzer, ModelPartTransformer modelPartTransformer, Tier3Renderer tier3Fallback)
+    public Tier2Renderer(SpatialAnalyzer spatialAnalyzer, ModelPartTransformer modelPartTransformer)
     {
         this.spatialAnalyzer = spatialAnalyzer;
         this.modelPartTransformer = modelPartTransformer;
-        this.tier3Fallback = tier3Fallback;
     }
 
     /**
@@ -73,7 +63,7 @@ public class Tier2Renderer
      */
     public RenderTier getTier()
     {
-        return RenderTier.TIER_2_MODEL_INTERCEPTION;
+        return RenderTier.TIER_2_CUSTOM_MODEL;
     }
 
     /**
@@ -109,13 +99,132 @@ public class Tier2Renderer
 
         try
         {
-            render(context, model, texture, tex -> RenderType.armorCutoutNoCull(tex));
+            // Use ItemRenderer.getArmorFoilBuffer to properly handle enchantment glint
+            VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
+                    context.getBufferSource(),
+                    RenderType.armorCutoutNoCull(texture),
+                    false,  // No outer layer (handled separately if needed)
+                    hasFoil);
+            renderWithConsumer(context, model, vertexConsumer);
             return true;
         }
         catch (Exception e)
         {
             return false;
         }
+    }
+
+    /**
+     * Render armor with a pre-configured VertexConsumer (for foil support).
+     */
+    private <E extends LivingEntity> void renderWithConsumer(
+            ArmorRenderContext<E> context,
+            Model model,
+            VertexConsumer vertexConsumer)
+    {
+        if (context.getEntityData() == null)
+        {
+            return;
+        }
+
+        renderCount++;
+
+        // Get or compute part classifications
+        Map<String, PartClassification> classifications = getClassifications(model);
+
+        // If we can't classify the model, render it without transforms
+        if (!hasValidClassifications(classifications, context.getSlot()))
+        {
+            unclassifiedCount++;
+            renderWithoutTransforms(context.getPoseStack(), context, model, vertexConsumer);
+            return;
+        }
+
+        BipedEntityData<?> entityData = context.getEntityData();
+        PoseStack poseStack = context.getPoseStack();
+
+        // Store original part values
+        Map<String, OriginalPartState> originalStates = storePartStates(model, classifications);
+
+        try
+        {
+            // Apply transforms to all classified parts
+            applyTransforms(model, classifications, entityData);
+
+            // Render with modified transforms
+            poseStack.pushPose();
+
+            // Apply baby scale if needed (babies render at 0.5 scale)
+            float entityScale = context.getEntityScale();
+            if (entityScale != 1.0f)
+            {
+                poseStack.scale(entityScale, entityScale, entityScale);
+            }
+
+            // Note: Global transforms (globalOffset, centerRotation, renderRotation, localOffset)
+            // are already applied by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
+
+            // Extract color from context (packed ARGB)
+            int color = context.getArmorColor();
+            float alpha = ((color >> 24) & 0xFF) / 255.0f;
+            float red = ((color >> 16) & 0xFF) / 255.0f;
+            float green = ((color >> 8) & 0xFF) / 255.0f;
+            float blue = (color & 0xFF) / 255.0f;
+
+            model.renderToBuffer(
+                    poseStack,
+                    vertexConsumer,
+                    context.getPackedLight(),
+                    context.getPackedOverlay(),
+                    red, green, blue, alpha
+            );
+
+            poseStack.popPose();
+
+            // Record cache statistics
+            CacheManager.getInstance().recordCacheAssistedRender();
+        }
+        finally
+        {
+            // Restore original part states
+            restorePartStates(model, originalStates);
+        }
+    }
+
+    /**
+     * Render without applying Mo'Bends transforms (for unclassified models).
+     */
+    private <E extends LivingEntity> void renderWithoutTransforms(
+            PoseStack poseStack,
+            ArmorRenderContext<E> context,
+            Model model,
+            VertexConsumer vertexConsumer)
+    {
+        poseStack.pushPose();
+
+        // Apply baby scale if needed
+        float entityScale = context.getEntityScale();
+        if (entityScale != 1.0f)
+        {
+            poseStack.scale(entityScale, entityScale, entityScale);
+        }
+
+        // Extract color from context (packed ARGB)
+        int color = context.getArmorColor();
+        float alpha = ((color >> 24) & 0xFF) / 255.0f;
+        float red = ((color >> 16) & 0xFF) / 255.0f;
+        float green = ((color >> 8) & 0xFF) / 255.0f;
+        float blue = (color & 0xFF) / 255.0f;
+
+        model.renderToBuffer(
+                poseStack,
+                vertexConsumer,
+                context.getPackedLight(),
+                context.getPackedOverlay(),
+                red, green, blue, alpha
+        );
+
+        poseStack.popPose();
     }
 
     /**
@@ -145,12 +254,11 @@ public class Tier2Renderer
         // Get or compute part classifications
         Map<String, PartClassification> classifications = getClassifications(model);
 
-        // Check if we have sufficient classifications
+        // If we can't classify the model, render it without transforms
         if (!hasValidClassifications(classifications, context.getSlot()))
         {
-            // Fall back to Tier 3
-            fallbackCount++;
-            tier3Fallback.render(context, model, texture, renderTypeProvider);
+            unclassifiedCount++;
+            renderVanilla(context, model, texture, renderTypeProvider);
             return;
         }
 
@@ -176,19 +284,25 @@ public class Tier2Renderer
                 poseStack.scale(entityScale, entityScale, entityScale);
             }
 
-            // Apply global offset (for crouching, etc.) scaled by entityScale for babies
-            // This matches MutatedRenderer.beforeRender() behavior
-            applyGlobalOffset(poseStack, entityData, entityScale);
+            // Note: Global transforms (globalOffset, centerRotation, renderRotation, localOffset)
+            // are already applied by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
 
             RenderType renderType = renderTypeProvider.apply(texture);
             VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+
+            // Extract color from context (packed ARGB)
+            int color = context.getArmorColor();
+            float alpha = ((color >> 24) & 0xFF) / 255.0f;
+            float red = ((color >> 16) & 0xFF) / 255.0f;
+            float green = ((color >> 8) & 0xFF) / 255.0f;
+            float blue = (color & 0xFF) / 255.0f;
 
             model.renderToBuffer(
                     poseStack,
                     vertexConsumer,
                     context.getPackedLight(),
                     context.getPackedOverlay(),
-                    1.0f, 1.0f, 1.0f, 1.0f
+                    red, green, blue, alpha
             );
 
             poseStack.popPose();
@@ -224,7 +338,7 @@ public class Tier2Renderer
         // Cache the results
         ArmorStructureCache.StructureEntry entry = new ArmorStructureCache.StructureEntry(
                 modelClass,
-                RenderTier.TIER_2_MODEL_INTERCEPTION,
+                RenderTier.TIER_2_CUSTOM_MODEL,
                 classifications,
                 extractBoneMap(classifications),
                 false,
@@ -346,12 +460,20 @@ public class Tier2Renderer
         poseStack.pushPose();
 
         RenderType renderType = renderTypeProvider.apply(texture);
+
+        // Extract color from context (packed ARGB)
+        int color = context.getArmorColor();
+        float alpha = ((color >> 24) & 0xFF) / 255.0f;
+        float red = ((color >> 16) & 0xFF) / 255.0f;
+        float green = ((color >> 8) & 0xFF) / 255.0f;
+        float blue = (color & 0xFF) / 255.0f;
+
         model.renderToBuffer(
                 poseStack,
                 bufferSource.getBuffer(renderType),
                 context.getPackedLight(),
                 context.getPackedOverlay(),
-                1.0f, 1.0f, 1.0f, 1.0f
+                red, green, blue, alpha
         );
 
         poseStack.popPose();
@@ -374,14 +496,6 @@ public class Tier2Renderer
     }
 
     /**
-     * Get the Tier 3 fallback renderer.
-     */
-    public Tier3Renderer getTier3Fallback()
-    {
-        return tier3Fallback;
-    }
-
-    /**
      * Get the total number of render calls.
      */
     public long getRenderCount()
@@ -390,19 +504,19 @@ public class Tier2Renderer
     }
 
     /**
-     * Get the number of renders that fell back to Tier 3.
+     * Get the number of renders where model couldn't be classified.
      */
-    public long getFallbackCount()
+    public long getUnclassifiedCount()
     {
-        return fallbackCount;
+        return unclassifiedCount;
     }
 
     /**
-     * Get the fallback rate.
+     * Get the unclassified rate.
      */
-    public float getFallbackRate()
+    public float getUnclassifiedRate()
     {
-        return renderCount > 0 ? (float) fallbackCount / renderCount : 0;
+        return renderCount > 0 ? (float) unclassifiedCount / renderCount : 0;
     }
 
     /**
@@ -411,7 +525,7 @@ public class Tier2Renderer
     public void resetStats()
     {
         renderCount = 0;
-        fallbackCount = 0;
+        unclassifiedCount = 0;
     }
 
     /**
@@ -419,32 +533,8 @@ public class Tier2Renderer
      */
     public String getStats()
     {
-        return String.format("Tier2Renderer: %d renders, %d fallbacks (%.1f%% fallback rate)",
-                renderCount, fallbackCount, getFallbackRate() * 100);
-    }
-
-    private static final float SCALE = 1.0f / 16.0f;
-
-    /**
-     * Apply global offset from entity data, scaled by entityScale for baby entities.
-     * This matches MutatedRenderer.beforeRender() behavior.
-     */
-    private void applyGlobalOffset(PoseStack poseStack, BipedEntityData<?> entityData, float entityScale)
-    {
-        if (entityData.globalOffset != null)
-        {
-            var offset = entityData.globalOffset.getSmooth();
-            if (offset != null && (offset.x != 0 || offset.y != 0 || offset.z != 0))
-            {
-                // Match MutatedRenderer.beforeRender() behavior:
-                // globalOffset is multiplied by entityScale for babies
-                poseStack.translate(
-                    offset.x * SCALE * entityScale,
-                    offset.y * SCALE * entityScale,
-                    offset.z * SCALE * entityScale
-                );
-            }
-        }
+        return String.format("Tier2Renderer: %d renders, %d unclassified (%.1f%% unclassified rate)",
+                renderCount, unclassifiedCount, getUnclassifiedRate() * 100);
     }
 
     /**
