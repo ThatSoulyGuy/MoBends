@@ -389,9 +389,6 @@ public class Tier1Renderer
      *
      * Uses vertex capture approach (like arms) for consistent transform handling.
      * Color tinting is applied via the currentArmorColor field.
-     *
-     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
-     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderHead(
             PoseStack poseStack,
@@ -422,17 +419,14 @@ public class Tier1Renderer
      * This captures geometry at rest pose, then transforms vertices using Mo'Bends data.
      * Color tinting is applied via the currentArmorColor field.
      *
-     * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
-     * from MutatedRenderer.beforeRender(). We only apply per-part transforms (body, head, etc.).
-     *
-     * @param poseStack The pose stack (already has entity-level transforms from beforeRender)
+     * @param poseStack The pose stack
      * @param vertexConsumer The vertex consumer
      * @param part The model part to render
      * @param entityData The entity's animation data
      * @param isHead true for head parts (uses body + head transform), false otherwise
      * @param packedLight Light value
      * @param packedOverlay Overlay value
-     * @param entityScale Scale factor (1.0 for adults, 0.5 for babies) - for reference only, already applied
+     * @param entityScale Scale factor (1.0 for adults, 0.5 for babies)
      */
     private void renderCapturedPart(
             PoseStack poseStack,
@@ -463,7 +457,7 @@ public class Tier1Renderer
         }
 
         // 2. Apply Mo'Bends per-part transforms to PoseStack
-        // NOTE: globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
+        // NOTE: Entity-level globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
         poseStack.pushPose();
         applyPartTransform(poseStack, entityData.body, true);  // Body transform (head is parented to body)
 
@@ -510,13 +504,134 @@ public class Tier1Renderer
     }
 
     /**
+     * Render body armor using vertex capture with pivot rotation.
+     *
+     * body.position in Mo'Bends is a PIVOT point for rotation, not a translation.
+     * The armor geometry should stay at its vanilla position, but rotate around the Mo'Bends pivot.
+     *
+     * Transform sequence:
+     * 1. Translate to pivot (body.position)
+     * 2. Apply body.offset (animation bobbing)
+     * 3. Rotate (body.rotation)
+     * 4. Translate back from pivot (so geometry stays at vanilla position)
+     *
+     * This matches what applyBodyTransformWithPivot did, but uses vertex capture for consistency.
+     */
+    private void renderBodyWithPivotRotation(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart part,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay)
+    {
+        if (part == null || !part.visible)
+        {
+            return;
+        }
+
+        ModelPartTransform body = entityData.body;
+        if (body == null)
+        {
+            return;
+        }
+
+        // 1. Capture geometry at rest pose using IDENTITY PoseStack
+        limbCapture.clear();
+        PoseStack captureStack = new PoseStack();  // Identity matrix
+        resetPartToOrigin(part);
+        part.render(captureStack, limbCapture, packedLight, packedOverlay);
+        restorePartFromCapture(part);
+
+        List<CapturedVertex> vertices = limbCapture.getVertices();
+        if (vertices.isEmpty())
+        {
+            return;
+        }
+
+        // 2. Apply pivot rotation transform to PoseStack
+        // NOTE: Entity-level globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
+        poseStack.pushPose();
+
+        // Apply per-part globalOffset (before other transforms)
+        if (body.globalOffset.x != 0 || body.globalOffset.y != 0 || body.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                body.globalOffset.x * SCALE,
+                body.globalOffset.y * SCALE,
+                body.globalOffset.z * SCALE
+            );
+        }
+
+        float offsetScale = body.offsetScale;
+
+        // Translate to body pivot point (use offsetScale to match player transform exactly)
+        poseStack.translate(
+            body.position.x * SCALE * offsetScale,
+            body.position.y * SCALE * offsetScale,
+            body.position.z * SCALE * offsetScale
+        );
+
+        // Apply animation offset with offsetScale (bobbing, etc.)
+        if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
+        {
+            poseStack.translate(
+                body.offset.x * SCALE * offsetScale,
+                body.offset.y * SCALE * offsetScale,
+                body.offset.z * SCALE * offsetScale
+            );
+        }
+
+        // Apply rotation (now around the correct pivot)
+        GlHelper.rotate(poseStack, body.rotation.getSmooth());
+
+        // Translate back from pivot so armor stays at vanilla position (use offsetScale to match)
+        poseStack.translate(
+            -body.position.x * SCALE * offsetScale,
+            -body.position.y * SCALE * offsetScale,
+            -body.position.z * SCALE * offsetScale
+        );
+
+        // 3. Transform and output vertices
+        Matrix4f matrix = poseStack.last().pose();
+        Matrix3f normal = poseStack.last().normal();
+
+        // Extract color tint from currentArmorColor (packed ARGB)
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
+        for (CapturedVertex v : vertices)
+        {
+            // Transform position by matrix
+            float tx = matrix.m00() * v.x + matrix.m10() * v.y + matrix.m20() * v.z + matrix.m30();
+            float ty = matrix.m01() * v.x + matrix.m11() * v.y + matrix.m21() * v.z + matrix.m31();
+            float tz = matrix.m02() * v.x + matrix.m12() * v.y + matrix.m22() * v.z + matrix.m32();
+
+            // Transform normal by normal matrix
+            float nx = normal.m00() * v.normalX + normal.m10() * v.normalY + normal.m20() * v.normalZ;
+            float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
+            float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
+
+            // Output transformed vertex with color tint applied
+            vertexConsumer.vertex(
+                    tx, ty, tz,
+                    v.red * tintR, v.green * tintG, v.blue * tintB, v.alpha * tintA,
+                    v.u, v.v,
+                    packedOverlay, packedLight,
+                    nx, ny, nz
+            );
+        }
+
+        poseStack.popPose();
+    }
+
+    /**
      * Render chest armor piece (body + arms).
      * Body uses vanilla position with Mo'Bends rotation.
      * Arms are split at elbow joint for proper bending.
      * Color tinting is applied via the currentArmorColor field.
-     *
-     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
-     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderChest(
             PoseStack poseStack,
@@ -529,13 +644,13 @@ public class Tier1Renderer
             boolean isSlimArms)
     {
         // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
-        // NOTE: Don't apply globalOffset here - it's already on parent PoseStack from beforeRender()
 
-        // Render body - apply rotation around correct pivot, keep vanilla position
-        poseStack.pushPose();
-        applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
-        poseStack.popPose();
+        // Render body using vertex capture with pivot rotation
+        // body.position is a PIVOT point, not a translation - we rotate around it then translate back
+        if (model.body != null && model.body.visible)
+        {
+            renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
+        }
 
         // Render left arm (split at elbow joint)
         renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms);
@@ -549,9 +664,6 @@ public class Tier1Renderer
      * Body waist uses vanilla position with Mo'Bends rotation.
      * Legs are split at knee joint for proper bending.
      * Color tinting is applied via the currentArmorColor field.
-     *
-     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
-     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderLegs(
             PoseStack poseStack,
@@ -563,13 +675,13 @@ public class Tier1Renderer
             float entityScale)
     {
         // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
-        // NOTE: Don't apply globalOffset here - it's already on parent PoseStack from beforeRender()
 
-        // Render body (waist/skirt part of leggings) - rotation around correct pivot, vanilla position
-        poseStack.pushPose();
-        applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
-        poseStack.popPose();
+        // Render body (waist/skirt part of leggings) using vertex capture with pivot rotation
+        // body.position is a PIVOT point, not a translation - we rotate around it then translate back
+        if (model.body != null && model.body.visible)
+        {
+            renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
+        }
 
         // Render left leg (split at knee joint)
         renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
@@ -582,9 +694,6 @@ public class Tier1Renderer
      * Render feet armor piece (boots/lower legs).
      * Legs are split at knee joint for proper bending.
      * Color tinting is applied via the currentArmorColor field.
-     *
-     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
-     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderFeet(
             PoseStack poseStack,
@@ -631,9 +740,9 @@ public class Tier1Renderer
      * Apply body transform with correct pivot point for rotation.
      * Mo'Bends rotates the body around body.position, so we need to:
      * 1. Apply per-part globalOffset
-     * 2. Translate to pivot
+     * 2. Translate to pivot (with offsetScale)
      * 3. Apply offset (with offsetScale) and rotation
-     * 4. Translate back from pivot
+     * 4. Translate back from pivot (with offsetScale)
      */
     private void applyBodyTransformWithPivot(PoseStack poseStack, BipedEntityData<?> entityData)
     {
@@ -656,11 +765,11 @@ public class Tier1Renderer
         // Get offsetScale for animation translations
         float offsetScale = body.offsetScale;
 
-        // Translate to body pivot point
+        // Translate to body pivot point (use offsetScale to match player transform)
         poseStack.translate(
-            body.position.x * SCALE,
-            body.position.y * SCALE,
-            body.position.z * SCALE
+            body.position.x * SCALE * offsetScale,
+            body.position.y * SCALE * offsetScale,
+            body.position.z * SCALE * offsetScale
         );
 
         // Apply animation offset with offsetScale
@@ -679,9 +788,9 @@ public class Tier1Renderer
 
         // Translate back from pivot so rendering happens at vanilla position
         poseStack.translate(
-            -body.position.x * SCALE,
-            -body.position.y * SCALE,
-            -body.position.z * SCALE
+            -body.position.x * SCALE * offsetScale,
+            -body.position.y * SCALE * offsetScale,
+            -body.position.z * SCALE * offsetScale
         );
     }
 
@@ -812,6 +921,61 @@ public class Tier1Renderer
     }
 
     /**
+     * Apply leg transform using the armor model's X position instead of entityData position.
+     *
+     * This fixes a discrepancy between player and biped mobs:
+     * - PlayerMutator uses leg pivots at X=±1.9 (matching armor model)
+     * - BipedMutator (zombies, etc.) uses leg pivots at X=0 (central) with cube offsets
+     *
+     * Since armor models always have legs at X=±1.9, we need to use the armor position
+     * for the X translation to ensure proper positioning on all biped types.
+     *
+     * @param poseStack The pose stack to modify
+     * @param transform The Mo'Bends leg transform (provides Y/Z position, rotation, offsets)
+     * @param armorLegX The armor model's leg X position (typically ±1.9)
+     */
+    private void applyLegTransformWithArmorX(PoseStack poseStack, ModelPartTransform transform, float armorLegX)
+    {
+        if (transform == null)
+        {
+            return;
+        }
+
+        // Apply per-part globalOffset (before other transforms)
+        if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                transform.globalOffset.x * SCALE,
+                transform.globalOffset.y * SCALE,
+                transform.globalOffset.z * SCALE
+            );
+        }
+
+        float offsetScale = transform.offsetScale;
+
+        // Use armor model's X position, entityData's Y and Z
+        // This ensures legs render at correct horizontal position for all biped types
+        poseStack.translate(
+            armorLegX * SCALE * offsetScale,
+            transform.position.y * SCALE * offsetScale,
+            transform.position.z * SCALE * offsetScale
+        );
+
+        // Apply animation offset
+        if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
+        {
+            poseStack.translate(
+                transform.offset.x * SCALE * offsetScale,
+                transform.offset.y * SCALE * offsetScale,
+                transform.offset.z * SCALE * offsetScale
+            );
+        }
+
+        // Apply rotation
+        GlHelper.rotate(poseStack, transform.rotation.getSmooth());
+    }
+
+    /**
      * Render a ModelPart keeping its vanilla position but without rotation.
      * Mo'Bends rotation is already applied to PoseStack.
      * Color tinting is applied via the currentArmorColor field.
@@ -918,9 +1082,6 @@ public class Tier1Renderer
      *
      * NOTE: Arms use Mo'Bends positions because they are parented to body in the transform hierarchy.
      * Unlike legs (which are root-level), arms need relative positioning after body transform.
-     *
-     * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
-     * from MutatedRenderer.beforeRender().
      */
     private void renderSplitArm(
             PoseStack poseStack,
@@ -945,7 +1106,7 @@ public class Tier1Renderer
         {
             // Simple mode: render whole arm with upper arm transform only
             // This means armor won't bend at elbow, but will render correctly
-            // NOTE: globalOffset already on parent PoseStack from beforeRender()
+            // NOTE: Entity-level globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
             poseStack.pushPose();
             applyPartTransform(poseStack, entityData.body, true);
             applyPartTransform(poseStack, upperArm, true);
@@ -987,7 +1148,7 @@ public class Tier1Renderer
 
         // 3. Render upper arm portion with upper arm transform
         // Upper portion vertices stay as-is (no offset needed except for slim arms)
-        // NOTE: globalOffset already on parent PoseStack from beforeRender()
+        // NOTE: Entity-level globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
         poseStack.pushPose();
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
@@ -998,10 +1159,10 @@ public class Tier1Renderer
         // 4. Render forearm portion with forearm transform (chained to upper arm)
         // Lower portion vertices need to be offset by forearm's position to be in forearm-local-space
         // foreArm.position is (0, 4, 2) in model units, so we offset by (-0, -0.25, -0.125) in render units
-        // NOTE: globalOffset already on parent PoseStack from beforeRender()
         float foreArmOffsetX = -foreArm.position.x * SCALE;
         float foreArmOffsetY = -foreArm.position.y * SCALE + slimArmOffset;  // Include slim arm offset
         float foreArmOffsetZ = -foreArm.position.z * SCALE;
+        // NOTE: Entity-level globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
         poseStack.pushPose();
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
@@ -1014,11 +1175,6 @@ public class Tier1Renderer
      * Render a leg split at the knee joint.
      * Upper leg geometry follows leg transform, lower leg geometry follows foreLeg transform.
      * Color tinting is applied via the currentArmorColor field.
-     *
-     * IMPORTANT: Uses armor model's original position for translation, not Mo'Bends position.
-     * This fixes armor rendering on mobs where Mo'Bends uses different leg positions than vanilla armor.
-     * - Players: Mo'Bends legs at ±1.9, vanilla armor at ±1.9 (matches)
-     * - Zombies: Mo'Bends legs at 0, vanilla armor at ±1.9 (mismatch - fixed by using armor position)
      *
      * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
      * from MutatedRenderer.beforeRender().
@@ -1041,20 +1197,14 @@ public class Tier1Renderer
 
         ModelPartTransform upperLeg = isLeft ? entityData.leftLeg : entityData.rightLeg;
 
-        // Save armor model's original position BEFORE resetting to origin
-        // This is critical for mobs where Mo'Bends uses different positions than vanilla armor
-        float armorX = legPart.x;
-        float armorY = legPart.y;
-        float armorZ = legPart.z;
-
         if (!ENABLE_LIMB_SLICING)
         {
             // Simple mode: render whole leg with upper leg transform only
             // This means armor won't bend at knee, but will render correctly
-            // NOTE: Use armor model position for translation, Mo'Bends for rotation/offset
             // NOTE: globalOffset already on parent PoseStack from beforeRender()
+            // Use armor model's leg X position to fix zombies
             poseStack.pushPose();
-            applyPartTransformWithArmorPosition(poseStack, upperLeg, armorX, armorY, armorZ);
+            applyLegTransformWithArmorX(poseStack, upperLeg, legPart.x);
             renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
@@ -1086,25 +1236,202 @@ public class Tier1Renderer
         // 3. Render upper leg portion with upper leg transform
         // Note: Legs are NOT parented to body in Mo'Bends
         // Upper portion vertices stay as-is (no offset needed)
-        // NOTE: Use armor model position for translation, Mo'Bends for rotation/offset
         // NOTE: globalOffset already on parent PoseStack from beforeRender()
+        // Use armor model's leg X position to fix zombies (entityData has X=0, armor expects X=±1.9)
         poseStack.pushPose();
-        applyPartTransformWithArmorPosition(poseStack, upperLeg, armorX, armorY, armorZ);
+        applyLegTransformWithArmorX(poseStack, upperLeg, legPart.x);
         renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay);
         poseStack.popPose();
 
         // 4. Render lower leg portion with lower leg transform (chained to upper leg)
         // Lower portion vertices need to be offset by lowerLeg's position to be in lower-leg-local-space
         // lowerLeg.position is (0, 6, -2) in model units, so we offset by (-0, -0.375, 0.125) in render units
-        // NOTE: globalOffset already on parent PoseStack from beforeRender()
         float lowerLegOffsetX = -lowerLeg.position.x * SCALE;
         float lowerLegOffsetY = -lowerLeg.position.y * SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * SCALE;
         poseStack.pushPose();
-        applyPartTransformWithArmorPosition(poseStack, upperLeg, armorX, armorY, armorZ);
+        applyLegTransformWithArmorX(poseStack, upperLeg, legPart.x);
         applyPartTransform(poseStack, lowerLeg, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false,
+                lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    /**
+     * Apply upper leg transform with X/Y/Z pivot adjustment.
+     *
+     * Mo'Bends uses central pivot X=0 for legs, but armor has X=±1.9.
+     * If we apply X offset to vertices, it rotates with them causing displacement.
+     * Instead, we adjust the pivot point:
+     * 1. Translate to Mo'Bends leg position
+     * 2. Shift by pivotToArmor (to move pivot to armor position)
+     * 3. Apply rotation (now around the armor pivot)
+     * 4. Shift back by pivotToArmor (so armor stays at correct position)
+     */
+    private void applyUpperLegTransformWithPivotAdjust(
+            PoseStack poseStack,
+            ModelPartTransform upperLeg,
+            float pivotToArmorX, float pivotToArmorY, float pivotToArmorZ)
+    {
+        if (upperLeg == null)
+        {
+            return;
+        }
+
+        // Apply per-part globalOffset
+        if (upperLeg.globalOffset.x != 0 || upperLeg.globalOffset.y != 0 || upperLeg.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                upperLeg.globalOffset.x * SCALE,
+                upperLeg.globalOffset.y * SCALE,
+                upperLeg.globalOffset.z * SCALE
+            );
+        }
+
+        float offsetScale = upperLeg.offsetScale;
+
+        // Translate to Mo'Bends leg position (hip pivot)
+        poseStack.translate(
+            upperLeg.position.x * SCALE * offsetScale,
+            upperLeg.position.y * SCALE * offsetScale,
+            upperLeg.position.z * SCALE * offsetScale
+        );
+
+        // Apply animation offset
+        if (upperLeg.offset.x != 0 || upperLeg.offset.y != 0 || upperLeg.offset.z != 0)
+        {
+            poseStack.translate(
+                upperLeg.offset.x * SCALE * offsetScale,
+                upperLeg.offset.y * SCALE * offsetScale,
+                upperLeg.offset.z * SCALE * offsetScale
+            );
+        }
+
+        // PIVOT ADJUSTMENT: Shift the rotation pivot to where the armor leg is
+        // Mo'Bends leg X = 0 (centered), Armor leg X = ±1.9
+        // Shift to armor position before rotation, then back after
+        poseStack.translate(pivotToArmorX, pivotToArmorY, pivotToArmorZ);
+
+        // Apply rotation (now around the adjusted pivot point)
+        GlHelper.rotate(poseStack, upperLeg.rotation.getSmooth());
+
+        // Translate back by the pivot adjustment so armor ends up at correct position
+        poseStack.translate(-pivotToArmorX, -pivotToArmorY, -pivotToArmorZ);
+    }
+
+    /**
+     * Apply lower leg transform with Z-only pivot adjustment.
+     *
+     * The Mo'Bends knee pivot is at Z=-2 (behind the leg), but armor geometry has knee at Z=0.
+     * When the knee rotates, a Z vertex offset would rotate with it, causing displacement.
+     * Instead, we adjust the Z pivot point:
+     * 1. Translate to Mo'Bends knee position
+     * 2. Shift forward by the Z difference (pivot adjustment)
+     * 3. Apply rotation (now around Z=0, matching armor knee)
+     * 4. Shift back (so armor stays at correct position)
+     *
+     * X and Y offsets are handled as vertex offsets (they don't cause rotation issues).
+     *
+     * @param poseStack The pose stack
+     * @param lowerLeg The lower leg transform data
+     * @param pivotToArmorZ The Z offset from Mo'Bends pivot to armor position (usually 0)
+     */
+    private void applyLowerLegTransformWithPivotAdjust(PoseStack poseStack, ModelPartTransform lowerLeg, float pivotToArmorZ)
+    {
+        if (lowerLeg == null)
+        {
+            return;
+        }
+
+        // Apply per-part globalOffset
+        if (lowerLeg.globalOffset.x != 0 || lowerLeg.globalOffset.y != 0 || lowerLeg.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                lowerLeg.globalOffset.x * SCALE,
+                lowerLeg.globalOffset.y * SCALE,
+                lowerLeg.globalOffset.z * SCALE
+            );
+        }
+
+        float offsetScale = lowerLeg.offsetScale;
+
+        // Translate to lower leg position (knee position in upper leg space)
+        poseStack.translate(
+            lowerLeg.position.x * SCALE * offsetScale,
+            lowerLeg.position.y * SCALE * offsetScale,
+            lowerLeg.position.z * SCALE * offsetScale
+        );
+
+        // Apply animation offset
+        if (lowerLeg.offset.x != 0 || lowerLeg.offset.y != 0 || lowerLeg.offset.z != 0)
+        {
+            poseStack.translate(
+                lowerLeg.offset.x * SCALE * offsetScale,
+                lowerLeg.offset.y * SCALE * offsetScale,
+                lowerLeg.offset.z * SCALE * offsetScale
+            );
+        }
+
+        // Z PIVOT ADJUSTMENT:
+        // Mo'Bends knee Z = lowerLeg.position.z = -2 (behind)
+        // Armor knee Z = 0
+        // Shift forward before rotation, then back after
+        float kneeZAdjust = -lowerLeg.position.z * SCALE + pivotToArmorZ;  // = 0.125 + 0 = 0.125 (forward)
+        poseStack.translate(0, 0, kneeZAdjust);
+
+        // Apply rotation (now around Z=0, matching armor knee position)
+        GlHelper.rotate(poseStack, lowerLeg.rotation.getSmooth());
+
+        // Translate back so armor ends up at correct position
+        poseStack.translate(0, 0, -kneeZAdjust);
+    }
+
+    /**
+     * Render captured vertices with an offset, transforming by current PoseStack.
+     * Used for simple (non-sliced) part rendering.
+     */
+    private void renderCapturedVerticesWithOffset(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            List<CapturedVertex> vertices,
+            float offsetX, float offsetY, float offsetZ,
+            int packedLight, int packedOverlay)
+    {
+        Matrix4f matrix = poseStack.last().pose();
+        Matrix3f normal = poseStack.last().normal();
+
+        // Extract color tint from currentArmorColor (packed ARGB)
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
+        for (CapturedVertex v : vertices)
+        {
+            // Apply offset to vertex position
+            float vx = v.x + offsetX;
+            float vy = v.y + offsetY;
+            float vz = v.z + offsetZ;
+
+            // Transform position by matrix
+            float tx = matrix.m00() * vx + matrix.m10() * vy + matrix.m20() * vz + matrix.m30();
+            float ty = matrix.m01() * vx + matrix.m11() * vy + matrix.m21() * vz + matrix.m31();
+            float tz = matrix.m02() * vx + matrix.m12() * vy + matrix.m22() * vz + matrix.m32();
+
+            // Transform normal by normal matrix
+            float nx = normal.m00() * v.normalX + normal.m10() * v.normalY + normal.m20() * v.normalZ;
+            float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
+            float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
+
+            // Output transformed vertex with color tint applied
+            vertexConsumer.vertex(
+                    tx, ty, tz,
+                    v.red * tintR, v.green * tintG, v.blue * tintB, v.alpha * tintA,
+                    v.u, v.v,
+                    packedOverlay, packedLight,
+                    nx, ny, nz
+            );
+        }
     }
 
     // ========== HELPER METHODS FOR SPLIT RENDERING ==========
