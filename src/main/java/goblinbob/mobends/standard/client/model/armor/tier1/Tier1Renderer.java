@@ -686,6 +686,70 @@ public class Tier1Renderer
     }
 
     /**
+     * Apply a Mo'Bends part transform to the PoseStack, using armor model position instead of Mo'Bends position.
+     * This is critical for mobs where Mo'Bends uses different leg positions than vanilla armor models.
+     *
+     * - Applies globalOffset from Mo'Bends
+     * - Applies position from armor model (armorX, armorY, armorZ)
+     * - Applies animation offset from Mo'Bends (bobbing, etc.)
+     * - Applies rotation from Mo'Bends
+     *
+     * @param poseStack The pose stack to modify
+     * @param transform The Mo'Bends transform (for rotation, offset, globalOffset)
+     * @param armorX Armor model's original X position
+     * @param armorY Armor model's original Y position
+     * @param armorZ Armor model's original Z position
+     */
+    private void applyPartTransformWithArmorPosition(
+            PoseStack poseStack,
+            ModelPartTransform transform,
+            float armorX, float armorY, float armorZ)
+    {
+        if (transform == null)
+        {
+            return;
+        }
+
+        // Apply per-part globalOffset (before other transforms, matches applyPreTransform behavior)
+        if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                transform.globalOffset.x * SCALE,
+                transform.globalOffset.y * SCALE,
+                transform.globalOffset.z * SCALE
+            );
+        }
+
+        // Get offsetScale - this controls how much animation offsets affect this part
+        float offsetScale = transform.offsetScale;
+
+        // Apply ARMOR MODEL position (not Mo'Bends position)
+        // This is the key fix for mob armor - use vanilla armor position instead of Mo'Bends
+        if (armorX != 0 || armorY != 0 || armorZ != 0)
+        {
+            poseStack.translate(
+                armorX * SCALE * offsetScale,
+                armorY * SCALE * offsetScale,
+                armorZ * SCALE * offsetScale
+            );
+        }
+
+        // Apply animation offset with offsetScale
+        // This is the key translation that makes armor bob up and down with the entity
+        if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
+        {
+            poseStack.translate(
+                transform.offset.x * SCALE * offsetScale,
+                transform.offset.y * SCALE * offsetScale,
+                transform.offset.z * SCALE * offsetScale
+            );
+        }
+
+        // Apply rotation from Mo'Bends
+        GlHelper.rotate(poseStack, transform.rotation.getSmooth());
+    }
+
+    /**
      * Apply a Mo'Bends part transform to the PoseStack.
      * For root-level parts (body, legs), only applies offset + rotation.
      * For child parts (head, arms), applies position + offset + rotation.
@@ -852,6 +916,9 @@ public class Tier1Renderer
      * Upper arm geometry follows upperArm transform, forearm geometry follows foreArm transform.
      * Color tinting is applied via the currentArmorColor field.
      *
+     * NOTE: Arms use Mo'Bends positions because they are parented to body in the transform hierarchy.
+     * Unlike legs (which are root-level), arms need relative positioning after body transform.
+     *
      * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
      * from MutatedRenderer.beforeRender().
      */
@@ -948,6 +1015,11 @@ public class Tier1Renderer
      * Upper leg geometry follows leg transform, lower leg geometry follows foreLeg transform.
      * Color tinting is applied via the currentArmorColor field.
      *
+     * IMPORTANT: Uses armor model's original position for translation, not Mo'Bends position.
+     * This fixes armor rendering on mobs where Mo'Bends uses different leg positions than vanilla armor.
+     * - Players: Mo'Bends legs at ±1.9, vanilla armor at ±1.9 (matches)
+     * - Zombies: Mo'Bends legs at 0, vanilla armor at ±1.9 (mismatch - fixed by using armor position)
+     *
      * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
      * from MutatedRenderer.beforeRender().
      */
@@ -969,13 +1041,20 @@ public class Tier1Renderer
 
         ModelPartTransform upperLeg = isLeft ? entityData.leftLeg : entityData.rightLeg;
 
+        // Save armor model's original position BEFORE resetting to origin
+        // This is critical for mobs where Mo'Bends uses different positions than vanilla armor
+        float armorX = legPart.x;
+        float armorY = legPart.y;
+        float armorZ = legPart.z;
+
         if (!ENABLE_LIMB_SLICING)
         {
             // Simple mode: render whole leg with upper leg transform only
             // This means armor won't bend at knee, but will render correctly
+            // NOTE: Use armor model position for translation, Mo'Bends for rotation/offset
             // NOTE: globalOffset already on parent PoseStack from beforeRender()
             poseStack.pushPose();
-            applyPartTransform(poseStack, upperLeg, true);
+            applyPartTransformWithArmorPosition(poseStack, upperLeg, armorX, armorY, armorZ);
             renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
@@ -1007,9 +1086,10 @@ public class Tier1Renderer
         // 3. Render upper leg portion with upper leg transform
         // Note: Legs are NOT parented to body in Mo'Bends
         // Upper portion vertices stay as-is (no offset needed)
+        // NOTE: Use armor model position for translation, Mo'Bends for rotation/offset
         // NOTE: globalOffset already on parent PoseStack from beforeRender()
         poseStack.pushPose();
-        applyPartTransform(poseStack, upperLeg, true);
+        applyPartTransformWithArmorPosition(poseStack, upperLeg, armorX, armorY, armorZ);
         renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay);
         poseStack.popPose();
 
@@ -1021,7 +1101,7 @@ public class Tier1Renderer
         float lowerLegOffsetY = -lowerLeg.position.y * SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * SCALE;
         poseStack.pushPose();
-        applyPartTransform(poseStack, upperLeg, true);
+        applyPartTransformWithArmorPosition(poseStack, upperLeg, armorX, armorY, armorZ);
         applyPartTransform(poseStack, lowerLeg, true);
         renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
         poseStack.popPose();
