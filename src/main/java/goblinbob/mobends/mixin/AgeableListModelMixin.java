@@ -26,6 +26,13 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
                                          int packedLight, int packedOverlay,
                                          float red, float green, float blue, float alpha,
                                          CallbackInfo ci) {
+        // CRITICAL: Only intercept if we're in the main entity model render phase.
+        // During layer rendering (armor, elytra, etc.), we must NOT intercept,
+        // otherwise we'd render player geometry instead of armor textures.
+        if (!MoBendsRenderContext.isInMainModelRender()) {
+            return;
+        }
+
         // Check for HumanoidModel (biped entities)
         if ((Object) this instanceof HumanoidModel) {
             BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
@@ -33,6 +40,8 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
             if (mutator != null && mutator.shouldRenderCustom()) {
                 mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay,
                                      red, green, blue, alpha);
+                // End main model render phase so layers (armor, elytra) render normally
+                MoBendsRenderContext.endMainModelRender();
                 ci.cancel();
                 return;
             }
@@ -45,6 +54,8 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
             if (mutator != null && mutator.shouldRenderCustom()) {
                 mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay,
                                      red, green, blue, alpha);
+                // End main model render phase so layers render normally
+                MoBendsRenderContext.endMainModelRender();
                 ci.cancel();
             }
         }

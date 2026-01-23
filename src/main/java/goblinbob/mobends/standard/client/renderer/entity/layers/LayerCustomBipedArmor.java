@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.data.EntityDatabase;
+import goblinbob.mobends.mixin.armor.HumanoidArmorLayerAccessor;
 import goblinbob.mobends.standard.client.model.armor.ArmorRenderingFacade;
 import goblinbob.mobends.standard.client.model.armor.CapturingVertexConsumer;
 import goblinbob.mobends.standard.client.model.armor.RigidArmorRenderer;
@@ -25,6 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -71,10 +73,19 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
     /**
      * Set the vanilla armor layer reference for texture access.
+     * Also extracts the inner and outer armor models from the vanilla layer.
      */
+    @SuppressWarnings("unchecked")
     public void setVanillaArmorLayer(HumanoidArmorLayer<E, M, ?> vanillaLayer)
     {
         this.vanillaArmorLayer = vanillaLayer;
+
+        // Extract armor models from vanilla layer using accessor mixin
+        if (vanillaLayer instanceof HumanoidArmorLayerAccessor accessor)
+        {
+            this.innerModel = (HumanoidModel<E>) accessor.mobends$getInnerModel();
+            this.outerModel = (HumanoidModel<E>) accessor.mobends$getOuterModel();
+        }
     }
 
     /**
@@ -173,28 +184,87 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                                   HumanoidModel<E> armorModel, EquipmentSlot slot,
                                   ItemStack itemStack, BipedEntityData<?> bipedData)
     {
-        // Get the armor texture
-        ResourceLocation texture = getArmorTexture(armorItem, slot, null);
-        if (texture == null) return;
-
-        // Use the three-tier facade for rendering
-        boolean rendered = armorFacade.renderArmor(
-                poseStack,
-                bufferSource,
-                packedLight,
-                entity,
-                slot,
-                itemStack,
-                armorItem,
-                armorModel,
-                bipedData,
-                texture
-        );
-
-        // If facade didn't handle it, fall back to legacy approach
-        if (!rendered)
+        // Check if this is dyeable armor (leather)
+        if (armorItem instanceof DyeableLeatherItem dyeableItem)
         {
-            renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, texture);
+            // Get dye color and convert to RGB components (0.0-1.0)
+            int color = dyeableItem.getColor(itemStack);
+            float red = (float)(color >> 16 & 255) / 255.0F;
+            float green = (float)(color >> 8 & 255) / 255.0F;
+            float blue = (float)(color & 255) / 255.0F;
+
+            // Render base texture with dye color
+            ResourceLocation baseTexture = getArmorTexture(armorItem, slot, null);
+            if (baseTexture != null)
+            {
+                boolean rendered = armorFacade.renderArmor(
+                        poseStack,
+                        bufferSource,
+                        packedLight,
+                        entity,
+                        slot,
+                        itemStack,
+                        armorItem,
+                        armorModel,
+                        bipedData,
+                        baseTexture,
+                        red, green, blue
+                );
+
+                if (!rendered)
+                {
+                    renderLegacyRigidArmorWithColor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, baseTexture, red, green, blue);
+                }
+            }
+
+            // Render overlay texture without color (white)
+            ResourceLocation overlayTexture = getArmorTexture(armorItem, slot, "overlay");
+            if (overlayTexture != null)
+            {
+                boolean rendered = armorFacade.renderArmor(
+                        poseStack,
+                        bufferSource,
+                        packedLight,
+                        entity,
+                        slot,
+                        itemStack,
+                        armorItem,
+                        armorModel,
+                        bipedData,
+                        overlayTexture
+                );
+
+                if (!rendered)
+                {
+                    renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, overlayTexture);
+                }
+            }
+        }
+        else
+        {
+            // Standard armor - single texture, no color tint
+            ResourceLocation texture = getArmorTexture(armorItem, slot, null);
+            if (texture == null) return;
+
+            // Use the three-tier facade for rendering
+            boolean rendered = armorFacade.renderArmor(
+                    poseStack,
+                    bufferSource,
+                    packedLight,
+                    entity,
+                    slot,
+                    itemStack,
+                    armorItem,
+                    armorModel,
+                    bipedData,
+                    texture
+            );
+
+            // If facade didn't handle it, fall back to legacy approach
+            if (!rendered)
+            {
+                renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, texture);
+            }
         }
     }
 
@@ -205,6 +275,18 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
     private void renderLegacyRigidArmor(PoseStack poseStack, MultiBufferSource bufferSource,
                                         int packedLight, HumanoidModel<E> armorModel, EquipmentSlot slot,
                                         ItemStack itemStack, BipedEntityData<?> bipedData, ResourceLocation texture)
+    {
+        renderLegacyRigidArmorWithColor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, texture, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Legacy rigid armor rendering with color tint.
+     * Used for dyeable armor like leather.
+     */
+    private void renderLegacyRigidArmorWithColor(PoseStack poseStack, MultiBufferSource bufferSource,
+                                                  int packedLight, HumanoidModel<E> armorModel, EquipmentSlot slot,
+                                                  ItemStack itemStack, BipedEntityData<?> bipedData, ResourceLocation texture,
+                                                  float red, float green, float blue)
     {
         // Save current model poses
         ModelPoseSnapshot snapshot = saveModelPoses(armorModel);
@@ -219,7 +301,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         // We use an identity pose stack since we want rest-pose vertices
         PoseStack capturePoseStack = new PoseStack();
         armorModel.renderToBuffer(capturePoseStack, captureConsumer, packedLight, OverlayTexture.NO_OVERLAY,
-                                  1.0F, 1.0F, 1.0F, 1.0F);
+                                  red, green, blue, 1.0F);
 
         // Restore original poses
         restoreModelPoses(armorModel, snapshot);
@@ -276,23 +358,53 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                                     int packedLight, E entity, ArmorItem armorItem,
                                     HumanoidModel<E> armorModel, EquipmentSlot slot, ItemStack itemStack)
     {
-        // Get the armor texture
-        ResourceLocation texture = getArmorTexture(armorItem, slot, null);
-        if (texture == null) return;
-
-        // Get the render type
-        VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
-                bufferSource, RenderType.armorCutoutNoCull(texture), false, itemStack.hasFoil());
-
         // Sync poses to vanilla model from our mutator
         if (mutator != null)
         {
             mutator.syncPosesToVanillaModel(armorModel);
         }
 
-        // Render using vanilla model
-        armorModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY,
-                                  1.0F, 1.0F, 1.0F, 1.0F);
+        // Check if this is dyeable armor (leather)
+        if (armorItem instanceof DyeableLeatherItem dyeableItem)
+        {
+            // Get dye color and convert to RGB components (0.0-1.0)
+            int color = dyeableItem.getColor(itemStack);
+            float red = (float)(color >> 16 & 255) / 255.0F;
+            float green = (float)(color >> 8 & 255) / 255.0F;
+            float blue = (float)(color & 255) / 255.0F;
+
+            // Render base texture with dye color
+            ResourceLocation baseTexture = getArmorTexture(armorItem, slot, null);
+            if (baseTexture != null)
+            {
+                VertexConsumer baseConsumer = ItemRenderer.getArmorFoilBuffer(
+                        bufferSource, RenderType.armorCutoutNoCull(baseTexture), false, itemStack.hasFoil());
+                armorModel.renderToBuffer(poseStack, baseConsumer, packedLight, OverlayTexture.NO_OVERLAY,
+                                          red, green, blue, 1.0F);
+            }
+
+            // Render overlay texture without color (white)
+            ResourceLocation overlayTexture = getArmorTexture(armorItem, slot, "overlay");
+            if (overlayTexture != null)
+            {
+                VertexConsumer overlayConsumer = ItemRenderer.getArmorFoilBuffer(
+                        bufferSource, RenderType.armorCutoutNoCull(overlayTexture), false, itemStack.hasFoil());
+                armorModel.renderToBuffer(poseStack, overlayConsumer, packedLight, OverlayTexture.NO_OVERLAY,
+                                          1.0F, 1.0F, 1.0F, 1.0F);
+            }
+        }
+        else
+        {
+            // Standard armor - single texture, no color tint
+            ResourceLocation texture = getArmorTexture(armorItem, slot, null);
+            if (texture == null) return;
+
+            VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
+                    bufferSource, RenderType.armorCutoutNoCull(texture), false, itemStack.hasFoil());
+
+            armorModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY,
+                                      1.0F, 1.0F, 1.0F, 1.0F);
+        }
     }
 
     /**

@@ -25,6 +25,11 @@ public abstract class SpiderModelMixin<T extends Entity> {
                                          int packedLight, int packedOverlay,
                                          float red, float green, float blue, float alpha,
                                          CallbackInfo ci) {
+        // Only intercept during main model render phase
+        if (!MoBendsRenderContext.isInMainModelRender()) {
+            return;
+        }
+
         // Only intercept if this is a SpiderModel and we have an active spider mutator
         if (!((Object) this instanceof SpiderModel)) {
             return;
@@ -35,6 +40,8 @@ public abstract class SpiderModelMixin<T extends Entity> {
         if (mutator != null && mutator.shouldRenderCustom()) {
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay,
                                  red, green, blue, alpha);
+            // End main model render phase so layers render normally
+            MoBendsRenderContext.endMainModelRender();
             ci.cancel();
         }
     }

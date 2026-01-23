@@ -149,57 +149,12 @@ public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
 	                          int packedLight, int packedOverlay,
 	                          float red, float green, float blue, float alpha)
 	{
-		if (currentData == null)
-		{
-			// Fallback: just render without transforms
-			renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
-			return;
-		}
+		// Note: Global transforms (globalOffset, centerRotation, renderRotation, localOffset)
+		// are already applied by MutatedRenderer.beforeRender() before this method is called.
+		// We only need to render the squid parts with their individual animations here.
 
-		poseStack.pushPose();
-
-		float scale = 1.0F / 16.0F;
-
-		// Apply globalOffset
-		float gx = currentData.globalOffset.getX();
-		float gy = currentData.globalOffset.getY();
-		float gz = currentData.globalOffset.getZ();
-		if (gx != 0 || gy != 0 || gz != 0)
-		{
-			poseStack.translate(gx * scale, gy * scale, gz * scale);
-		}
-
-		// Apply centerRotation around the squid's center height
-		Quaternion centerRot = currentData.centerRotation.getSmooth();
-		if (!centerRot.isIdentity())
-		{
-			poseStack.translate(0, SQUID_MODEL_CENTER_Y, 0);
-			GlHelper.rotate(poseStack, centerRot);
-			poseStack.translate(0, -SQUID_MODEL_CENTER_Y, 0);
-		}
-
-		// Apply renderRotation
-		Quaternion renderRot = currentData.renderRotation.getSmooth();
-		if (!renderRot.isIdentity())
-		{
-			poseStack.translate(0, SQUID_MODEL_CENTER_Y, 0);
-			GlHelper.rotate(poseStack, renderRot);
-			poseStack.translate(0, -SQUID_MODEL_CENTER_Y, 0);
-		}
-
-		// Apply localOffset (after rotations)
-		float lx = currentData.localOffset.getX();
-		float ly = currentData.localOffset.getY();
-		float lz = currentData.localOffset.getZ();
-		if (lx != 0 || ly != 0 || lz != 0)
-		{
-			poseStack.translate(lx * scale, ly * scale, lz * scale);
-		}
-
-		// Render all squid parts
+		// Render all squid parts (body and tentacles with their animated rotations)
 		renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
-
-		poseStack.popPose();
 	}
 
 	private void renderParts(PoseStack poseStack, VertexConsumer vertexConsumer,

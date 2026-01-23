@@ -113,6 +113,26 @@ public class Tier1Renderer
             ResourceLocation texture,
             boolean hasFoil)
     {
+        // Render with default white color (no tint)
+        return renderWithTextureAndColor(context, model, texture, hasFoil, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render armor with a specific texture and color tint.
+     * Used for dyeable armor like leather.
+     * Returns true if rendering was handled, false to indicate fallback needed.
+     *
+     * @param red Red color component (0.0-1.0)
+     * @param green Green color component (0.0-1.0)
+     * @param blue Blue color component (0.0-1.0)
+     */
+    public <E extends LivingEntity> boolean renderWithTextureAndColor(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> model,
+            ResourceLocation texture,
+            boolean hasFoil,
+            float red, float green, float blue)
+    {
         if (context == null || model == null || context.getEntityData() == null || texture == null)
         {
             return false;
@@ -120,14 +140,163 @@ public class Tier1Renderer
 
         try
         {
-            render(context, model, texture, tex ->
-                    hasFoil ? RenderType.armorCutoutNoCull(tex) : RenderType.armorCutoutNoCull(tex));
+            renderWithFoilAndColor(context, model, texture, hasFoil, red, green, blue);
             return true;
         }
         catch (Exception e)
         {
             return false;
         }
+    }
+
+    /**
+     * Render armor with proper foil (enchantment glint) support.
+     * Uses ItemRenderer.getArmorFoilBuffer() to handle both base rendering and glint overlay.
+     */
+    private <E extends LivingEntity> void renderWithFoil(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> model,
+            ResourceLocation texture,
+            boolean hasFoil)
+    {
+        // Render with default white color (no tint)
+        renderWithFoilAndColor(context, model, texture, hasFoil, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render armor with proper foil (enchantment glint) support and color tint.
+     * Uses ItemRenderer.getArmorFoilBuffer() to handle both base rendering and glint overlay.
+     *
+     * @param red Red color component (0.0-1.0)
+     * @param green Green color component (0.0-1.0)
+     * @param blue Blue color component (0.0-1.0)
+     */
+    private <E extends LivingEntity> void renderWithFoilAndColor(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> model,
+            ResourceLocation texture,
+            boolean hasFoil,
+            float red, float green, float blue)
+    {
+        if (context.getEntityData() == null)
+        {
+            // No animation data - render vanilla with foil
+            renderVanillaWithFoil(context, model, texture, hasFoil);
+            return;
+        }
+
+        renderCount++;
+
+        BipedEntityData<?> entityData = context.getEntityData();
+        PoseStack poseStack = context.getPoseStack();
+        MultiBufferSource bufferSource = context.getBufferSource();
+        EquipmentSlot slot = context.getSlot();
+
+        // Configure visibility based on slot
+        configureVisibility(model, slot);
+
+        // Use ItemRenderer.getArmorFoilBuffer for proper enchantment glint rendering
+        VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
+                bufferSource, RenderType.armorCutoutNoCull(texture), false, hasFoil);
+
+        // Get entity scale (1.0 for adults, 0.5 for babies)
+        float entityScale = context.getEntityScale();
+
+        // Get slim arm flag for arm position correction
+        boolean isSlimArms = context.isSlimArms();
+
+        // Render based on slot - each method applies proper hierarchical transforms
+        // Color is applied as a multiplier to each vertex
+        switch (slot)
+        {
+            case HEAD:
+                renderHead(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, red, green, blue);
+                break;
+            case CHEST:
+                renderChest(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, isSlimArms, red, green, blue);
+                break;
+            case LEGS:
+                renderLegs(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, red, green, blue);
+                break;
+            case FEET:
+                renderFeet(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, red, green, blue);
+                break;
+        }
+
+        // Record cache statistics
+        CacheManager.getInstance().recordCacheAssistedRender();
+    }
+
+    /**
+     * Render vanilla armor with foil support (no Mo'Bends transforms).
+     */
+    private <E extends LivingEntity> void renderVanillaWithFoil(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> model,
+            ResourceLocation texture,
+            boolean hasFoil)
+    {
+        PoseStack poseStack = context.getPoseStack();
+        MultiBufferSource bufferSource = context.getBufferSource();
+
+        VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
+                bufferSource, RenderType.armorCutoutNoCull(texture), false, hasFoil);
+
+        model.renderToBuffer(poseStack, vertexConsumer, context.getPackedLight(), context.getPackedOverlay(),
+                1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render armor with a custom VertexConsumer (for trims, glint overlays, etc.).
+     * Uses the same per-bone transform approach as regular armor rendering.
+     * This allows trims to follow Mo'Bends animations.
+     *
+     * @param context The armor render context
+     * @param model The armor model
+     * @param vertexConsumer The vertex consumer to render to (e.g., trim sprite wrapped consumer)
+     * @return true if rendering was handled
+     */
+    public <E extends LivingEntity> boolean renderWithVertexConsumer(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> model,
+            VertexConsumer vertexConsumer)
+    {
+        if (context == null || model == null || context.getEntityData() == null || vertexConsumer == null)
+        {
+            return false;
+        }
+
+        BipedEntityData<?> entityData = context.getEntityData();
+        PoseStack poseStack = context.getPoseStack();
+        EquipmentSlot slot = context.getSlot();
+
+        // Configure visibility based on slot
+        configureVisibility(model, slot);
+
+        // Get entity scale (1.0 for adults, 0.5 for babies)
+        float entityScale = context.getEntityScale();
+
+        // Get slim arm flag for arm position correction
+        boolean isSlimArms = context.isSlimArms();
+
+        // Render based on slot - each method applies proper hierarchical transforms
+        switch (slot)
+        {
+            case HEAD:
+                renderHead(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                break;
+            case CHEST:
+                renderChest(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, isSlimArms);
+                break;
+            case LEGS:
+                renderLegs(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                break;
+            case FEET:
+                renderFeet(poseStack, vertexConsumer, model, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                break;
+        }
+
+        return true;
     }
 
     /**
@@ -208,6 +377,9 @@ public class Tier1Renderer
      * Head is parented to body, so we apply body transform first, then head transform.
      *
      * Uses vertex capture approach (like arms) for consistent transform handling.
+     *
+     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
+     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderHead(
             PoseStack poseStack,
@@ -218,41 +390,53 @@ public class Tier1Renderer
             int packedOverlay,
             float entityScale)
     {
-        poseStack.pushPose();
+        // Render with default white color
+        renderHead(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
+    }
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
+    /**
+     * Render head armor piece with color tint.
+     */
+    private void renderHead(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            HumanoidModel<?> model,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay,
+            float entityScale,
+            float red, float green, float blue)
+    {
+        // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
 
         // Render helmet
         if (model.head != null && model.head.visible)
         {
-            renderCapturedPart(poseStack, vertexConsumer, model.head, entityData, true, packedLight, packedOverlay, entityScale);
+            renderCapturedPart(poseStack, vertexConsumer, model.head, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
         }
 
         // Render hat overlay
         if (model.hat != null && model.hat.visible)
         {
-            renderCapturedPart(poseStack, vertexConsumer, model.hat, entityData, true, packedLight, packedOverlay, entityScale);
+            renderCapturedPart(poseStack, vertexConsumer, model.hat, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
         }
-
-        poseStack.popPose();
     }
 
     /**
      * Render a part using vertex capture approach (consistent with arm/leg rendering).
      * This captures geometry at rest pose, then transforms vertices using Mo'Bends data.
      *
-     * @param poseStack The pose stack
+     * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
+     * from MutatedRenderer.beforeRender(). We only apply per-part transforms (body, head, etc.).
+     *
+     * @param poseStack The pose stack (already has entity-level transforms from beforeRender)
      * @param vertexConsumer The vertex consumer
      * @param part The model part to render
      * @param entityData The entity's animation data
      * @param isHead true for head parts (uses body + head transform), false otherwise
      * @param packedLight Light value
      * @param packedOverlay Overlay value
-     * @param entityScale Scale factor (1.0 for adults, 0.5 for babies)
+     * @param entityScale Scale factor (1.0 for adults, 0.5 for babies) - for reference only, already applied
      */
     private void renderCapturedPart(
             PoseStack poseStack,
@@ -263,6 +447,24 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay,
             float entityScale)
+    {
+        // Render with default white color
+        renderCapturedPart(poseStack, vertexConsumer, part, entityData, isHead, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render a part using vertex capture approach with color tint.
+     */
+    private void renderCapturedPart(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart part,
+            BipedEntityData<?> entityData,
+            boolean isHead,
+            int packedLight,
+            int packedOverlay,
+            float entityScale,
+            float red, float green, float blue)
     {
         if (part == null || !part.visible)
         {
@@ -282,9 +484,9 @@ public class Tier1Renderer
             return;
         }
 
-        // 2. Apply Mo'Bends transforms to PoseStack
+        // 2. Apply Mo'Bends per-part transforms to PoseStack
+        // NOTE: globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);
         applyPartTransform(poseStack, entityData.body, true);  // Body transform (head is parented to body)
 
         if (isHead)
@@ -297,6 +499,7 @@ public class Tier1Renderer
         Matrix3f normal = poseStack.last().normal();
 
         // Output vertices directly (head has no slicing, just quads)
+        // Apply color tint to each vertex
         for (CapturedVertex v : vertices)
         {
             // Transform position by matrix
@@ -309,10 +512,10 @@ public class Tier1Renderer
             float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
             float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
-            // Output transformed vertex
+            // Output transformed vertex with color tint applied
             vertexConsumer.vertex(
                     tx, ty, tz,
-                    v.red, v.green, v.blue, v.alpha,
+                    v.red * red, v.green * green, v.blue * blue, v.alpha,
                     v.u, v.v,
                     packedOverlay, packedLight,
                     nx, ny, nz
@@ -326,6 +529,9 @@ public class Tier1Renderer
      * Render chest armor piece (body + arms).
      * Body uses vanilla position with Mo'Bends rotation.
      * Arms are split at elbow joint for proper bending.
+     *
+     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
+     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderChest(
             PoseStack poseStack,
@@ -337,34 +543,47 @@ public class Tier1Renderer
             float entityScale,
             boolean isSlimArms)
     {
-        poseStack.pushPose();
+        // Render with default white color
+        renderChest(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, isSlimArms, 1.0f, 1.0f, 1.0f);
+    }
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
+    /**
+     * Render chest armor piece with color tint.
+     */
+    private void renderChest(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            HumanoidModel<?> model,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay,
+            float entityScale,
+            boolean isSlimArms,
+            float red, float green, float blue)
+    {
+        // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
+        // NOTE: Don't apply globalOffset here - it's already on parent PoseStack from beforeRender()
 
         // Render body - apply rotation around correct pivot, keep vanilla position
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);
         applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
+        renderPartWithVanillaPositionAndColor(model.body, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
         poseStack.popPose();
 
         // Render left arm (split at elbow joint)
-        renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms);
+        renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms, red, green, blue);
 
         // Render right arm (split at elbow joint)
-        renderSplitArm(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, isSlimArms);
-
-        poseStack.popPose();
+        renderSplitArm(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, isSlimArms, red, green, blue);
     }
 
     /**
      * Render leg armor piece (body skirt + upper legs).
      * Body waist uses vanilla position with Mo'Bends rotation.
      * Legs are split at knee joint for proper bending.
+     *
+     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
+     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderLegs(
             PoseStack poseStack,
@@ -375,33 +594,45 @@ public class Tier1Renderer
             int packedOverlay,
             float entityScale)
     {
-        poseStack.pushPose();
+        // Render with default white color
+        renderLegs(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
+    }
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
+    /**
+     * Render leg armor piece with color tint.
+     */
+    private void renderLegs(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            HumanoidModel<?> model,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay,
+            float entityScale,
+            float red, float green, float blue)
+    {
+        // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
+        // NOTE: Don't apply globalOffset here - it's already on parent PoseStack from beforeRender()
 
         // Render body (waist/skirt part of leggings) - rotation around correct pivot, vanilla position
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);
         applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
+        renderPartWithVanillaPositionAndColor(model.body, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
         poseStack.popPose();
 
         // Render left leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
 
         // Render right leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
-
-        poseStack.popPose();
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, red, green, blue);
     }
 
     /**
      * Render feet armor piece (boots/lower legs).
      * Legs are split at knee joint for proper bending.
+     *
+     * NOTE: Baby scale and globalOffset are NOT applied here because they're already
+     * on the parent PoseStack from MutatedRenderer.beforeRender().
      */
     private void renderFeet(
             PoseStack poseStack,
@@ -412,21 +643,30 @@ public class Tier1Renderer
             int packedOverlay,
             float entityScale)
     {
-        poseStack.pushPose();
+        // Render with default white color
+        renderFeet(poseStack, vertexConsumer, model, entityData, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
+    }
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
+    /**
+     * Render feet armor piece with color tint.
+     */
+    private void renderFeet(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            HumanoidModel<?> model,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay,
+            float entityScale,
+            float red, float green, float blue)
+    {
+        // NOTE: Don't apply baby scale here - it's already on parent PoseStack from beforeRender()
 
         // Render left leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, red, green, blue);
 
         // Render right leg (split at knee joint)
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
-
-        poseStack.popPose();
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, red, green, blue);
     }
 
     /**
@@ -455,9 +695,10 @@ public class Tier1Renderer
     /**
      * Apply body transform with correct pivot point for rotation.
      * Mo'Bends rotates the body around body.position, so we need to:
-     * 1. Translate to pivot
-     * 2. Apply offset and rotation
-     * 3. Translate back from pivot
+     * 1. Apply per-part globalOffset
+     * 2. Translate to pivot
+     * 3. Apply offset (with offsetScale) and rotation
+     * 4. Translate back from pivot
      */
     private void applyBodyTransformWithPivot(PoseStack poseStack, BipedEntityData<?> entityData)
     {
@@ -467,6 +708,19 @@ public class Tier1Renderer
             return;
         }
 
+        // Apply per-part globalOffset (before other transforms)
+        if (body.globalOffset.x != 0 || body.globalOffset.y != 0 || body.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                body.globalOffset.x * SCALE,
+                body.globalOffset.y * SCALE,
+                body.globalOffset.z * SCALE
+            );
+        }
+
+        // Get offsetScale for animation translations
+        float offsetScale = body.offsetScale;
+
         // Translate to body pivot point
         poseStack.translate(
             body.position.x * SCALE,
@@ -474,13 +728,14 @@ public class Tier1Renderer
             body.position.z * SCALE
         );
 
-        // Apply animation offset
+        // Apply animation offset with offsetScale
+        // This makes the body (and attached armor) bob up and down during animations
         if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
         {
             poseStack.translate(
-                body.offset.x * SCALE,
-                body.offset.y * SCALE,
-                body.offset.z * SCALE
+                body.offset.x * SCALE * offsetScale,
+                body.offset.y * SCALE * offsetScale,
+                body.offset.z * SCALE * offsetScale
             );
         }
 
@@ -500,6 +755,10 @@ public class Tier1Renderer
      * For root-level parts (body, legs), only applies offset + rotation.
      * For child parts (head, arms), applies position + offset + rotation.
      *
+     * Matches ModelPartTransform.applyLocalTransform() behavior:
+     * - Applies offsetScale to position and offset translations
+     * - Applies per-part globalOffset (via applyPreTransform logic)
+     *
      * @param poseStack The pose stack to modify
      * @param transform The Mo'Bends transform
      * @param isChildPart If true, applies position (for parts relative to parent). If false, skips position.
@@ -511,24 +770,41 @@ public class Tier1Renderer
             return;
         }
 
-        // Apply position only for child parts (relative to parent)
-        // Root parts (body, legs) use vanilla armor model positions
-        if (isChildPart && (transform.position.x != 0 || transform.position.y != 0 || transform.position.z != 0))
+        // Apply per-part globalOffset (before other transforms, matches applyPreTransform behavior)
+        // This handles part-specific offsets that are applied before parent transformation
+        if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
         {
             poseStack.translate(
-                transform.position.x * SCALE,
-                transform.position.y * SCALE,
-                transform.position.z * SCALE
+                transform.globalOffset.x * SCALE,
+                transform.globalOffset.y * SCALE,
+                transform.globalOffset.z * SCALE
             );
         }
 
-        // Apply animation offset
+        // Get offsetScale - this controls how much animation offsets affect this part
+        // Critical for proper animation translation (bobbing, etc.)
+        float offsetScale = transform.offsetScale;
+
+        // Apply position only for child parts (relative to parent)
+        // Root parts (body, legs) use vanilla armor model positions
+        // NOTE: Uses offsetScale to match ModelPartTransform.applyLocalTransform() behavior
+        if (isChildPart && (transform.position.x != 0 || transform.position.y != 0 || transform.position.z != 0))
+        {
+            poseStack.translate(
+                transform.position.x * SCALE * offsetScale,
+                transform.position.y * SCALE * offsetScale,
+                transform.position.z * SCALE * offsetScale
+            );
+        }
+
+        // Apply animation offset with offsetScale
+        // This is the key translation that makes armor bob up and down with the player
         if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
         {
             poseStack.translate(
-                transform.offset.x * SCALE,
-                transform.offset.y * SCALE,
-                transform.offset.z * SCALE
+                transform.offset.x * SCALE * offsetScale,
+                transform.offset.y * SCALE * offsetScale,
+                transform.offset.z * SCALE * offsetScale
             );
         }
 
@@ -548,6 +824,22 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay)
     {
+        renderPartWithVanillaPositionAndColor(part, poseStack, vertexConsumer, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render a ModelPart keeping its vanilla position but without rotation, with color tint.
+     * Mo'Bends rotation is already applied to PoseStack.
+     * Used for body/waist which should stay at vanilla position.
+     */
+    private void renderPartWithVanillaPositionAndColor(
+            ModelPart part,
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            int packedLight,
+            int packedOverlay,
+            float red, float green, float blue)
+    {
         if (part == null || !part.visible)
         {
             return;
@@ -562,8 +854,8 @@ public class Tier1Renderer
         part.yRot = 0;
         part.zRot = 0;
 
-        // Render
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
+        // Render with color tint
+        part.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, 1.0f);
 
         // Restore original rotation
         part.xRot = origXRot;
@@ -583,6 +875,20 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay)
     {
+        renderPartAtOriginWithColor(part, poseStack, vertexConsumer, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render a ModelPart at the origin with color tint.
+     */
+    private void renderPartAtOriginWithColor(
+            ModelPart part,
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            int packedLight,
+            int packedOverlay,
+            float red, float green, float blue)
+    {
         if (part == null || !part.visible)
         {
             return;
@@ -600,8 +906,8 @@ public class Tier1Renderer
         part.yRot = 0;
         part.zRot = 0;
 
-        // Render
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
+        // Render with color tint
+        part.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, 1.0f);
 
         // Restore original values
         part.x = origX;
@@ -625,6 +931,9 @@ public class Tier1Renderer
     /**
      * Render an arm split at the elbow joint.
      * Upper arm geometry follows upperArm transform, forearm geometry follows foreArm transform.
+     *
+     * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
+     * from MutatedRenderer.beforeRender().
      */
     private void renderSplitArm(
             PoseStack poseStack,
@@ -636,6 +945,25 @@ public class Tier1Renderer
             int packedOverlay,
             float entityScale,
             boolean isSlimArms)
+    {
+        // Render with default white color
+        renderSplitArm(poseStack, vertexConsumer, model, entityData, isLeft, packedLight, packedOverlay, entityScale, isSlimArms, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render an arm split at the elbow joint with color tint.
+     */
+    private void renderSplitArm(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            HumanoidModel<?> model,
+            BipedEntityData<?> entityData,
+            boolean isLeft,
+            int packedLight,
+            int packedOverlay,
+            float entityScale,
+            boolean isSlimArms,
+            float red, float green, float blue)
     {
         ModelPart armPart = isLeft ? model.leftArm : model.rightArm;
         if (armPart == null || !armPart.visible)
@@ -649,8 +977,8 @@ public class Tier1Renderer
         {
             // Simple mode: render whole arm with upper arm transform only
             // This means armor won't bend at elbow, but will render correctly
+            // NOTE: globalOffset already on parent PoseStack from beforeRender()
             poseStack.pushPose();
-            applyGlobalOffset(poseStack, entityData, entityScale);
             applyPartTransform(poseStack, entityData.body, true);
             applyPartTransform(poseStack, upperArm, true);
             // Apply slim arm Y offset correction
@@ -658,7 +986,7 @@ public class Tier1Renderer
             {
                 poseStack.translate(0, -SLIM_ARM_Y_OFFSET, 0);
             }
-            renderPartAtOrigin(armPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            renderPartAtOriginWithColor(armPart, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
             poseStack.popPose();
             return;
         }
@@ -691,32 +1019,35 @@ public class Tier1Renderer
 
         // 3. Render upper arm portion with upper arm transform
         // Upper portion vertices stay as-is (no offset needed except for slim arms)
+        // NOTE: globalOffset already on parent PoseStack from beforeRender()
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
         // Apply slim arm offset to Y
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay, red, green, blue);
         poseStack.popPose();
 
         // 4. Render forearm portion with forearm transform (chained to upper arm)
         // Lower portion vertices need to be offset by forearm's position to be in forearm-local-space
         // foreArm.position is (0, 4, 2) in model units, so we offset by (-0, -0.25, -0.125) in render units
+        // NOTE: globalOffset already on parent PoseStack from beforeRender()
         float foreArmOffsetX = -foreArm.position.x * SCALE;
         float foreArmOffsetY = -foreArm.position.y * SCALE + slimArmOffset;  // Include slim arm offset
         float foreArmOffsetZ = -foreArm.position.z * SCALE;
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, entityData.body, true);
         applyPartTransform(poseStack, upperArm, true);
         applyPartTransform(poseStack, foreArm, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, red, green, blue);
         poseStack.popPose();
     }
 
     /**
      * Render a leg split at the knee joint.
      * Upper leg geometry follows leg transform, lower leg geometry follows foreLeg transform.
+     *
+     * NOTE: globalOffset is NOT applied here because it's already on the parent PoseStack
+     * from MutatedRenderer.beforeRender().
      */
     private void renderSplitLeg(
             PoseStack poseStack,
@@ -727,6 +1058,24 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay,
             float entityScale)
+    {
+        // Render with default white color
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, isLeft, packedLight, packedOverlay, entityScale, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render a leg split at the knee joint with color tint.
+     */
+    private void renderSplitLeg(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            HumanoidModel<?> model,
+            BipedEntityData<?> entityData,
+            boolean isLeft,
+            int packedLight,
+            int packedOverlay,
+            float entityScale,
+            float red, float green, float blue)
     {
         ModelPart legPart = isLeft ? model.leftLeg : model.rightLeg;
         if (legPart == null || !legPart.visible)
@@ -740,10 +1089,10 @@ public class Tier1Renderer
         {
             // Simple mode: render whole leg with upper leg transform only
             // This means armor won't bend at knee, but will render correctly
+            // NOTE: globalOffset already on parent PoseStack from beforeRender()
             poseStack.pushPose();
-            applyGlobalOffset(poseStack, entityData, entityScale);
             applyPartTransform(poseStack, upperLeg, true);
-            renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            renderPartAtOriginWithColor(legPart, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue);
             poseStack.popPose();
             return;
         }
@@ -772,25 +1121,25 @@ public class Tier1Renderer
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
         // 3. Render upper leg portion with upper leg transform
-        // Note: Legs are NOT parented to body in Mo'Bends, but need global offset
+        // Note: Legs are NOT parented to body in Mo'Bends
         // Upper portion vertices stay as-is (no offset needed)
+        // NOTE: globalOffset already on parent PoseStack from beforeRender()
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, upperLeg, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, red, green, blue);
         poseStack.popPose();
 
         // 4. Render lower leg portion with lower leg transform (chained to upper leg)
         // Lower portion vertices need to be offset by lowerLeg's position to be in lower-leg-local-space
         // lowerLeg.position is (0, 6, -2) in model units, so we offset by (-0, -0.375, 0.125) in render units
+        // NOTE: globalOffset already on parent PoseStack from beforeRender()
         float lowerLegOffsetX = -lowerLeg.position.x * SCALE;
         float lowerLegOffsetY = -lowerLeg.position.y * SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * SCALE;
         poseStack.pushPose();
-        applyGlobalOffset(poseStack, entityData, entityScale);  // Global offset for crouching etc.
         applyPartTransform(poseStack, upperLeg, true);
         applyPartTransform(poseStack, lowerLeg, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, red, green, blue);
         poseStack.popPose();
     }
 
@@ -881,6 +1230,25 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay)
     {
+        // Render with default white color
+        renderSlicedVertices(poseStack, consumer, sliceResults, renderUpper, offsetX, offsetY, offsetZ, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render sliced geometry with color tint.
+     */
+    private void renderSlicedVertices(
+            PoseStack poseStack,
+            VertexConsumer consumer,
+            List<SliceResult> sliceResults,
+            boolean renderUpper,
+            float offsetX,
+            float offsetY,
+            float offsetZ,
+            int packedLight,
+            int packedOverlay,
+            float red, float green, float blue)
+    {
         Matrix4f matrix = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
 
@@ -901,31 +1269,31 @@ public class Tier1Renderer
             if (vertexCount == 4)
             {
                 // Standard quad - output 4 vertices directly
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
             }
             else if (vertexCount == 3)
             {
                 // Triangle - create degenerate quad by duplicating last vertex
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue); // Duplicate
             }
             else if (vertexCount == 5)
             {
                 // Pentagon - split into 2 quads: (0,1,2,3) and (0,3,4,4)
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
 
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
+                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue); // Duplicate
             }
             else if (vertexCount >= 6)
             {
@@ -933,10 +1301,10 @@ public class Tier1Renderer
                 // Each triangle (0, i, i+1) becomes a degenerate quad
                 for (int i = 1; i < vertexCount - 1; i++)
                 {
-                    outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                    outputVertex(matrix, normal, consumer, vertices.get(i), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
+                    outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                    outputVertex(matrix, normal, consumer, vertices.get(i), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue);
+                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay, red, green, blue); // Duplicate
                 }
             }
             // vertexCount < 3 is degenerate, skip
@@ -958,6 +1326,25 @@ public class Tier1Renderer
             int packedLight,
             int packedOverlay)
     {
+        // Render with default white color
+        outputVertex(matrix, normal, consumer, v, offsetX, offsetY, offsetZ, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Output a single vertex with color tint.
+     */
+    private void outputVertex(
+            Matrix4f matrix,
+            Matrix3f normal,
+            VertexConsumer consumer,
+            SliceResult.SlicedVertex v,
+            float offsetX,
+            float offsetY,
+            float offsetZ,
+            int packedLight,
+            int packedOverlay,
+            float red, float green, float blue)
+    {
         // Apply offset to vertex position (converts to local space for child bones)
         float vx = v.x + offsetX;
         float vy = v.y + offsetY;
@@ -973,10 +1360,10 @@ public class Tier1Renderer
         float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
         float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
-        // Output transformed vertex
+        // Output transformed vertex with color tint applied
         consumer.vertex(
                 tx, ty, tz,
-                v.red, v.green, v.blue, v.alpha,
+                v.red * red, v.green * green, v.blue * blue, v.alpha,
                 v.u, v.v,
                 packedOverlay, packedLight,
                 nx, ny, nz

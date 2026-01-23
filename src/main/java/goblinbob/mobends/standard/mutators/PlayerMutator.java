@@ -397,8 +397,8 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     @Override
     public void postRefresh()
     {
-        if (this.layerArmor != null)
-            this.layerArmor.initArmor();
+        // Armor layer is no longer swapped - mixin handles pose syncing directly
+        // No post-refresh action needed for armor
     }
 
     /**

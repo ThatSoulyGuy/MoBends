@@ -13,6 +13,7 @@
         "SpiderModelMixin",
         "SquidModelMixin",
         "armor.ModelPartAccessor",
+        "armor.HumanoidArmorLayerAccessor",
         "armor.HumanoidArmorLayerMixin",
         "armor.ArmorTrimLayerMixin",
         "armor.ElytraLayerMixin"

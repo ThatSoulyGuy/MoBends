@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
+import goblinbob.mobends.core.compat.PlayerAnimationLibCompat;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.mutators.BipedMutator;
@@ -38,6 +39,14 @@ public class EntityRenderHandler
 
         poseStack.pushPose();
 
+        // Check if PlayerAnimationLib has an active animation for this entity
+        // If so, defer to PlayerAnimationLib and skip MoBends animation
+        if (PlayerAnimationLibCompat.hasActiveAnimation(living))
+        {
+            entityBender.deapplyMutation(renderer, living);
+            return;
+        }
+
         if (entityBender.isAnimated())
         {
             if (entityBender.applyMutation(renderer, living, pt))
@@ -52,8 +61,11 @@ public class EntityRenderHandler
                 if (rawMutator instanceof BipedMutator<?, ?, ?> bipedMutator)
                 {
                     MoBendsRenderContext.setCurrentBipedMutator(bipedMutator);
+                    // Begin main model render phase - mixin will end it after rendering player model
+                    MoBendsRenderContext.beginMainModelRender();
 
                     // Sync animated poses to vanilla model so layers (armor, held items) can use them
+                    // The mixin now uses inMainModelRender flag to distinguish entity vs layer renders
                     EntityModel<?> model = renderer.getModel();
                     if (model instanceof HumanoidModel<?> humanoidModel)
                     {
@@ -63,14 +75,17 @@ public class EntityRenderHandler
                 else if (rawMutator instanceof SpiderMutator spiderMutator)
                 {
                     MoBendsRenderContext.setCurrentSpiderMutator(spiderMutator);
+                    MoBendsRenderContext.beginMainModelRender();
                 }
                 else if (rawMutator instanceof SquidMutator squidMutator)
                 {
                     MoBendsRenderContext.setCurrentSquidMutator(squidMutator);
+                    MoBendsRenderContext.beginMainModelRender();
                 }
                 else if (rawMutator instanceof WolfMutator wolfMutator)
                 {
                     MoBendsRenderContext.setCurrentWolfMutator(wolfMutator);
+                    MoBendsRenderContext.beginMainModelRender();
                 }
 
                 entityBender.beforeRender(data, living, pt, poseStack);

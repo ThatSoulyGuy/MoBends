@@ -65,6 +65,8 @@ repositories {
     mavenCentral()
     maven { url = 'https://maven.minecraftforge.net/' }
     maven { url = 'https://repo.spongepowered.org/maven' }
+    // PlayerAnimationLib (used by BetterCombat)
+    maven { url = 'https://maven.kosmx.dev/' }
 }
 
 dependencies {
@@ -72,6 +74,9 @@ dependencies {
 
     // Mixin
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // PlayerAnimationLib - optional compatibility (used by BetterCombat)
+    compileOnly 'dev.kosmx.player-anim:player-animation-lib-forge:1.0.2-rc1+1.20'
 
     // Testing
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'

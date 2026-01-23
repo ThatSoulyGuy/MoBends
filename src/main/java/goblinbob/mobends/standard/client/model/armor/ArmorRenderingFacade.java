@@ -207,6 +207,33 @@ public class ArmorRenderingFacade
             BipedEntityData<?> entityData,
             ResourceLocation texture)
     {
+        // Render with default white color (no tint)
+        return renderArmor(poseStack, bufferSource, packedLight, entity, slot, armorStack, armorItem,
+                armorModel, entityData, texture, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render armor with color tint using the context built from parameters.
+     * Used for dyeable armor like leather.
+     *
+     * @param red Red color component (0.0-1.0)
+     * @param green Green color component (0.0-1.0)
+     * @param blue Blue color component (0.0-1.0)
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends LivingEntity> boolean renderArmor(
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            int packedLight,
+            T entity,
+            EquipmentSlot slot,
+            ItemStack armorStack,
+            ArmorItem armorItem,
+            HumanoidModel<?> armorModel,
+            BipedEntityData<?> entityData,
+            ResourceLocation texture,
+            float red, float green, float blue)
+    {
         if (texture == null || armorModel == null || entityData == null)
         {
             return false;
@@ -227,7 +254,7 @@ public class ArmorRenderingFacade
                 .build();
 
         // Set texture in context or handle separately
-        return renderWithTexture(context, armorModel, texture, armorStack.hasFoil());
+        return renderWithTextureAndColor(context, armorModel, texture, armorStack.hasFoil(), red, green, blue);
     }
 
     /**
@@ -239,12 +266,28 @@ public class ArmorRenderingFacade
             ResourceLocation texture,
             boolean hasFoil)
     {
+        // Render with default white color (no tint)
+        return renderWithTextureAndColor(context, armorModel, texture, hasFoil, 1.0f, 1.0f, 1.0f);
+    }
+
+    /**
+     * Render with a specific texture and color tint.
+     * Used for dyeable armor like leather.
+     */
+    private <T extends LivingEntity> boolean renderWithTextureAndColor(
+            ArmorRenderContext<T> context,
+            Model armorModel,
+            ResourceLocation texture,
+            boolean hasFoil,
+            float red, float green, float blue)
+    {
         // Determine tier and render
         RenderTier tier = determineTier(armorModel);
 
         if (debugMode)
         {
-            LOGGER.debug("Rendering armor with texture {} using {}", texture, tier);
+            LOGGER.debug("Rendering armor with texture {} color ({},{},{}) using {}",
+                    texture, red, green, blue, tier);
         }
 
         // For Tier 1 and 2, we can render directly
@@ -257,7 +300,8 @@ public class ArmorRenderingFacade
                 case TIER_1_TRANSFORM_INJECTION:
                     if (armorModel instanceof HumanoidModel<?>)
                     {
-                        success = tier1Renderer.renderWithTexture(context, (HumanoidModel<?>) armorModel, texture, hasFoil);
+                        success = tier1Renderer.renderWithTextureAndColor(context, (HumanoidModel<?>) armorModel,
+                                texture, hasFoil, red, green, blue);
                         if (success)
                         {
                             break;
@@ -290,6 +334,36 @@ public class ArmorRenderingFacade
 
         updateStats(tier, success);
         return success;
+    }
+
+    /**
+     * Render armor with a custom VertexConsumer (for trims, glint overlays, etc.).
+     * Uses the same per-bone transform approach as regular armor rendering.
+     * This allows trims to follow Mo'Bends animations.
+     *
+     * @param context The armor render context
+     * @param armorModel The armor model to render
+     * @param vertexConsumer The vertex consumer to render to
+     * @return true if rendering was handled, false to fall back to vanilla
+     */
+    public <T extends LivingEntity> boolean renderWithVertexConsumer(
+            ArmorRenderContext<T> context,
+            Model armorModel,
+            VertexConsumer vertexConsumer)
+    {
+        if (context == null || armorModel == null || vertexConsumer == null)
+        {
+            return false;
+        }
+
+        // Only Tier 1 supports custom vertex consumer rendering currently
+        if (armorModel instanceof HumanoidModel<?>)
+        {
+            return tier1Renderer.renderWithVertexConsumer(context, (HumanoidModel<?>) armorModel, vertexConsumer);
+        }
+
+        // Tier 2 and 3 don't support this yet - return false
+        return false;
     }
 
     // === Debug and Statistics ===

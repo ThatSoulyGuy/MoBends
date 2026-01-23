@@ -20,6 +20,37 @@ public class MoBendsRenderContext {
     private static final ThreadLocal<WolfMutator> currentWolfMutator = new ThreadLocal<>();
 
     /**
+     * Flag indicating we're rendering the main entity model (not layers like armor).
+     * When false, mixins should NOT intercept HumanoidModel rendering, as it may be
+     * armor, elytra, or other layer models that shouldn't use MoBends geometry.
+     */
+    private static final ThreadLocal<Boolean> inMainModelRender = ThreadLocal.withInitial(() -> false);
+
+    /**
+     * Start main model rendering phase.
+     * Call this BEFORE the main entity model renders.
+     */
+    public static void beginMainModelRender() {
+        inMainModelRender.set(true);
+    }
+
+    /**
+     * End main model rendering phase.
+     * Call this AFTER the main entity model renders (before layers).
+     */
+    public static void endMainModelRender() {
+        inMainModelRender.set(false);
+    }
+
+    /**
+     * Check if we're in the main model rendering phase.
+     * Used by mixins to distinguish entity model from layer models (armor, etc.)
+     */
+    public static boolean isInMainModelRender() {
+        return inMainModelRender.get();
+    }
+
+    /**
      * Sets the current biped mutator for the rendering context.
      * Call this before the vanilla model renders.
      */
@@ -86,5 +117,6 @@ public class MoBendsRenderContext {
         currentSpiderMutator.remove();
         currentSquidMutator.remove();
         currentWolfMutator.remove();
+        inMainModelRender.remove();
     }
 }

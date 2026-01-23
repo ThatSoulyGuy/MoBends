@@ -13,7 +13,6 @@ import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldI
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
@@ -50,6 +49,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected ModelPart vanillaLeftLeg;
     protected ModelPart vanillaRightLeg;
 
+    // Custom armor layer that transforms armor geometry to follow Mo'Bends joints
     protected LayerCustomBipedArmor<E, M> layerArmor;
     protected HumanoidArmorLayer<E, M, ?> layerArmorVanilla;
     protected LayerCustomHeldItem<E, M> layerHeldItem;
@@ -95,6 +95,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
      * Swaps out the vanilla layers for their custom counterparts,
      * and if it's a vanilla model, it stores the vanilla layers
      * for future mutation reversal.
+     *
+     * The custom armor layer transforms armor geometry to follow Mo'Bends joints
+     * (including forearms/forelegs that vanilla doesn't have).
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -103,35 +106,14 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         RenderLayer<E, M> layer = layerRenderers.get(index);
         if (layer instanceof HumanoidArmorLayer)
         {
-            HumanoidArmorLayer<E, M, ?> vanillaArmor = (HumanoidArmorLayer<E, M, ?>) layer;
-            if (isModelVanilla)
-                this.layerArmorVanilla = vanillaArmor;
-
-            // Create our custom armor layer
+            // Swap to custom armor layer that transforms armor to follow Mo'Bends joints
             this.layerArmor = new LayerCustomBipedArmor<>(renderer, this);
-            this.layerArmor.setVanillaArmorLayer(vanillaArmor);
-
-            // Try to get armor models from the vanilla layer using reflection or standard models
-            try
+            if (isModelVanilla)
             {
-                // Use standard humanoid armor models
-                net.minecraft.client.model.geom.ModelLayerLocation innerLocation =
-                    net.minecraft.client.model.geom.ModelLayers.PLAYER_INNER_ARMOR;
-                net.minecraft.client.model.geom.ModelLayerLocation outerLocation =
-                    net.minecraft.client.model.geom.ModelLayers.PLAYER_OUTER_ARMOR;
-
-                net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-                HumanoidModel<?> innerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(innerLocation));
-                HumanoidModel<?> outerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(outerLocation));
-
-                this.layerArmor.setArmorModels(innerModel, outerModel);
+                this.layerArmorVanilla = (HumanoidArmorLayer<E, M, ?>) layer;
+                // Pass vanilla layer reference for texture/model access
+                this.layerArmor.setVanillaArmorLayer(this.layerArmorVanilla);
             }
-            catch (Exception e)
-            {
-                // Log warning but continue - vanilla fallback will be used
-                goblinbob.mobends.standard.main.MoBends.LOG.warn("Could not create armor models for custom layer: " + e.getMessage());
-            }
-
             layerRenderers.set(index, this.layerArmor);
         }
         else if (layer instanceof ItemInHandLayer)
@@ -337,6 +319,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     /**
      * Sync animated poses from BendsModelParts to vanilla HumanoidModel ModelParts.
      * This allows vanilla layers (armor, held items) to use our animated poses.
+     * Only syncs rotation - visibility is handled by each layer per-slot.
      */
     public void syncPosesToVanillaModel(HumanoidModel<?> model)
     {
@@ -348,25 +331,20 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         syncPartToModelPart(rightArm, model.rightArm);
         syncPartToModelPart(leftLeg, model.leftLeg);
         syncPartToModelPart(rightLeg, model.rightLeg);
-
-        // Sync hat visibility with head
-        if (model.hat != null && head != null)
-        {
-            model.hat.visible = head.isShowing();
-        }
+        // Don't sync visibility - let each layer handle it per-slot
     }
 
     /**
      * Sync a single BendsModelPart's transform to a vanilla ModelPart.
-     * Only syncs rotation and visibility - NOT position, because position defines
-     * the pivot point and changing it would distort the armor geometry/textures.
+     * Only syncs rotation - NOT position or visibility.
+     * Position defines the pivot point, and visibility is handled by the armor layer per-slot.
      */
     private void syncPartToModelPart(BendsModelPart bendsPart, ModelPart modelPart)
     {
         if (bendsPart == null || modelPart == null) return;
 
         // DON'T sync position - the armor model's pivot points must stay at vanilla values
-        // to avoid texture stretching. The armor follows the body through rotation only.
+        // DON'T sync visibility - armor layer sets this per-slot via setPartVisibility()
 
         // Convert quaternion rotation to Euler angles (XYZ order)
         Quaternion q = bendsPart.rotation.getSmooth();
@@ -374,9 +352,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         modelPart.xRot = euler[0];
         modelPart.yRot = euler[1];
         modelPart.zRot = euler[2];
-
-        // Sync visibility
-        modelPart.visible = bendsPart.isShowing();
     }
 
     /**
