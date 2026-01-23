@@ -621,6 +621,57 @@ public class Tier1Renderer
     }
 
     /**
+     * Apply leg transform using vanilla armor model's X position.
+     * Legs are root parts that should use vanilla armor positioning for X,
+     * but Mo'Bends transforms for Y, Z, rotation, and animation offset.
+     *
+     * @param poseStack The pose stack to modify
+     * @param transform The Mo'Bends leg transform
+     * @param vanillaLegX The vanilla armor model's leg X position
+     */
+    private void applyLegTransform(PoseStack poseStack, ModelPartTransform transform, float vanillaLegX)
+    {
+        if (transform == null)
+        {
+            return;
+        }
+
+        float offsetScale = transform.offsetScale;
+
+        // 1. Apply per-part globalOffset (pre-parent transform offset)
+        if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                transform.globalOffset.x * SCALE,
+                transform.globalOffset.y * SCALE,
+                transform.globalOffset.z * SCALE
+            );
+        }
+
+        // 2. Apply position - use vanilla X, Mo'Bends Y/Z
+        // This ensures legs are horizontally positioned correctly using the vanilla armor model's
+        // position, while still allowing Mo'Bends to control the vertical pivot point.
+        poseStack.translate(
+            vanillaLegX * SCALE * offsetScale,
+            transform.position.y * SCALE * offsetScale,
+            transform.position.z * SCALE * offsetScale
+        );
+
+        // 3. Apply animation offset (animated position change)
+        if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
+        {
+            poseStack.translate(
+                transform.offset.x * SCALE * offsetScale,
+                transform.offset.y * SCALE * offsetScale,
+                transform.offset.z * SCALE * offsetScale
+            );
+        }
+
+        // 4. Apply rotation
+        GlHelper.rotate(poseStack, transform.rotation.getSmooth());
+    }
+
+    /**
      * Render a ModelPart keeping its vanilla position but without rotation.
      * Mo'Bends rotation is already applied to PoseStack.
      * Used for body/waist which should stay at vanilla position.
@@ -825,8 +876,10 @@ public class Tier1Renderer
             // Simple mode: render whole leg with upper leg transform only
             // This means armor won't bend at knee, but will render correctly
             // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
+            // Use vanilla leg X position for correct horizontal placement
+            float vanillaLegX = legPart.x;
             poseStack.pushPose();
-            applyPartTransform(poseStack, upperLeg, true);
+            applyLegTransform(poseStack, upperLeg, vanillaLegX);
             renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
@@ -855,12 +908,17 @@ public class Tier1Renderer
         List<CapturedVertex[]> quads = groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
+        // Use the vanilla armor model's leg X position (stored in capturedX from resetPartToOrigin)
+        // This ensures leg armor renders at the correct horizontal position regardless of
+        // what Mo'Bends entityData has. Legs are root parts and should use vanilla positioning.
+        float vanillaLegX = capturedX;
+
         // 3. Render upper leg portion with upper leg transform
         // Note: Legs are NOT parented to body in Mo'Bends
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         // Upper portion vertices stay as-is (no offset needed)
         poseStack.pushPose();
-        applyPartTransform(poseStack, upperLeg, true);
+        applyLegTransform(poseStack, upperLeg, vanillaLegX);
         renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay);
         poseStack.popPose();
 
@@ -872,7 +930,7 @@ public class Tier1Renderer
         float lowerLegOffsetY = -lowerLeg.position.y * SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * SCALE;
         poseStack.pushPose();
-        applyPartTransform(poseStack, upperLeg, true);
+        applyLegTransform(poseStack, upperLeg, vanillaLegX);
         applyPartTransform(poseStack, lowerLeg, true);
         renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
         poseStack.popPose();
