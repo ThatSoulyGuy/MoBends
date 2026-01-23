@@ -89,6 +89,60 @@ public final class ArmorPoseHelper
     }
 
     /**
+     * Apply leg transform using the vanilla armor model's X position.
+     * Legs are root parts that should use vanilla armor model positioning for X,
+     * but Mo'Bends transforms for Y, Z, rotation, and animation offset.
+     *
+     * This ensures leg armor renders at the correct horizontal position for all
+     * biped entities, regardless of what Mo'Bends entityData has configured.
+     *
+     * @param poseStack The pose stack to modify
+     * @param transform The Mo'Bends leg transform
+     * @param vanillaLegX The vanilla armor model's leg X position (typically ±1.9F)
+     */
+    public static void applyLegTransform(PoseStack poseStack, ModelPartTransform transform, float vanillaLegX)
+    {
+        if (transform == null)
+        {
+            return;
+        }
+
+        float offsetScale = transform.offsetScale;
+
+        // 1. Apply per-part globalOffset (pre-parent transform offset)
+        if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                transform.globalOffset.x * SCALE,
+                transform.globalOffset.y * SCALE,
+                transform.globalOffset.z * SCALE
+            );
+        }
+
+        // 2. Apply position - use vanilla X for horizontal placement, Mo'Bends Y/Z for pivot
+        // This ensures legs are horizontally positioned correctly using the vanilla armor model's
+        // position, while still allowing Mo'Bends to control the vertical pivot point.
+        poseStack.translate(
+            vanillaLegX * SCALE * offsetScale,
+            transform.position.y * SCALE * offsetScale,
+            transform.position.z * SCALE * offsetScale
+        );
+
+        // 3. Apply animation offset (animated position change)
+        if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
+        {
+            poseStack.translate(
+                transform.offset.x * SCALE * offsetScale,
+                transform.offset.y * SCALE * offsetScale,
+                transform.offset.z * SCALE * offsetScale
+            );
+        }
+
+        // 4. Apply rotation
+        GlHelper.rotate(poseStack, transform.rotation.getSmooth());
+    }
+
+    /**
      * Apply body transform with correct pivot point for rotation.
      * Mo'Bends rotates the body around body.position, so we need to:
      * 1. Translate to pivot

@@ -641,13 +641,16 @@ public class Tier1Renderer
 
         ModelPartTransform upperLeg = isLeft ? entityData.leftLeg : entityData.rightLeg;
 
+        // Get vanilla leg X position for correct horizontal placement
+        float vanillaLegX = legPart.x;
+
         if (!ENABLE_LIMB_SLICING)
         {
             // Simple mode: render whole leg with upper leg transform only
             // This means armor won't bend at knee, but will render correctly
             // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
             poseStack.pushPose();
-            ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+            ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
             ArmorPoseHelper.renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
@@ -676,12 +679,17 @@ public class Tier1Renderer
         List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
+        // Use the vanilla armor model's leg X position (stored in capturedX from resetPartToOrigin)
+        // This ensures leg armor renders at the correct horizontal position regardless of
+        // what Mo'Bends entityData has. Legs are root parts and should use vanilla positioning.
+        float vanillaLegXSliced = capturedX;
+
         // 3. Render upper leg portion with upper leg transform
         // Note: Legs are NOT parented to body in Mo'Bends
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         // Upper portion vertices stay as-is (no offset needed)
         poseStack.pushPose();
-        ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegXSliced);
         ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
 
@@ -693,7 +701,7 @@ public class Tier1Renderer
         float lowerLegOffsetY = -lowerLeg.position.y * ArmorPoseHelper.SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * ArmorPoseHelper.SCALE;
         poseStack.pushPose();
-        ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegXSliced);
         ArmorPoseHelper.applyPartTransform(poseStack, lowerLeg, true);
         ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
