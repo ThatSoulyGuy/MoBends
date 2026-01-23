@@ -9,8 +9,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,8 +17,7 @@ import java.util.Set;
  *
  * Classification logic:
  * - Tier 1: Model extends HumanoidModel (or is a known vanilla-compatible subclass)
- * - Tier 2: Model uses standard ModelPart structure but doesn't extend HumanoidModel
- * - Tier 3: Fallback for exotic models that don't fit other tiers
+ * - Tier 2: All other models (uses MC API to find parts by standard limb names)
  *
  * Results are cached for performance.
  */
@@ -35,9 +32,6 @@ public class TierClassifier
 
     // Known Tier 2 compatible model classes
     private final Set<Class<?>> knownTier2Classes = new HashSet<>();
-
-    // Known Tier 3 only model classes (exotic/incompatible)
-    private final Set<Class<?>> knownTier3Classes = new HashSet<>();
 
     // Configuration: force a specific tier for all models (for debugging)
     private RenderTier forcedTier = null;
@@ -70,7 +64,7 @@ public class TierClassifier
     {
         if (model == null)
         {
-            return RenderTier.TIER_3_VERTEX_CAPTURE;
+            return RenderTier.TIER_2_MODEL_INTERCEPTION;
         }
 
         // Check for forced tier (debugging)
@@ -120,10 +114,6 @@ public class TierClassifier
         {
             return RenderTier.TIER_2_MODEL_INTERCEPTION;
         }
-        if (knownTier3Classes.contains(modelClass))
-        {
-            return RenderTier.TIER_3_VERTEX_CAPTURE;
-        }
 
         // Check inheritance for HumanoidModel
         if (HumanoidModel.class.isAssignableFrom(modelClass))
@@ -132,8 +122,8 @@ public class TierClassifier
             return RenderTier.TIER_1_TRANSFORM_INJECTION;
         }
 
-        // Default to Tier 3 for unknown classes
-        return RenderTier.TIER_3_VERTEX_CAPTURE;
+        // Default to Tier 2 for unknown classes
+        return RenderTier.TIER_2_MODEL_INTERCEPTION;
     }
 
     /**
@@ -150,19 +140,12 @@ public class TierClassifier
                 knownTier1Classes.add(modelClass);
                 return RenderTier.TIER_1_TRANSFORM_INJECTION;
             }
-            // Falls through to check for Tier 2
+            // Falls through to Tier 2
         }
 
-        // Tier 2: Check if model uses ModelPart with analyzable structure
-        if (hasAnalyzableModelPartStructure(model, modelClass))
-        {
-            knownTier2Classes.add(modelClass);
-            return RenderTier.TIER_2_MODEL_INTERCEPTION;
-        }
-
-        // Tier 3: Fallback for everything else
-        knownTier3Classes.add(modelClass);
-        return RenderTier.TIER_3_VERTEX_CAPTURE;
+        // Tier 2: Fallback for everything else
+        knownTier2Classes.add(modelClass);
+        return RenderTier.TIER_2_MODEL_INTERCEPTION;
     }
 
     /**
@@ -187,58 +170,6 @@ public class TierClassifier
         catch (Exception e)
         {
             // If we can't access parts, fall back
-            return false;
-        }
-    }
-
-    /**
-     * Check if a model has ModelPart fields that can be analyzed spatially.
-     */
-    private boolean hasAnalyzableModelPartStructure(Model model, Class<?> modelClass)
-    {
-        try
-        {
-            int modelPartFieldCount = 0;
-
-            // Scan for ModelPart fields
-            for (Field field : modelClass.getDeclaredFields())
-            {
-                if (Modifier.isStatic(field.getModifiers()))
-                {
-                    continue;
-                }
-
-                if (ModelPart.class.isAssignableFrom(field.getType()))
-                {
-                    modelPartFieldCount++;
-                }
-            }
-
-            // Also check superclass fields
-            Class<?> superClass = modelClass.getSuperclass();
-            while (superClass != null && Model.class.isAssignableFrom(superClass))
-            {
-                for (Field field : superClass.getDeclaredFields())
-                {
-                    if (Modifier.isStatic(field.getModifiers()))
-                    {
-                        continue;
-                    }
-
-                    if (ModelPart.class.isAssignableFrom(field.getType()))
-                    {
-                        modelPartFieldCount++;
-                    }
-                }
-                superClass = superClass.getSuperclass();
-            }
-
-            // If the model has at least 3 ModelPart fields, it's likely analyzable
-            // (head, body, and at least one limb)
-            return modelPartFieldCount >= 3;
-        }
-        catch (Exception e)
-        {
             return false;
         }
     }
@@ -296,7 +227,6 @@ public class TierClassifier
     {
         knownTier1Classes.add(modelClass);
         knownTier2Classes.remove(modelClass);
-        knownTier3Classes.remove(modelClass);
     }
 
     /**
@@ -306,17 +236,6 @@ public class TierClassifier
     {
         knownTier2Classes.add(modelClass);
         knownTier1Classes.remove(modelClass);
-        knownTier3Classes.remove(modelClass);
-    }
-
-    /**
-     * Register a model class as Tier 3 only.
-     */
-    public void registerTier3Class(Class<?> modelClass)
-    {
-        knownTier3Classes.add(modelClass);
-        knownTier1Classes.remove(modelClass);
-        knownTier2Classes.remove(modelClass);
     }
 
     /**
@@ -328,7 +247,6 @@ public class TierClassifier
         {
             case TIER_1_TRANSFORM_INJECTION -> knownTier1Classes.contains(modelClass);
             case TIER_2_MODEL_INTERCEPTION -> knownTier2Classes.contains(modelClass);
-            case TIER_3_VERTEX_CAPTURE -> knownTier3Classes.contains(modelClass);
         };
     }
 
@@ -339,7 +257,6 @@ public class TierClassifier
     {
         knownTier1Classes.clear();
         knownTier2Classes.clear();
-        knownTier3Classes.clear();
 
         // Re-add base known classes
         knownTier1Classes.add(HumanoidModel.class);
@@ -352,7 +269,7 @@ public class TierClassifier
      */
     public String getStats()
     {
-        return String.format("TierClassifier: %d Tier1, %d Tier2, %d Tier3 known classes",
-            knownTier1Classes.size(), knownTier2Classes.size(), knownTier3Classes.size());
+        return String.format("TierClassifier: %d Tier1, %d Tier2 known classes",
+            knownTier1Classes.size(), knownTier2Classes.size());
     }
 }

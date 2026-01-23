@@ -16,6 +16,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
@@ -100,23 +101,51 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
             return;
         }
 
-        // Build render context
-        ArmorRenderContext<T> context = ArmorRenderContext.<T>builder()
-                .entity(entity)
-                .entityData(entityData)
-                .slot(slot)
-                .armorStack(armorStack)
-                .poseStack(poseStack)
-                .bufferSource(bufferSource)
-                .packedLight(packedLight)
-                .packedOverlay(OverlayTexture.NO_OVERLAY)
-                .partialTicks(0)
-                .armorModel(armorModel)
-                .build();
+        // Get the armor texture using NeoForge's extension API
+        // This allows mods to provide custom textures via IItemExtension.getArmorTexture()
+        boolean isInnerModel = (slot == EquipmentSlot.LEGS);
+        Holder<ArmorMaterial> materialHolder = armorItem.getMaterial();
+        ArmorMaterial material = materialHolder.value();
 
-        // Use Mo'Bends armor rendering facade
+        // Render each layer of the armor material
         ArmorRenderingFacade facade = mobends$getArmorFacade();
-        if (facade != null && facade.render(context, armorModel))
+        if (facade == null)
+        {
+            return;
+        }
+
+        boolean anyLayerRendered = false;
+        for (ArmorMaterial.Layer layer : material.layers())
+        {
+            // Get texture from the item - this calls NeoForge's IItemExtension.getArmorTexture()
+            // which mods can override to provide custom textures
+            ResourceLocation texture = armorItem.getArmorTexture(armorStack, entity, slot, layer, isInnerModel);
+            if (texture == null)
+            {
+                continue;
+            }
+
+            // Render this layer with Mo'Bends
+            boolean layerRendered = facade.renderArmor(
+                    poseStack,
+                    bufferSource,
+                    packedLight,
+                    entity,
+                    slot,
+                    armorStack,
+                    armorItem,
+                    armorModel,
+                    entityData,
+                    texture
+            );
+
+            if (layerRendered)
+            {
+                anyLayerRendered = true;
+            }
+        }
+
+        if (anyLayerRendered)
         {
             // Mo'Bends handled the armor rendering - now render trim if present
             ArmorTrim trim = armorStack.get(DataComponents.TRIM);
@@ -132,7 +161,6 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 
                     // Render the trim using vanilla's method via invoker
                     boolean isLeggings = (slot == EquipmentSlot.LEGS);
-                    Holder<ArmorMaterial> materialHolder = armorItem.getMaterial();
                     mobends$invokeRenderTrim(materialHolder, poseStack, bufferSource, packedLight, trim, armorModel, isLeggings);
                     LOGGER.debug("Trim render call completed for slot {}", slot);
                 }

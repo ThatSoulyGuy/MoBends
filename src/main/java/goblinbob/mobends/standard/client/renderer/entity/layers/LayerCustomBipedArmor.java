@@ -25,9 +25,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import javax.annotation.Nullable;
 
@@ -124,18 +126,30 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         if (!(itemStack.getItem() instanceof ArmorItem armorItem)) return;
         if (armorItem.getEquipmentSlot() != slot) return;
 
-        // Get the appropriate armor model
+        // Get the default armor model (inner or outer based on slot)
         boolean usesInnerModel = usesInnerModel(slot);
-        HumanoidModel<E> armorModel = usesInnerModel ? getInnerModel() : getOuterModel();
-        if (armorModel == null)
+        HumanoidModel<E> defaultModel = usesInnerModel ? getInnerModel() : getOuterModel();
+        if (defaultModel == null)
         {
             return;
         }
 
         // Set up model visibility for this slot
         M parentModel = getParentModel();
-        parentModel.copyPropertiesTo(armorModel);
-        setPartVisibility(armorModel, slot);
+        parentModel.copyPropertiesTo(defaultModel);
+        setPartVisibility(defaultModel, slot);
+
+        // Query NeoForge's IClientItemExtensions for custom armor models
+        // This is the standard way mods provide custom 3D armor models
+        @SuppressWarnings("unchecked")
+        HumanoidModel<E> customModel = (HumanoidModel<E>) IClientItemExtensions.of(itemStack)
+                .getHumanoidArmorModel(entity, itemStack, slot, defaultModel);
+
+        // Determine if this is a custom model or the default vanilla model
+        // If the returned model is the same as the default, use vanilla Tier 1 rendering
+        // If it's a different model (custom), use that model instead
+        boolean isCustomModel = (customModel != defaultModel);
+        HumanoidModel<E> armorModel = isCustomModel ? customModel : defaultModel;
 
         // Check if we should use Mo' Bends rendering
         boolean shouldUseBends = hasBendsAnimation && !ModConfig.shouldKeepArmorAsVanilla(armorItem);
@@ -151,7 +165,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             }
 
             // Render with rigid body approach
-            renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, bipedData);
+            // Pass isCustomModel flag to determine rendering strategy
+            renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, bipedData, isCustomModel);
         }
         else
         {
@@ -164,37 +179,83 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
      * Render armor using the three-tier armor rendering system.
      *
      * Tier selection:
-     * - Tier 1 (Transform Injection): ~85% of armor - vanilla/standard HumanoidModel
-     * - Tier 2 (Model Interception): ~10% of armor - modded using ModelPart
-     * - Tier 3 (Vertex Capture): ~5% of armor - exotic renderers
+     * - Tier 1 (Transform Injection): vanilla/standard HumanoidModel (uses default texture paths)
+     * - Tier 2 (Model Interception): modded custom models (uses custom texture paths from mod)
+     *
+     * @param isCustomModel true if the armor uses a custom model from IClientItemExtensions
      */
     private void renderRigidArmor(PoseStack poseStack, MultiBufferSource bufferSource,
                                   int packedLight, E entity, ArmorItem armorItem,
                                   HumanoidModel<E> armorModel, EquipmentSlot slot,
-                                  ItemStack itemStack, BipedEntityData<?> bipedData)
+                                  ItemStack itemStack, BipedEntityData<?> bipedData,
+                                  boolean isCustomModel)
     {
-        // Get the armor texture
-        ResourceLocation texture = getArmorTexture(armorItem, slot, null);
-        if (texture == null) return;
+        boolean isInnerModel = usesInnerModel(slot);
+        ArmorMaterial material = armorItem.getMaterial().value();
 
-        // Use the three-tier facade for rendering
-        boolean rendered = armorFacade.renderArmor(
-                poseStack,
-                bufferSource,
-                packedLight,
-                entity,
-                slot,
-                itemStack,
-                armorItem,
-                armorModel,
-                bipedData,
-                texture
-        );
-
-        // If facade didn't handle it, fall back to legacy approach
-        if (!rendered)
+        if (isCustomModel)
         {
-            renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, texture);
+            // Custom armor model - use NeoForge's getArmorTexture() to get custom textures
+            boolean anyRendered = false;
+            for (ArmorMaterial.Layer layer : material.layers())
+            {
+                ResourceLocation texture = armorItem.getArmorTexture(itemStack, entity, slot, layer, isInnerModel);
+                if (texture == null)
+                {
+                    continue;
+                }
+
+                boolean rendered = armorFacade.renderArmor(
+                        poseStack,
+                        bufferSource,
+                        packedLight,
+                        entity,
+                        slot,
+                        itemStack,
+                        armorItem,
+                        armorModel,
+                        bipedData,
+                        texture
+                );
+
+                if (rendered)
+                {
+                    anyRendered = true;
+                }
+            }
+
+            // Fallback for custom models if nothing rendered
+            if (!anyRendered)
+            {
+                ResourceLocation fallbackTexture = getArmorTexture(armorItem, slot, null);
+                if (fallbackTexture != null)
+                {
+                    renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, fallbackTexture);
+                }
+            }
+        }
+        else
+        {
+            // Vanilla armor model - use standard vanilla texture path
+            ResourceLocation texture = getArmorTexture(armorItem, slot, null);
+            if (texture == null)
+            {
+                return;
+            }
+
+            // Use Tier 1 rendering for vanilla armor
+            armorFacade.renderArmor(
+                    poseStack,
+                    bufferSource,
+                    packedLight,
+                    entity,
+                    slot,
+                    itemStack,
+                    armorItem,
+                    armorModel,
+                    bipedData,
+                    texture
+            );
         }
     }
 

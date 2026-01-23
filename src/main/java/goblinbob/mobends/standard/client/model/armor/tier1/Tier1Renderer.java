@@ -3,7 +3,7 @@ package goblinbob.mobends.standard.client.model.armor.tier1;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
-import goblinbob.mobends.core.util.GlHelper;
+import goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper;
 import goblinbob.mobends.standard.client.model.armor.ArmorRenderContext;
 import goblinbob.mobends.standard.client.model.armor.CapturedVertex;
 import goblinbob.mobends.standard.client.model.armor.CapturingVertexConsumer;
@@ -280,8 +280,6 @@ public class Tier1Renderer
         CacheManager.getInstance().recordCacheAssistedRender();
     }
 
-    private static final float SCALE = 1.0f / 16.0f;
-
     /**
      * Render head armor piece.
      * Head is parented to body, so we apply body transform first, then head transform.
@@ -365,11 +363,11 @@ public class Tier1Renderer
         // Note: Global transforms (globalOffset, centerRotation, etc.) are already applied
         // by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
         poseStack.pushPose();
-        applyPartTransform(poseStack, entityData.body, true);  // Body transform (head is parented to body)
+        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);  // Body transform (head is parented to body)
 
         if (isHead)
         {
-            applyPartTransform(poseStack, entityData.head, true);  // Head transform
+            ArmorPoseHelper.applyPartTransform(poseStack, entityData.head, true);  // Head transform
         }
 
         // 3. Transform and output vertices
@@ -438,8 +436,8 @@ public class Tier1Renderer
         // Render body - apply rotation around correct pivot, keep vanilla position
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         poseStack.pushPose();
-        applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
+        ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
+        ArmorPoseHelper.renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
         poseStack.popPose();
 
         // Render left arm (split at elbow joint)
@@ -476,8 +474,8 @@ public class Tier1Renderer
         // Render body (waist/skirt part of leggings) - rotation around correct pivot, vanilla position
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         poseStack.pushPose();
-        applyBodyTransformWithPivot(poseStack, entityData);
-        renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
+        ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
+        ArmorPoseHelper.renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
         poseStack.popPose();
 
         // Render left leg (split at knee joint)
@@ -519,183 +517,6 @@ public class Tier1Renderer
         poseStack.popPose();
     }
 
-    /**
-     * Apply body transform with correct pivot point for rotation.
-     * Mo'Bends rotates the body around body.position, so we need to:
-     * 1. Translate to pivot
-     * 2. Apply offset and rotation
-     * 3. Translate back from pivot
-     */
-    private void applyBodyTransformWithPivot(PoseStack poseStack, BipedEntityData<?> entityData)
-    {
-        ModelPartTransform body = entityData.body;
-        if (body == null)
-        {
-            return;
-        }
-
-        // Translate to body pivot point
-        poseStack.translate(
-            body.position.x * SCALE,
-            body.position.y * SCALE,
-            body.position.z * SCALE
-        );
-
-        // Apply animation offset
-        if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
-        {
-            poseStack.translate(
-                body.offset.x * SCALE,
-                body.offset.y * SCALE,
-                body.offset.z * SCALE
-            );
-        }
-
-        // Apply rotation (now around the correct pivot)
-        GlHelper.rotate(poseStack, body.rotation.getSmooth());
-
-        // Translate back from pivot so rendering happens at vanilla position
-        poseStack.translate(
-            -body.position.x * SCALE,
-            -body.position.y * SCALE,
-            -body.position.z * SCALE
-        );
-    }
-
-    /**
-     * Apply a Mo'Bends part transform to the PoseStack.
-     * This syncs both positions and rotations to match the player model exactly.
-     *
-     * Transform order (matching CoordinateSpaceManager and player model):
-     * 1. Per-part globalOffset (pre-parent offset, e.g., for special positioning)
-     * 2. Position (pivot point, scaled by offsetScale)
-     * 3. Offset (animation offset, scaled by offsetScale)
-     * 4. Rotation
-     *
-     * @param poseStack The pose stack to modify
-     * @param transform The Mo'Bends transform
-     * @param isChildPart If true, applies position (for parts relative to parent). If false, skips position.
-     */
-    private void applyPartTransform(PoseStack poseStack, ModelPartTransform transform, boolean isChildPart)
-    {
-        if (transform == null)
-        {
-            return;
-        }
-
-        float offsetScale = transform.offsetScale;
-
-        // 1. Apply per-part globalOffset (pre-parent transform offset)
-        if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
-        {
-            poseStack.translate(
-                transform.globalOffset.x * SCALE,
-                transform.globalOffset.y * SCALE,
-                transform.globalOffset.z * SCALE
-            );
-        }
-
-        // 2. Apply position (pivot point) - only for child parts relative to parent
-        // Root parts (body, legs) use vanilla armor model positions
-        if (isChildPart && (transform.position.x != 0 || transform.position.y != 0 || transform.position.z != 0))
-        {
-            poseStack.translate(
-                transform.position.x * SCALE * offsetScale,
-                transform.position.y * SCALE * offsetScale,
-                transform.position.z * SCALE * offsetScale
-            );
-        }
-
-        // 3. Apply animation offset (animated position change)
-        if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
-        {
-            poseStack.translate(
-                transform.offset.x * SCALE * offsetScale,
-                transform.offset.y * SCALE * offsetScale,
-                transform.offset.z * SCALE * offsetScale
-            );
-        }
-
-        // 4. Apply rotation
-        GlHelper.rotate(poseStack, transform.rotation.getSmooth());
-    }
-
-    /**
-     * Render a ModelPart keeping its vanilla position but without rotation.
-     * Mo'Bends rotation is already applied to PoseStack.
-     * Used for body/waist which should stay at vanilla position.
-     */
-    private void renderPartWithVanillaPosition(
-            ModelPart part,
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            int packedLight,
-            int packedOverlay)
-    {
-        if (part == null || !part.visible)
-        {
-            return;
-        }
-
-        // Store original rotation
-        float origXRot = part.xRot, origYRot = part.yRot, origZRot = part.zRot;
-
-        // Reset rotation to identity - Mo'Bends rotation is on PoseStack
-        // Keep vanilla position (x, y, z) so armor renders at correct location
-        part.xRot = 0;
-        part.yRot = 0;
-        part.zRot = 0;
-
-        // Render
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
-
-        // Restore original rotation
-        part.xRot = origXRot;
-        part.yRot = origYRot;
-        part.zRot = origZRot;
-    }
-
-    /**
-     * Render a ModelPart at the origin (without its own position/rotation).
-     * Full Mo'Bends transform is already applied to PoseStack.
-     * Used for arms, legs, head which use full Mo'Bends positioning.
-     */
-    private void renderPartAtOrigin(
-            ModelPart part,
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            int packedLight,
-            int packedOverlay)
-    {
-        if (part == null || !part.visible)
-        {
-            return;
-        }
-
-        // Store original values
-        float origX = part.x, origY = part.y, origZ = part.z;
-        float origXRot = part.xRot, origYRot = part.yRot, origZRot = part.zRot;
-
-        // Reset to origin - full transform already applied via PoseStack
-        part.x = 0;
-        part.y = 0;
-        part.z = 0;
-        part.xRot = 0;
-        part.yRot = 0;
-        part.zRot = 0;
-
-        // Render
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
-
-        // Restore original values
-        part.x = origX;
-        part.y = origY;
-        part.z = origZ;
-        part.xRot = origXRot;
-        part.yRot = origYRot;
-        part.zRot = origZRot;
-    }
-
     // ========== SPLIT LIMB RENDERING ==========
 
     // Enable limb slicing for proper elbow/knee bending
@@ -704,7 +525,7 @@ public class Tier1Renderer
     // Slim arm Y offset: standard arm Y is -10F, slim arm Y is -9.5F
     // The armor model always uses standard positions (-10F), but Mo'Bends animation
     // for slim players uses -9.5F. We need to offset the armor UP by 0.5 model units.
-    private static final float SLIM_ARM_Y_OFFSET = 0.5f * SCALE;  // 0.5 model units in render units
+    private static final float SLIM_ARM_Y_OFFSET = 0.5f * ArmorPoseHelper.SCALE;  // 0.5 model units in render units
 
     /**
      * Render an arm split at the elbow joint.
@@ -735,14 +556,14 @@ public class Tier1Renderer
             // This means armor won't bend at elbow, but will render correctly
             // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
             poseStack.pushPose();
-            applyPartTransform(poseStack, entityData.body, true);
-            applyPartTransform(poseStack, upperArm, true);
+            ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
+            ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
             // Apply slim arm Y offset correction
             if (isSlimArms)
             {
                 poseStack.translate(0, -SLIM_ARM_Y_OFFSET, 0);
             }
-            renderPartAtOrigin(armPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            ArmorPoseHelper.renderPartAtOrigin(armPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
         }
@@ -767,7 +588,7 @@ public class Tier1Renderer
         }
 
         // 2. Group vertices into quads and slice at elbow
-        List<CapturedVertex[]> quads = groupIntoQuads(vertices);
+        List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, elbowPlane);
 
         // Slim arm Y offset for captured vertices (applied to output, not capture)
@@ -777,24 +598,24 @@ public class Tier1Renderer
         // Upper portion vertices stay as-is (no offset needed except for slim arms)
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         poseStack.pushPose();
-        applyPartTransform(poseStack, entityData.body, true);
-        applyPartTransform(poseStack, upperArm, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
         // Apply slim arm offset to Y
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
 
         // 4. Render forearm portion with forearm transform (chained to upper arm)
         // Lower portion vertices need to be offset by forearm's position to be in forearm-local-space
         // foreArm.position is (0, 4, 2) in model units, so we offset by (-0, -0.25, -0.125) in render units
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
-        float foreArmOffsetX = -foreArm.position.x * SCALE;
-        float foreArmOffsetY = -foreArm.position.y * SCALE + slimArmOffset;  // Include slim arm offset
-        float foreArmOffsetZ = -foreArm.position.z * SCALE;
+        float foreArmOffsetX = -foreArm.position.x * ArmorPoseHelper.SCALE;
+        float foreArmOffsetY = -foreArm.position.y * ArmorPoseHelper.SCALE + slimArmOffset;  // Include slim arm offset
+        float foreArmOffsetZ = -foreArm.position.z * ArmorPoseHelper.SCALE;
         poseStack.pushPose();
-        applyPartTransform(poseStack, entityData.body, true);
-        applyPartTransform(poseStack, upperArm, true);
-        applyPartTransform(poseStack, foreArm, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay);
+        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, foreArm, true);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
     }
 
@@ -826,8 +647,8 @@ public class Tier1Renderer
             // This means armor won't bend at knee, but will render correctly
             // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
             poseStack.pushPose();
-            applyPartTransform(poseStack, upperLeg, true);
-            renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+            ArmorPoseHelper.renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
             return;
         }
@@ -852,7 +673,7 @@ public class Tier1Renderer
         }
 
         // 2. Group vertices into quads and slice at knee
-        List<CapturedVertex[]> quads = groupIntoQuads(vertices);
+        List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
         // 3. Render upper leg portion with upper leg transform
@@ -860,21 +681,21 @@ public class Tier1Renderer
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         // Upper portion vertices stay as-is (no offset needed)
         poseStack.pushPose();
-        applyPartTransform(poseStack, upperLeg, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay);
+        ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
 
         // 4. Render lower leg portion with lower leg transform (chained to upper leg)
         // Lower portion vertices need to be offset by lowerLeg's position to be in lower-leg-local-space
         // lowerLeg.position is (0, 6, -2) in model units, so we offset by (-0, -0.375, 0.125) in render units
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
-        float lowerLegOffsetX = -lowerLeg.position.x * SCALE;
-        float lowerLegOffsetY = -lowerLeg.position.y * SCALE;
-        float lowerLegOffsetZ = -lowerLeg.position.z * SCALE;
+        float lowerLegOffsetX = -lowerLeg.position.x * ArmorPoseHelper.SCALE;
+        float lowerLegOffsetY = -lowerLeg.position.y * ArmorPoseHelper.SCALE;
+        float lowerLegOffsetZ = -lowerLeg.position.z * ArmorPoseHelper.SCALE;
         poseStack.pushPose();
-        applyPartTransform(poseStack, upperLeg, true);
-        applyPartTransform(poseStack, lowerLeg, true);
-        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay);
+        ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, lowerLeg, true);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
     }
 
@@ -916,166 +737,6 @@ public class Tier1Renderer
         part.xRot = capturedXRot;
         part.yRot = capturedYRot;
         part.zRot = capturedZRot;
-    }
-
-    /**
-     * Group captured vertices into quads (4 vertices each).
-     * Minecraft renders quads, so every 4 consecutive vertices form a quad.
-     */
-    private List<CapturedVertex[]> groupIntoQuads(List<CapturedVertex> vertices)
-    {
-        List<CapturedVertex[]> quads = new ArrayList<>();
-        for (int i = 0; i + 3 < vertices.size(); i += 4)
-        {
-            quads.add(new CapturedVertex[] {
-                vertices.get(i),
-                vertices.get(i + 1),
-                vertices.get(i + 2),
-                vertices.get(i + 3)
-            });
-        }
-        return quads;
-    }
-
-    /**
-     * Render sliced geometry (upper or lower portion of quads).
-     * Transforms vertices using current PoseStack and outputs to consumer.
-     *
-     * IMPORTANT: The VertexConsumer expects QUADS (4 vertices each), not triangles.
-     * We must output vertices in groups of 4.
-     *
-     * @param poseStack The pose stack with current bone transform
-     * @param consumer The vertex consumer to output to
-     * @param sliceResults Results from QuadSlicer
-     * @param renderUpper true to render upper portion, false for lower
-     * @param offsetX X offset to apply to vertices before transform (for local space conversion)
-     * @param offsetY Y offset to apply to vertices before transform (for local space conversion)
-     * @param offsetZ Z offset to apply to vertices before transform (for local space conversion)
-     * @param packedLight Light value
-     * @param packedOverlay Overlay value
-     */
-    private void renderSlicedVertices(
-            PoseStack poseStack,
-            VertexConsumer consumer,
-            List<SliceResult> sliceResults,
-            boolean renderUpper,
-            float offsetX,
-            float offsetY,
-            float offsetZ,
-            int packedLight,
-            int packedOverlay)
-    {
-        Matrix4f matrix = poseStack.last().pose();
-        Matrix3f normal = poseStack.last().normal();
-
-        for (SliceResult result : sliceResults)
-        {
-            List<SliceResult.SlicedVertex> vertices = renderUpper
-                    ? result.getUpperVertices()
-                    : result.getLowerVertices();
-
-            if (vertices.isEmpty())
-            {
-                continue;
-            }
-
-            // Handle different vertex counts - RenderType expects QUADS (4 vertices each)
-            int vertexCount = vertices.size();
-
-            if (vertexCount == 4)
-            {
-                // Standard quad - output 4 vertices directly
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-            }
-            else if (vertexCount == 3)
-            {
-                // Triangle - create degenerate quad by duplicating last vertex
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
-            }
-            else if (vertexCount == 5)
-            {
-                // Pentagon - split into 2 quads: (0,1,2,3) and (0,3,4,4)
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(2), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-
-                outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(3), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                outputVertex(matrix, normal, consumer, vertices.get(4), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
-            }
-            else if (vertexCount >= 6)
-            {
-                // 6+ vertices - fan triangulation converted to quads
-                // Each triangle (0, i, i+1) becomes a degenerate quad
-                for (int i = 1; i < vertexCount - 1; i++)
-                {
-                    outputVertex(matrix, normal, consumer, vertices.get(0), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                    outputVertex(matrix, normal, consumer, vertices.get(i), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay);
-                    outputVertex(matrix, normal, consumer, vertices.get(i + 1), offsetX, offsetY, offsetZ, packedLight, packedOverlay); // Duplicate
-                }
-            }
-            // vertexCount < 3 is degenerate, skip
-        }
-    }
-
-    /**
-     * Output a single vertex, transformed by the given matrices.
-     * Applies an offset to the vertex position before transformation (for local space conversion).
-     */
-    private void outputVertex(
-            Matrix4f matrix,
-            Matrix3f normal,
-            VertexConsumer consumer,
-            SliceResult.SlicedVertex v,
-            float offsetX,
-            float offsetY,
-            float offsetZ,
-            int packedLight,
-            int packedOverlay)
-    {
-        // Apply offset to vertex position (converts to local space for child bones)
-        float vx = v.x + offsetX;
-        float vy = v.y + offsetY;
-        float vz = v.z + offsetZ;
-
-        // Transform position by matrix
-        float tx = matrix.m00() * vx + matrix.m10() * vy + matrix.m20() * vz + matrix.m30();
-        float ty = matrix.m01() * vx + matrix.m11() * vy + matrix.m21() * vz + matrix.m31();
-        float tz = matrix.m02() * vx + matrix.m12() * vy + matrix.m22() * vz + matrix.m32();
-
-        // Transform normal by normal matrix
-        float nx = normal.m00() * v.normalX + normal.m10() * v.normalY + normal.m20() * v.normalZ;
-        float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
-        float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
-
-        // Output transformed vertex
-        // Apply armor color tint (for leather armor dyeing)
-        // Multiply captured vertex color with armor color
-        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
-        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
-        float tintB = (currentArmorColor & 0xFF) / 255.0F;
-        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
-
-        // Pack tinted RGBA into single int for 1.21.1
-        int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
-                    ((int)(v.red * tintR * 255.0F) << 16) |
-                    ((int)(v.green * tintG * 255.0F) << 8) |
-                    (int)(v.blue * tintB * 255.0F);
-        consumer.addVertex(tx, ty, tz)
-                .setColor(color)
-                .setUv(v.u, v.v)
-                .setOverlay(packedOverlay)
-                .setLight(packedLight)
-                .setNormal(nx, ny, nz);
     }
 
     /**

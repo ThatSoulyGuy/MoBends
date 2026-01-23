@@ -2,12 +2,10 @@ package goblinbob.mobends.standard.client.model.armor.tier2;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import goblinbob.mobends.standard.client.model.armor.ArmorRenderContext;
-import goblinbob.mobends.standard.client.model.armor.cache.ArmorStructureCache;
+import goblinbob.mobends.core.client.model.ModelPartTransform;
+import goblinbob.mobends.standard.client.model.armor.*;
 import goblinbob.mobends.standard.client.model.armor.cache.CacheManager;
-import goblinbob.mobends.standard.client.model.armor.tier.PartClassification;
 import goblinbob.mobends.standard.client.model.armor.tier.RenderTier;
-import goblinbob.mobends.standard.client.model.armor.tier3.Tier3Renderer;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
@@ -20,53 +18,39 @@ import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Function;
 
 /**
- * Tier 2 renderer: Model Interception.
+ * Tier 2 renderer: For custom armor models that don't extend HumanoidModel.
  *
- * This renderer works with armor models that use ModelPart but don't extend HumanoidModel.
- * It analyzes the model structure spatially to classify parts, then applies transforms
- * by modifying ModelPart values before vanilla rendering.
+ * Uses Minecraft's API to find parts by standard limb names, then applies
+ * vertex capture + joint slicing (same approach as Tier 1).
  *
- * Approach:
- * 1. Analyze model structure (cached) to classify parts into bone regions
- * 2. For each classified part, apply Mo'Bends animation transform
- * 3. Render the model normally (vanilla render with modified part values)
- * 4. Restore original part values after render
+ * Standard part names searched:
+ * - "head", "hat"
+ * - "body"
+ * - "left_arm", "right_arm"
+ * - "left_leg", "right_leg"
  *
- * Falls back to Tier 3 if analysis fails or produces low-confidence results.
+ * For parts not found by name, falls back to rendering without joint slicing.
  */
 @OnlyIn(Dist.CLIENT)
 public class Tier2Renderer
 {
-    private final SpatialAnalyzer spatialAnalyzer;
-    private final ModelPartTransformer modelPartTransformer;
-    private final Tier3Renderer tier3Fallback;
-
-    // Threshold for using analyzed results vs falling back to Tier 3
-    private static final float MIN_CONFIDENCE = 0.5f;
+    // Vertex capture and slicing for limb joint deformation (same as Tier 1)
+    private final CapturingVertexConsumer limbCapture = new CapturingVertexConsumer();
+    private final QuadSlicer quadSlicer = new QuadSlicer();
 
     // Performance tracking
     private long renderCount = 0;
-    private long fallbackCount = 0;
+
+    // Current armor color for rendering
+    private int currentArmorColor = 0xFFFFFFFF;
 
     public Tier2Renderer()
     {
-        this.spatialAnalyzer = new SpatialAnalyzer();
-        this.modelPartTransformer = new ModelPartTransformer();
-        this.tier3Fallback = new Tier3Renderer();
-    }
-
-    public Tier2Renderer(SpatialAnalyzer spatialAnalyzer, ModelPartTransformer modelPartTransformer, Tier3Renderer tier3Fallback)
-    {
-        this.spatialAnalyzer = spatialAnalyzer;
-        this.modelPartTransformer = modelPartTransformer;
-        this.tier3Fallback = tier3Fallback;
     }
 
     /**
@@ -110,11 +94,11 @@ public class Tier2Renderer
 
         try
         {
-            // Use ItemRenderer.getArmorFoilBuffer to properly handle enchantment glint
             VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
                     context.getBufferSource(),
                     RenderType.armorCutoutNoCull(texture),
                     hasFoil);
+
             renderWithConsumer(context, model, vertexConsumer);
             return true;
         }
@@ -125,80 +109,7 @@ public class Tier2Renderer
     }
 
     /**
-     * Render armor with a pre-configured VertexConsumer (for foil support).
-     */
-    private <E extends LivingEntity> void renderWithConsumer(
-            ArmorRenderContext<E> context,
-            Model model,
-            VertexConsumer vertexConsumer)
-    {
-        if (context.getEntityData() == null)
-        {
-            return;
-        }
-
-        renderCount++;
-
-        // Get or compute part classifications
-        Map<String, PartClassification> classifications = getClassifications(model);
-
-        // Check if we have sufficient classifications
-        if (!hasValidClassifications(classifications, context.getSlot()))
-        {
-            // Fall back to Tier 3
-            fallbackCount++;
-            return;
-        }
-
-        BipedEntityData<?> entityData = context.getEntityData();
-        PoseStack poseStack = context.getPoseStack();
-
-        // Store original part values
-        Map<String, OriginalPartState> originalStates = storePartStates(model, classifications);
-
-        try
-        {
-            // Apply transforms to all classified parts
-            applyTransforms(model, classifications, entityData);
-
-            // Render with modified transforms
-            poseStack.pushPose();
-
-            // Apply baby scale if needed (babies render at 0.5 scale)
-            float entityScale = context.getEntityScale();
-            if (entityScale != 1.0f)
-            {
-                poseStack.scale(entityScale, entityScale, entityScale);
-            }
-
-            model.renderToBuffer(
-                    poseStack,
-                    vertexConsumer,
-                    context.getPackedLight(),
-                    context.getPackedOverlay(),
-                    context.getArmorColor()
-            );
-
-            poseStack.popPose();
-
-            // Record cache statistics
-            CacheManager.getInstance().recordCacheAssistedRender();
-        }
-        finally
-        {
-            // Restore original part states
-            restorePartStates(model, originalStates);
-        }
-    }
-
-    /**
      * Render armor using the model interception approach.
-     *
-     * @param context The armor render context
-     * @param model The armor model to render
-     * @param texture The armor texture
-     * @param renderTypeProvider Function to get RenderType from texture
-     * @param <E> Entity type
      */
     public <E extends LivingEntity> void render(
             ArmorRenderContext<E> context,
@@ -213,194 +124,429 @@ public class Tier2Renderer
             return;
         }
 
-        renderCount++;
+        RenderType renderType = renderTypeProvider.apply(texture);
+        VertexConsumer vertexConsumer = context.getBufferSource().getBuffer(renderType);
+        renderWithConsumer(context, model, vertexConsumer);
+    }
 
-        // Get or compute part classifications
-        Map<String, PartClassification> classifications = getClassifications(model);
-
-        // Check if we have sufficient classifications
-        if (!hasValidClassifications(classifications, context.getSlot()))
+    /**
+     * Core rendering logic using vertex capture + joint slicing.
+     */
+    private <E extends LivingEntity> void renderWithConsumer(
+            ArmorRenderContext<E> context,
+            Model model,
+            VertexConsumer vertexConsumer)
+    {
+        if (context.getEntityData() == null)
         {
-            // Fall back to Tier 3
-            fallbackCount++;
-            tier3Fallback.render(context, model, texture, renderTypeProvider);
             return;
         }
 
+        renderCount++;
+        currentArmorColor = context.getArmorColor();
+
         BipedEntityData<?> entityData = context.getEntityData();
         PoseStack poseStack = context.getPoseStack();
-        MultiBufferSource bufferSource = context.getBufferSource();
+        EquipmentSlot slot = context.getSlot();
+        int packedLight = context.getPackedLight();
+        int packedOverlay = context.getPackedOverlay();
+        float entityScale = context.getEntityScale();
 
-        // Store original part values
-        Map<String, OriginalPartState> originalStates = storePartStates(model, classifications);
+        // Get model root part
+        ModelPart root = getModelRoot(model);
+        if (root == null)
+        {
+            // Can't find root - render without Mo'Bends transforms
+            renderVanillaFallback(context, model, vertexConsumer);
+            return;
+        }
 
+        poseStack.pushPose();
+
+        // Apply baby scale if needed
+        if (entityScale != 1.0f)
+        {
+            poseStack.scale(entityScale, entityScale, entityScale);
+        }
+
+        // Render based on slot
+        switch (slot)
+        {
+            case HEAD:
+                renderHead(poseStack, vertexConsumer, root, entityData, packedLight, packedOverlay);
+                break;
+            case CHEST:
+                renderChest(poseStack, vertexConsumer, root, entityData, packedLight, packedOverlay);
+                break;
+            case LEGS:
+                renderLegs(poseStack, vertexConsumer, root, entityData, packedLight, packedOverlay);
+                break;
+            case FEET:
+                renderFeet(poseStack, vertexConsumer, root, entityData, packedLight, packedOverlay);
+                break;
+        }
+
+        poseStack.popPose();
+
+        CacheManager.getInstance().recordCacheAssistedRender();
+    }
+
+    /**
+     * Get the root ModelPart from a Model.
+     * Uses reflection to find the root part field.
+     */
+    @Nullable
+    private ModelPart getModelRoot(Model model)
+    {
         try
         {
-            // Apply transforms to all classified parts
-            applyTransforms(model, classifications, entityData);
+            // Try common field names for root part
+            for (String fieldName : new String[]{"root", "body", "main"})
+            {
+                try
+                {
+                    java.lang.reflect.Field field = model.getClass().getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    Object value = field.get(model);
+                    if (value instanceof ModelPart)
+                    {
+                        return (ModelPart) value;
+                    }
+                }
+                catch (NoSuchFieldException ignored)
+                {
+                    // Try next field name
+                }
+            }
 
-            // Render with modified transforms
+            // Search all fields for a ModelPart
+            for (java.lang.reflect.Field field : model.getClass().getDeclaredFields())
+            {
+                if (ModelPart.class.isAssignableFrom(field.getType()))
+                {
+                    field.setAccessible(true);
+                    return (ModelPart) field.get(model);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            // Reflection failed
+        }
+        return null;
+    }
+
+    /**
+     * Find a part by name in the model hierarchy.
+     */
+    @Nullable
+    private ModelPart findPartByName(ModelPart root, String... names)
+    {
+        for (String name : names)
+        {
+            // Try direct child lookup
+            try
+            {
+                ModelPart child = root.getChild(name);
+                if (child != null)
+                {
+                    return child;
+                }
+            }
+            catch (Exception ignored)
+            {
+                // Child not found, try next name
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Render head armor.
+     */
+    private void renderHead(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart root,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay)
+    {
+        ModelPart headPart = findPartByName(root, "head", "Head");
+        if (headPart == null)
+        {
+            // Try to render entire root with head transform
+            renderPartWithTransform(poseStack, vertexConsumer, root, entityData.body, entityData.head,
+                    packedLight, packedOverlay);
+            return;
+        }
+
+        // Render head with body + head transform chain
+        poseStack.pushPose();
+        ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
+        ArmorPoseHelper.applyPartTransform(poseStack, entityData.head, true);
+        ArmorPoseHelper.renderPartAtOrigin(headPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+        poseStack.popPose();
+
+        // Also render hat if present
+        ModelPart hatPart = findPartByName(root, "hat", "Hat");
+        if (hatPart != null)
+        {
             poseStack.pushPose();
-
-            // Apply baby scale if needed (babies render at 0.5 scale)
-            float entityScale = context.getEntityScale();
-            if (entityScale != 1.0f)
-            {
-                poseStack.scale(entityScale, entityScale, entityScale);
-            }
-
-            // Note: Global transforms (globalOffset, centerRotation, renderRotation, localOffset)
-            // are already applied by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
-
-            RenderType renderType = renderTypeProvider.apply(texture);
-            VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
-
-            model.renderToBuffer(
-                    poseStack,
-                    vertexConsumer,
-                    context.getPackedLight(),
-                    context.getPackedOverlay(),
-                    context.getArmorColor()
-            );
-
+            ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
+            ArmorPoseHelper.applyPartTransform(poseStack, entityData.head, true);
+            ArmorPoseHelper.renderPartAtOrigin(hatPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
-
-            // Record cache statistics
-            CacheManager.getInstance().recordCacheAssistedRender();
-        }
-        finally
-        {
-            // Restore original part states
-            restorePartStates(model, originalStates);
         }
     }
 
     /**
-     * Get cached classifications or analyze the model.
+     * Render chest armor (body + arms).
      */
-    private Map<String, PartClassification> getClassifications(Model model)
+    private void renderChest(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart root,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay)
     {
-        Class<?> modelClass = model.getClass();
-
-        // Check structure cache first
-        ArmorStructureCache cache = CacheManager.getInstance().getStructureCache();
-        ArmorStructureCache.StructureEntry cached = cache.get(modelClass);
-        if (cached != null && !cached.getPartClassifications().isEmpty())
+        // Render body
+        ModelPart bodyPart = findPartByName(root, "body", "Body", "torso", "Torso");
+        if (bodyPart != null)
         {
-            return cached.getPartClassifications();
+            poseStack.pushPose();
+            ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
+            ArmorPoseHelper.renderPartWithVanillaPosition(bodyPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            poseStack.popPose();
         }
 
-        // Analyze and cache
-        Map<String, PartClassification> classifications = spatialAnalyzer.analyzeModel(model);
+        // Render left arm with joint slicing
+        ModelPart leftArmPart = findPartByName(root, "left_arm", "leftArm", "LeftArm");
+        if (leftArmPart != null)
+        {
+            renderSplitArm(poseStack, vertexConsumer, leftArmPart, entityData, true, packedLight, packedOverlay);
+        }
 
-        // Cache the results
-        ArmorStructureCache.StructureEntry entry = new ArmorStructureCache.StructureEntry(
-                modelClass,
-                RenderTier.TIER_2_MODEL_INTERCEPTION,
-                classifications,
-                extractBoneMap(classifications),
-                false,
-                false
+        // Render right arm with joint slicing
+        ModelPart rightArmPart = findPartByName(root, "right_arm", "rightArm", "RightArm");
+        if (rightArmPart != null)
+        {
+            renderSplitArm(poseStack, vertexConsumer, rightArmPart, entityData, false, packedLight, packedOverlay);
+        }
+    }
+
+    /**
+     * Render leg armor (body waist + legs).
+     */
+    private void renderLegs(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart root,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay)
+    {
+        // Render body waist
+        ModelPart bodyPart = findPartByName(root, "body", "Body", "torso", "Torso");
+        if (bodyPart != null)
+        {
+            poseStack.pushPose();
+            ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
+            ArmorPoseHelper.renderPartWithVanillaPosition(bodyPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            poseStack.popPose();
+        }
+
+        // Render left leg with joint slicing
+        ModelPart leftLegPart = findPartByName(root, "left_leg", "leftLeg", "LeftLeg");
+        if (leftLegPart != null)
+        {
+            renderSplitLeg(poseStack, vertexConsumer, leftLegPart, entityData, true, packedLight, packedOverlay);
+        }
+
+        // Render right leg with joint slicing
+        ModelPart rightLegPart = findPartByName(root, "right_leg", "rightLeg", "RightLeg");
+        if (rightLegPart != null)
+        {
+            renderSplitLeg(poseStack, vertexConsumer, rightLegPart, entityData, false, packedLight, packedOverlay);
+        }
+    }
+
+    /**
+     * Render feet armor (lower legs only).
+     */
+    private void renderFeet(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart root,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay)
+    {
+        // Render left leg with joint slicing
+        ModelPart leftLegPart = findPartByName(root, "left_leg", "leftLeg", "LeftLeg");
+        if (leftLegPart != null)
+        {
+            renderSplitLeg(poseStack, vertexConsumer, leftLegPart, entityData, true, packedLight, packedOverlay);
+        }
+
+        // Render right leg with joint slicing
+        ModelPart rightLegPart = findPartByName(root, "right_leg", "rightLeg", "RightLeg");
+        if (rightLegPart != null)
+        {
+            renderSplitLeg(poseStack, vertexConsumer, rightLegPart, entityData, false, packedLight, packedOverlay);
+        }
+    }
+
+    /**
+     * Render an arm split at the elbow joint.
+     * Upper arm geometry follows upperArm transform, forearm geometry follows foreArm transform.
+     */
+    private void renderSplitArm(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart armPart,
+            BipedEntityData<?> entityData,
+            boolean isLeft,
+            int packedLight,
+            int packedOverlay)
+    {
+        ModelPartTransform upperArm = isLeft ? entityData.leftArm : entityData.rightArm;
+        ModelPartTransform foreArm = isLeft ? entityData.leftForeArm : entityData.rightForeArm;
+        JointPlane elbowPlane = JointDefinitions.getElbow(isLeft);
+
+        // 1. Capture arm geometry at rest pose
+        limbCapture.clear();
+        PoseStack captureStack = new PoseStack();
+        float[] storage = new float[6];
+        ArmorPoseHelper.resetPartToOrigin(armPart, storage);
+        armPart.render(captureStack, limbCapture, packedLight, packedOverlay);
+        ArmorPoseHelper.restorePartFromStorage(armPart, storage);
+
+        List<CapturedVertex> vertices = limbCapture.getVertices();
+        if (vertices.isEmpty())
+        {
+            return;
+        }
+
+        // 2. Slice at elbow
+        List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
+        List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, elbowPlane);
+
+        // 3. Render upper arm portion
+        poseStack.pushPose();
+        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor);
+        poseStack.popPose();
+
+        // 4. Render forearm portion
+        float foreArmOffsetX = -foreArm.position.x * ArmorPoseHelper.SCALE;
+        float foreArmOffsetY = -foreArm.position.y * ArmorPoseHelper.SCALE;
+        float foreArmOffsetZ = -foreArm.position.z * ArmorPoseHelper.SCALE;
+        poseStack.pushPose();
+        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, foreArm, true);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, currentArmorColor);
+        poseStack.popPose();
+    }
+
+    /**
+     * Render a leg split at the knee joint.
+     * Upper leg geometry follows leg transform, lower leg geometry follows foreLeg transform.
+     */
+    private void renderSplitLeg(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart legPart,
+            BipedEntityData<?> entityData,
+            boolean isLeft,
+            int packedLight,
+            int packedOverlay)
+    {
+        ModelPartTransform upperLeg = isLeft ? entityData.leftLeg : entityData.rightLeg;
+        ModelPartTransform lowerLeg = isLeft ? entityData.leftForeLeg : entityData.rightForeLeg;
+        JointPlane kneePlane = JointDefinitions.getKnee(isLeft);
+
+        // 1. Capture leg geometry at rest pose
+        limbCapture.clear();
+        PoseStack captureStack = new PoseStack();
+        float[] storage = new float[6];
+        ArmorPoseHelper.resetPartToOrigin(legPart, storage);
+        legPart.render(captureStack, limbCapture, packedLight, packedOverlay);
+        ArmorPoseHelper.restorePartFromStorage(legPart, storage);
+
+        List<CapturedVertex> vertices = limbCapture.getVertices();
+        if (vertices.isEmpty())
+        {
+            return;
+        }
+
+        // 2. Slice at knee
+        List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
+        List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
+
+        // 3. Render upper leg portion
+        poseStack.pushPose();
+        ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor);
+        poseStack.popPose();
+
+        // 4. Render lower leg portion
+        float lowerLegOffsetX = -lowerLeg.position.x * ArmorPoseHelper.SCALE;
+        float lowerLegOffsetY = -lowerLeg.position.y * ArmorPoseHelper.SCALE;
+        float lowerLegOffsetZ = -lowerLeg.position.z * ArmorPoseHelper.SCALE;
+        poseStack.pushPose();
+        ArmorPoseHelper.applyPartTransform(poseStack, upperLeg, true);
+        ArmorPoseHelper.applyPartTransform(poseStack, lowerLeg, true);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, currentArmorColor);
+        poseStack.popPose();
+    }
+
+    /**
+     * Render a part with body and part transform chain.
+     */
+    private void renderPartWithTransform(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart part,
+            ModelPartTransform bodyTransform,
+            ModelPartTransform partTransform,
+            int packedLight,
+            int packedOverlay)
+    {
+        poseStack.pushPose();
+        if (bodyTransform != null)
+        {
+            ArmorPoseHelper.applyPartTransform(poseStack, bodyTransform, true);
+        }
+        if (partTransform != null)
+        {
+            ArmorPoseHelper.applyPartTransform(poseStack, partTransform, true);
+        }
+        ArmorPoseHelper.renderPartAtOrigin(part, poseStack, vertexConsumer, packedLight, packedOverlay);
+        poseStack.popPose();
+    }
+
+    /**
+     * Render without Mo'Bends transforms (vanilla fallback).
+     */
+    private <E extends LivingEntity> void renderVanillaFallback(
+            ArmorRenderContext<E> context,
+            Model model,
+            VertexConsumer vertexConsumer)
+    {
+        PoseStack poseStack = context.getPoseStack();
+        poseStack.pushPose();
+        model.renderToBuffer(
+                poseStack,
+                vertexConsumer,
+                context.getPackedLight(),
+                context.getPackedOverlay(),
+                context.getArmorColor()
         );
-        cache.put(modelClass, entry);
-
-        return classifications;
-    }
-
-    /**
-     * Check if classifications are valid enough for rendering.
-     */
-    private boolean hasValidClassifications(Map<String, PartClassification> classifications, EquipmentSlot slot)
-    {
-        if (classifications.isEmpty())
-        {
-            return false;
-        }
-
-        // Count high-confidence classifications
-        int highConfidenceCount = 0;
-        for (PartClassification classification : classifications.values())
-        {
-            if (classification.isModerateConfidence())
-            {
-                highConfidenceCount++;
-            }
-        }
-
-        // Require at least one high-confidence classification
-        return highConfidenceCount >= 1;
-    }
-
-    /**
-     * Store original part states before transformation.
-     */
-    private Map<String, OriginalPartState> storePartStates(Model model, Map<String, PartClassification> classifications)
-    {
-        Map<String, OriginalPartState> states = new HashMap<>();
-
-        for (Map.Entry<String, PartClassification> entry : classifications.entrySet())
-        {
-            String fieldName = entry.getKey();
-            ModelPart part = entry.getValue().getModelPart();
-
-            if (part != null)
-            {
-                states.put(fieldName, new OriginalPartState(part));
-            }
-        }
-
-        return states;
-    }
-
-    /**
-     * Restore original part states after transformation.
-     */
-    private void restorePartStates(Model model, Map<String, OriginalPartState> states)
-    {
-        for (Map.Entry<String, OriginalPartState> entry : states.entrySet())
-        {
-            PartClassification classification = getClassificationForField(model, entry.getKey());
-            if (classification != null && classification.getModelPart() != null)
-            {
-                entry.getValue().restore(classification.getModelPart());
-            }
-        }
-    }
-
-    /**
-     * Apply transforms to all classified parts.
-     */
-    private void applyTransforms(Model model, Map<String, PartClassification> classifications, BipedEntityData<?> entityData)
-    {
-        for (PartClassification classification : classifications.values())
-        {
-            if (classification.isModerateConfidence())
-            {
-                modelPartTransformer.applyTransform(classification.getModelPart(), classification, entityData);
-            }
-        }
-    }
-
-    /**
-     * Get classification for a specific field name.
-     */
-    private PartClassification getClassificationForField(Model model, String fieldName)
-    {
-        Map<String, PartClassification> classifications = getClassifications(model);
-        return classifications.get(fieldName);
-    }
-
-    /**
-     * Extract bone region map from classifications.
-     */
-    private Map<String, goblinbob.mobends.standard.client.model.armor.BoneRegion> extractBoneMap(Map<String, PartClassification> classifications)
-    {
-        Map<String, goblinbob.mobends.standard.client.model.armor.BoneRegion> boneMap = new HashMap<>();
-        for (Map.Entry<String, PartClassification> entry : classifications.entrySet())
-        {
-            boneMap.put(entry.getKey(), entry.getValue().getBoneRegion());
-        }
-        return boneMap;
+        poseStack.popPose();
     }
 
     /**
@@ -430,30 +576,6 @@ public class Tier2Renderer
     }
 
     /**
-     * Get the spatial analyzer.
-     */
-    public SpatialAnalyzer getSpatialAnalyzer()
-    {
-        return spatialAnalyzer;
-    }
-
-    /**
-     * Get the model part transformer.
-     */
-    public ModelPartTransformer getModelPartTransformer()
-    {
-        return modelPartTransformer;
-    }
-
-    /**
-     * Get the Tier 3 fallback renderer.
-     */
-    public Tier3Renderer getTier3Fallback()
-    {
-        return tier3Fallback;
-    }
-
-    /**
      * Get the total number of render calls.
      */
     public long getRenderCount()
@@ -462,28 +584,11 @@ public class Tier2Renderer
     }
 
     /**
-     * Get the number of renders that fell back to Tier 3.
-     */
-    public long getFallbackCount()
-    {
-        return fallbackCount;
-    }
-
-    /**
-     * Get the fallback rate.
-     */
-    public float getFallbackRate()
-    {
-        return renderCount > 0 ? (float) fallbackCount / renderCount : 0;
-    }
-
-    /**
      * Reset statistics.
      */
     public void resetStats()
     {
         renderCount = 0;
-        fallbackCount = 0;
     }
 
     /**
@@ -491,46 +596,6 @@ public class Tier2Renderer
      */
     public String getStats()
     {
-        return String.format("Tier2Renderer: %d renders, %d fallbacks (%.1f%% fallback rate)",
-                renderCount, fallbackCount, getFallbackRate() * 100);
-    }
-
-    /**
-     * Stores original ModelPart state for restoration.
-     */
-    private static class OriginalPartState
-    {
-        float x, y, z;
-        float xRot, yRot, zRot;
-        float xScale, yScale, zScale;
-        boolean visible;
-
-        OriginalPartState(ModelPart part)
-        {
-            this.x = part.x;
-            this.y = part.y;
-            this.z = part.z;
-            this.xRot = part.xRot;
-            this.yRot = part.yRot;
-            this.zRot = part.zRot;
-            this.xScale = part.xScale;
-            this.yScale = part.yScale;
-            this.zScale = part.zScale;
-            this.visible = part.visible;
-        }
-
-        void restore(ModelPart part)
-        {
-            part.x = x;
-            part.y = y;
-            part.z = z;
-            part.xRot = xRot;
-            part.yRot = yRot;
-            part.zRot = zRot;
-            part.xScale = xScale;
-            part.yScale = yScale;
-            part.zScale = zScale;
-            part.visible = visible;
-        }
+        return String.format("Tier2Renderer: %d renders", renderCount);
     }
 }

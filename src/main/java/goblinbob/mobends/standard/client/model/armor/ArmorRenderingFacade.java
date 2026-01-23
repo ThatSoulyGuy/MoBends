@@ -7,7 +7,6 @@ import goblinbob.mobends.standard.client.model.armor.tier.RenderTier;
 import goblinbob.mobends.standard.client.model.armor.tier.TierClassifier;
 import goblinbob.mobends.standard.client.model.armor.tier1.Tier1Renderer;
 import goblinbob.mobends.standard.client.model.armor.tier2.Tier2Renderer;
-import goblinbob.mobends.standard.client.model.armor.tier3.Tier3Renderer;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
@@ -28,14 +27,13 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 /**
- * Unified facade for the three-tier armor rendering system.
+ * Unified facade for the two-tier armor rendering system.
  * This class coordinates tier selection and delegates to the appropriate renderer.
  *
  * <p>Tier selection priority:</p>
  * <ul>
  *   <li>Tier 1 (Transform Injection): ~85% of armor - vanilla/standard HumanoidModel</li>
- *   <li>Tier 2 (Model Interception): ~10% of armor - modded using ModelPart</li>
- *   <li>Tier 3 (Vertex Capture): ~5% of armor - exotic renderers</li>
+ *   <li>Tier 2 (Model Interception): ~15% of armor - modded armor with non-HumanoidModel</li>
  * </ul>
  */
 @OnlyIn(Dist.CLIENT)
@@ -46,12 +44,10 @@ public class ArmorRenderingFacade
     // Tier renderers
     private final Tier1Renderer tier1Renderer;
     private final Tier2Renderer tier2Renderer;
-    private final Tier3Renderer tier3Renderer;
 
     // Performance tracking
     private long tier1Count = 0;
     private long tier2Count = 0;
-    private long tier3Count = 0;
     private long fallbackCount = 0;
 
     // Debug mode
@@ -62,7 +58,6 @@ public class ArmorRenderingFacade
     {
         this.tier1Renderer = new Tier1Renderer();
         this.tier2Renderer = new Tier2Renderer();
-        this.tier3Renderer = new Tier3Renderer();
     }
 
     /**
@@ -133,21 +128,8 @@ public class ArmorRenderingFacade
                 // Fall through
 
             case TIER_2_MODEL_INTERCEPTION:
-                boolean result = tier2Renderer.render(context, armorModel);
-                if (result)
-                {
-                    return true;
-                }
-                // Fall through to Tier 3
-                if (tier == RenderTier.TIER_2_MODEL_INTERCEPTION)
-                {
-                    LOGGER.debug("Tier 2 failed, falling back to Tier 3");
-                }
-                // Fall through
-
-            case TIER_3_VERTEX_CAPTURE:
             default:
-                return tier3Renderer.render(context, armorModel);
+                return tier2Renderer.render(context, armorModel);
         }
     }
 
@@ -183,9 +165,6 @@ public class ArmorRenderingFacade
                 break;
             case TIER_2_MODEL_INTERCEPTION:
                 tier2Count++;
-                break;
-            case TIER_3_VERTEX_CAPTURE:
-                tier3Count++;
                 break;
         }
     }
@@ -247,8 +226,6 @@ public class ArmorRenderingFacade
             LOGGER.debug("Rendering armor with texture {} using {}", texture, tier);
         }
 
-        // For Tier 1 and 2, we can render directly
-        // For Tier 3, we need to capture and re-render with proper texture
         boolean success = false;
         try
         {
@@ -266,16 +243,8 @@ public class ArmorRenderingFacade
                     // Fall through to Tier 2
 
                 case TIER_2_MODEL_INTERCEPTION:
-                    success = tier2Renderer.renderWithTexture(context, armorModel, texture, hasFoil);
-                    if (success)
-                    {
-                        break;
-                    }
-                    // Fall through to Tier 3
-
-                case TIER_3_VERTEX_CAPTURE:
                 default:
-                    success = tier3Renderer.renderWithTexture(context, armorModel, texture, hasFoil);
+                    success = tier2Renderer.renderWithTexture(context, armorModel, texture, hasFoil);
                     break;
             }
         }
@@ -315,7 +284,7 @@ public class ArmorRenderingFacade
      */
     public RenderingStats getStats()
     {
-        return new RenderingStats(tier1Count, tier2Count, tier3Count, fallbackCount);
+        return new RenderingStats(tier1Count, tier2Count, fallbackCount);
     }
 
     /**
@@ -325,7 +294,6 @@ public class ArmorRenderingFacade
     {
         tier1Count = 0;
         tier2Count = 0;
-        tier3Count = 0;
         fallbackCount = 0;
     }
 
@@ -354,34 +322,24 @@ public class ArmorRenderingFacade
     }
 
     /**
-     * Get the Tier 3 renderer for advanced configuration.
-     */
-    public Tier3Renderer getTier3Renderer()
-    {
-        return tier3Renderer;
-    }
-
-    /**
      * Statistics about armor rendering.
      */
     public static class RenderingStats
     {
         public final long tier1Count;
         public final long tier2Count;
-        public final long tier3Count;
         public final long fallbackCount;
 
-        public RenderingStats(long tier1, long tier2, long tier3, long fallback)
+        public RenderingStats(long tier1, long tier2, long fallback)
         {
             this.tier1Count = tier1;
             this.tier2Count = tier2;
-            this.tier3Count = tier3;
             this.fallbackCount = fallback;
         }
 
         public long totalCount()
         {
-            return tier1Count + tier2Count + tier3Count;
+            return tier1Count + tier2Count;
         }
 
         public float tier1Percentage()
@@ -396,19 +354,12 @@ public class ArmorRenderingFacade
             return total > 0 ? (float) tier2Count / total * 100 : 0;
         }
 
-        public float tier3Percentage()
-        {
-            long total = totalCount();
-            return total > 0 ? (float) tier3Count / total * 100 : 0;
-        }
-
         @Override
         public String toString()
         {
-            return String.format("ArmorRendering[T1: %d (%.1f%%), T2: %d (%.1f%%), T3: %d (%.1f%%), Fallbacks: %d]",
+            return String.format("ArmorRendering[T1: %d (%.1f%%), T2: %d (%.1f%%), Fallbacks: %d]",
                     tier1Count, tier1Percentage(),
                     tier2Count, tier2Percentage(),
-                    tier3Count, tier3Percentage(),
                     fallbackCount);
         }
     }
