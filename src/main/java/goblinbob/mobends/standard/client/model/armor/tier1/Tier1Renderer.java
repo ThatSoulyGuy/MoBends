@@ -3,6 +3,7 @@ package goblinbob.mobends.standard.client.model.armor.tier1;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
+import goblinbob.mobends.core.util.GlHelper;
 import goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper;
 import goblinbob.mobends.standard.client.model.armor.ArmorRenderContext;
 import goblinbob.mobends.standard.client.model.armor.CapturedVertex;
@@ -433,12 +434,12 @@ public class Tier1Renderer
             poseStack.scale(entityScale, entityScale, entityScale);
         }
 
-        // Render body - apply rotation around correct pivot, keep vanilla position
+        // Render body using vertex capture with pivot rotation (matching 3.X approach)
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
-        poseStack.pushPose();
-        ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
-        ArmorPoseHelper.renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
-        poseStack.popPose();
+        if (model.body != null && model.body.visible)
+        {
+            renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
+        }
 
         // Render left arm (split at elbow joint)
         renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms);
@@ -471,12 +472,12 @@ public class Tier1Renderer
             poseStack.scale(entityScale, entityScale, entityScale);
         }
 
-        // Render body (waist/skirt part of leggings) - rotation around correct pivot, vanilla position
+        // Render body (waist/skirt part of leggings) using vertex capture with pivot rotation
         // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
-        poseStack.pushPose();
-        ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
-        ArmorPoseHelper.renderPartWithVanillaPosition(model.body, poseStack, vertexConsumer, packedLight, packedOverlay);
-        poseStack.popPose();
+        if (model.body != null && model.body.visible)
+        {
+            renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
+        }
 
         // Render left leg (split at knee joint)
         renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
@@ -745,6 +746,135 @@ public class Tier1Renderer
         part.xRot = capturedXRot;
         part.yRot = capturedYRot;
         part.zRot = capturedZRot;
+    }
+
+    /**
+     * Render body armor using vertex capture with pivot rotation.
+     * This matches the 3.X approach: capture geometry at origin, apply pivot transform, output vertices.
+     *
+     * Unlike renderPartWithVanillaPosition, this approach ensures the vanilla part position
+     * doesn't interfere with our pivot rotation transform.
+     *
+     * @param poseStack The pose stack (with entity transforms already applied)
+     * @param vertexConsumer The vertex consumer
+     * @param part The body model part
+     * @param entityData The entity's animation data
+     * @param packedLight Light value
+     * @param packedOverlay Overlay value
+     */
+    private void renderBodyWithPivotRotation(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart part,
+            BipedEntityData<?> entityData,
+            int packedLight,
+            int packedOverlay)
+    {
+        if (part == null || !part.visible)
+        {
+            return;
+        }
+
+        ModelPartTransform body = entityData.body;
+        if (body == null)
+        {
+            return;
+        }
+
+        // 1. Capture geometry at rest pose using IDENTITY PoseStack
+        limbCapture.clear();
+        PoseStack captureStack = new PoseStack();  // Identity matrix
+        resetPartToOrigin(part);
+        part.render(captureStack, limbCapture, packedLight, packedOverlay);
+        restorePartFromCapture(part);
+
+        List<CapturedVertex> vertices = limbCapture.getVertices();
+        if (vertices.isEmpty())
+        {
+            return;
+        }
+
+        // 2. Apply pivot rotation transform to PoseStack
+        // NOTE: Entity-level globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
+        poseStack.pushPose();
+
+        float scale = 1.0f / 16.0f;
+
+        // Apply per-part globalOffset (before other transforms, without offsetScale)
+        if (body.globalOffset.x != 0 || body.globalOffset.y != 0 || body.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                body.globalOffset.x * scale,
+                body.globalOffset.y * scale,
+                body.globalOffset.z * scale
+            );
+        }
+
+        float offsetScale = body.offsetScale;
+
+        // Translate to body pivot point (use offsetScale to match player transform exactly)
+        poseStack.translate(
+            body.position.x * scale * offsetScale,
+            body.position.y * scale * offsetScale,
+            body.position.z * scale * offsetScale
+        );
+
+        // Apply animation offset with offsetScale (bobbing, etc.)
+        if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
+        {
+            poseStack.translate(
+                body.offset.x * scale * offsetScale,
+                body.offset.y * scale * offsetScale,
+                body.offset.z * scale * offsetScale
+            );
+        }
+
+        // Apply rotation (now around the correct pivot)
+        GlHelper.rotate(poseStack, body.rotation.getSmooth());
+
+        // Translate back from pivot so armor stays at vanilla position (use offsetScale to match)
+        poseStack.translate(
+            -body.position.x * scale * offsetScale,
+            -body.position.y * scale * offsetScale,
+            -body.position.z * scale * offsetScale
+        );
+
+        // 3. Transform and output vertices
+        Matrix4f matrix = poseStack.last().pose();
+        Matrix3f normal = poseStack.last().normal();
+
+        // Extract color tint from currentArmorColor (packed ARGB)
+        float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
+        float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
+        float tintB = (currentArmorColor & 0xFF) / 255.0F;
+        float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
+
+        for (CapturedVertex v : vertices)
+        {
+            // Transform position by matrix
+            float tx = matrix.m00() * v.x + matrix.m10() * v.y + matrix.m20() * v.z + matrix.m30();
+            float ty = matrix.m01() * v.x + matrix.m11() * v.y + matrix.m21() * v.z + matrix.m31();
+            float tz = matrix.m02() * v.x + matrix.m12() * v.y + matrix.m22() * v.z + matrix.m32();
+
+            // Transform normal by normal matrix
+            float nx = normal.m00() * v.normalX + normal.m10() * v.normalY + normal.m20() * v.normalZ;
+            float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
+            float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
+
+            // Pack tinted RGBA into single int for 1.21.1
+            int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
+                        ((int)(v.red * tintR * 255.0F) << 16) |
+                        ((int)(v.green * tintG * 255.0F) << 8) |
+                        (int)(v.blue * tintB * 255.0F);
+            vertexConsumer.addVertex(tx, ty, tz)
+                    .setColor(color)
+                    .setUv(v.u, v.v)
+                    .setOverlay(packedOverlay)
+                    .setLight(packedLight)
+                    .setNormal(nx, ny, nz);
+        }
+
+        poseStack.popPose();
     }
 
     /**

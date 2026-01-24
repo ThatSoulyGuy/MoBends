@@ -160,31 +160,43 @@ public final class ArmorPoseHelper
             return;
         }
 
-        // Translate to body pivot point
+        // Apply per-part globalOffset (before other transforms, without offsetScale)
+        if (body.globalOffset.x != 0 || body.globalOffset.y != 0 || body.globalOffset.z != 0)
+        {
+            poseStack.translate(
+                body.globalOffset.x * SCALE,
+                body.globalOffset.y * SCALE,
+                body.globalOffset.z * SCALE
+            );
+        }
+
+        float offsetScale = body.offsetScale;
+
+        // Translate to body pivot point (use offsetScale to match player transform exactly)
         poseStack.translate(
-            body.position.x * SCALE,
-            body.position.y * SCALE,
-            body.position.z * SCALE
+            body.position.x * SCALE * offsetScale,
+            body.position.y * SCALE * offsetScale,
+            body.position.z * SCALE * offsetScale
         );
 
-        // Apply animation offset
+        // Apply animation offset with offsetScale
         if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
         {
             poseStack.translate(
-                body.offset.x * SCALE,
-                body.offset.y * SCALE,
-                body.offset.z * SCALE
+                body.offset.x * SCALE * offsetScale,
+                body.offset.y * SCALE * offsetScale,
+                body.offset.z * SCALE * offsetScale
             );
         }
 
         // Apply rotation (now around the correct pivot)
         GlHelper.rotate(poseStack, body.rotation.getSmooth());
 
-        // Translate back from pivot so rendering happens at vanilla position
+        // Translate back from pivot so rendering happens at vanilla position (use offsetScale to match)
         poseStack.translate(
-            -body.position.x * SCALE,
-            -body.position.y * SCALE,
-            -body.position.z * SCALE
+            -body.position.x * SCALE * offsetScale,
+            -body.position.y * SCALE * offsetScale,
+            -body.position.z * SCALE * offsetScale
         );
     }
 

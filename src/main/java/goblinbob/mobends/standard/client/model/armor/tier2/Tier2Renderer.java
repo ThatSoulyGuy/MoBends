@@ -311,13 +311,13 @@ public class Tier2Renderer
             int packedLight,
             int packedOverlay)
     {
-        // Render body
+        // Render body - use renderPartAtOrigin to avoid vanilla position interfering with pivot rotation
         ModelPart bodyPart = findPartByName(root, "body", "Body", "torso", "Torso");
         if (bodyPart != null)
         {
             poseStack.pushPose();
             ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
-            ArmorPoseHelper.renderPartWithVanillaPosition(bodyPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            ArmorPoseHelper.renderPartAtOrigin(bodyPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
         }
 
@@ -347,13 +347,13 @@ public class Tier2Renderer
             int packedLight,
             int packedOverlay)
     {
-        // Render body waist
+        // Render body waist - use renderPartAtOrigin to avoid vanilla position interfering with pivot rotation
         ModelPart bodyPart = findPartByName(root, "body", "Body", "torso", "Torso");
         if (bodyPart != null)
         {
             poseStack.pushPose();
             ArmorPoseHelper.applyBodyTransformWithPivot(poseStack, entityData);
-            ArmorPoseHelper.renderPartWithVanillaPosition(bodyPart, poseStack, vertexConsumer, packedLight, packedOverlay);
+            ArmorPoseHelper.renderPartAtOrigin(bodyPart, poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
         }
 
