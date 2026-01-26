@@ -82,6 +82,18 @@ public class AddonAnimationRegistry
     }
 
     /**
+     * Registers an entity with specified supported animations.
+     */
+    public <T extends LivingEntity> String registerNewEntity(Class<T> entityClass,
+                                                             IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
+                                                             MutatedRenderer<T> renderer, IPreviewer<?> previewer,
+                                                             String[] supportedAnimations, String... alterableParts)
+    {
+        EntityBender<T> entityBender = new DefaultEntityBender<T>(modId, null, null, entityClass, entityDataFactory, mutatorFactory, renderer, previewer, supportedAnimations, alterableParts);
+        return registerEntity(entityBender);
+    }
+
+    /**
      * Use this in case you want to use a custom sub-type of EntityBender for extended functionality.
      *
      * @param entityBender An instance of the EntityBender to put into the system.

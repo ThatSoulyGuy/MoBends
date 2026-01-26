@@ -34,6 +34,14 @@ public class PlayerBender extends EntityBender<AbstractClientPlayer>
     }
 
     @Override
+    public String[] getSupportedAnimations()
+    {
+        return new String[] {
+            "walk", "sprint", "jump", "fall", "sneak", "swim", "attack", "use_item", "ride", "climb"
+        };
+    }
+
+    @Override
     public IEntityDataFactory<AbstractClientPlayer> getDataFactory()
     {
         return PlayerData::new;

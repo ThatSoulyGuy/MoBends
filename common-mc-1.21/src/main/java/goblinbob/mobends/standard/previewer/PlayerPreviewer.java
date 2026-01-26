@@ -94,6 +94,7 @@ public class PlayerPreviewer extends BipedPreviewer<PlayerData>
     @Override
     public void postPreview(PlayerData data, String animationToPreview)
     {
+        super.postPreview(data, animationToPreview);
         previewInProgress = false;
     }
 

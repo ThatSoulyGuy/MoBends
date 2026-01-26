@@ -18,7 +18,7 @@ public class ZombiePreviewer extends BipedPreviewer<ZombieData>
 	@Override
 	public void postPreview(ZombieData data, String animationToPreview)
 	{
-		// No behaviour
+		super.postPreview(data, animationToPreview);
 	}
 
 }

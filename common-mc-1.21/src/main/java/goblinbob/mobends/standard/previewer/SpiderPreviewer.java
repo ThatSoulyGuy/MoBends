@@ -50,21 +50,35 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 					data.overrideStillness(true);
 				}
 				break;
+			case "walk":
 			case "move":
-				final float ticks = DataUpdateHandler.getTicks();
-
-				// In 1.20.1, position fields are accessed differently
-				Spider entity = data.getEntity();
-				if (entity != null)
 				{
-					// Position updates happen through setPos() in 1.20.1
-					// For preview, we override the animation state
-					entity.noPhysics = true;
+					final float ticks = DataUpdateHandler.getTicks();
+
+					// In 1.20.1, position fields are accessed differently
+					Spider entity = data.getEntity();
+					if (entity != null)
+					{
+						// Position updates happen through setPos() in 1.20.1
+						// For preview, we override the animation state
+						entity.noPhysics = true;
+					}
+					data.limbSwing.override(ticks * 0.6F);
+					data.overrideOnGroundState(true);
+					data.limbSwingAmount.override(1F);
+					data.overrideStillness(false);
 				}
-				data.limbSwing.override(ticks * 0.6F);
-				data.overrideOnGroundState(true);
-				data.limbSwingAmount.override(1F);
-				data.overrideStillness(false);
+				break;
+			case "climb":
+				{
+					final float ticks = DataUpdateHandler.getTicks();
+
+					data.setClimbing(true);
+					data.overrideOnGroundState(false);
+					data.limbSwing.override(ticks * 0.5F);
+					data.limbSwingAmount.override(0.7F);
+					data.overrideStillness(false);
+				}
 				break;
 			default:
 				data.overrideOnGroundState(true);
@@ -75,7 +89,11 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 	@Override
 	public void postPreview(SpiderData data, String animationToPreview)
 	{
-		// No behaviour
+		// Clean up any overrides
+		if ("climb".equals(animationToPreview))
+		{
+			data.setClimbing(false);
+		}
 	}
 
 	@Override

@@ -42,8 +42,20 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 			case "walk":
 				prepareForWalk(data);
 				break;
+			case "sprint":
+				prepareForSprint(data);
+				break;
 			case "jump":
 				prepareForJump(data);
+				break;
+			case "fall":
+				prepareForFall(data);
+				break;
+			case "sneak":
+				prepareForSneak(data);
+				break;
+			case "climb":
+				prepareForClimb(data);
 				break;
 			default:
 				prepareForDefault(data);
@@ -84,6 +96,44 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		data.overrideStillness(true);
 	}
 
+	protected void prepareForSprint(D data)
+	{
+		final float ticks = DataUpdateHandler.getTicks();
+
+		data.limbSwing.override(ticks * 0.9F);
+		data.overrideOnGroundState(true);
+		data.limbSwingAmount.override(1.5F);
+		data.overrideStillness(false);
+	}
+
+	protected void prepareForFall(D data)
+	{
+		data.overrideOnGroundState(false);
+		data.limbSwingAmount.override(0F);
+		data.overrideStillness(true);
+	}
+
+	protected void prepareForSneak(D data)
+	{
+		final float ticks = DataUpdateHandler.getTicks();
+
+		data.limbSwing.override(ticks * 0.4F);
+		data.overrideOnGroundState(true);
+		data.limbSwingAmount.override(0.5F);
+		data.overrideStillness(false);
+	}
+
+	protected void prepareForClimb(D data)
+	{
+		final float ticks = DataUpdateHandler.getTicks();
+
+		data.setClimbing(true);
+		data.overrideOnGroundState(false);
+		data.limbSwing.override(ticks * 0.5F);
+		data.limbSwingAmount.override(0.7F);
+		data.overrideStillness(false);
+	}
+
 	protected void prepareForDefault(D data)
 	{
 		data.overrideOnGroundState(true);
@@ -94,7 +144,11 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 	@Override
 	public void postPreview(D data, String animationToPreview)
 	{
-		// No behaviour
+		// Clean up any overrides
+		if ("climb".equals(animationToPreview))
+		{
+			data.setClimbing(false);
+		}
 	}
 
 	@Override

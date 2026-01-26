@@ -22,17 +22,24 @@ import net.minecraft.world.entity.animal.Wolf;
 
 public class DefaultAddon implements IAddon
 {
+	// Animation type arrays for different entity categories
+	private static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall"};
+	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump", "climb"};
+	private static final String[] SQUID_ANIMATIONS = {"swim"};
+	private static final String[] WOLF_ANIMATIONS = {"walk", "sprint", "sit"};
+
 	@Override
 	public void registerContent(AddonAnimationRegistry registry)
 	{
 		registry.registerEntity(new PlayerBender());
 
 		registry.registerNewEntity(Zombie.class, ZombieData::new, ZombieMutator::new, new ZombieRenderer<>(),
-				new ZombiePreviewer(),
+				new ZombiePreviewer(), BIPED_ANIMATIONS,
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
 		registry.registerNewEntity(Skeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
+				null, BIPED_ANIMATIONS,
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
 						"rightLeg", "leftForeLeg", "rightForeLeg");
 
@@ -42,19 +49,21 @@ public class DefaultAddon implements IAddon
 //				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 //
 		registry.registerNewEntity(ZombifiedPiglin.class, PigZombieData::new, PigZombieMutator::new, new ZombieRenderer<>(),
-				new BipedPreviewer<>(),
+				new BipedPreviewer<>(), BIPED_ANIMATIONS,
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
-				new SpiderPreviewer(),
+				new SpiderPreviewer(), SPIDER_ANIMATIONS,
 				"head", "body", "neck", "leg1", "leg2", "leg3", "leg4", "leg5", "leg6", "leg7", "leg8",
 				"foreLeg1", "foreLeg2", "foreLeg3", "foreLeg4", "foreLeg5", "foreLeg6", "foreLeg7", "foreLeg8");
 
 		registry.registerNewEntity(Squid.class, SquidData::new, SquidMutator::new, new SquidRenderer<>(),
+				null, SQUID_ANIMATIONS,
 				"body", "tentacle1", "tentacle2", "tentacle3", "tentacle4", "tentacle5", "tentacle6", "tentacle7", "tentacle8");
 
 		registry.registerNewEntity(Wolf.class, WolfData::new, WolfMutator::new, new WolfRenderer<>(),
+				null, WOLF_ANIMATIONS,
 				"wolfHeadMain", "wolfBody", "wolfLeg1", "wolfLeg2", "wolfLeg3", "wolfLeg4", "wolfTail", "wolfMane");
 
 

@@ -14,24 +14,44 @@ public class DefaultEntityBender<T extends LivingEntity> extends EntityBender<T>
     private final IMutatorFactory<T> mutatorFactory;
     private final IPreviewer<?> previewer;
     private final String[] alterableParts;
+    private final String[] supportedAnimations;
 
     private T previewEntity;
 
     public DefaultEntityBender(String modId, String key, String unlocalizedName, Class<T> entityClass,
                                IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
-                               MutatedRenderer<T> renderer, IPreviewer<?> previewer, String... alterableParts)
+                               MutatedRenderer<T> renderer, IPreviewer<?> previewer, String[] supportedAnimations,
+                               String... alterableParts)
     {
         super(modId, key, unlocalizedName, entityClass, renderer);
 
         this.entityDataFactory = entityDataFactory;
         this.mutatorFactory = mutatorFactory;
         this.previewer = previewer;
+        this.supportedAnimations = supportedAnimations;
         this.alterableParts = alterableParts;
+    }
+
+    /**
+     * Legacy constructor without supportedAnimations - uses default animations.
+     */
+    public DefaultEntityBender(String modId, String key, String unlocalizedName, Class<T> entityClass,
+                               IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
+                               MutatedRenderer<T> renderer, IPreviewer<?> previewer, String... alterableParts)
+    {
+        this(modId, key, unlocalizedName, entityClass, entityDataFactory, mutatorFactory, renderer, previewer,
+             null, alterableParts);
     }
 
     public String[] getAlterableParts()
     {
         return alterableParts;
+    }
+
+    @Override
+    public String[] getSupportedAnimations()
+    {
+        return supportedAnimations != null ? supportedAnimations : super.getSupportedAnimations();
     }
 
     @Override

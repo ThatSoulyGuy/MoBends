@@ -14,7 +14,15 @@ import goblinbob.mobends.api.rendering.VertexFormatType;
 public class Draw
 {
 
-    public static void rectangle(int left, int top, int width, int height, int color)
+    /**
+     * Draws a filled rectangle using absolute coordinates.
+     * @param left The left edge X coordinate
+     * @param top The top edge Y coordinate
+     * @param right The right edge X coordinate (absolute, not width)
+     * @param bottom The bottom edge Y coordinate (absolute, not height)
+     * @param color The ARGB color
+     */
+    public static void rectangle(int left, int top, int right, int bottom, int color)
     {
         float alpha = (float) (color >> 24 & 255) / 255.0F;
         float red = (float) (color >> 16 & 255) / 255.0F;
@@ -27,13 +35,15 @@ public class Draw
 
         ITesselator tesselator = ITesselator.getInstance();
         IBufferBuilder bufferBuilder = tesselator.begin(DrawMode.QUADS, VertexFormatType.POSITION_COLOR);
-        bufferBuilder.addVertex((float) left, (float) (top + height), 0.0F).setColor(red, green, blue, alpha);
-        bufferBuilder.addVertex((float) (left + width), (float) (top + height), 0.0F).setColor(red, green, blue, alpha);
-        bufferBuilder.addVertex((float) (left + width), (float) top, 0.0F).setColor(red, green, blue, alpha);
+        bufferBuilder.addVertex((float) left, (float) bottom, 0.0F).setColor(red, green, blue, alpha);
+        bufferBuilder.addVertex((float) right, (float) bottom, 0.0F).setColor(red, green, blue, alpha);
+        bufferBuilder.addVertex((float) right, (float) top, 0.0F).setColor(red, green, blue, alpha);
         bufferBuilder.addVertex((float) left, (float) top, 0.0F).setColor(red, green, blue, alpha);
         tesselator.endAndDraw(bufferBuilder);
 
         RenderSystem.disableBlend();
+        // Reset color to white for subsequent text rendering
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public static void rectangle(float left, float top, float width, float height)

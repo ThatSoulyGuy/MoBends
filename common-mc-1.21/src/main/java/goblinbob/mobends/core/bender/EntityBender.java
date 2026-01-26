@@ -92,6 +92,17 @@ public abstract class EntityBender<T extends LivingEntity>
 
     public abstract String[] getAlterableParts();
 
+    /**
+     * Returns the animation types supported by this entity bender.
+     * Override this to provide entity-specific animations.
+     * Default returns common biped animations.
+     */
+    public String[] getSupportedAnimations()
+    {
+        // Default: common animations most bipeds support
+        return new String[] { "walk", "jump", "fall" };
+    }
+
     public abstract IEntityDataFactory<T> getDataFactory();
 
     public abstract IMutatorFactory<T> getMutatorFactory();
