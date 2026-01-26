@@ -1,0 +1,22 @@
+accessWidener v2 named
+
+# Mo' Bends Access Wideners for Architectury
+# Essential fields only - add more as needed during migration
+
+# LivingEntityRenderer - access to layers list
+accessible field net/minecraft/client/renderer/entity/LivingEntityRenderer layers Ljava/util/List;
+
+# HumanoidModel parts - these are the core fields needed for animation
+accessible field net/minecraft/client/model/HumanoidModel head Lnet/minecraft/client/model/geom/ModelPart;
+accessible field net/minecraft/client/model/HumanoidModel hat Lnet/minecraft/client/model/geom/ModelPart;
+accessible field net/minecraft/client/model/HumanoidModel body Lnet/minecraft/client/model/geom/ModelPart;
+accessible field net/minecraft/client/model/HumanoidModel rightArm Lnet/minecraft/client/model/geom/ModelPart;
+accessible field net/minecraft/client/model/HumanoidModel leftArm Lnet/minecraft/client/model/geom/ModelPart;
+accessible field net/minecraft/client/model/HumanoidModel rightLeg Lnet/minecraft/client/model/geom/ModelPart;
+accessible field net/minecraft/client/model/HumanoidModel leftLeg Lnet/minecraft/client/model/geom/ModelPart;
+
+# PlayerModel - cloak
+accessible field net/minecraft/client/model/PlayerModel cloak Lnet/minecraft/client/model/geom/ModelPart;
+
+# Additional model fields will be added during migration phase
+# when we can verify their exact signatures in 1.21.1

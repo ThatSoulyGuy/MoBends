@@ -1,131 +1,41 @@
 plugins {
     id 'java'
-    id 'idea'
-    id 'eclipse'
+    id 'dev.architectury.loom' version '1.9-SNAPSHOT' apply false
+    id 'architectury-plugin' version '3.4-SNAPSHOT'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.+'
 }
 
-version = "${mod_version}"
-group = 'goblinbob.mobends'
-
-base {
-    archivesName = "MoBends_${minecraft_version}"
+architectury {
+    minecraft = neoforge_minecraft_version
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+allprojects {
+    group = mod_group
+    version = mod_version
+}
 
-neoForge {
-    version = "${neoforge_version}"
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
-    accessTransformers {
-        file('src/main/resources/META-INF/accesstransformer.cfg')
+    base {
+        archivesName = "MoBends-${project.name}"
     }
 
-    runs {
-        client {
-            client()
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            systemProperty 'forge.logging.console.level', 'debug'
-            systemProperty 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        server {
-            server()
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            systemProperty 'forge.logging.console.level', 'debug'
-            systemProperty 'forge.enabledGameTestNamespaces', mod_id
-            programArgument '--nogui'
-        }
-
-        data {
-            data()
-            programArguments.addAll '--mod', mod_id, '--all', '--output', file('src/generated/resources/').absolutePath, '--existing', file('src/main/resources/').absolutePath
-        }
-    }
-
-    mods {
-        "${mod_id}" {
-            sourceSet sourceSets.main
-        }
-    }
-}
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
-repositories {
-    mavenCentral()
-    maven { url = 'https://maven.neoforged.net/releases' }
-}
-
-dependencies {
-    // Testing
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
-}
-
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            minecraft_version   : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neoforge_version       : neoforge_version,
-            neoforge_version_range : neoforge_version_range,
-            loader_version_range: loader_version_range,
-            mod_id              : mod_id,
-            mod_name            : mod_name,
-            mod_license         : mod_license,
-            mod_version         : mod_version,
-            mod_authors         : mod_authors,
-            mod_description     : mod_description
-    ]
-    inputs.properties replaceProperties
-
-    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
-    }
-}
-
-tasks.named('jar', Jar).configure {
-    manifest {
-        attributes([
-                'Specification-Title'     : mod_id,
-                'Specification-Vendor'    : mod_authors,
-                'Specification-Version'   : '1',
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'MixinConfigs'            : "${mod_id}.mixins.json"
-        ])
-    }
-}
-
-// Source JAR
-tasks.register('srcJar', Jar) {
-    from sourceSets.main.allSource
-    archiveClassifier.set('sources')
-    from file('LICENSE')
-}
-
-build.dependsOn srcJar
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact jar
-            artifact srcJar
-        }
-    }
     repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
-        }
+        mavenCentral()
+        maven { url = 'https://maven.architectury.dev/' }
+        maven { url = 'https://maven.neoforged.net/releases/' }
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://maven.fabricmc.net/' }
     }
-}
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
 
-tasks.named('test', Test) {
-    useJUnitPlatform()
+    java {
+        withSourcesJar()
+    }
 }

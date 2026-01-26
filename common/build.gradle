@@ -1,0 +1,42 @@
+// Pure Java library - no Minecraft dependencies
+// Contains: math, flux, animation core, kumo state machine
+
+plugins {
+    id 'java-library'
+}
+
+base {
+    archivesName = "MoBends-common"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    // Pure Java dependencies only
+    api 'com.google.code.gson:gson:2.10.1'
+
+    // Nullable annotations
+    api 'com.google.code.findbugs:jsr305:3.0.2'
+
+    // Logging
+    api 'org.slf4j:slf4j-api:2.0.9'
+
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "mobends-common"
+            from components.java
+        }
+    }
+}

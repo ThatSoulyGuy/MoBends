@@ -1,0 +1,128 @@
+// Forge 1.20.1 platform module
+
+plugins {
+    id 'dev.architectury.loom'
+    id 'architectury-plugin'
+    id 'com.github.johnrengelman.shadow'
+}
+
+base {
+    archivesName = "MoBends-forge-${forge_minecraft_version}"
+}
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+loom {
+    // Use Forge's own access widener for now
+    accessWidenerPath = file('src/main/resources/mobends-forge.accesswidener')
+
+    forge {
+        convertAccessWideners = true
+        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+
+        mixinConfig 'mobends-forge.mixins.json'
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+// Force runClient to use Java 17 (Forge 1.20.1 requires Java 17, not 23)
+tasks.withType(JavaExec).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+}
+
+dependencies {
+    // Minecraft
+    minecraft "com.mojang:minecraft:${forge_minecraft_version}"
+    mappings loom.officialMojangMappings()
+    forge "net.minecraftforge:forge:${forge_minecraft_version}-${forge_version}"
+
+    // Architectury API
+    modApi "dev.architectury:architectury-forge:${architectury_forge_version}"
+
+    // Common modules
+    // Pure Java core (no MC dependencies) - includes API interfaces
+    common(project(path: ':common')) { transitive = false }
+    shadowCommon(project(path: ':common')) { transitive = false }
+
+    // MC-specific common code compiled for 1.20.1 (uses shared source with common-mc)
+    common(project(path: ':common-mc-1.20', configuration: 'namedElements')) { transitive = false }
+    shadowCommon(project(path: ':common-mc-1.20', configuration: 'transformProductionForge')) { transitive = false }
+}
+
+processResources {
+    inputs.property 'version', project.version
+
+    filesMatching('META-INF/mods.toml') {
+        expand(
+            mod_id: mod_id,
+            mod_name: mod_name,
+            mod_version: mod_version,
+            mod_authors: mod_authors,
+            mod_description: mod_description,
+            mod_license: mod_license,
+            minecraft_version_range: forge_minecraft_version_range,
+            forge_version_range: forge_version_range,
+            loader_version_range: forge_loader_version_range
+        )
+    }
+}
+
+shadowJar {
+    exclude 'fabric.mod.json'
+    exclude 'architectury.common.json'
+
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = 'dev-shadow'
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier = null
+}
+
+jar {
+    archiveClassifier = 'dev'
+}
+
+sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    def commonSources = project(':common-mc-1.21').sourcesJar
+    def coreSources = project(':common').sourcesJar
+    dependsOn commonSources, coreSources
+    from commonSources.archiveFile.map { zipTree(it) }
+    from coreSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+publishing {
+    publications {
+        mavenForge(MavenPublication) {
+            artifactId = "mobends-forge-${forge_minecraft_version}"
+            from components.java
+        }
+    }
+}

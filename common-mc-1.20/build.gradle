@@ -1,0 +1,72 @@
+// Architectury common module for MC 1.20.1
+// Shares source code with common-mc but compiles against MC 1.20.1
+
+plugins {
+    id 'dev.architectury.loom'
+    id 'architectury-plugin'
+}
+
+base {
+    archivesName = "MoBends-common-mc-1.20"
+}
+
+architectury {
+    common(rootProject.enabled_platforms.split(','))
+}
+
+loom {
+    accessWidenerPath = file('src/main/resources/mobends.accesswidener')
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+// Share source code with common-mc-1.21
+sourceSets {
+    main {
+        java {
+            srcDir project(':common-mc-1.21').file('src/main/java')
+        }
+        resources {
+            srcDir project(':common-mc-1.21').file('src/main/resources')
+        }
+    }
+}
+
+// Handle duplicate resources - prefer local accesswidener
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // Ensure our local accesswidener is processed first
+    from('src/main/resources') {
+        include 'mobends.accesswidener'
+    }
+}
+
+// Handle duplicates in sourcesJar
+sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+dependencies {
+    // Minecraft 1.20.1
+    minecraft "com.mojang:minecraft:${rootProject.forge_minecraft_version}"
+    mappings loom.officialMojangMappings()
+
+    // Pure Java core library
+    api project(':common')
+
+    // Architectury API for 1.20.1
+    modApi "dev.architectury:architectury:${rootProject.architectury_forge_version}"
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "mobends-common-mc-1.20"
+            from components.java
+        }
+    }
+}

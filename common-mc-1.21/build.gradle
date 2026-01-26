@@ -1,0 +1,46 @@
+// Architectury common module - shared Minecraft code
+// Contains: entity data, benders, mutators, rendering, GUI, standard animations
+
+plugins {
+    id 'dev.architectury.loom'
+    id 'architectury-plugin'
+}
+
+base {
+    archivesName = "MoBends-common-mc-1.21"
+}
+
+architectury {
+    common(rootProject.enabled_platforms.split(','))
+}
+
+loom {
+    accessWidenerPath = file('src/main/resources/mobends.accesswidener')
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    // Minecraft
+    minecraft "com.mojang:minecraft:${rootProject.neoforge_minecraft_version}"
+    mappings loom.officialMojangMappings()
+
+    // Pure Java core library
+    api project(':common')
+
+    // Architectury API (optional, for platform abstractions)
+    modApi "dev.architectury:architectury:${rootProject.architectury_neoforge_version}"
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "mobends-common-mc-1.21"
+            from components.java
+        }
+    }
+}
