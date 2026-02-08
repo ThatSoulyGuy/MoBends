@@ -6,11 +6,13 @@ import goblinbob.mobends.api.entity.IItemStack;
 import goblinbob.mobends.api.entity.ILivingEntity;
 import goblinbob.mobends.api.entity.IPlayer;
 import com.mojang.blaze3d.systems.RenderSystem;
+import goblinbob.mobends.api.gui.modernui.IModernUIServices;
 import goblinbob.mobends.api.platform.IPlatformServices;
 import goblinbob.mobends.api.rendering.IArmorHelper;
 import goblinbob.mobends.api.rendering.IBufferSource;
 import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
+import goblinbob.mobends.forge.gui.modernui.ForgeModernUIServices;
 import goblinbob.mobends.api.rendering.IPoseStack;
 import goblinbob.mobends.api.rendering.IRenderLayerProvider;
 import goblinbob.mobends.api.rendering.ITesselator;
@@ -58,6 +60,11 @@ public class ForgePlatformServices implements IPlatformServices
         IEntityVertexHelper.Holder.setHelper(new ForgeEntityVertexHelper());
         IArmorHelper.Holder.setHelper(new ForgeArmorHelper());
         IModelRenderHelper.Holder.setHelper(new ForgeModelRenderHelper());
+
+        // Initialize Modern UI services (required dependency - enforced by mod loader)
+        // We don't need to check for Modern UI classes since the mod loader
+        // will prevent loading if Modern UI is not present (see mods.toml)
+        IModernUIServices.Holder.setServices(new ForgeModernUIServices());
     }
 
     @Override

@@ -14,6 +14,16 @@ public class KumoVariableEntry
         this.key = key;
     }
 
+    public IKumoVariable getVariable()
+    {
+        return variable;
+    }
+
+    public String getKey()
+    {
+        return key;
+    }
+
     public String getLocalizedName()
     {
         return I18n.get(String.format("mobends.variable.%s", this.key));

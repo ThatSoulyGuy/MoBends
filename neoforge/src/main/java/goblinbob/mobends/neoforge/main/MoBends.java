@@ -8,7 +8,7 @@ import goblinbob.mobends.core.addon.AddonHelper;
 import goblinbob.mobends.core.addon.Addons;
 import goblinbob.mobends.core.animation.keyframe.AnimationLoader;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
-import goblinbob.mobends.neoforge.PlayerAnimationLibCompat;
+import goblinbob.mobends.neoforge.compat.ModCompatManager;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.neoforge.client.event.KeyboardEventHandler;
 import goblinbob.mobends.neoforge.client.event.RenderingEventHandler;
@@ -95,8 +95,8 @@ public class MoBends
         NeoForge.EVENT_BUS.register(new KeyboardEventHandler());
         LOGGER.info("Mo' Bends event handlers registered");
 
-        // Initialize mod compatibility layers
-        PlayerAnimationLibCompat.init();
+        // Initialize mod compatibility layers (Curios, Better Blood Overlay, PlayerAnimationLib, etc.)
+        ModCompatManager.init();
 
         LOGGER.info("Mo' Bends client setup complete");
     }

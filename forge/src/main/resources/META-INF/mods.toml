@@ -31,3 +31,10 @@ mandatory = true
 versionRange = "[9.0.0,)"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "modernui"
+mandatory = true
+versionRange = "[3.9.0,)"
+ordering = "NONE"
+side = "CLIENT"

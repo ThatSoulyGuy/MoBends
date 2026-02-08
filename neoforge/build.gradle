@@ -39,6 +39,17 @@ configurations {
     developmentNeoForge.extendsFrom common
 }
 
+repositories {
+    mavenCentral()
+    maven {
+        name = 'CurseMaven'
+        url = 'https://cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
+}
+
 dependencies {
     // Minecraft
     minecraft "com.mojang:minecraft:${neoforge_minecraft_version}"
@@ -47,6 +58,17 @@ dependencies {
 
     // Architectury API
     modApi "dev.architectury:architectury-neoforge:${architectury_neoforge_version}"
+
+    // Modern UI (required dependency, project ID 352491, file ID 5977413 = 1.21.1-3.11.1.4)
+    modImplementation "curse.maven:modern-ui-352491:5977413"
+
+    // Modern UI's runtime dependency - Caffeine is used for text layout caching
+    // Add to local runtime for development
+    forgeRuntimeLibrary("com.github.ben-manes.caffeine:caffeine:3.2.0") { transitive = false }
+
+    // Curios API (optional dependency for accessory slot compatibility)
+    // Project ID 309927, file ID from gradle.properties
+    modCompileOnly "curse.maven:curios-309927:${curios_neoforge_file_id}"
 
     // Common modules
     common(project(path: ':common-mc-1.21', configuration: 'namedElements')) { transitive = false }

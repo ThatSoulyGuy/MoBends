@@ -15,7 +15,7 @@ public class ModStatics
      */
     public static String MODID = MOD_ID;
     public static String MOD_NAME = "Mo' Bends";
-    public static String VERSION = "5.0.0";
+    public static String VERSION = "5.1.0";
 
     public static ResourceLocation getResource(String path)
     {

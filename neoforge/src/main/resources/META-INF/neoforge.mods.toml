@@ -34,3 +34,10 @@ type = "required"
 versionRange = "[13.0.0,)"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "modernui"
+type = "required"
+versionRange = "[3.11.0,)"
+ordering = "NONE"
+side = "CLIENT"

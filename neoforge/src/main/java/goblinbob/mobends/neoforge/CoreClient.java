@@ -8,6 +8,7 @@ import goblinbob.mobends.core.client.event.*;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import goblinbob.mobends.core.env.EnvironmentModule;
 import goblinbob.mobends.core.pack.PackManager;
+import goblinbob.mobends.neoforge.configuration.NeoForgeClientConfig;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.NeoForge;
@@ -30,7 +31,7 @@ public class CoreClient extends Core
     {
         INSTANCE = this;
         Core.instance = this;
-        this.configuration = CoreClientConfig.getInstance();
+        this.configuration = NeoForgeClientConfig.getInstance();
 
         // Initialize modules directly
         modules.add(new EnvironmentModule());
@@ -47,6 +48,9 @@ public class CoreClient extends Core
     {
         // Initialize all registered modules
         initModules();
+
+        // Initialize configuration (requires Minecraft to be initialized)
+        NeoForgeClientConfig.getInstance().initialize();
 
         // Initialize pack manager
         PackManager.INSTANCE.initialize(configuration);

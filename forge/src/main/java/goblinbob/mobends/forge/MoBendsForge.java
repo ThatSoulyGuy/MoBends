@@ -12,6 +12,7 @@ import goblinbob.mobends.core.pack.PackDataProvider;
 import goblinbob.mobends.core.util.GsonResources;
 import goblinbob.mobends.forge.client.event.KeyboardEventHandler;
 import goblinbob.mobends.forge.client.event.RenderingEventHandler;
+import goblinbob.mobends.forge.compat.ModCompatManager;
 import goblinbob.mobends.forge.network.ForgeNetworkHandler;
 import goblinbob.mobends.forge.platform.ForgePlatformServices;
 import goblinbob.mobends.standard.DefaultAddon;
@@ -99,8 +100,8 @@ public class MoBendsForge
         MinecraftForge.EVENT_BUS.register(new KeyboardEventHandler());
         LOGGER.info("Mo' Bends event handlers registered");
 
-        // Initialize mod compatibility layers
-        PlayerAnimationLibCompat.init();
+        // Initialize mod compatibility layers (Curios, Better Blood Overlay, PlayerAnimationLib, etc.)
+        ModCompatManager.init();
 
         LOGGER.info("Mo' Bends client setup complete");
     }

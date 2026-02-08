@@ -8,4 +8,9 @@ public class MalformedKumoTemplateException extends Exception
         super(message);
     }
 
+    public MalformedKumoTemplateException(String message, Throwable cause)
+    {
+        super(message, cause);
+    }
+
 }
