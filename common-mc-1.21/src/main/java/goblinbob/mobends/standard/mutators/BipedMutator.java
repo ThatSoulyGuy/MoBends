@@ -331,6 +331,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public BendsModelPart getLeftForeLeg() { return leftForeLeg; }
     public BendsModelPart getRightForeLeg() { return rightForeLeg; }
 
+    // Store the vanilla default positions so we can restore + offset
+    private float[] vanillaBodyPos, vanillaHeadPos, vanillaLeftArmPos, vanillaRightArmPos,
+                    vanillaLeftLegPos, vanillaRightLegPos;
+    private boolean vanillaPositionsStored = false;
+
     /**
      * Sync animated poses from BendsModelParts to vanilla HumanoidModel ModelParts.
      * This allows vanilla layers (armor, held items) to use our animated poses.
@@ -339,31 +344,55 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     {
         if (model == null) return;
 
-        syncPartToModelPart(head, model.head);
-        syncPartToModelPart(body, model.body);
-        syncPartToModelPart(leftArm, model.leftArm);
-        syncPartToModelPart(rightArm, model.rightArm);
-        syncPartToModelPart(leftLeg, model.leftLeg);
-        syncPartToModelPart(rightLeg, model.rightLeg);
+        // Store vanilla default positions on first call
+        if (!vanillaPositionsStored)
+        {
+            vanillaBodyPos = new float[]{model.body.x, model.body.y, model.body.z};
+            vanillaHeadPos = new float[]{model.head.x, model.head.y, model.head.z};
+            vanillaLeftArmPos = new float[]{model.leftArm.x, model.leftArm.y, model.leftArm.z};
+            vanillaRightArmPos = new float[]{model.rightArm.x, model.rightArm.y, model.rightArm.z};
+            vanillaLeftLegPos = new float[]{model.leftLeg.x, model.leftLeg.y, model.leftLeg.z};
+            vanillaRightLegPos = new float[]{model.rightLeg.x, model.rightLeg.y, model.rightLeg.z};
+            vanillaPositionsStored = true;
+        }
+
+        syncPartToModelPart(body, model.body, vanillaBodyPos);
+        syncPartToModelPart(head, model.head, vanillaHeadPos);
+        syncPartToModelPart(leftArm, model.leftArm, vanillaLeftArmPos);
+        syncPartToModelPart(rightArm, model.rightArm, vanillaRightArmPos);
+        syncPartToModelPart(leftLeg, model.leftLeg, vanillaLeftLegPos);
+        syncPartToModelPart(rightLeg, model.rightLeg, vanillaRightLegPos);
 
         // Sync hat visibility with head
         if (model.hat != null && head != null)
         {
             model.hat.visible = head.isShowing();
+            // Sync hat position/rotation with head
+            model.hat.x = model.head.x;
+            model.hat.y = model.head.y;
+            model.hat.z = model.head.z;
+            model.hat.xRot = model.head.xRot;
+            model.hat.yRot = model.head.yRot;
+            model.hat.zRot = model.head.zRot;
         }
     }
 
     /**
      * Sync a single BendsModelPart's transform to a vanilla ModelPart.
-     * Only syncs rotation and visibility - NOT position, because position defines
-     * the pivot point and changing it would distort the armor geometry/textures.
+     * Syncs rotation, visibility, and animation position offsets.
      */
-    private void syncPartToModelPart(BendsModelPart bendsPart, ModelPart modelPart)
+    private void syncPartToModelPart(BendsModelPart bendsPart, ModelPart modelPart, float[] vanillaPos)
     {
         if (bendsPart == null || modelPart == null) return;
 
-        // DON'T sync position - the armor model's pivot points must stay at vanilla values
-        // to avoid texture stretching. The armor follows the body through rotation only.
+        // Sync animation offset to vanilla model position
+        // Add the animation offset to the stored vanilla base position
+        if (vanillaPos != null)
+        {
+            modelPart.x = vanillaPos[0] + bendsPart.offset.x;
+            modelPart.y = vanillaPos[1] + bendsPart.offset.y;
+            modelPart.z = vanillaPos[2] + bendsPart.offset.z;
+        }
 
         // Convert quaternion rotation to Euler angles (XYZ order)
         Quaternion q = bendsPart.rotation.getSmooth();

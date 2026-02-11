@@ -1,6 +1,7 @@
 package goblinbob.mobends.neoforge.main;
 
 import com.mojang.logging.LogUtils;
+import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.core.Core;
 import goblinbob.mobends.neoforge.CoreClient;
@@ -9,6 +10,7 @@ import goblinbob.mobends.core.addon.Addons;
 import goblinbob.mobends.core.animation.keyframe.AnimationLoader;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.neoforge.compat.ModCompatManager;
+import goblinbob.mobends.neoforge.player.NeoForgePlayerSkinProvider;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.neoforge.client.event.KeyboardEventHandler;
 import goblinbob.mobends.neoforge.client.event.RenderingEventHandler;
@@ -77,6 +79,9 @@ public class MoBends
         // Initialize platform services FIRST (before Core)
         PlatformServices.set(new NeoForgePlatformServices());
         LOGGER.info("Mo' Bends platform services initialized: {}", PlatformServices.get().getPlatformName());
+
+        // Register player skin provider for slim arm detection
+        IPlayerSkinProvider.Holder.setProvider(new NeoForgePlayerSkinProvider());
 
         // Initialize the Core for client
         CoreClient.createAsClient();

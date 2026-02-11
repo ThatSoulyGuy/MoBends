@@ -31,7 +31,7 @@ public class CoreClient extends Core
     {
         INSTANCE = this;
         Core.instance = this;
-        this.configuration = NeoForgeClientConfig.getInstance();
+        this.configuration = CoreClientConfig.getInstance();
 
         // Initialize modules directly
         modules.add(new EnvironmentModule());
@@ -50,7 +50,7 @@ public class CoreClient extends Core
         initModules();
 
         // Initialize configuration (requires Minecraft to be initialized)
-        NeoForgeClientConfig.getInstance().initialize();
+        configuration.initialize();
 
         // Initialize pack manager
         PackManager.INSTANCE.initialize(configuration);

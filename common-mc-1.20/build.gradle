@@ -15,7 +15,7 @@ architectury {
 }
 
 loom {
-    accessWidenerPath = file('src/main/resources/mobends.accesswidener')
+    accessWidenerPath = project(':common-mc-1.21').file('src/main/resources/mobends.accesswidener')
 }
 
 java {
@@ -36,12 +36,11 @@ sourceSets {
     }
 }
 
-// Handle duplicate resources - prefer local accesswidener
 processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    // Ensure our local accesswidener is processed first
-    from('src/main/resources') {
-        include 'mobends.accesswidener'
+    inputs.property 'mod_version', rootProject.mod_version
+    filesMatching('mobends_version.properties') {
+        expand mod_version: rootProject.mod_version
     }
 }
 

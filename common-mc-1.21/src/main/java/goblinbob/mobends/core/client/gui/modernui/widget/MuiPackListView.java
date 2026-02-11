@@ -1,25 +1,30 @@
 package goblinbob.mobends.core.client.gui.modernui.widget;
 
+import com.mojang.logging.LogUtils;
 import goblinbob.mobends.api.gui.modernui.ILayoutParams;
 import goblinbob.mobends.api.gui.modernui.IViewFactory;
 import goblinbob.mobends.api.gui.modernui.view.*;
 import goblinbob.mobends.core.client.gui.modernui.theme.MoBendsTheme;
 import goblinbob.mobends.core.pack.IBendsPack;
+import goblinbob.mobends.core.pack.InvalidPackFormatException;
 import goblinbob.mobends.core.pack.PackManager;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Modern UI pack list widget.
- * Displays a scrollable list of bends packs with selection support.
+ * Displays a scrollable list of bends packs with toggle switches for activation.
  */
 public class MuiPackListView
 {
-    private static final int ITEM_HEIGHT = 40;
+    private static final Logger LOG = LogUtils.getLogger();
+    private static final int ITEM_HEIGHT = 48;
     private static final int THUMBNAIL_SIZE = 32;
 
     private final IViewFactory factory;
@@ -32,22 +37,15 @@ public class MuiPackListView
     @Nullable
     private Consumer<IBendsPack> onPackSelected;
 
-    /**
-     * Creates a new pack list view.
-     *
-     * @param factory The view factory
-     */
     public MuiPackListView(IViewFactory factory)
     {
         this.factory = factory;
         this.items = new ArrayList<>();
 
-        // Create scrollable container
         this.scrollView = factory.createScrollView();
         this.scrollView.setLayoutParams(factory.createMatchParent());
         this.scrollView.setBackgroundColor(MoBendsTheme.BG_LIST);
 
-        // Create vertical layout for items
         this.contentLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
         this.contentLayout.setLayoutParams(factory.createLayoutParams(
                 ILayoutParams.MATCH_PARENT,
@@ -58,38 +56,29 @@ public class MuiPackListView
         scrollView.addView(contentLayout, factory.createMatchParent());
     }
 
-    /**
-     * Sets the callback for pack selection.
-     *
-     * @param callback Called when a pack is selected
-     */
     public void setOnPackSelected(Consumer<IBendsPack> callback)
     {
         this.onPackSelected = callback;
     }
 
-    /**
-     * Populates the list with packs from the PackManager.
-     */
     public void populateFromManager()
     {
         clear();
 
-        Collection<? extends IBendsPack> packs = PackManager.INSTANCE.getLocalPacks();
-        for (IBendsPack pack : packs)
+        Collection<? extends IBendsPack> localPacks = PackManager.INSTANCE.getLocalPacks();
+        Collection<IBendsPack> appliedPacks = PackManager.INSTANCE.getAppliedPacks();
+
+        for (IBendsPack pack : localPacks)
         {
-            addPack(pack);
+            boolean isApplied = appliedPacks.stream()
+                    .anyMatch(p -> p.getKey().equals(pack.getKey()));
+            addPack(pack, isApplied);
         }
     }
 
-    /**
-     * Adds a pack to the list.
-     *
-     * @param pack The pack to add
-     */
-    public void addPack(IBendsPack pack)
+    public void addPack(IBendsPack pack, boolean applied)
     {
-        PackItemInfo item = createPackItem(pack);
+        PackItemInfo item = createPackItem(pack, applied);
         items.add(item);
 
         ILayoutParams params = factory.createLayoutParams(
@@ -101,9 +90,6 @@ public class MuiPackListView
         contentLayout.addView(item.rootLayout, params);
     }
 
-    /**
-     * Clears all items from the list.
-     */
     public void clear()
     {
         contentLayout.removeAllViews();
@@ -111,11 +97,6 @@ public class MuiPackListView
         selectedItem = null;
     }
 
-    /**
-     * Filters the list by search query.
-     *
-     * @param query The search query
-     */
     public void filter(String query)
     {
         String lowerQuery = query.toLowerCase();
@@ -130,20 +111,13 @@ public class MuiPackListView
         }
     }
 
-    /**
-     * Selects a pack by reference.
-     *
-     * @param pack The pack to select
-     */
     public void selectPack(@Nullable IBendsPack pack)
     {
-        // Deselect previous
         if (selectedItem != null)
         {
             updateItemSelection(selectedItem, false);
         }
 
-        // Find and select new
         selectedItem = null;
         if (pack != null)
         {
@@ -159,18 +133,12 @@ public class MuiPackListView
         }
     }
 
-    /**
-     * @return The currently selected pack, or null
-     */
     @Nullable
     public IBendsPack getSelectedPack()
     {
         return selectedItem != null ? selectedItem.pack : null;
     }
 
-    /**
-     * @return The root view to add to the layout
-     */
     public IMuiView getView()
     {
         return scrollView;
@@ -178,65 +146,105 @@ public class MuiPackListView
 
     // ==================== Private Methods ====================
 
-    private PackItemInfo createPackItem(IBendsPack pack)
+    private PackItemInfo createPackItem(IBendsPack pack, boolean applied)
     {
-        // Create root layout for item (horizontal: thumbnail | info)
+        // Root layout (horizontal: accent | info | toggle)
         IMuiLinearLayout rootLayout = factory.createLinearLayout(IViewFactory.HORIZONTAL);
         rootLayout.setBackgroundColor(MoBendsTheme.BG_LIST_ITEM);
         rootLayout.setGravity(IMuiLinearLayout.GRAVITY_CENTER_VERTICAL);
-        rootLayout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
-                             MoBendsTheme.PADDING, MoBendsTheme.PADDING);
+        rootLayout.setPadding(0, 0, MoBendsTheme.PADDING, 0);
 
-        // Thumbnail placeholder (would need image loading support)
-        IMuiView thumbnail = factory.createView();
-        thumbnail.setBackgroundColor(MoBendsTheme.BG_CONTENT);
-        thumbnail.setLayoutParams(factory.createLayoutParams(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
+        // Accent bar (left edge, shows applied status)
+        IMuiView accentBar = factory.createView();
+        accentBar.setBackgroundColor(applied ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
+        accentBar.setLayoutParams(factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
 
-        // Info container (vertical: name, author)
+        // Info container (vertical: name, author/description)
         IMuiLinearLayout infoLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
-        ILayoutParams infoParams = factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
-        );
-        infoParams.setMargins(MoBendsTheme.PADDING, 0, 0, 0);
+        infoLayout.setGravity(IMuiLinearLayout.GRAVITY_CENTER_VERTICAL);
+        ILayoutParams infoParams = factory.createLayoutParams(0, ILayoutParams.MATCH_PARENT, 1.0f);
+        infoParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
         // Pack name
         IMuiTextView nameView = factory.createTextView(pack.getDisplayName());
         nameView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
-        nameView.setTextSize(14);
+        nameView.setTextSize(13);
         nameView.setBold(true);
 
         // Pack author
         IMuiTextView authorView = factory.createTextView("by " + pack.getAuthor());
         authorView.setTextColor(MoBendsTheme.TEXT_SECONDARY);
-        authorView.setTextSize(11);
+        authorView.setTextSize(10);
 
-        // Assemble info layout
         infoLayout.addView(nameView, factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
-                ILayoutParams.WRAP_CONTENT
-        ));
+                ILayoutParams.WRAP_CONTENT, ILayoutParams.WRAP_CONTENT));
         infoLayout.addView(authorView, factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
-                ILayoutParams.WRAP_CONTENT
-        ));
+                ILayoutParams.WRAP_CONTENT, ILayoutParams.WRAP_CONTENT));
 
-        // Assemble root layout
-        rootLayout.addView(thumbnail, factory.createLayoutParams(THUMBNAIL_SIZE, THUMBNAIL_SIZE));
+        // Toggle switch for apply/remove
+        IMuiToggle toggle = factory.createToggle(applied);
+        toggle.setOnCheckedChangeListener(checked -> onPackToggled(pack, checked, accentBar));
+
+        // Assemble
+        rootLayout.addView(accentBar, factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
         rootLayout.addView(infoLayout, infoParams);
+        rootLayout.addView(toggle, factory.createLayoutParams(
+                ILayoutParams.WRAP_CONTENT, ILayoutParams.WRAP_CONTENT));
 
-        // Create item info
-        PackItemInfo itemInfo = new PackItemInfo(pack, rootLayout, nameView, authorView);
+        PackItemInfo itemInfo = new PackItemInfo(pack, rootLayout, accentBar, nameView, authorView, toggle, applied);
 
-        // Set click handler
+        // Click to select (show details), toggle to activate/deactivate
         rootLayout.setOnClickListener(() -> onItemClicked(itemInfo));
 
         return itemInfo;
     }
 
+    private void onPackToggled(IBendsPack pack, boolean apply, IMuiView accentBar)
+    {
+        // Update the accent bar color
+        accentBar.setBackgroundColor(apply ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
+
+        // Update the item's applied state
+        for (PackItemInfo item : items)
+        {
+            if (item.pack.getKey().equals(pack.getKey()))
+            {
+                item.applied = apply;
+                break;
+            }
+        }
+
+        // Collect all currently applied pack keys
+        List<String> appliedKeys = items.stream()
+                .filter(item -> item.applied)
+                .map(item -> item.pack.getKey())
+                .collect(Collectors.toList());
+
+        // Apply to PackManager
+        try
+        {
+            PackManager.INSTANCE.setAppliedPacks(appliedKeys, true);
+            LOG.info("Pack '{}' {}", pack.getDisplayName(), apply ? "activated" : "deactivated");
+        }
+        catch (InvalidPackFormatException e)
+        {
+            LOG.error("Failed to apply pack '{}': {}", pack.getDisplayName(), e.getMessage());
+            // Revert the toggle state on failure
+            for (PackItemInfo item : items)
+            {
+                if (item.pack.getKey().equals(pack.getKey()))
+                {
+                    item.applied = !apply;
+                    item.toggle.setChecked(!apply);
+                    accentBar.setBackgroundColor(!apply ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
+                    break;
+                }
+            }
+        }
+    }
+
     private void onItemClicked(PackItemInfo item)
     {
-        // Select this item
         if (selectedItem != item)
         {
             if (selectedItem != null)
@@ -266,16 +274,23 @@ public class MuiPackListView
     {
         final IBendsPack pack;
         final IMuiLinearLayout rootLayout;
+        final IMuiView accentBar;
         final IMuiTextView nameView;
         final IMuiTextView authorView;
+        final IMuiToggle toggle;
+        boolean applied;
 
-        PackItemInfo(IBendsPack pack, IMuiLinearLayout rootLayout,
-                    IMuiTextView nameView, IMuiTextView authorView)
+        PackItemInfo(IBendsPack pack, IMuiLinearLayout rootLayout, IMuiView accentBar,
+                    IMuiTextView nameView, IMuiTextView authorView, IMuiToggle toggle,
+                    boolean applied)
         {
             this.pack = pack;
             this.rootLayout = rootLayout;
+            this.accentBar = accentBar;
             this.nameView = nameView;
             this.authorView = authorView;
+            this.toggle = toggle;
+            this.applied = applied;
         }
     }
 }

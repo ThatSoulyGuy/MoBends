@@ -55,6 +55,8 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
     /**
      * Used to fetch private data from the original renderer.
      * Uses reflection to access the layers field.
+     * Tries known field names first, then falls back to type-based search
+     * to handle different obfuscation mappings (Mojang vs SRG).
      */
     @SuppressWarnings("unchecked")
     public void fetchFields(LivingEntityRenderer<E, M> renderer)
@@ -64,13 +66,53 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         {
             if (layersField == null)
             {
-                // Find the layers field in LivingEntityRenderer
-                layersField = LivingEntityRenderer.class.getDeclaredField("layers");
-                layersField.setAccessible(true);
+                // Try known field names first (Mojang: "layers", SRG: "f_115313_")
+                String[] fieldNames = {"layers", "f_115313_"};
+                for (String name : fieldNames)
+                {
+                    try
+                    {
+                        layersField = LivingEntityRenderer.class.getDeclaredField(name);
+                        layersField.setAccessible(true);
+                        LOGGER.debug("Found layers field via name '{}'", name);
+                        break;
+                    }
+                    catch (NoSuchFieldException ignored)
+                    {
+                    }
+                }
+
+                // Fallback: search by type (List containing RenderLayer instances)
+                if (layersField == null)
+                {
+                    for (Field field : LivingEntityRenderer.class.getDeclaredFields())
+                    {
+                        if (field.getType() == List.class)
+                        {
+                            field.setAccessible(true);
+                            Object value = field.get(renderer);
+                            if (value instanceof List<?> list && !list.isEmpty()
+                                && list.get(0) instanceof RenderLayer)
+                            {
+                                layersField = field;
+                                LOGGER.debug("Found layers field via type search: '{}'", field.getName());
+                                break;
+                            }
+                        }
+                    }
+                }
             }
-            this.layerRenderers = (List<RenderLayer<E, M>>) layersField.get(renderer);
+
+            if (layersField != null)
+            {
+                this.layerRenderers = (List<RenderLayer<E, M>>) layersField.get(renderer);
+            }
+            else
+            {
+                LOGGER.error("Could not find layers field in LivingEntityRenderer");
+            }
         }
-        catch (NoSuchFieldException | IllegalAccessException e)
+        catch (IllegalAccessException e)
         {
             LOGGER.error("Failed to access layers field in LivingEntityRenderer", e);
         }

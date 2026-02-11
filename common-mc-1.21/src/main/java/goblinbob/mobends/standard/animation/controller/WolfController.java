@@ -58,13 +58,16 @@ public class WolfController implements IAnimationController<WolfData>
         Wolf wolf = data.getEntity();
         final float ticks = wolf.tickCount + DataUpdateHandler.partialTicks;
 
-        try
+        if (kumoAnimatorState != null)
         {
-            kumoAnimatorState.update(data, DataUpdateHandler.ticksPerFrame);
-        }
-        catch (MalformedKumoTemplateException e)
-        {
-            e.printStackTrace();
+            try
+            {
+                kumoAnimatorState.update(data, DataUpdateHandler.ticksPerFrame);
+            }
+            catch (MalformedKumoTemplateException e)
+            {
+                e.printStackTrace();
+            }
         }
 
         if (wolf.isBaby())

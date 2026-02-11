@@ -24,6 +24,14 @@ java {
     }
 }
 
+processResources {
+    inputs.property 'mod_version', rootProject.mod_version
+
+    filesMatching('mobends_version.properties') {
+        expand mod_version: rootProject.mod_version
+    }
+}
+
 dependencies {
     // Minecraft
     minecraft "com.mojang:minecraft:${rootProject.neoforge_minecraft_version}"

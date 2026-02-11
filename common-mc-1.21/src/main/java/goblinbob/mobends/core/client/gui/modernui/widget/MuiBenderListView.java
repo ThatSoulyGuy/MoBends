@@ -6,6 +6,7 @@ import goblinbob.mobends.api.gui.modernui.view.*;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.gui.modernui.theme.MoBendsTheme;
+import goblinbob.mobends.core.configuration.CoreClientConfig;
 import net.minecraft.client.resources.language.I18n;
 
 import javax.annotation.Nullable;
@@ -245,6 +246,7 @@ public class MuiBenderListView
         IMuiToggle toggle = factory.createToggle(bender.isAnimated());
         toggle.setOnCheckedChangeListener(checked -> {
             bender.setAnimate(checked);
+            CoreClientConfig.getInstance().setEntityEnabled(bender.getKey(), checked);
             accentBar.setBackgroundColor(checked ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
         });
 

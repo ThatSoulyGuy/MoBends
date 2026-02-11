@@ -43,6 +43,9 @@ public class ForgeCore extends Core
     @Override
     public void onClientSetup()
     {
+        // Initialize configuration (requires Minecraft to be initialized)
+        configuration.initialize();
+
         // Initialize all registered modules
         initModules();
 

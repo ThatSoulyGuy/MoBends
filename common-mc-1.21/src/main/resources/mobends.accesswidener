@@ -18,5 +18,5 @@ accessible field net/minecraft/client/model/HumanoidModel leftLeg Lnet/minecraft
 # PlayerModel - cloak
 accessible field net/minecraft/client/model/PlayerModel cloak Lnet/minecraft/client/model/geom/ModelPart;
 
-# Additional model fields will be added during migration phase
-# when we can verify their exact signatures in 1.21.1
+# ModelPart - cube access for arm width detection fallback
+accessible field net/minecraft/client/model/geom/ModelPart cubes Ljava/util/List;

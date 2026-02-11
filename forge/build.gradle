@@ -25,6 +25,10 @@ loom {
 
         mixinConfig 'mobends-forge.mixins.json'
     }
+
+    mixin {
+        defaultRefmapName = 'mobends-forge.refmap.json'
+    }
 }
 
 java {

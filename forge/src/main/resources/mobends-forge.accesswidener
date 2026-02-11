@@ -14,3 +14,9 @@ accessible field net/minecraft/client/model/HumanoidModel rightArm Lnet/minecraf
 accessible field net/minecraft/client/model/HumanoidModel leftArm Lnet/minecraft/client/model/geom/ModelPart;
 accessible field net/minecraft/client/model/HumanoidModel rightLeg Lnet/minecraft/client/model/geom/ModelPart;
 accessible field net/minecraft/client/model/HumanoidModel leftLeg Lnet/minecraft/client/model/geom/ModelPart;
+
+# PlayerModel - cloak
+accessible field net/minecraft/client/model/PlayerModel cloak Lnet/minecraft/client/model/geom/ModelPart;
+
+# ModelPart - cube access for arm width detection fallback
+accessible field net/minecraft/client/model/geom/ModelPart cubes Ljava/util/List;

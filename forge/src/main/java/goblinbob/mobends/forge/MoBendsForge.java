@@ -1,6 +1,7 @@
 package goblinbob.mobends.forge;
 
 import com.mojang.logging.LogUtils;
+import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.core.Core;
 import goblinbob.mobends.core.addon.AddonHelper;
@@ -14,6 +15,7 @@ import goblinbob.mobends.forge.client.event.KeyboardEventHandler;
 import goblinbob.mobends.forge.client.event.RenderingEventHandler;
 import goblinbob.mobends.forge.compat.ModCompatManager;
 import goblinbob.mobends.forge.network.ForgeNetworkHandler;
+import goblinbob.mobends.forge.player.ForgePlayerSkinProvider;
 import goblinbob.mobends.forge.platform.ForgePlatformServices;
 import goblinbob.mobends.standard.DefaultAddon;
 import goblinbob.mobends.standard.main.ModStatics;
@@ -82,6 +84,9 @@ public class MoBendsForge
         // Initialize platform services FIRST (before Core)
         PlatformServices.set(new ForgePlatformServices());
         LOGGER.info("Mo' Bends platform services initialized: {}", PlatformServices.get().getPlatformName());
+
+        // Register player skin provider for slim arm detection
+        IPlayerSkinProvider.Holder.setProvider(new ForgePlayerSkinProvider());
 
         // Initialize the Core for client
         ForgeCore.createAsClient();

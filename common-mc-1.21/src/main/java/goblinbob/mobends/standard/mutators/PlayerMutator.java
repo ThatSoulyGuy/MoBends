@@ -80,14 +80,15 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     }
 
     /**
-     * Detect slim arms from the PlayerRenderer using multiple approaches.
+     * Detect slim arms from the PlayerRenderer.
+     * Uses reflection on the 'slim' field (made accessible via access widener),
+     * with model cube width analysis as fallback.
      */
     private boolean detectSlimArms(PlayerRenderer playerRenderer)
     {
-        // Approach 1: Try direct field access (works if access transformer is applied)
-        // In Mojang mappings the field is 'slim', in SRG it's 'f_117788_'
+        // Approach 1: Reflection on 'slim' field (Mojang name + SRG fallback)
+        // Access widener makes setAccessible succeed reliably at runtime
         String[] fieldNames = {"slim", "f_117788_"};
-
         for (String fieldName : fieldNames)
         {
             try
@@ -95,51 +96,58 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 java.lang.reflect.Field slimField = PlayerRenderer.class.getDeclaredField(fieldName);
                 slimField.setAccessible(true);
                 boolean result = slimField.getBoolean(playerRenderer);
-                // Log success for debugging
                 LOG.debug("Detected slim arms via field '{}': {}", fieldName, result);
                 return result;
             }
             catch (NoSuchFieldException | IllegalAccessException ignored)
             {
-                // Try next field name
             }
         }
 
-        // Approach 2: Check the model's arm dimensions using reflection
-        // PlayerModel in slim mode has 3-pixel wide arms, standard has 4-pixel wide
+        // Approach 2: Check model arm cube width (slim = 3px, default = 4px)
         try
         {
             PlayerModel<?> model = playerRenderer.getModel();
             if (model != null && model.leftArm != null)
             {
-                // Use reflection to get cubes (private field)
-                java.lang.reflect.Field cubesField = net.minecraft.client.model.geom.ModelPart.class.getDeclaredField("cubes");
-                cubesField.setAccessible(true);
-                @SuppressWarnings("unchecked")
-                java.util.List<net.minecraft.client.model.geom.ModelPart.Cube> cubes =
-                    (java.util.List<net.minecraft.client.model.geom.ModelPart.Cube>) cubesField.get(model.leftArm);
+                // 'cubes' field also made accessible via access widener
+                String[] cubeFieldNames = {"cubes", "f_104222_"};
+                java.util.List<?> cubes = null;
+                for (String fieldName : cubeFieldNames)
+                {
+                    try
+                    {
+                        java.lang.reflect.Field cubesField = net.minecraft.client.model.geom.ModelPart.class.getDeclaredField(fieldName);
+                        cubesField.setAccessible(true);
+                        cubes = (java.util.List<?>) cubesField.get(model.leftArm);
+                        break;
+                    }
+                    catch (NoSuchFieldException ignored)
+                    {
+                    }
+                }
                 if (cubes != null)
                 {
-                    for (net.minecraft.client.model.geom.ModelPart.Cube cube : cubes)
+                    for (Object obj : cubes)
                     {
+                        net.minecraft.client.model.geom.ModelPart.Cube cube = (net.minecraft.client.model.geom.ModelPart.Cube) obj;
                         float width = cube.maxX - cube.minX;
                         if (Math.abs(width - 3.0f) < 0.1f)
                         {
-                            LOG.debug("Detected slim arms via model cube width: true");
+                            LOG.debug("Detected slim arms via cube width: true");
                             return true;
                         }
                     }
-                    LOG.debug("Detected slim arms via model cube width: false");
+                    LOG.debug("Detected slim arms via cube width: false");
                     return false;
                 }
             }
         }
         catch (Exception e)
         {
-            LOG.warn("Failed to detect slim arms via model: {}", e.getMessage());
+            LOG.warn("Failed to detect slim arms via model cube width: {}", e.getMessage());
         }
 
-        // Default to standard (wide) arms
         LOG.warn("Could not detect slim arms, defaulting to standard arms");
         return false;
     }

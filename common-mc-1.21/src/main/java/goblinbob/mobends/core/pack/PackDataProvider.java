@@ -39,9 +39,10 @@ public class PackDataProvider
             }
         }
 
-        if (dataList.size() == 0)
+        if (dataList.isEmpty())
         {
             appliedData = null;
+            return;
         }
 
         appliedData = PackCombiner.combineData(dataList);
