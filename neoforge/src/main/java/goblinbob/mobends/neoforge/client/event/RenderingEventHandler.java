@@ -17,7 +17,6 @@ import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.PlayerMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
 import goblinbob.mobends.standard.mutators.SquidMutator;
-import goblinbob.mobends.standard.mutators.WolfMutator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -180,12 +179,6 @@ public class RenderingEventHandler
                     MoBendsRenderContext.setCurrentSquidMutator(squidMutator);
                     MoBendsRenderContext.beginMainModelRender();
                 }
-                else if (rawMutator instanceof WolfMutator wolfMutator)
-                {
-                    MoBendsRenderContext.setCurrentWolfMutator(wolfMutator);
-                    MoBendsRenderContext.beginMainModelRender();
-                }
-
                 // Call beforeRender for any entity-specific setup
                 bender.beforeRender(data, entity, partialTicks, poseStack);
             }

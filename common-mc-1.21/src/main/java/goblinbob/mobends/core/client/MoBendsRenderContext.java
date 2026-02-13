@@ -3,7 +3,6 @@ package goblinbob.mobends.core.client;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
 import goblinbob.mobends.standard.mutators.SquidMutator;
-import goblinbob.mobends.standard.mutators.WolfMutator;
 
 /**
  * Thread-local context for passing mutation state during rendering.
@@ -14,7 +13,6 @@ public class MoBendsRenderContext {
     private static final ThreadLocal<BipedMutator<?, ?, ?>> currentBipedMutator = new ThreadLocal<>();
     private static final ThreadLocal<SpiderMutator> currentSpiderMutator = new ThreadLocal<>();
     private static final ThreadLocal<SquidMutator> currentSquidMutator = new ThreadLocal<>();
-    private static final ThreadLocal<WolfMutator> currentWolfMutator = new ThreadLocal<>();
 
     /**
      * Flag indicating we're rendering the main entity model (not layers like armor).
@@ -92,20 +90,6 @@ public class MoBendsRenderContext {
     }
 
     /**
-     * Sets the current wolf mutator for the rendering context.
-     */
-    public static void setCurrentWolfMutator(WolfMutator mutator) {
-        currentWolfMutator.set(mutator);
-    }
-
-    /**
-     * Gets the current wolf mutator from the rendering context.
-     */
-    public static WolfMutator getCurrentWolfMutator() {
-        return currentWolfMutator.get();
-    }
-
-    /**
      * Clears the current rendering context.
      * Call this after rendering is complete.
      */
@@ -113,7 +97,6 @@ public class MoBendsRenderContext {
         currentBipedMutator.remove();
         currentSpiderMutator.remove();
         currentSquidMutator.remove();
-        currentWolfMutator.remove();
         inMainModelRender.remove();
     }
 }

@@ -28,8 +28,8 @@ public class ForgeNetworkHandler {
         CHANNEL = NetworkRegistry.newSimpleChannel(
                 new ResourceLocation(MoBendsForge.MOD_ID, "main"),
                 () -> PROTOCOL_VERSION,
-                PROTOCOL_VERSION::equals,
-                PROTOCOL_VERSION::equals
+                s -> true,
+                s -> true
         );
 
         // Register messages here when implementing full network sync
