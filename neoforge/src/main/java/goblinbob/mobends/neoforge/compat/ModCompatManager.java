@@ -40,6 +40,9 @@ public class ModCompatManager
         // Initialize compatibility for visual effect mods
         BetterBloodOverlayCompat.init();
 
+        // Initialize compatibility for physics mods
+        PhysicsModCompat.init();
+
         // Log summary
         logCompatSummary();
     }
@@ -55,6 +58,7 @@ public class ModCompatManager
                 : "PlayerAnimationLib: Not loaded");
         LOGGER.info("  - {}", CuriosCompat.getCompatInfo());
         LOGGER.info("  - {}", BetterBloodOverlayCompat.getCompatInfo());
+        LOGGER.info("  - {}", PhysicsModCompat.getCompatInfo());
     }
 
     /**
@@ -65,6 +69,13 @@ public class ModCompatManager
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)
     {
         // PlayerAnimationLib takes priority when it has an active animation
-        return PlayerAnimationLibCompat.hasActiveAnimation(entity);
+        if (PlayerAnimationLibCompat.hasActiveAnimation(entity))
+            return true;
+
+        // Physics Mod takes priority when ragdoll/physics are active
+        if (PhysicsModCompat.hasActivePhysics(entity))
+            return true;
+
+        return false;
     }
 }

@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.kumo.state.keyframe;
 
-import goblinbob.mobends.core.kumo.state.IKumoInstancingContext;
+import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.INodeState;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 import goblinbob.mobends.core.kumo.state.template.keyframe.KeyframeNodeTemplate;

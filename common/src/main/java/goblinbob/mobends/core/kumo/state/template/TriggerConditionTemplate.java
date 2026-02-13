@@ -1,7 +1,5 @@
 package goblinbob.mobends.core.kumo.state.template;
 
-import goblinbob.mobends.core.kumo.state.IKumoValidationContext;
-
 public class TriggerConditionTemplate
 {
 

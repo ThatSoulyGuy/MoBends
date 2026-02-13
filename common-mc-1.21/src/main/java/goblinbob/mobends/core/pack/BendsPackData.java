@@ -1,7 +1,7 @@
 package goblinbob.mobends.core.pack;
 
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
-import goblinbob.mobends.core.kumo.state.IKumoInstancingContext;
+import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.template.AnimatorTemplate;
 
 import java.util.Map;

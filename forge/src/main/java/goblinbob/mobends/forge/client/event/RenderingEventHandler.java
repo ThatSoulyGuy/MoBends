@@ -11,7 +11,8 @@ import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.lib.flux.ComputedDependencyHelper;
 import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.core.util.BenderHelper;
-import goblinbob.mobends.forge.PlayerAnimationLibCompat;
+import goblinbob.mobends.forge.compat.CuriosCompat;
+import goblinbob.mobends.forge.compat.ModCompatManager;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.PlayerMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
@@ -128,11 +129,10 @@ public class RenderingEventHandler
         if (bender == null)
             return;
 
-        // Check if PlayerAnimationLib has an active animation for this entity
-        // If so, let PlayerAnimationLib handle the animation and skip Mo'Bends
-        if (PlayerAnimationLibCompat.hasActiveAnimation(entity))
+        // Check if another mod should take priority (PlayerAnimationLib, Physics Mod, etc.)
+        if (ModCompatManager.shouldDeferAnimation(entity))
         {
-            // De-apply any existing mutation so vanilla/PlayerAnimationLib can render normally
+            // De-apply any existing mutation so the other mod can render normally
             bender.deapplyMutation(renderer, entity);
             return;
         }
@@ -172,6 +172,7 @@ public class RenderingEventHandler
                     if (model instanceof HumanoidModel<?> humanoidModel)
                     {
                         bipedMutator.syncPosesToVanillaModel(humanoidModel);
+                        CuriosCompat.syncTransformsForCurios(entity, humanoidModel, poseStack);
                     }
                 }
                 else if (rawMutator instanceof SpiderMutator spiderMutator)
@@ -207,6 +208,7 @@ public class RenderingEventHandler
     {
         // Always clear the render context after rendering
         MoBendsRenderContext.clear();
+        CuriosCompat.clearSplitLimbTransforms();
 
         LivingEntity entity = event.getEntity();
         EntityBender bender = EntityBenderRegistry.instance.getForEntity(entity);

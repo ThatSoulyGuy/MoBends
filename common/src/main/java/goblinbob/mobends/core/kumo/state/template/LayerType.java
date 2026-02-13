@@ -1,6 +1,5 @@
-package goblinbob.mobends.core.kumo.state;
+package goblinbob.mobends.core.kumo.state.template;
 
-import goblinbob.mobends.core.kumo.state.template.DriverLayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.keyframe.KeyframeLayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.procedural.ProceduralLayerTemplate;
 

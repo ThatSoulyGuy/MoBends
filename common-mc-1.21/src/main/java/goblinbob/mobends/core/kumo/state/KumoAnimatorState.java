@@ -2,6 +2,7 @@ package goblinbob.mobends.core.kumo.state;
 
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.kumo.state.template.AnimatorTemplate;
+import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.template.LayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 

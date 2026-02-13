@@ -3,7 +3,7 @@ package goblinbob.mobends.core.kumo.state.condition;
 import goblinbob.mobends.core.expression.Expression;
 import goblinbob.mobends.core.expression.ExpressionCache;
 import goblinbob.mobends.core.expression.ExpressionException;
-import goblinbob.mobends.core.expression.KumoExpressionContext;
+import goblinbob.mobends.core.kumo.KumoExpressionContext;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 

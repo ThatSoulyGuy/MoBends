@@ -41,3 +41,17 @@ type = "required"
 versionRange = "[3.11.0,)"
 ordering = "NONE"
 side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "curios"
+type = "optional"
+versionRange = "[9.0.0,)"
+ordering = "BEFORE"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "physicsmod"
+type = "optional"
+versionRange = "[1.0.0,)"
+ordering = "BEFORE"
+side = "CLIENT"

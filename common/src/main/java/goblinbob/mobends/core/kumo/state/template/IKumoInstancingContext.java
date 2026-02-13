@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.kumo.state;
+package goblinbob.mobends.core.kumo.state.template;
 
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
 

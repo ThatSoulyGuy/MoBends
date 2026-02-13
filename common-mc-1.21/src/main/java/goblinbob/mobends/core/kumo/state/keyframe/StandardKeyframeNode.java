@@ -4,7 +4,7 @@ import goblinbob.mobends.lib.animation.keyframe.Bone;
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
 import goblinbob.mobends.core.kumo.state.ConnectionState;
 import goblinbob.mobends.core.kumo.state.IKumoContext;
-import goblinbob.mobends.core.kumo.state.IKumoInstancingContext;
+import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.INodeState;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 import goblinbob.mobends.core.kumo.state.template.keyframe.ConnectionTemplate;

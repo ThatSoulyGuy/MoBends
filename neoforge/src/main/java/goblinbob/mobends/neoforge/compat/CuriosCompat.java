@@ -17,12 +17,12 @@ import java.lang.reflect.Method;
  * Compatibility helper for Curios API (NeoForge version).
  * Ensures curio items rendered on players follow Mo'Bends animations.
  *
- * Curios API adds extra equipment slots (rings, amulets, belts, back items, etc.)
- * that can render on the player model. This compatibility layer ensures:
- * 1. Curio render layers use Mo'Bends-synced transforms
- * 2. Curio items follow animated body parts correctly
+ * Basic curio rendering (head, body, back) works automatically because Mo'Bends
+ * syncs animated poses to the vanilla HumanoidModel via syncPosesToVanillaModel().
+ * Curios render layers call followBodyRotations() which copies these values.
  *
- * @see <a href="https://github.com/TheIllusiveC4/Curios">Curios GitHub</a>
+ * This compat layer additionally computes combined forearm/foreleg transforms
+ * (upper + lower limb) for curios that attach to split-joint body parts.
  */
 @OnlyIn(Dist.CLIENT)
 public class CuriosCompat
@@ -37,16 +37,26 @@ public class CuriosCompat
     private static Class<?> curiosApiClass;
     private static Method getCuriosInventoryMethod;
 
+    // Thread-local storage for split limb transforms (available to curio renderers)
+    private static final ThreadLocal<SplitLimbTransforms> currentSplitTransforms =
+            ThreadLocal.withInitial(SplitLimbTransforms::new);
+
     /**
-     * Initialize the compatibility layer.
-     * Should be called once during mod initialization.
+     * Combined limb transforms including forearm/foreleg contributions.
+     * Curio renderers can query this for accurate end-of-limb positions.
      */
+    public static class SplitLimbTransforms
+    {
+        public float leftArmEndXRot, leftArmEndYRot, leftArmEndZRot;
+        public float rightArmEndXRot, rightArmEndYRot, rightArmEndZRot;
+        public float leftLegEndXRot, leftLegEndYRot, leftLegEndZRot;
+        public float rightLegEndXRot, rightLegEndYRot, rightLegEndZRot;
+        public boolean valid = false;
+    }
+
     public static void init()
     {
-        if (initialized)
-        {
-            return;
-        }
+        if (initialized) return;
         initialized = true;
 
         isLoaded = ModList.get().isLoaded(MOD_ID);
@@ -62,21 +72,13 @@ public class CuriosCompat
             catch (Exception e)
             {
                 LOGGER.warn("Failed to initialize Curios compatibility: {}", e.getMessage());
-                // Still mark as loaded - we just won't have advanced features
             }
         }
     }
 
-    /**
-     * Initialize reflection handles for Curios API classes.
-     */
     private static void initReflection() throws Exception
     {
-        // Try to get the CuriosApi class
         curiosApiClass = Class.forName("top.theillusivec4.curios.api.CuriosApi");
-
-        // Get the getCuriosInventory method if available
-        // Method signature: Optional<ICuriosItemHandler> getCuriosInventory(LivingEntity entity)
         getCuriosInventoryMethod = curiosApiClass.getMethod("getCuriosInventory", LivingEntity.class);
 
         LOGGER.debug("Curios reflection initialized:");
@@ -84,64 +86,74 @@ public class CuriosCompat
         LOGGER.debug("  - getCuriosInventory method: {}", getCuriosInventoryMethod);
     }
 
-    /**
-     * Check if Curios API is loaded.
-     */
     public static boolean isModLoaded()
     {
-        if (!initialized)
-        {
-            init();
-        }
+        if (!initialized) init();
         return isLoaded;
     }
 
     /**
      * Sync Mo'Bends transforms for curio rendering.
-     * This should be called before curio render layers execute.
-     *
-     * Since Mo'Bends already syncs poses to the vanilla HumanoidModel via
-     * {@code bipedMutator.syncPosesToVanillaModel()}, curio render layers
-     * that use vanilla model transforms will automatically work.
-     *
-     * This method provides additional sync for curios that may need
-     * access to split limb transforms (upper/lower arm, etc.)
-     *
-     * @param entity The entity being rendered
-     * @param model The humanoid model
-     * @param poseStack The current pose stack
+     * Computes combined upper+lower limb euler angles for split joints.
+     * Called from RenderingEventHandler after syncPosesToVanillaModel().
      */
     public static void syncTransformsForCurios(LivingEntity entity, HumanoidModel<?> model, PoseStack poseStack)
     {
-        if (!isModLoaded())
-        {
-            return;
-        }
+        if (!isModLoaded()) return;
 
-        // Get the current biped mutator from render context
         BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
-        if (mutator == null)
-        {
-            return;
-        }
+        if (mutator == null) return;
 
-        // The vanilla model transforms are already synced by beforeLivingRender
-        // Curios render layers will use these synced transforms automatically
-        // This method exists for future extensions if curios need special handling
+        SplitLimbTransforms transforms = currentSplitTransforms.get();
+        transforms.valid = false;
+
+        // Compute combined euler angles: upper limb rotation + forearm/foreleg rotation
+        float[] leftForeArm = mutator.getLeftForeArmEulerAngles();
+        transforms.leftArmEndXRot = model.leftArm.xRot + leftForeArm[0];
+        transforms.leftArmEndYRot = model.leftArm.yRot + leftForeArm[1];
+        transforms.leftArmEndZRot = model.leftArm.zRot + leftForeArm[2];
+
+        float[] rightForeArm = mutator.getRightForeArmEulerAngles();
+        transforms.rightArmEndXRot = model.rightArm.xRot + rightForeArm[0];
+        transforms.rightArmEndYRot = model.rightArm.yRot + rightForeArm[1];
+        transforms.rightArmEndZRot = model.rightArm.zRot + rightForeArm[2];
+
+        float[] leftForeLeg = mutator.getLeftForeLegEulerAngles();
+        transforms.leftLegEndXRot = model.leftLeg.xRot + leftForeLeg[0];
+        transforms.leftLegEndYRot = model.leftLeg.yRot + leftForeLeg[1];
+        transforms.leftLegEndZRot = model.leftLeg.zRot + leftForeLeg[2];
+
+        float[] rightForeLeg = mutator.getRightForeLegEulerAngles();
+        transforms.rightLegEndXRot = model.rightLeg.xRot + rightForeLeg[0];
+        transforms.rightLegEndYRot = model.rightLeg.yRot + rightForeLeg[1];
+        transforms.rightLegEndZRot = model.rightLeg.zRot + rightForeLeg[2];
+
+        transforms.valid = true;
+    }
+
+    /**
+     * Get the current split limb transforms for curio rendering.
+     * Available during the entity render pass after syncTransformsForCurios() is called.
+     */
+    public static SplitLimbTransforms getCurrentSplitLimbTransforms()
+    {
+        return currentSplitTransforms.get();
+    }
+
+    /**
+     * Clear the split limb transforms. Called after entity rendering completes.
+     */
+    public static void clearSplitLimbTransforms()
+    {
+        currentSplitTransforms.remove();
     }
 
     /**
      * Check if an entity has any curio items equipped.
-     *
-     * @param entity The entity to check
-     * @return true if the entity has curio items, false otherwise
      */
     public static boolean hasCurioItems(LivingEntity entity)
     {
-        if (!isModLoaded() || getCuriosInventoryMethod == null)
-        {
-            return false;
-        }
+        if (!isModLoaded() || getCuriosInventoryMethod == null) return false;
 
         try
         {
@@ -160,15 +172,9 @@ public class CuriosCompat
         return false;
     }
 
-    /**
-     * Get compatibility information for logging.
-     */
     public static String getCompatInfo()
     {
-        if (!isModLoaded())
-        {
-            return "Curios: Not loaded";
-        }
+        if (!isModLoaded()) return "Curios: Not loaded";
         return "Curios: Loaded, compatibility active";
     }
 }

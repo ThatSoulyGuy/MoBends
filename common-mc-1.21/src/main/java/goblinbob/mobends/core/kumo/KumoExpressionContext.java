@@ -1,4 +1,6 @@
-package goblinbob.mobends.core.expression;
+package goblinbob.mobends.core.kumo;
+
+import goblinbob.mobends.core.expression.ExpressionContext;
 
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.data.EntityData;

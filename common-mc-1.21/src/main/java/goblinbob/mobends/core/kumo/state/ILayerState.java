@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.kumo.state.keyframe.KeyframeLayerState;
 import goblinbob.mobends.core.kumo.state.procedural.ProceduralLayerState;
 import org.slf4j.Logger;
+import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.template.DriverLayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.LayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;

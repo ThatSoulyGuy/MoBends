@@ -405,6 +405,23 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         modelPart.visible = bendsPart.isShowing();
     }
 
+    private static final float[] ZERO_EULER = {0, 0, 0};
+
+    /**
+     * Get the forearm/foreleg euler angles for the given part.
+     * Used by CuriosCompat to provide split-joint transforms for curio rendering.
+     */
+    private float[] getForePartEulerAngles(BendsModelPart forePart)
+    {
+        if (forePart == null) return ZERO_EULER;
+        return quaternionToEulerXYZ(forePart.rotation.getSmooth());
+    }
+
+    public float[] getLeftForeArmEulerAngles() { return getForePartEulerAngles(leftForeArm); }
+    public float[] getRightForeArmEulerAngles() { return getForePartEulerAngles(rightForeArm); }
+    public float[] getLeftForeLegEulerAngles() { return getForePartEulerAngles(leftForeLeg); }
+    public float[] getRightForeLegEulerAngles() { return getForePartEulerAngles(rightForeLeg); }
+
     /**
      * Convert quaternion to Euler angles in XYZ rotation order (radians).
      * Returns [xRot, yRot, zRot].
