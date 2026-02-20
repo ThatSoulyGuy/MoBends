@@ -1,14 +1,13 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiTextView;
-import icyllis.modernui.text.Typeface;
+import goblinbob.mobends.api.gui.view.ITextView;
 import icyllis.modernui.widget.TextView;
 
 /**
  * NeoForge wrapper for Modern UI TextView.
  * Uses Modern UI 3.11.x API.
  */
-public class NeoForgeTextView extends NeoForgeView implements IMuiTextView
+public class NeoForgeTextView extends NeoForgeView implements ITextView
 {
     private final TextView nativeTextView;
     private boolean isBold = false;
@@ -67,10 +66,11 @@ public class NeoForgeTextView extends NeoForgeView implements IMuiTextView
 
     private void updateTypeface()
     {
-        // In Modern UI 3.11.x, Typeface API is limited
-        // Setting typeface style is not fully supported
-        // This is a placeholder - bold/italic may not render correctly
-        // A proper implementation would need custom font loading
+        int style = 0;
+        if (isBold) style |= 1;
+        if (isItalic) style |= 2;
+        nativeTextView.getPaint().setTextStyle(style);
+        nativeTextView.invalidate();
     }
 
     @Override

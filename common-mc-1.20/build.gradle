@@ -57,6 +57,9 @@ dependencies {
     // Pure Java core library
     api project(':common')
 
+    // UI abstraction interfaces
+    api project(':gui-api')
+
     // Architectury API for 1.20.1
     modApi "dev.architectury:architectury:${rootProject.architectury_forge_version}"
 }

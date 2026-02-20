@@ -1,12 +1,12 @@
 package goblinbob.mobends.forge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiScrollView;
+import goblinbob.mobends.api.gui.view.IScrollView;
 import icyllis.modernui.widget.ScrollView;
 
 /**
  * Forge wrapper for Modern UI ScrollView.
  */
-public class ForgeScrollView extends ForgeViewGroup implements IMuiScrollView
+public class ForgeScrollView extends ForgeViewGroup implements IScrollView
 {
     private final ScrollView nativeScrollView;
 

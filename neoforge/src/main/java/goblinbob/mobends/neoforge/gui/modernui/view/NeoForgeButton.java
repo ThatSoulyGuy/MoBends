@@ -1,13 +1,13 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiButton;
+import goblinbob.mobends.api.gui.view.IButton;
 import icyllis.modernui.graphics.drawable.Drawable;
 import icyllis.modernui.widget.Button;
 
 /**
  * NeoForge wrapper for Modern UI Button.
  */
-public class NeoForgeButton extends NeoForgeView implements IMuiButton
+public class NeoForgeButton extends NeoForgeView implements IButton
 {
     private final Button nativeButton;
 

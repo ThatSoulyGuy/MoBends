@@ -21,9 +21,26 @@ public class DataUpdateHandler
      */
     public static float ticksPerFrame = 0.0f;
 
+    /**
+     * When >= 0, getTicks() returns this value instead of the real ticks.
+     * Used by EntityPreviewRenderer to drive animations while the game is paused.
+     */
+    private static float previewTicksOverride = -1;
+
     public static float getTicks()
     {
+        if (previewTicksOverride >= 0) return previewTicksOverride;
         return ticks;
+    }
+
+    public static void setPreviewTicks(float ticks)
+    {
+        previewTicksOverride = ticks;
+    }
+
+    public static void clearPreviewTicks()
+    {
+        previewTicksOverride = -1;
     }
 
     /**

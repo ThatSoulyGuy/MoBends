@@ -1,8 +1,9 @@
 package goblinbob.mobends.neoforge.gui.modernui;
 
-import goblinbob.mobends.api.gui.modernui.ILayoutParams;
-import goblinbob.mobends.api.gui.modernui.IViewFactory;
-import goblinbob.mobends.api.gui.modernui.view.*;
+import goblinbob.mobends.api.gui.IEntityRenderer;
+import goblinbob.mobends.api.gui.ILayoutParams;
+import goblinbob.mobends.api.gui.IViewFactory;
+import goblinbob.mobends.api.gui.view.*;
 import goblinbob.mobends.neoforge.gui.modernui.view.*;
 import icyllis.modernui.core.Context;
 import icyllis.modernui.view.Gravity;
@@ -46,13 +47,13 @@ public class NeoForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiView createView()
+    public IView createView()
     {
         return new NeoForgeView(new icyllis.modernui.view.View(context));
     }
 
     @Override
-    public IMuiButton createButton(String text)
+    public IButton createButton(String text)
     {
         Button button = new Button(context);
         button.setText(text);
@@ -60,7 +61,7 @@ public class NeoForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiToggle createToggle(boolean initialState)
+    public IToggle createToggle(boolean initialState)
     {
         CheckBox checkBox = new CheckBox(context);
         checkBox.setChecked(initialState);
@@ -68,7 +69,7 @@ public class NeoForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiTextField createTextField(String hint)
+    public ITextField createTextField(String hint)
     {
         EditText editText = new EditText(context);
         editText.setHint(hint);
@@ -76,14 +77,14 @@ public class NeoForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiImageView createImageView()
+    public IImageView createImageView()
     {
         ImageView imageView = new ImageView(context);
         return new NeoForgeImageView(imageView);
     }
 
     @Override
-    public IMuiTextView createTextView(String text)
+    public ITextView createTextView(String text)
     {
         TextView textView = new TextView(context);
         textView.setText(text);
@@ -91,7 +92,7 @@ public class NeoForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiLinearLayout createLinearLayout(int orientation)
+    public ILinearLayout createLinearLayout(int orientation)
     {
         LinearLayout layout = new LinearLayout(context);
         layout.setOrientation(orientation);
@@ -99,23 +100,30 @@ public class NeoForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiFrameLayout createFrameLayout()
+    public IFrameLayout createFrameLayout()
     {
         FrameLayout layout = new FrameLayout(context);
         return new NeoForgeFrameLayout(layout, this);
     }
 
     @Override
-    public IMuiScrollView createScrollView()
+    public IScrollView createScrollView()
     {
         ScrollView scrollView = new ScrollView(context);
         return new NeoForgeScrollView(scrollView);
     }
 
     @Override
-    public IMuiListView createListView()
+    public IListView createListView()
     {
         return new NeoForgeListView(context);
+    }
+
+    @Override
+    public IView createEntityPreviewView(IEntityRenderer renderer)
+    {
+        NeoForgeEntityPreviewView view = new NeoForgeEntityPreviewView(context, renderer);
+        return new NeoForgeView(view);
     }
 
     @Override

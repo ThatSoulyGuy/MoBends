@@ -1,6 +1,6 @@
 package goblinbob.mobends.forge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiToggle;
+import goblinbob.mobends.api.gui.view.IToggle;
 import icyllis.modernui.widget.CheckBox;
 import icyllis.modernui.widget.CompoundButton;
 
@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 /**
  * Forge wrapper for Modern UI CheckBox (used as toggle in 3.9.x since Switch is unavailable).
  */
-public class ForgeToggle extends ForgeView implements IMuiToggle
+public class ForgeToggle extends ForgeView implements IToggle
 {
     private final CheckBox nativeCheckBox;
     private Consumer<Boolean> checkedListener;

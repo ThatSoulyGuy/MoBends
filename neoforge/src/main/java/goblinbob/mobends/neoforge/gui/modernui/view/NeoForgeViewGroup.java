@@ -1,8 +1,8 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.ILayoutParams;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
-import goblinbob.mobends.api.gui.modernui.view.IMuiViewGroup;
+import goblinbob.mobends.api.gui.ILayoutParams;
+import goblinbob.mobends.api.gui.view.IView;
+import goblinbob.mobends.api.gui.view.IViewGroup;
 import goblinbob.mobends.neoforge.gui.modernui.NeoForgeLayoutParams;
 import icyllis.modernui.view.View;
 import icyllis.modernui.view.ViewGroup;
@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 /**
  * NeoForge wrapper for Modern UI ViewGroup.
  */
-public class NeoForgeViewGroup extends NeoForgeView implements IMuiViewGroup
+public class NeoForgeViewGroup extends NeoForgeView implements IViewGroup
 {
     protected final ViewGroup nativeViewGroup;
 
@@ -23,26 +23,26 @@ public class NeoForgeViewGroup extends NeoForgeView implements IMuiViewGroup
     }
 
     @Override
-    public void addView(IMuiView child)
+    public void addView(IView child)
     {
         nativeViewGroup.addView((View) child.getNativeView());
     }
 
     @Override
-    public void addView(IMuiView child, ILayoutParams params)
+    public void addView(IView child, ILayoutParams params)
     {
         nativeViewGroup.addView((View) child.getNativeView(),
                                (ViewGroup.LayoutParams) params.getNativeLayoutParams());
     }
 
     @Override
-    public void addView(IMuiView child, int index)
+    public void addView(IView child, int index)
     {
         nativeViewGroup.addView((View) child.getNativeView(), index);
     }
 
     @Override
-    public void removeView(IMuiView child)
+    public void removeView(IView child)
     {
         nativeViewGroup.removeView((View) child.getNativeView());
     }
@@ -67,7 +67,7 @@ public class NeoForgeViewGroup extends NeoForgeView implements IMuiViewGroup
 
     @Nullable
     @Override
-    public IMuiView getChildAt(int index)
+    public IView getChildAt(int index)
     {
         View child = nativeViewGroup.getChildAt(index);
         if (child == null)
@@ -79,7 +79,7 @@ public class NeoForgeViewGroup extends NeoForgeView implements IMuiViewGroup
 
     @Nullable
     @Override
-    public IMuiView findViewById(int id)
+    public IView findViewById(int id)
     {
         View view = nativeViewGroup.findViewById(id);
         if (view == null)

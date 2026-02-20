@@ -1,6 +1,6 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiImageView;
+import goblinbob.mobends.api.gui.view.IImageView;
 import icyllis.modernui.graphics.drawable.Drawable;
 import icyllis.modernui.widget.ImageView;
 
@@ -8,7 +8,7 @@ import icyllis.modernui.widget.ImageView;
  * NeoForge wrapper for Modern UI ImageView.
  * Uses Modern UI 3.11.x API.
  */
-public class NeoForgeImageView extends NeoForgeView implements IMuiImageView
+public class NeoForgeImageView extends NeoForgeView implements IImageView
 {
     private final ImageView nativeImageView;
 

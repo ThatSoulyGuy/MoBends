@@ -1,13 +1,13 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiScrollView;
+import goblinbob.mobends.api.gui.view.IScrollView;
 import icyllis.modernui.widget.ScrollView;
 
 /**
  * NeoForge wrapper for Modern UI ScrollView.
  * Uses Modern UI 3.11.x API.
  */
-public class NeoForgeScrollView extends NeoForgeViewGroup implements IMuiScrollView
+public class NeoForgeScrollView extends NeoForgeViewGroup implements IScrollView
 {
     private final ScrollView nativeScrollView;
 

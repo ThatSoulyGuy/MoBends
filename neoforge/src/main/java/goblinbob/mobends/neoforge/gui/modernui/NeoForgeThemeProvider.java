@@ -1,8 +1,8 @@
 package goblinbob.mobends.neoforge.gui.modernui;
 
-import goblinbob.mobends.api.gui.modernui.IThemeProvider;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
-import goblinbob.mobends.core.client.gui.modernui.theme.MoBendsTheme;
+import goblinbob.mobends.api.gui.IThemeProvider;
+import goblinbob.mobends.api.gui.view.IView;
+import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import icyllis.modernui.graphics.drawable.ShapeDrawable;
 import icyllis.modernui.view.View;
 
@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 public class NeoForgeThemeProvider implements IThemeProvider
 {
     @Override
-    public void applyPrimaryColor(IMuiView view, int color)
+    public void applyPrimaryColor(IView view, int color)
     {
         View nativeView = (View) view.getNativeView();
         // Modern UI 3.11.x View doesn't have setBackgroundColor directly
@@ -26,7 +26,7 @@ public class NeoForgeThemeProvider implements IThemeProvider
     }
 
     @Override
-    public void applyBackgroundColor(IMuiView view, int color)
+    public void applyBackgroundColor(IView view, int color)
     {
         View nativeView = (View) view.getNativeView();
         // Modern UI 3.11.x View doesn't have setBackgroundColor directly
@@ -37,7 +37,7 @@ public class NeoForgeThemeProvider implements IThemeProvider
     }
 
     @Override
-    public void applyTextColor(IMuiView view, int color)
+    public void applyTextColor(IView view, int color)
     {
         View nativeView = (View) view.getNativeView();
         if (nativeView instanceof icyllis.modernui.widget.TextView textView)

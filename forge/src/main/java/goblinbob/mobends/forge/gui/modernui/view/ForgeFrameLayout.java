@@ -1,9 +1,9 @@
 package goblinbob.mobends.forge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.ILayoutParams;
-import goblinbob.mobends.api.gui.modernui.IViewFactory;
-import goblinbob.mobends.api.gui.modernui.view.IMuiFrameLayout;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
+import goblinbob.mobends.api.gui.ILayoutParams;
+import goblinbob.mobends.api.gui.IViewFactory;
+import goblinbob.mobends.api.gui.view.IFrameLayout;
+import goblinbob.mobends.api.gui.view.IView;
 import icyllis.modernui.view.View;
 import icyllis.modernui.view.ViewGroup;
 import icyllis.modernui.widget.FrameLayout;
@@ -11,7 +11,7 @@ import icyllis.modernui.widget.FrameLayout;
 /**
  * Forge wrapper for Modern UI FrameLayout.
  */
-public class ForgeFrameLayout extends ForgeViewGroup implements IMuiFrameLayout
+public class ForgeFrameLayout extends ForgeViewGroup implements IFrameLayout
 {
     private final FrameLayout nativeFrameLayout;
     private final IViewFactory factory;
@@ -24,7 +24,7 @@ public class ForgeFrameLayout extends ForgeViewGroup implements IMuiFrameLayout
     }
 
     @Override
-    public void addView(IMuiView child, ILayoutParams params)
+    public void addView(IView child, ILayoutParams params)
     {
         ViewGroup.LayoutParams nativeParams = (ViewGroup.LayoutParams) params.getNativeLayoutParams();
 

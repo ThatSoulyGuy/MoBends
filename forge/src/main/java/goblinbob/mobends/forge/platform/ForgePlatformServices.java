@@ -6,7 +6,7 @@ import goblinbob.mobends.api.entity.IItemStack;
 import goblinbob.mobends.api.entity.ILivingEntity;
 import goblinbob.mobends.api.entity.IPlayer;
 import com.mojang.blaze3d.systems.RenderSystem;
-import goblinbob.mobends.api.gui.modernui.IModernUIServices;
+import goblinbob.mobends.api.gui.IUIServices;
 import goblinbob.mobends.api.platform.IPlatformServices;
 import goblinbob.mobends.api.rendering.IArmorHelper;
 import goblinbob.mobends.api.rendering.IBufferSource;
@@ -64,7 +64,7 @@ public class ForgePlatformServices implements IPlatformServices
         // Initialize Modern UI services (required dependency - enforced by mod loader)
         // We don't need to check for Modern UI classes since the mod loader
         // will prevent loading if Modern UI is not present (see mods.toml)
-        IModernUIServices.Holder.setServices(new ForgeModernUIServices());
+        IUIServices.Holder.setServices(new ForgeModernUIServices());
     }
 
     @Override

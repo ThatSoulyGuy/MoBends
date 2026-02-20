@@ -1,0 +1,29 @@
+// Pure Java library - no Minecraft dependencies
+// Contains: UI abstraction interfaces for MoBends
+
+plugins {
+    id 'java-library'
+}
+
+base {
+    archivesName = "MoBends-gui-api"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    // Nullable annotations
+    api 'com.google.code.findbugs:jsr305:3.0.2'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "mobends-gui-api"
+            from components.java
+        }
+    }
+}

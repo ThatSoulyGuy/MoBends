@@ -1,13 +1,13 @@
 package goblinbob.mobends.forge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiImageView;
+import goblinbob.mobends.api.gui.view.IImageView;
 import icyllis.modernui.graphics.drawable.Drawable;
 import icyllis.modernui.widget.ImageView;
 
 /**
  * Forge wrapper for Modern UI ImageView.
  */
-public class ForgeImageView extends ForgeView implements IMuiImageView
+public class ForgeImageView extends ForgeView implements IImageView
 {
     private final ImageView nativeImageView;
 

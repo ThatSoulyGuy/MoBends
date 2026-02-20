@@ -1,40 +1,43 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.core.client.gui.modernui.EntityPreviewRenderer;
+import goblinbob.mobends.api.gui.IEntityRenderer;
+import icyllis.arc3d.core.ImageInfo;
+import icyllis.arc3d.core.Matrix4;
+import icyllis.arc3d.core.Rect2i;
+import icyllis.arc3d.engine.DrawableInfo;
+import icyllis.arc3d.engine.ImmediateContext;
 import icyllis.modernui.annotation.NonNull;
 import icyllis.modernui.graphics.Canvas;
+import icyllis.modernui.graphics.CustomDrawable;
 import icyllis.modernui.graphics.Paint;
+import icyllis.modernui.graphics.RectF;
 import icyllis.modernui.view.View;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
 
 /**
- * Custom Modern UI View that renders Minecraft entity previews.
- * Bridges Modern UI's rendering system with Minecraft's entity rendering.
+ * Custom Modern UI View that renders Minecraft entity previews using
+ * Modern UI's CustomDrawable API. This properly integrates MC's immediate-mode
+ * GL rendering into Modern UI's deferred canvas pipeline, avoiding the
+ * "Unbalanced save-restore pair" crash.
  */
-public class NeoForgeEntityPreviewView extends View
+public class NeoForgeEntityPreviewView extends View implements CustomDrawable
 {
-    private final EntityPreviewRenderer renderer;
+    private final IEntityRenderer renderer;
     private final Paint backgroundPaint;
-    private int backgroundColor = 0xFF1A1A1A;
+    private final RectF bounds = new RectF();
 
-    public NeoForgeEntityPreviewView(icyllis.modernui.core.Context context, EntityPreviewRenderer renderer)
+    public NeoForgeEntityPreviewView(icyllis.modernui.core.Context context, IEntityRenderer renderer)
     {
         super(context);
         this.renderer = renderer;
         this.backgroundPaint = new Paint();
-        this.backgroundPaint.setColor(backgroundColor);
+        this.backgroundPaint.setColor(0xFF1A1A1A);
     }
 
     public void setBackgroundColor(int color)
     {
-        this.backgroundColor = color;
         this.backgroundPaint.setColor(color);
         invalidate();
-    }
-
-    public EntityPreviewRenderer getRenderer()
-    {
-        return renderer;
     }
 
     @Override
@@ -42,93 +45,54 @@ public class NeoForgeEntityPreviewView extends View
     {
         super.onDraw(canvas);
 
-        // Draw background
+        // Draw background via canvas (deferred, safe)
         canvas.drawRect(0, 0, getWidth(), getHeight(), backgroundPaint);
 
-        // The actual entity rendering needs to happen in the Minecraft render cycle
-        // We mark this view for Minecraft rendering by scheduling a post-draw callback
-        if (renderer.hasEntity())
-        {
-            // Get absolute screen position
-            int[] location = new int[2];
-            getLocationOnScreen(location);
+        if (!renderer.hasEntity())
+            return;
 
-            // Store render info for later
-            pendingRenderX = location[0];
-            pendingRenderY = location[1];
-            pendingRenderWidth = getWidth();
-            pendingRenderHeight = getHeight();
-            hasPendingRender = true;
-        }
-    }
-
-    // Pending render state - used to communicate with Minecraft render pass
-    private static int pendingRenderX;
-    private static int pendingRenderY;
-    private static int pendingRenderWidth;
-    private static int pendingRenderHeight;
-    private static boolean hasPendingRender = false;
-    private static EntityPreviewRenderer pendingRenderer = null;
-
-    /**
-     * Called from the Minecraft render pass to actually render the entity.
-     * This should be called after Modern UI renders but before the frame ends.
-     */
-    public static void renderPendingEntity(GuiGraphics guiGraphics, float partialTicks)
-    {
-        if (hasPendingRender && pendingRenderer != null)
-        {
-            pendingRenderer.render(guiGraphics, pendingRenderX, pendingRenderY,
-                    pendingRenderWidth, pendingRenderHeight, partialTicks);
-            hasPendingRender = false;
-        }
-    }
-
-    /**
-     * Schedules this view's entity for rendering in the next Minecraft render pass.
-     */
-    public void scheduleEntityRender()
-    {
-        if (renderer.hasEntity())
-        {
-            int[] location = new int[2];
-            getLocationOnScreen(location);
-
-            pendingRenderX = location[0];
-            pendingRenderY = location[1];
-            pendingRenderWidth = getWidth();
-            pendingRenderHeight = getHeight();
-            pendingRenderer = renderer;
-            hasPendingRender = true;
-        }
-    }
-
-    /**
-     * Updates the animation state. Should be called each frame.
-     */
-    public void update()
-    {
+        // Advance animation state
         renderer.update();
-        // Request redraw
+
+        // Delegate entity rendering to the canvas pipeline via CustomDrawable.
+        // This ensures MC's GL calls happen at the right point during canvas flush,
+        // with proper state management around them.
+        bounds.set(0, 0, getWidth(), getHeight());
+        canvas.drawCustomDrawable(this);
+
+        // Request continuous redraw for animation
         invalidate();
-        // Schedule entity render for next frame
-        scheduleEntityRender();
     }
 
-    /**
-     * Checks if there's a pending entity render.
-     */
-    public static boolean hasPendingEntityRender()
+    @Override
+    public RectF getBounds()
     {
-        return hasPendingRender;
+        return bounds;
     }
 
-    /**
-     * Clears pending render state.
-     */
-    public static void clearPendingRender()
+    @Override
+    public DrawHandler snapDrawHandler(int flags, Matrix4 matrix, Rect2i clip, ImageInfo info)
     {
-        hasPendingRender = false;
-        pendingRenderer = null;
+        // Capture rendering parameters at snapshot time
+        int[] location = new int[2];
+        getLocationOnScreen(location);
+
+        double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
+        int guiX = (int) (location[0] / guiScale);
+        int guiY = (int) (location[1] / guiScale);
+        int guiWidth = (int) (getWidth() / guiScale);
+        int guiHeight = (int) (getHeight() / guiScale);
+        float partialTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
+
+        return new DrawHandler()
+        {
+            @Override
+            public void draw(ImmediateContext ctx, DrawableInfo drawableInfo)
+            {
+                // This runs during canvas flush with proper GL state bracketing.
+                // MC rendering (GuiGraphics, shaders, scissor, etc.) is safe here.
+                renderer.render(guiX, guiY, guiWidth, guiHeight, partialTicks);
+            }
+        };
     }
 }

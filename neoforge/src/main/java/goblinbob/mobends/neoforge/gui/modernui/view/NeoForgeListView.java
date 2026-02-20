@@ -1,7 +1,7 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiListView;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
+import goblinbob.mobends.api.gui.view.IListView;
+import goblinbob.mobends.api.gui.view.IView;
 import icyllis.modernui.core.Context;
 import icyllis.modernui.view.ViewGroup;
 import icyllis.modernui.widget.LinearLayout;
@@ -17,13 +17,13 @@ import java.util.function.Function;
  * NeoForge list view implementation using ScrollView + LinearLayout.
  * Requires Context for Modern UI 3.11.x.
  */
-public class NeoForgeListView extends NeoForgeViewGroup implements IMuiListView
+public class NeoForgeListView extends NeoForgeViewGroup implements IListView
 {
     private final Context context;
     private final ScrollView scrollView;
     private final LinearLayout contentLayout;
     private int itemSpacing = 0;
-    private final List<IMuiView> itemViews = new ArrayList<>();
+    private final List<IView> itemViews = new ArrayList<>();
 
     public NeoForgeListView(Context context)
     {
@@ -68,7 +68,7 @@ public class NeoForgeListView extends NeoForgeViewGroup implements IMuiListView
     }
 
     @Override
-    public <T> void setCustomAdapter(List<T> items, Function<T, IMuiView> viewBinder,
+    public <T> void setCustomAdapter(List<T> items, Function<T, IView> viewBinder,
                                      BiConsumer<Integer, T> onItemClick)
     {
         contentLayout.removeAllViews();
@@ -79,7 +79,7 @@ public class NeoForgeListView extends NeoForgeViewGroup implements IMuiListView
             final int index = i;
             final T item = items.get(i);
 
-            IMuiView view = viewBinder.apply(item);
+            IView view = viewBinder.apply(item);
             view.setOnClickListener(() -> onItemClick.accept(index, item));
 
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(

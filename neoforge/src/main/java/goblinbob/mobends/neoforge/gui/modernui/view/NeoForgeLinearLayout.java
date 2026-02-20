@@ -1,9 +1,9 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.ILayoutParams;
-import goblinbob.mobends.api.gui.modernui.IViewFactory;
-import goblinbob.mobends.api.gui.modernui.view.IMuiLinearLayout;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
+import goblinbob.mobends.api.gui.ILayoutParams;
+import goblinbob.mobends.api.gui.IViewFactory;
+import goblinbob.mobends.api.gui.view.ILinearLayout;
+import goblinbob.mobends.api.gui.view.IView;
 import goblinbob.mobends.neoforge.gui.modernui.NeoForgeLayoutParams;
 import icyllis.modernui.view.View;
 import icyllis.modernui.view.ViewGroup;
@@ -12,7 +12,7 @@ import icyllis.modernui.widget.LinearLayout;
 /**
  * NeoForge wrapper for Modern UI LinearLayout.
  */
-public class NeoForgeLinearLayout extends NeoForgeViewGroup implements IMuiLinearLayout
+public class NeoForgeLinearLayout extends NeoForgeViewGroup implements ILinearLayout
 {
     private final LinearLayout nativeLinearLayout;
     private final IViewFactory factory;
@@ -26,7 +26,7 @@ public class NeoForgeLinearLayout extends NeoForgeViewGroup implements IMuiLinea
     }
 
     @Override
-    public void addView(IMuiView child, ILayoutParams params)
+    public void addView(IView child, ILayoutParams params)
     {
         ViewGroup.LayoutParams nativeParams = (ViewGroup.LayoutParams) params.getNativeLayoutParams();
 

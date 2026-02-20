@@ -1,7 +1,7 @@
 package goblinbob.mobends.forge.gui.modernui;
 
-import goblinbob.mobends.api.gui.modernui.*;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
+import goblinbob.mobends.api.gui.*;
+import goblinbob.mobends.api.gui.view.IView;
 import icyllis.modernui.fragment.Fragment;
 import icyllis.modernui.view.LayoutInflater;
 import icyllis.modernui.view.View;
@@ -11,10 +11,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Forge 1.20.1 implementation of IModernUIServices.
+ * Forge 1.20.1 implementation of IUIServices.
  * Wraps Modern UI 3.9.x API.
  */
-public class ForgeModernUIServices implements IModernUIServices
+public class ForgeModernUIServices implements IUIServices
 {
     private final ForgeThemeProvider themeProvider;
 
@@ -30,7 +30,7 @@ public class ForgeModernUIServices implements IModernUIServices
     }
 
     @Override
-    public String getModernUIVersion()
+    public String getBackendVersion()
     {
         return "3.9.x";
     }
@@ -60,7 +60,7 @@ public class ForgeModernUIServices implements IModernUIServices
     }
 
     @Override
-    public void openScreen(IMuiScreenBuilder screenBuilder)
+    public void openScreen(IScreenBuilder screenBuilder)
     {
         try
         {
@@ -99,10 +99,10 @@ public class ForgeModernUIServices implements IModernUIServices
     {
         // Static fields for passing data to new Fragment instances
         // (Fragments require no-arg constructors, so we use this pattern)
-        static IMuiScreenBuilder pendingScreenBuilder;
+        static IScreenBuilder pendingScreenBuilder;
         static ForgeModernUIServices pendingServices;
 
-        private IMuiScreenBuilder screenBuilder;
+        private IScreenBuilder screenBuilder;
         private ForgeModernUIServices services;
 
         /**
@@ -139,7 +139,7 @@ public class ForgeModernUIServices implements IModernUIServices
             IViewFactory factory = services.getViewFactory(context);
 
             // Build the content using the factory
-            IMuiView rootView = screenBuilder.buildContent(factory);
+            IView rootView = screenBuilder.buildContent(factory);
 
             // Return the native view
             return (View) rootView.getNativeView();

@@ -1,7 +1,7 @@
 package goblinbob.mobends.forge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.ILayoutParams;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
+import goblinbob.mobends.api.gui.ILayoutParams;
+import goblinbob.mobends.api.gui.view.IView;
 import goblinbob.mobends.forge.gui.modernui.ForgeLayoutParams;
 import icyllis.modernui.graphics.drawable.Drawable;
 import icyllis.modernui.graphics.drawable.ShapeDrawable;
@@ -13,7 +13,7 @@ import javax.annotation.Nullable;
 /**
  * Forge wrapper for Modern UI View.
  */
-public class ForgeView implements IMuiView
+public class ForgeView implements IView
 {
     protected final View nativeView;
 
@@ -103,6 +103,27 @@ public class ForgeView implements IMuiView
     }
 
     @Override
+    public void setAlpha(float alpha)
+    {
+        nativeView.setAlpha(alpha);
+    }
+
+    @Override
+    public float getAlpha()
+    {
+        return nativeView.getAlpha();
+    }
+
+    @Override
+    public void animateAlpha(float targetAlpha, int durationMs)
+    {
+        icyllis.modernui.animation.ObjectAnimator anim =
+                icyllis.modernui.animation.ObjectAnimator.ofFloat(nativeView, View.ALPHA, targetAlpha);
+        anim.setDuration(durationMs);
+        anim.start();
+    }
+
+    @Override
     public void setBackground(@Nullable Object drawable)
     {
         if (drawable instanceof Drawable d)
@@ -118,10 +139,19 @@ public class ForgeView implements IMuiView
     @Override
     public void setBackgroundColor(int color)
     {
-        // Modern UI 3.9.x doesn't have setBackgroundColor, use drawable instead
-        ShapeDrawable bg = new ShapeDrawable();
-        bg.setColor(color);
-        nativeView.setBackground(bg);
+        // Reuse existing ShapeDrawable if possible to avoid excessive allocations
+        Drawable existing = nativeView.getBackground();
+        if (existing instanceof ShapeDrawable shape)
+        {
+            shape.setColor(color);
+            existing.invalidateSelf();
+        }
+        else
+        {
+            ShapeDrawable bg = new ShapeDrawable();
+            bg.setColor(color);
+            nativeView.setBackground(bg);
+        }
     }
 
     @Override
@@ -148,8 +178,6 @@ public class ForgeView implements IMuiView
      */
     protected int dp(int dp)
     {
-        // Modern UI handles density-independent pixels internally
-        // In most cases, 1dp = 1px at default density
-        return dp;
+        return nativeView.dp(dp);
     }
 }

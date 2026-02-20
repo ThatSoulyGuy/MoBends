@@ -87,6 +87,10 @@ dependencies {
     common(project(path: ':common')) { transitive = false }
     shadowCommon(project(path: ':common')) { transitive = false }
 
+    // UI abstraction interfaces
+    common(project(path: ':gui-api')) { transitive = false }
+    shadowCommon(project(path: ':gui-api')) { transitive = false }
+
     // MC-specific common code compiled for 1.20.1 (uses shared source with common-mc)
     common(project(path: ':common-mc-1.20', configuration: 'namedElements')) { transitive = false }
     shadowCommon(project(path: ':common-mc-1.20', configuration: 'transformProductionForge')) { transitive = false }
@@ -132,9 +136,11 @@ sourcesJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     def commonSources = project(':common-mc-1.21').sourcesJar
     def coreSources = project(':common').sourcesJar
-    dependsOn commonSources, coreSources
+    def guiApiSources = project(':gui-api').sourcesJar
+    dependsOn commonSources, coreSources, guiApiSources
     from commonSources.archiveFile.map { zipTree(it) }
     from coreSources.archiveFile.map { zipTree(it) }
+    from guiApiSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

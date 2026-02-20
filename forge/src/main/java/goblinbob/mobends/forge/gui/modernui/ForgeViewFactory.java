@@ -1,8 +1,9 @@
 package goblinbob.mobends.forge.gui.modernui;
 
-import goblinbob.mobends.api.gui.modernui.ILayoutParams;
-import goblinbob.mobends.api.gui.modernui.IViewFactory;
-import goblinbob.mobends.api.gui.modernui.view.*;
+import goblinbob.mobends.api.gui.IEntityRenderer;
+import goblinbob.mobends.api.gui.ILayoutParams;
+import goblinbob.mobends.api.gui.IViewFactory;
+import goblinbob.mobends.api.gui.view.*;
 import goblinbob.mobends.forge.gui.modernui.view.*;
 import icyllis.modernui.core.Context;
 import icyllis.modernui.view.View;
@@ -45,13 +46,13 @@ public class ForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiView createView()
+    public IView createView()
     {
         return new ForgeView(new View(context));
     }
 
     @Override
-    public IMuiButton createButton(String text)
+    public IButton createButton(String text)
     {
         Button button = new Button(context);
         button.setText(text);
@@ -59,7 +60,7 @@ public class ForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiToggle createToggle(boolean initialState)
+    public IToggle createToggle(boolean initialState)
     {
         // Modern UI 3.9.x uses CheckBox instead of Switch
         CheckBox checkBox = new CheckBox(context);
@@ -68,7 +69,7 @@ public class ForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiTextField createTextField(String hint)
+    public ITextField createTextField(String hint)
     {
         EditText editText = new EditText(context);
         editText.setHint(hint);
@@ -76,14 +77,14 @@ public class ForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiImageView createImageView()
+    public IImageView createImageView()
     {
         ImageView imageView = new ImageView(context);
         return new ForgeImageView(imageView);
     }
 
     @Override
-    public IMuiTextView createTextView(String text)
+    public ITextView createTextView(String text)
     {
         TextView textView = new TextView(context);
         textView.setText(text);
@@ -91,7 +92,7 @@ public class ForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiLinearLayout createLinearLayout(int orientation)
+    public ILinearLayout createLinearLayout(int orientation)
     {
         LinearLayout layout = new LinearLayout(context);
         layout.setOrientation(orientation);
@@ -99,25 +100,32 @@ public class ForgeViewFactory implements IViewFactory
     }
 
     @Override
-    public IMuiFrameLayout createFrameLayout()
+    public IFrameLayout createFrameLayout()
     {
         FrameLayout layout = new FrameLayout(context);
         return new ForgeFrameLayout(layout, this);
     }
 
     @Override
-    public IMuiScrollView createScrollView()
+    public IScrollView createScrollView()
     {
         ScrollView scrollView = new ScrollView(context);
         return new ForgeScrollView(scrollView);
     }
 
     @Override
-    public IMuiListView createListView()
+    public IListView createListView()
     {
         // Modern UI uses RecyclerView for lists
         // For simplicity, we'll use a LinearLayout inside ScrollView approach
         return new ForgeListView(context);
+    }
+
+    @Override
+    public IView createEntityPreviewView(IEntityRenderer renderer)
+    {
+        ForgeEntityPreviewView view = new ForgeEntityPreviewView(context, renderer);
+        return new ForgeView(view);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.ILayoutParams;
-import goblinbob.mobends.api.gui.modernui.view.IMuiView;
+import goblinbob.mobends.api.gui.ILayoutParams;
+import goblinbob.mobends.api.gui.view.IView;
 import goblinbob.mobends.neoforge.gui.modernui.NeoForgeLayoutParams;
 import icyllis.modernui.graphics.drawable.Drawable;
 import icyllis.modernui.graphics.drawable.ShapeDrawable;
@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
  * NeoForge wrapper for Modern UI View.
  * Uses Modern UI 3.11.x API.
  */
-public class NeoForgeView implements IMuiView
+public class NeoForgeView implements IView
 {
     protected final View nativeView;
 
@@ -104,6 +104,27 @@ public class NeoForgeView implements IMuiView
     }
 
     @Override
+    public void setAlpha(float alpha)
+    {
+        nativeView.setAlpha(alpha);
+    }
+
+    @Override
+    public float getAlpha()
+    {
+        return nativeView.getAlpha();
+    }
+
+    @Override
+    public void animateAlpha(float targetAlpha, int durationMs)
+    {
+        icyllis.modernui.animation.ObjectAnimator anim =
+                icyllis.modernui.animation.ObjectAnimator.ofFloat(nativeView, View.ALPHA, targetAlpha);
+        anim.setDuration(durationMs);
+        anim.start();
+    }
+
+    @Override
     public void setBackground(@Nullable Object drawable)
     {
         if (drawable instanceof Drawable d)
@@ -119,11 +140,19 @@ public class NeoForgeView implements IMuiView
     @Override
     public void setBackgroundColor(int color)
     {
-        // Modern UI 3.11.x View doesn't have setBackgroundColor directly
-        // Use ShapeDrawable instead
-        ShapeDrawable bg = new ShapeDrawable();
-        bg.setColor(color);
-        nativeView.setBackground(bg);
+        // Reuse existing ShapeDrawable if possible to avoid excessive allocations
+        Drawable existing = nativeView.getBackground();
+        if (existing instanceof ShapeDrawable shape)
+        {
+            shape.setColor(color);
+            existing.invalidateSelf();
+        }
+        else
+        {
+            ShapeDrawable bg = new ShapeDrawable();
+            bg.setColor(color);
+            nativeView.setBackground(bg);
+        }
     }
 
     @Override
@@ -147,6 +176,6 @@ public class NeoForgeView implements IMuiView
 
     protected int dp(int dp)
     {
-        return dp;
+        return nativeView.dp(dp);
     }
 }

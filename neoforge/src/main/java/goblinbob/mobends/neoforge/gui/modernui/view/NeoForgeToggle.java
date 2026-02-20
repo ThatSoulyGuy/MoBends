@@ -1,6 +1,6 @@
 package goblinbob.mobends.neoforge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiToggle;
+import goblinbob.mobends.api.gui.view.IToggle;
 import icyllis.modernui.widget.CheckBox;
 
 import java.util.function.Consumer;
@@ -9,7 +9,7 @@ import java.util.function.Consumer;
  * NeoForge wrapper for Modern UI CheckBox (used as toggle).
  * Uses Modern UI 3.11.x API - Switch class doesn't exist, using CheckBox instead.
  */
-public class NeoForgeToggle extends NeoForgeView implements IMuiToggle
+public class NeoForgeToggle extends NeoForgeView implements IToggle
 {
     private final CheckBox nativeCheckBox;
     private Consumer<Boolean> checkedListener;

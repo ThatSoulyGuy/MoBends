@@ -1,6 +1,6 @@
 package goblinbob.mobends.forge.gui.modernui.view;
 
-import goblinbob.mobends.api.gui.modernui.view.IMuiTextField;
+import goblinbob.mobends.api.gui.view.ITextField;
 import icyllis.modernui.text.InputFilter;
 import icyllis.modernui.text.TextWatcher;
 import icyllis.modernui.widget.EditText;
@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 /**
  * Forge wrapper for Modern UI EditText.
  */
-public class ForgeTextField extends ForgeView implements IMuiTextField
+public class ForgeTextField extends ForgeView implements ITextField
 {
     private final EditText nativeEditText;
     private Consumer<String> textListener;

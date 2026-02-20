@@ -75,6 +75,10 @@ dependencies {
     shadowCommon(project(path: ':common-mc-1.21', configuration: 'transformProductionNeoForge')) { transitive = false }
     common(project(path: ':common')) { transitive = false }
     shadowCommon(project(path: ':common')) { transitive = false }
+
+    // UI abstraction interfaces
+    common(project(path: ':gui-api')) { transitive = false }
+    shadowCommon(project(path: ':gui-api')) { transitive = false }
 }
 
 processResources {
@@ -117,9 +121,11 @@ sourcesJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     def commonSources = project(':common-mc-1.21').sourcesJar
     def coreSources = project(':common').sourcesJar
-    dependsOn commonSources, coreSources
+    def guiApiSources = project(':gui-api').sourcesJar
+    dependsOn commonSources, coreSources, guiApiSources
     from commonSources.archiveFile.map { zipTree(it) }
     from coreSources.archiveFile.map { zipTree(it) }
+    from guiApiSources.archiveFile.map { zipTree(it) }
 }
 
 components.java {

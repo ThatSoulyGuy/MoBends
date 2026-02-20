@@ -209,7 +209,7 @@ public abstract class EntityBender<T extends LivingEntity>
     }
 
     @SuppressWarnings("unchecked")
-    protected T createPreviewEntity()
+    public T createPreviewEntity()
     {
         try
         {
