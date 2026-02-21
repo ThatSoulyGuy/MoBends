@@ -71,13 +71,6 @@ dependencies {
     // Architectury API
     modApi "dev.architectury:architectury-forge:${architectury_forge_version}"
 
-    // Modern UI (required dependency, project ID 352491, file ID 4856541 = 1.20.1-3.9.0.4)
-    modImplementation "curse.maven:modern-ui-352491:4856541"
-
-    // Caffeine cache library - required by Modern UI at runtime
-    // Must use forgeRuntimeLibrary to be loaded by Forge's classloader
-    forgeRuntimeLibrary "com.github.ben-manes.caffeine:caffeine:3.1.8"
-
     // Curios API (optional dependency for accessory slot compatibility)
     // Project ID 309927, file ID from gradle.properties
     modCompileOnly "curse.maven:curios-309927:${curios_forge_file_id}"

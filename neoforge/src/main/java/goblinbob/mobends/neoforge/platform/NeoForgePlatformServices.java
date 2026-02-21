@@ -12,7 +12,7 @@ import goblinbob.mobends.api.rendering.IArmorHelper;
 import goblinbob.mobends.api.rendering.IBufferSource;
 import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
-import goblinbob.mobends.neoforge.gui.modernui.NeoForgeModernUIServices;
+import goblinbob.mobends.core.client.gui.vanilla.VanillaUIServices;
 import goblinbob.mobends.api.rendering.IPoseStack;
 import goblinbob.mobends.api.rendering.IRenderLayerProvider;
 import goblinbob.mobends.api.rendering.ITesselator;
@@ -61,10 +61,8 @@ public class NeoForgePlatformServices implements IPlatformServices
         IArmorHelper.Holder.setHelper(new NeoForgeArmorHelper());
         IModelRenderHelper.Holder.setHelper(new NeoForgeModelRenderHelper());
 
-        // Initialize Modern UI services (required dependency - enforced by mod loader)
-        // We don't need to check for Modern UI classes since the mod loader
-        // will prevent loading if Modern UI is not present (see neoforge.mods.toml)
-        IUIServices.Holder.setServices(new NeoForgeModernUIServices());
+        // Initialize vanilla UI services
+        IUIServices.Holder.setServices(new VanillaUIServices());
     }
 
     @Override

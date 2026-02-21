@@ -2,6 +2,7 @@ package goblinbob.mobends.standard;
 
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.IPreviewer;
+import goblinbob.mobends.core.bender.PreviewHelper;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.IMutatorFactory;
@@ -10,7 +11,10 @@ import goblinbob.mobends.standard.data.PlayerData;
 import goblinbob.mobends.standard.main.ModStatics;
 import goblinbob.mobends.standard.mutators.PlayerMutator;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.RemotePlayer;
 
 public class PlayerBender extends EntityBender<AbstractClientPlayer>
 {
@@ -25,6 +29,29 @@ public class PlayerBender extends EntityBender<AbstractClientPlayer>
     {
         super(ModStatics.MODID, "player", "mobends.player", AbstractClientPlayer.class, new PlayerRenderer());
         this.previewer = new PlayerPreviewer();
+    }
+
+    @Override
+    public AbstractClientPlayer createPreviewEntity()
+    {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || mc.player == null) return null;
+
+        try
+        {
+            RemotePlayer preview = new RemotePlayer(
+                (ClientLevel) mc.level,
+                mc.player.getGameProfile()
+            );
+            preview.moveTo(0, 0, 0, 0, 0);
+            PreviewHelper.registerPreviewEntity(preview);
+            return preview;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
