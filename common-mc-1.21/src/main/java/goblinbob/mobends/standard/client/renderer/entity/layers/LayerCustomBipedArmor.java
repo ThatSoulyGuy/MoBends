@@ -231,7 +231,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             // Fallback for custom models if nothing rendered
             if (!anyRendered[0])
             {
-                ResourceLocation fallbackTexture = getArmorTexture(armorItem, slot, null);
+                ResourceLocation fallbackTexture = getArmorTexture(armorItem, itemStack, entity, slot, null);
                 if (fallbackTexture != null)
                 {
                     renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, fallbackTexture);
@@ -241,7 +241,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         else
         {
             // Vanilla armor model - use standard vanilla texture path
-            ResourceLocation texture = getArmorTexture(armorItem, slot, null);
+            ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
             if (texture == null)
             {
                 return;
@@ -341,7 +341,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                                     HumanoidModel<E> armorModel, EquipmentSlot slot, ItemStack itemStack)
     {
         // Get the armor texture
-        ResourceLocation texture = getArmorTexture(armorItem, slot, null);
+        ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
         if (texture == null) return;
 
         // Get the render type
@@ -360,10 +360,22 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
     /**
      * Get the armor texture for the given item and slot.
+     * Checks the platform-specific texture provider first (for modded armor with custom textures),
+     * then falls back to manual construction from material name.
      */
-    private ResourceLocation getArmorTexture(ArmorItem armorItem, EquipmentSlot slot, @Nullable String overlay)
+    private ResourceLocation getArmorTexture(ArmorItem armorItem, ItemStack itemStack, E entity, EquipmentSlot slot, @Nullable String overlay)
     {
-        // Get material name using abstraction layer for cross-version compatibility
+        boolean isInnerModel = usesInnerModel(slot);
+
+        // Check platform-specific provider first (handles Forge/NeoForge mod hooks)
+        IArmorTextureProvider textureProvider = IArmorTextureProvider.Holder.getProvider();
+        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, null, isInnerModel);
+        if (customTexture != null)
+        {
+            return customTexture;
+        }
+
+        // Fall back to manual construction from material name
         IArmorHelper helper = IArmorHelper.Holder.getHelper();
         String materialName = helper != null ? helper.getArmorMaterialName(armorItem) : "leather";
 
@@ -377,7 +389,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             path = materialName.substring(colonIndex + 1);
         }
 
-        int layer = usesInnerModel(slot) ? 2 : 1;
+        int layer = isInnerModel ? 2 : 1;
         String suffix = overlay == null ? "" : "_" + overlay;
 
         return goblinbob.mobends.core.util.ResourceLocationFactory.create(domain, "textures/models/armor/" + path + "_layer_" + layer + suffix + ".png");

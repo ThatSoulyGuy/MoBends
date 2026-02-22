@@ -8,7 +8,10 @@ import goblinbob.mobends.api.entity.IPlayer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import goblinbob.mobends.api.gui.IUIServices;
 import goblinbob.mobends.api.platform.IPlatformServices;
+import goblinbob.mobends.api.armor.ArmorModelProviderHolder;
+import goblinbob.mobends.api.armor.IArmorTextureProvider;
 import goblinbob.mobends.api.rendering.IArmorHelper;
+import goblinbob.mobends.api.rendering.IArmorLayerProvider;
 import goblinbob.mobends.api.rendering.IBufferSource;
 import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
@@ -60,6 +63,11 @@ public class NeoForgePlatformServices implements IPlatformServices
         IEntityVertexHelper.Holder.setHelper(new NeoForgeEntityVertexHelper());
         IArmorHelper.Holder.setHelper(new NeoForgeArmorHelper());
         IModelRenderHelper.Holder.setHelper(new NeoForgeModelRenderHelper());
+
+        // Initialize armor rendering providers
+        ArmorModelProviderHolder.setProvider(new NeoForgeArmorModelProvider());
+        IArmorTextureProvider.Holder.setProvider(new NeoForgeArmorTextureProvider());
+        IArmorLayerProvider.Holder.setProvider(new NeoForgeArmorLayerProvider());
 
         // Initialize vanilla UI services
         IUIServices.Holder.setServices(new VanillaUIServices());
