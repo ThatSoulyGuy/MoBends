@@ -42,6 +42,13 @@ public final class MixinBridge {
         BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
         if (mutator != null) {
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            // Re-sync poses to vanilla model AFTER custom render (setupAnim overwrote the Pre-event sync).
+            // This ensures overlay layers (Drowned outer layer, etc.) get animated poses when they copy
+            // from the parent model.
+            net.minecraft.client.model.HumanoidModel<?> vanillaModel = MoBendsRenderContext.getCurrentVanillaModel();
+            if (vanillaModel != null) {
+                mutator.syncPosesToVanillaModel(vanillaModel);
+            }
             // End main model render phase so layers (armor, elytra) render normally
             MoBendsRenderContext.endMainModelRender();
         }

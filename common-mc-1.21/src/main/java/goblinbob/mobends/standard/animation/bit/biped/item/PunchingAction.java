@@ -5,7 +5,9 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.FistGuardAnimationBit;
 import goblinbob.mobends.standard.animation.bit.player.PunchAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 
 public class PunchingAction extends AnimationBit<BipedEntityData<?>>
 {
@@ -30,7 +32,16 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
         float ticksAfterAttack = entityData.getTicksAfterAttack();
         if (ticksAfterAttack < lastTicksAfterAttack)
         {
-            punchingFist = punchingFist == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
+            LivingEntity entity = entityData.getEntity();
+            if (entity == Minecraft.getInstance().player)
+            {
+                punchingFist = punchingFist == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
+            }
+            else
+            {
+                // For remote players, derive from tick count for deterministic multiplayer sync
+                punchingFist = (entity.tickCount / 6) % 2 == 0 ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
+            }
         }
         lastTicksAfterAttack = ticksAfterAttack;
 

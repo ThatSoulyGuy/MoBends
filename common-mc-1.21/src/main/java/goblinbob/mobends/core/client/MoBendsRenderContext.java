@@ -22,6 +22,12 @@ public class MoBendsRenderContext {
     private static final ThreadLocal<Boolean> inMainModelRender = ThreadLocal.withInitial(() -> false);
 
     /**
+     * Reference to the current vanilla HumanoidModel, used to re-sync poses
+     * after custom rendering so overlay layers (Drowned, etc.) get animated poses.
+     */
+    private static final ThreadLocal<net.minecraft.client.model.HumanoidModel<?>> currentVanillaModel = new ThreadLocal<>();
+
+    /**
      * Start main model rendering phase.
      * Call this BEFORE the main entity model renders.
      */
@@ -43,6 +49,20 @@ public class MoBendsRenderContext {
      */
     public static boolean isInMainModelRender() {
         return inMainModelRender.get();
+    }
+
+    /**
+     * Store the current vanilla HumanoidModel for post-render pose sync.
+     */
+    public static void setCurrentVanillaModel(net.minecraft.client.model.HumanoidModel<?> model) {
+        currentVanillaModel.set(model);
+    }
+
+    /**
+     * Get the current vanilla HumanoidModel.
+     */
+    public static net.minecraft.client.model.HumanoidModel<?> getCurrentVanillaModel() {
+        return currentVanillaModel.get();
     }
 
     /**
@@ -98,5 +118,6 @@ public class MoBendsRenderContext {
         currentSpiderMutator.remove();
         currentSquidMutator.remove();
         inMainModelRender.remove();
+        currentVanillaModel.remove();
     }
 }

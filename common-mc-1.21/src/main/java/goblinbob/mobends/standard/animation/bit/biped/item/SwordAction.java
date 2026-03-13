@@ -8,6 +8,8 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 
+import net.minecraft.client.Minecraft;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,6 +37,15 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
 
     private void nextMove(BipedEntityData<?> entityData)
     {
+        LivingEntity entity = entityData.getEntity();
+        boolean isLocal = entity == Minecraft.getInstance().player;
+
+        if (!isLocal)
+        {
+            // For remote players, derive moveId from tick count for deterministic multiplayer sync
+            moveId = (entity.tickCount / 6) % bits.size();
+        }
+
         AnimationBit<BipedEntityData<?>> bit = bits.get(moveId);
 
         if (bit != null)
@@ -46,7 +57,10 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
             this.layerBase.clearAnimation();
         }
 
-        moveId = (moveId + 1) % bits.size();
+        if (isLocal)
+        {
+            moveId = (moveId + 1) % bits.size();
+        }
     }
 
     @Override

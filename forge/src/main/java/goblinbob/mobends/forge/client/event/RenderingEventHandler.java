@@ -165,11 +165,11 @@ public class RenderingEventHandler
                     // Begin main model render phase - mixin will end it after rendering player model
                     MoBendsRenderContext.beginMainModelRender();
 
-                    // Sync animated poses to vanilla model so layers (armor, held items) can use them
-                    // The mixin now uses inMainModelRender flag to distinguish entity vs layer renders
+                    // Store vanilla model reference for post-render pose sync (overlay layers)
                     EntityModel<?> model = renderer.getModel();
                     if (model instanceof HumanoidModel<?> humanoidModel)
                     {
+                        MoBendsRenderContext.setCurrentVanillaModel(humanoidModel);
                         bipedMutator.syncPosesToVanillaModel(humanoidModel);
                         CuriosCompat.syncTransformsForCurios(entity, humanoidModel, poseStack);
                     }

@@ -137,9 +137,19 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
     @Override
     public void onAttack()
     {
+        boolean isLocalPlayer = this.entity == Minecraft.getInstance().player;
+
         if (this.entity.getItemInHand(InteractionHand.MAIN_HAND).getItem() == Items.AIR)
         {
-            this.fistPunchArm = !this.fistPunchArm;
+            if (isLocalPlayer)
+            {
+                this.fistPunchArm = !this.fistPunchArm;
+            }
+            else
+            {
+                // For remote players, derive punch arm from tick count for deterministic sync
+                this.fistPunchArm = (this.entity.tickCount / 6) % 2 == 0;
+            }
             this.ticksAfterAttack = 0;
             return;
         }
@@ -150,23 +160,33 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
             return;
         }
 
-        switch (this.currentAttack)
+        if (isLocalPlayer)
         {
-            case 1:
-                this.currentAttack = 2;
-                break;
-            case 2:
-                this.currentAttack = 3;
-                break;
-            case 3:
-                this.currentAttack = 4;
-                break;
-            case 4:
-                this.currentAttack = (!ModConfig.performSpinAttack || this.getEntity().isPassenger()) ? 1 : 5;
-                break;
-            default:
-                this.currentAttack = 1;
-                break;
+            // Local player: sequential combo for satisfying feedback
+            switch (this.currentAttack)
+            {
+                case 1:
+                    this.currentAttack = 2;
+                    break;
+                case 2:
+                    this.currentAttack = 3;
+                    break;
+                case 3:
+                    this.currentAttack = 4;
+                    break;
+                case 4:
+                    this.currentAttack = (!ModConfig.performSpinAttack || this.getEntity().isPassenger()) ? 1 : 5;
+                    break;
+                default:
+                    this.currentAttack = 1;
+                    break;
+            }
+        }
+        else
+        {
+            // Remote players: deterministic attack based on tick count for multiplayer sync
+            int numAttacks = (ModConfig.performSpinAttack && !this.getEntity().isPassenger()) ? 5 : 4;
+            this.currentAttack = ((this.entity.tickCount / 6) % numAttacks) + 1;
         }
 
         this.ticksAfterAttack = 0;

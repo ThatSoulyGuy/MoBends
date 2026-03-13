@@ -52,17 +52,19 @@ public abstract class MutatedRenderer<T extends LivingEntity>
             poseStack.scale(globalScale, globalScale, globalScale);
         }
 
-        poseStack.translate(data.globalOffset.getX() * scale * globalScale,
-                data.globalOffset.getY() * scale * globalScale,
-                data.globalOffset.getZ() * scale * globalScale);
-        poseStack.translate(0, entity.getBbHeight() / 2, 0);
+        poseStack.translate(data.globalOffset.getX() * scale,
+                data.globalOffset.getY() * scale,
+                data.globalOffset.getZ() * scale);
+        // Compensate center rotation pivot for baby scaling (poseStack is already scaled)
+        float centerY = entity.getBbHeight() / (2.0f * globalScale);
+        poseStack.translate(0, centerY, 0);
         GlHelper.rotate(poseStack, data.centerRotation.getSmooth());
-        poseStack.translate(0, -entity.getBbHeight() / 2, 0);
+        poseStack.translate(0, -centerY, 0);
         GlHelper.rotate(poseStack, data.renderRotation.getSmooth());
 
-        poseStack.translate(data.localOffset.getX() * scale * globalScale,
-                data.localOffset.getY() * scale * globalScale,
-                data.localOffset.getZ() * scale * globalScale);
+        poseStack.translate(data.localOffset.getX() * scale,
+                data.localOffset.getY() * scale,
+                data.localOffset.getZ() * scale);
 
         this.transformLocally(entity, data, partialTicks, poseStack);
 
