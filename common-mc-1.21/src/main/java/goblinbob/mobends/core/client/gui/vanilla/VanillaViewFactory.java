@@ -1,74 +1,72 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.IEntityRenderer;
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.IViewFactory;
-import goblinbob.mobends.api.gui.view.*;
+import goblinbob.mobends.core.client.gui.EntityPreviewRenderer;
 
-public class VanillaViewFactory implements IViewFactory
+public class VanillaViewFactory
 {
-    @Override
-    public IView createView() { return new VanillaView(); }
+    public static final int HORIZONTAL = 0;
+    public static final int VERTICAL = 1;
 
-    @Override
-    public IButton createButton(String text) { return new VanillaButton(text); }
+    public VanillaView createView() { return new VanillaView(); }
 
-    @Override
-    public IToggle createToggle(boolean initialState) { return new VanillaToggle(initialState); }
+    public VanillaButton createButton(String text) { return new VanillaButton(text); }
 
-    @Override
-    public ITextField createTextField(String hint) { return new VanillaTextField(hint); }
+    public VanillaToggle createToggle(boolean initialState) { return new VanillaToggle(initialState); }
 
-    @Override
-    public IImageView createImageView() { return new VanillaImageView(); }
+    public VanillaTextField createTextField(String hint) { return new VanillaTextField(hint); }
 
-    @Override
-    public ITextView createTextView(String text) { return new VanillaTextView(text); }
+    public VanillaTextView createTextView(String text) { return new VanillaTextView(text); }
 
-    @Override
-    public ILinearLayout createLinearLayout(int orientation)
+    public VanillaLinearLayout createLinearLayout(int orientation)
     {
         VanillaLinearLayout layout = new VanillaLinearLayout();
         layout.setOrientation(orientation);
         return layout;
     }
 
-    @Override
-    public IFrameLayout createFrameLayout() { return new VanillaFrameLayout(); }
+    public VanillaFrameLayout createFrameLayout() { return new VanillaFrameLayout(); }
 
-    @Override
-    public IScrollView createScrollView() { return new VanillaScrollView(); }
+    public VanillaScrollView createScrollView() { return new VanillaScrollView(); }
 
-    @Override
-    public IListView createListView() { return new VanillaListView(); }
+    public VanillaListView createListView() { return new VanillaListView(); }
 
-    @Override
-    public ILayoutParams createLayoutParams(int width, int height)
+    public VanillaLayoutParams createLayoutParams(int width, int height)
     {
         return new VanillaLayoutParams(width, height);
     }
 
-    @Override
-    public ILayoutParams createLayoutParams(int width, int height, float weight)
+    public VanillaLayoutParams createLayoutParams(int width, int height, float weight)
     {
         return new VanillaLayoutParams(width, height, weight);
     }
 
-    @Override
-    public ILayoutParams createFrameLayoutParams(int width, int height, int gravity)
+    public VanillaLayoutParams createFrameLayoutParams(int width, int height, int gravity)
     {
         VanillaLayoutParams params = new VanillaLayoutParams(width, height);
         params.setGravity(gravity);
         return params;
     }
 
-    @Override
-    public IView createEntityPreviewView(IEntityRenderer renderer)
+    public VanillaView createEntityPreviewView(EntityPreviewRenderer renderer)
     {
         return new VanillaEntityPreviewView(renderer);
     }
 
-    @Override
+    public VanillaLayoutParams createMatchParent()
+    {
+        return createLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.MATCH_PARENT);
+    }
+
+    public VanillaLayoutParams createMatchParentCentered()
+    {
+        return createFrameLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.GRAVITY_CENTER);
+    }
+
+    public VanillaLayoutParams createWrapContent()
+    {
+        return createLayoutParams(VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT);
+    }
+
     public int dp(int dp)
     {
         return dp;

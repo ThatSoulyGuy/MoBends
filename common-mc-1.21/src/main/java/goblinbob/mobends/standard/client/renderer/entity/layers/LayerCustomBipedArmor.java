@@ -228,12 +228,14 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 });
             }
 
-            // Fallback for custom models if nothing rendered via tier system:
-            // render with vanilla method + synced poses so custom armor at least renders
-            // (even without joint bending) instead of showing missing textures
+            // Fallback for custom models if nothing rendered
             if (!anyRendered[0])
             {
-                renderVanillaArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
+                ResourceLocation fallbackTexture = getArmorTexture(armorItem, itemStack, entity, slot, null);
+                if (fallbackTexture != null)
+                {
+                    renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, fallbackTexture);
+                }
             }
         }
         else

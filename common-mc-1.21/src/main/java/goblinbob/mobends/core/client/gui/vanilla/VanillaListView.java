@@ -1,106 +1,124 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.ILinearLayout;
-import goblinbob.mobends.api.gui.view.IListView;
-import goblinbob.mobends.api.gui.view.IView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class VanillaListView extends VanillaScrollView implements IListView
+public class VanillaListView extends VanillaScrollView
 {
     private final VanillaLinearLayout innerLayout;
-    private final List<IView> itemViews = new ArrayList<>();
+    private final List<VanillaView> itemViews = new ArrayList<>();
+
+    // Divider config
+    private boolean dividersShown = false;
+    private int dividerColor = 0xFF2A2E3C;
+    private int dividerHeight = 1;
 
     public VanillaListView()
     {
         innerLayout = new VanillaLinearLayout();
-        innerLayout.setOrientation(ILinearLayout.VERTICAL);
-        VanillaLayoutParams params = new VanillaLayoutParams(ILayoutParams.MATCH_PARENT, ILayoutParams.WRAP_CONTENT);
+        innerLayout.setOrientation(VanillaLinearLayout.VERTICAL);
+        VanillaLayoutParams params = new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
         innerLayout.setLayoutParams(params);
         super.addView(innerLayout);
     }
 
-    @Override
     public void setAdapter(Object adapter)
     {
         // Not supported
     }
 
-    @Override
     public void setSimpleAdapter(List<String> items, BiConsumer<Integer, String> onItemClick)
     {
-        innerLayout.removeAllViews();
         itemViews.clear();
-
         for (int i = 0; i < items.size(); i++)
         {
             final int index = i;
             final String item = items.get(i);
             VanillaTextView textView = new VanillaTextView(item);
-            VanillaLayoutParams params = new VanillaLayoutParams(ILayoutParams.MATCH_PARENT, ILayoutParams.WRAP_CONTENT);
+            VanillaLayoutParams params = new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
             textView.setLayoutParams(params);
             textView.setPadding(8, 4, 8, 4);
             textView.setOnClickListener(() -> onItemClick.accept(index, item));
-            innerLayout.addView(textView);
             itemViews.add(textView);
         }
+        rebuildItems();
     }
 
-    @Override
-    public <T> void setCustomAdapter(List<T> items, Function<T, IView> viewBinder, BiConsumer<Integer, T> onItemClick)
+    public <T> void setCustomAdapter(List<T> items, Function<T, VanillaView> viewBinder, BiConsumer<Integer, T> onItemClick)
     {
-        innerLayout.removeAllViews();
         itemViews.clear();
-
         for (int i = 0; i < items.size(); i++)
         {
             final int index = i;
             final T item = items.get(i);
-            IView view = viewBinder.apply(item);
+            VanillaView view = viewBinder.apply(item);
             view.setOnClickListener(() -> onItemClick.accept(index, item));
-            innerLayout.addView(view);
             itemViews.add(view);
         }
+        rebuildItems();
     }
 
-    @Override
-    public void scrollToPosition(int position)
+    /**
+     * Rebuilds the inner layout from the current item views, interleaving divider
+     * views between them when dividers are enabled.
+     */
+    private void rebuildItems()
     {
-        if (position >= 0 && position < itemViews.size())
+        innerLayout.removeAllViews();
+        for (int i = 0; i < itemViews.size(); i++)
         {
-            IView view = itemViews.get(position);
-            if (view instanceof VanillaView vv)
+            innerLayout.addView(itemViews.get(i));
+            if (dividersShown && i < itemViews.size() - 1)
             {
-                scrollTo(vv.y - y);
+                innerLayout.addView(makeDivider());
             }
         }
     }
 
-    @Override
-    public void smoothScrollToPosition(int position)
+    private VanillaView makeDivider()
     {
-        scrollToPosition(position);
+        VanillaView divider = new VanillaView();
+        divider.setBackgroundColor(dividerColor);
+        divider.setLayoutParams(new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, Math.max(1, dividerHeight)));
+        return divider;
     }
 
-    @Override
+    public void scrollToPosition(int position)
+    {
+        if (position >= 0 && position < itemViews.size())
+        {
+            VanillaView view = itemViews.get(position);
+            scrollTo(scrollOffset + (view.y - y));
+        }
+    }
+
+    public void smoothScrollToPosition(int position)
+    {
+        if (position >= 0 && position < itemViews.size())
+        {
+            VanillaView view = itemViews.get(position);
+            smoothScrollTo(scrollOffset + (view.y - y));
+        }
+    }
+
     public void notifyDataSetChanged()
     {
         // Will be re-measured/laid out on next render cycle
     }
 
-    @Override
     public void setItemSpacing(int spacing)
     {
         innerLayout.setSpacing(spacing);
     }
 
-    @Override
     public void setDividers(boolean show, int color, int height)
     {
-        // Not implemented
+        this.dividersShown = show;
+        this.dividerColor = color;
+        this.dividerHeight = height;
+        rebuildItems();
     }
 }

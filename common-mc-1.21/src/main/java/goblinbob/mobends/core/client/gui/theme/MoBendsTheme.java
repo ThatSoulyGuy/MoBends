@@ -184,45 +184,45 @@ public final class MoBendsTheme
     /**
      * Standard padding in dp.
      */
-    public static final int PADDING = 8;
+    public static final int PADDING = 5;
 
     /**
      * Large padding in dp.
      */
-    public static final int PADDING_LARGE = 16;
+    public static final int PADDING_LARGE = 10;
 
     /**
      * Small padding in dp.
      */
-    public static final int PADDING_SMALL = 4;
+    public static final int PADDING_SMALL = 2;
 
     /**
      * Standard spacing between elements in dp.
      */
-    public static final int SPACING = 6;
+    public static final int SPACING = 3;
 
     /**
      * Corner radius for rounded elements in dp.
      */
-    public static final float CORNER_RADIUS = 6f;
+    public static final float CORNER_RADIUS = 5f;
 
     /**
      * Header height in dp.
      */
-    public static final int HEADER_HEIGHT = 44;
+    public static final int HEADER_HEIGHT = 28;
 
     /**
      * Tab height in dp.
      */
-    public static final int TAB_HEIGHT = 36;
+    public static final int TAB_HEIGHT = 24;
 
     /**
      * Button height in dp.
      */
-    public static final int BUTTON_HEIGHT = 32;
+    public static final int BUTTON_HEIGHT = 20;
 
     /**
      * List item height in dp.
      */
-    public static final int LIST_ITEM_HEIGHT = 40;
+    public static final int LIST_ITEM_HEIGHT = 26;
 }

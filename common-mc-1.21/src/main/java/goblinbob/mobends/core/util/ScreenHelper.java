@@ -1,6 +1,5 @@
 package goblinbob.mobends.core.util;
 
-import goblinbob.mobends.api.gui.IScreenHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -28,14 +27,6 @@ public class ScreenHelper
      */
     public static void renderBackground(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        IScreenHelper helper = IScreenHelper.Holder.getHelper();
-        if (helper != null)
-        {
-            helper.renderBackground(screen, guiGraphics, mouseX, mouseY, partialTicks);
-            return;
-        }
-
-        // Fallback: try reflection
         try
         {
             if (is1211 == null)
@@ -80,13 +71,6 @@ public class ScreenHelper
      */
     public static boolean superMouseScrolled(Screen screen, double mouseX, double mouseY, double scrollX, double scrollY)
     {
-        IScreenHelper helper = IScreenHelper.Holder.getHelper();
-        if (helper != null)
-        {
-            return helper.superMouseScrolled(screen, mouseX, mouseY, scrollX, scrollY);
-        }
-
-        // Fallback: try reflection
         try
         {
             if (is1211 == null)

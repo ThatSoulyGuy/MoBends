@@ -1,9 +1,22 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
 
-public class VanillaLayoutParams implements ILayoutParams
+public class VanillaLayoutParams
 {
+    public static final int MATCH_PARENT = -1;
+    public static final int WRAP_CONTENT = -2;
+
+    public static final int GRAVITY_NO_GRAVITY = 0;
+    public static final int GRAVITY_CENTER = 0x11;
+    public static final int GRAVITY_CENTER_HORIZONTAL = 0x01;
+    public static final int GRAVITY_CENTER_VERTICAL = 0x10;
+    public static final int GRAVITY_TOP = 0x30;
+    public static final int GRAVITY_BOTTOM = 0x50;
+    public static final int GRAVITY_LEFT = 0x03;
+    public static final int GRAVITY_RIGHT = 0x05;
+    public static final int GRAVITY_START = 0x00800003;
+    public static final int GRAVITY_END = 0x00800005;
+
     private int width;
     private int height;
     private float weight;
@@ -22,13 +35,10 @@ public class VanillaLayoutParams implements ILayoutParams
         this.weight = weight;
     }
 
-    @Override
     public int getWidth() { return width; }
 
-    @Override
     public int getHeight() { return height; }
 
-    @Override
     public void setMargins(int left, int top, int right, int bottom)
     {
         this.marginLeft = left;
@@ -37,13 +47,10 @@ public class VanillaLayoutParams implements ILayoutParams
         this.marginBottom = bottom;
     }
 
-    @Override
     public void setWeight(float weight) { this.weight = weight; }
 
-    @Override
     public void setGravity(int gravity) { this.gravity = gravity; }
 
-    @Override
     public Object getNativeLayoutParams() { return this; }
 
     public float getWeight() { return weight; }

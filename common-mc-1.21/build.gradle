@@ -40,9 +40,6 @@ dependencies {
     // Pure Java core library
     api project(':common')
 
-    // UI abstraction interfaces
-    api project(':gui-api')
-
     // Architectury API (optional, for platform abstractions)
     modApi "dev.architectury:architectury:${rootProject.architectury_neoforge_version}"
 }

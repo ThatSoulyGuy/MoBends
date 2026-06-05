@@ -40,6 +40,19 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected BendsModelPart leftForeLeg;
     protected BendsModelPart rightForeLeg;
 
+    // Outer parts: parallel hierarchy with inflated cubes for overlay textures
+    // (e.g. Drowned outer layer). Rendered separately via renderOuter().
+    protected BendsModelPart outerBody;
+    protected BendsModelPart outerHead;
+    protected BendsModelPart outerLeftArm;
+    protected BendsModelPart outerRightArm;
+    protected BendsModelPart outerLeftForeArm;
+    protected BendsModelPart outerRightForeArm;
+    protected BendsModelPart outerLeftLeg;
+    protected BendsModelPart outerRightLeg;
+    protected BendsModelPart outerLeftForeLeg;
+    protected BendsModelPart outerRightForeLeg;
+
     // Store vanilla model parts for demutation
     protected ModelPart vanillaBody;
     protected ModelPart vanillaHead;
@@ -258,7 +271,83 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         rightForeLeg.addCube(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor);
         rightLeg.addChild(rightForeLeg);
 
+        createOuterParts(scaleFactor);
+
         return true;
+    }
+
+    /**
+     * Creates a parallel hierarchy of outer parts with inflated cubes, used for
+     * overlay textures (e.g. Drowned outer layer). UVs mirror base parts, which matches
+     * the standard 64x64 humanoid overlay texture layout used by Drowned/Stray/etc.
+     * Subclasses can override to change UVs or skip creation.
+     */
+    protected void createOuterParts(float scaleFactor)
+    {
+        final float outerOffset = 0.25F;
+        int armWidth = 4;
+        float armY = -10F;
+
+        outerBody = new BendsModelPart(16, 16)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 12.0F, 0.0F);
+        outerBody.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor + outerOffset);
+
+        outerHead = new BendsModelPart(0, 0)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, -12.0F, 0.0F);
+        outerHead.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + outerOffset);
+        outerBody.addChild(outerHead);
+
+        outerLeftArm = new BendsModelPart(40, 16)
+                .setTextureSize(64, 64)
+                .setPosition(5.0F, armY, 0.0F)
+                .setMirror(true);
+        outerLeftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerBody.addChild(outerLeftArm);
+
+        outerRightArm = new BendsModelPart(40, 16)
+                .setTextureSize(64, 64)
+                .setPosition(-5.0F, armY, 0.0F);
+        outerRightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerBody.addChild(outerRightArm);
+
+        outerLeftForeArm = new BendsModelPart(40, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 4.0F, 2.0F)
+                .setMirror(true);
+        outerLeftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerLeftArm.addChild(outerLeftForeArm);
+
+        outerRightForeArm = new BendsModelPart(40, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 4.0F, 2.0F);
+        outerRightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerRightArm.addChild(outerRightForeArm);
+
+        outerRightLeg = new BendsModelPart(0, 16)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 12F, 0F);
+        outerRightLeg.addCube(-3.9F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + outerOffset);
+
+        outerLeftLeg = new BendsModelPart(0, 16)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 12.0F, 0.0F)
+                .setMirror(true);
+        outerLeftLeg.addCube(-0.1F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + outerOffset);
+
+        outerLeftForeLeg = new BendsModelPart(0, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0, 6.0F, -2.0F)
+                .setMirror(true);
+        outerLeftForeLeg.addCube(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset);
+        outerLeftLeg.addChild(outerLeftForeLeg);
+
+        outerRightForeLeg = new BendsModelPart(0, 22)
+                .setTextureSize(64, 64)
+                .setPosition(0, 6.0F, -2.0F);
+        outerRightForeLeg.addCube(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset);
+        outerRightLeg.addChild(outerRightForeLeg);
     }
 
     @Override
@@ -317,6 +406,60 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
+    }
+
+    /**
+     * True if the mutator has outer parts built and ready to render an overlay pass.
+     */
+    public boolean hasOuterParts()
+    {
+        return outerBody != null;
+    }
+
+    /**
+     * Render the outer-parts hierarchy with the caller-supplied vertex consumer.
+     * Used by overlay layers (Drowned outer layer, etc.) so the overlay texture
+     * renders with MoBends joint bending instead of vanilla's rigid geometry.
+     */
+    public void renderOuter(PoseStack poseStack, VertexConsumer vertexConsumer,
+                            int packedLight, int packedOverlay, int color)
+    {
+        if (!hasOuterParts())
+        {
+            return;
+        }
+        syncOuterFromBase();
+
+        outerBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        outerLeftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        outerRightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+    }
+
+    private void syncOuterFromBase()
+    {
+        copyAnimatedState(body, outerBody);
+        copyAnimatedState(head, outerHead);
+        copyAnimatedState(leftArm, outerLeftArm);
+        copyAnimatedState(rightArm, outerRightArm);
+        copyAnimatedState(leftForeArm, outerLeftForeArm);
+        copyAnimatedState(rightForeArm, outerRightForeArm);
+        copyAnimatedState(leftLeg, outerLeftLeg);
+        copyAnimatedState(rightLeg, outerRightLeg);
+        copyAnimatedState(leftForeLeg, outerLeftForeLeg);
+        copyAnimatedState(rightForeLeg, outerRightForeLeg);
+    }
+
+    private static void copyAnimatedState(BendsModelPart src, BendsModelPart dst)
+    {
+        if (src == null || dst == null) return;
+        dst.position.set(src.position);
+        dst.offset.set(src.offset);
+        dst.scale.set(src.scale);
+        dst.offsetScale = src.offsetScale;
+        dst.globalOffset.set(src.globalOffset);
+        dst.rotation.set(src.rotation);
+        dst.visible = src.visible;
+        dst.hidden = src.hidden;
     }
 
     // Getters for layers to access parts

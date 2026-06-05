@@ -1,9 +1,8 @@
 package goblinbob.mobends.core.client.gui.widget;
 
+import goblinbob.mobends.core.client.gui.vanilla.*;
+
 import com.mojang.logging.LogUtils;
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.IViewFactory;
-import goblinbob.mobends.api.gui.view.*;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import goblinbob.mobends.core.pack.IBendsPack;
 import goblinbob.mobends.core.pack.InvalidPackFormatException;
@@ -24,12 +23,12 @@ import java.util.stream.Collectors;
 public class PackListWidget
 {
     private static final Logger LOG = LogUtils.getLogger();
-    private static final int ITEM_HEIGHT = 48;
-    private static final int THUMBNAIL_SIZE = 32;
+    private static final int ITEM_HEIGHT = 34;
+    private static final int THUMBNAIL_SIZE = 24;
 
-    private final IViewFactory factory;
-    private final IScrollView scrollView;
-    private final ILinearLayout contentLayout;
+    private final VanillaViewFactory factory;
+    private final VanillaScrollView scrollView;
+    private final VanillaLinearLayout contentLayout;
     private final List<PackItemInfo> items;
 
     @Nullable
@@ -37,7 +36,7 @@ public class PackListWidget
     @Nullable
     private Consumer<IBendsPack> onPackSelected;
 
-    public PackListWidget(IViewFactory factory)
+    public PackListWidget(VanillaViewFactory factory)
     {
         this.factory = factory;
         this.items = new ArrayList<>();
@@ -46,10 +45,10 @@ public class PackListWidget
         this.scrollView.setLayoutParams(factory.createMatchParent());
         this.scrollView.setBackgroundColor(MoBendsTheme.BG_LIST);
 
-        this.contentLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
+        this.contentLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         this.contentLayout.setLayoutParams(factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         ));
         this.contentLayout.setPadding(0, MoBendsTheme.PADDING_SMALL, 0, MoBendsTheme.PADDING_SMALL);
 
@@ -81,8 +80,8 @@ public class PackListWidget
         PackItemInfo item = createPackItem(pack, applied);
         items.add(item);
 
-        ILayoutParams params = factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
+        VanillaLayoutParams params = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT,
                 ITEM_HEIGHT
         );
         params.setMargins(MoBendsTheme.PADDING_SMALL, MoBendsTheme.PADDING_SMALL,
@@ -107,7 +106,7 @@ public class PackListWidget
                     item.pack.getDisplayName().toLowerCase().contains(lowerQuery) ||
                     item.pack.getAuthor().toLowerCase().contains(lowerQuery);
 
-            item.rootLayout.setVisibility(matches ? IView.VISIBLE : IView.GONE);
+            item.rootLayout.setVisibility(matches ? VanillaView.VISIBLE : VanillaView.GONE);
         }
     }
 
@@ -139,7 +138,7 @@ public class PackListWidget
         return selectedItem != null ? selectedItem.pack : null;
     }
 
-    public IView getView()
+    public VanillaView getView()
     {
         return scrollView;
     }
@@ -149,47 +148,47 @@ public class PackListWidget
     private PackItemInfo createPackItem(IBendsPack pack, boolean applied)
     {
         // Root layout (horizontal: accent | info | toggle)
-        ILinearLayout rootLayout = factory.createLinearLayout(IViewFactory.HORIZONTAL);
+        VanillaLinearLayout rootLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         rootLayout.setBackgroundColor(MoBendsTheme.BG_LIST_ITEM);
-        rootLayout.setGravity(ILinearLayout.GRAVITY_CENTER_VERTICAL);
+        rootLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
         rootLayout.setPadding(0, 0, MoBendsTheme.PADDING, 0);
 
         // Accent bar (left edge, shows applied status)
-        IView accentBar = factory.createView();
+        VanillaView accentBar = factory.createView();
         accentBar.setBackgroundColor(applied ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
-        accentBar.setLayoutParams(factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
+        accentBar.setLayoutParams(factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
 
         // Info container (vertical: name, author/description)
-        ILinearLayout infoLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
-        infoLayout.setGravity(ILinearLayout.GRAVITY_CENTER_VERTICAL);
-        ILayoutParams infoParams = factory.createLayoutParams(0, ILayoutParams.MATCH_PARENT, 1.0f);
+        VanillaLinearLayout infoLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        infoLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+        VanillaLayoutParams infoParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
         infoParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
         // Pack name
-        ITextView nameView = factory.createTextView(pack.getDisplayName());
+        VanillaTextView nameView = factory.createTextView(pack.getDisplayName());
         nameView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         nameView.setTextSize(13);
         nameView.setBold(true);
 
         // Pack author
-        ITextView authorView = factory.createTextView("by " + pack.getAuthor());
+        VanillaTextView authorView = factory.createTextView("by " + pack.getAuthor());
         authorView.setTextColor(MoBendsTheme.TEXT_SECONDARY);
         authorView.setTextSize(10);
 
         infoLayout.addView(nameView, factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT, ILayoutParams.WRAP_CONTENT));
+                VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT));
         infoLayout.addView(authorView, factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT, ILayoutParams.WRAP_CONTENT));
+                VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT));
 
         // Toggle switch for apply/remove
-        IToggle toggle = factory.createToggle(applied);
+        VanillaToggle toggle = factory.createToggle(applied);
         toggle.setOnCheckedChangeListener(checked -> onPackToggled(pack, checked, accentBar));
 
         // Assemble
-        rootLayout.addView(accentBar, factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
+        rootLayout.addView(accentBar, factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
         rootLayout.addView(infoLayout, infoParams);
         rootLayout.addView(toggle, factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT, ILayoutParams.WRAP_CONTENT));
+                VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT));
 
         PackItemInfo itemInfo = new PackItemInfo(pack, rootLayout, accentBar, nameView, authorView, toggle, applied);
 
@@ -199,7 +198,7 @@ public class PackListWidget
         return itemInfo;
     }
 
-    private void onPackToggled(IBendsPack pack, boolean apply, IView accentBar)
+    private void onPackToggled(IBendsPack pack, boolean apply, VanillaView accentBar)
     {
         // Update the accent bar color
         accentBar.setBackgroundColor(apply ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
@@ -273,15 +272,15 @@ public class PackListWidget
     private static class PackItemInfo
     {
         final IBendsPack pack;
-        final ILinearLayout rootLayout;
-        final IView accentBar;
-        final ITextView nameView;
-        final ITextView authorView;
-        final IToggle toggle;
+        final VanillaLinearLayout rootLayout;
+        final VanillaView accentBar;
+        final VanillaTextView nameView;
+        final VanillaTextView authorView;
+        final VanillaToggle toggle;
         boolean applied;
 
-        PackItemInfo(IBendsPack pack, ILinearLayout rootLayout, IView accentBar,
-                    ITextView nameView, ITextView authorView, IToggle toggle,
+        PackItemInfo(IBendsPack pack, VanillaLinearLayout rootLayout, VanillaView accentBar,
+                    VanillaTextView nameView, VanillaTextView authorView, VanillaToggle toggle,
                     boolean applied)
         {
             this.pack = pack;

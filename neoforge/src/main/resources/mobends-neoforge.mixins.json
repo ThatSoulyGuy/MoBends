@@ -9,6 +9,7 @@
   "client": [
     "AgeableListModelMixin",
     "SpiderModelMixin",
+    "RenderLayerMixin",
     "LivingEntityRendererAccessor",
     "armor.ArmorTrimLayerMixin",
     "armor.ElytraLayerMixin",

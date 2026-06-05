@@ -1,7 +1,7 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.IScreenBuilder;
-import goblinbob.mobends.api.gui.view.IView;
+import goblinbob.mobends.core.client.gui.MoBendsScreenBuilder;
+
 import goblinbob.mobends.core.util.ScreenHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -11,33 +11,28 @@ import javax.annotation.Nullable;
 
 public class VanillaMoBendsScreen extends Screen
 {
-    private final IScreenBuilder screenBuilder;
+    private final MoBendsScreenBuilder screenBuilder;
     @Nullable
     private VanillaView rootView;
 
-    public VanillaMoBendsScreen(IScreenBuilder screenBuilder)
+    public VanillaMoBendsScreen(MoBendsScreenBuilder screenBuilder)
     {
         super(Component.literal(screenBuilder.getTitle()));
         this.screenBuilder = screenBuilder;
     }
 
-    @Override
     protected void init()
     {
         super.init();
 
         VanillaViewFactory factory = new VanillaViewFactory();
-        IView content = screenBuilder.buildContent(factory);
+        VanillaView content = screenBuilder.buildContent(factory);
 
-        if (content instanceof VanillaView vv)
-        {
-            this.rootView = vv;
-            rootView.measure(this.width, this.height);
-            rootView.layout(0, 0, this.width, this.height);
-        }
+        this.rootView = content;
+        rootView.measure(this.width, this.height);
+        rootView.layout(0, 0, this.width, this.height);
     }
 
-    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
         ScreenHelper.renderBackground(this, guiGraphics, mouseX, mouseY, partialTick);
@@ -53,14 +48,12 @@ public class VanillaMoBendsScreen extends Screen
         }
     }
 
-    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
         if (rootView != null && rootView.handleClick(mouseX, mouseY, button)) return true;
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button)
     {
         if (rootView != null)
@@ -70,7 +63,6 @@ public class VanillaMoBendsScreen extends Screen
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
-    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
     {
         if (rootView != null && rootView.handleMouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
@@ -93,21 +85,18 @@ public class VanillaMoBendsScreen extends Screen
         return false;
     }
 
-    @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers)
     {
         if (rootView != null && rootView.handleKeyPressed(keyCode, scanCode, modifiers)) return true;
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    @Override
     public boolean charTyped(char ch, int modifiers)
     {
         if (rootView != null && rootView.handleCharTyped(ch, modifiers)) return true;
         return super.charTyped(ch, modifiers);
     }
 
-    @Override
     public boolean isPauseScreen()
     {
         return false;

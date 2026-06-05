@@ -1,15 +1,19 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.IButton;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 
-public class VanillaButton extends VanillaView implements IButton
+import javax.annotation.Nullable;
+
+public class VanillaButton extends VanillaView
 {
     private String text;
     private int textColor = MoBendsTheme.TEXT_PRIMARY;
+    private float textScale = 1.0f;
+    @Nullable
+    private ResourceLocation icon;
 
     public VanillaButton(String text)
     {
@@ -17,22 +21,19 @@ public class VanillaButton extends VanillaView implements IButton
         this.backgroundColor = MoBendsTheme.BG_BUTTON;
     }
 
-    @Override
     public void setText(String text) { this.text = text; }
 
-    @Override
     public String getText() { return text; }
 
-    @Override
     public void setTextColor(int color) { this.textColor = color; }
 
-    @Override
-    public void setTextSize(float sizeSp) { /* MC font doesn't support runtime size changes */ }
+    public void setTextSize(float sizeSp) { this.textScale = sizeSp / 14.0f; }
 
-    @Override
-    public void setIcon(Object drawable) { /* No-op */ }
+    public void setIcon(Object drawable)
+    {
+        this.icon = (drawable instanceof ResourceLocation rl) ? rl : null;
+    }
 
-    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
         if (visibility != VISIBLE) return;
@@ -54,25 +55,61 @@ public class VanillaButton extends VanillaView implements IButton
 
         guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, bgColor);
 
+        // Border so buttons (especially disabled ones) read as distinct elements.
+        int borderColor = enabled ? MoBendsTheme.BORDER : MoBendsTheme.BG_BUTTON_PRESSED;
+        guiGraphics.fill(x, y, x + measuredWidth, y + 1, borderColor);
+        guiGraphics.fill(x, y + measuredHeight - 1, x + measuredWidth, y + measuredHeight, borderColor);
+        guiGraphics.fill(x, y, x + 1, y + measuredHeight, borderColor);
+        guiGraphics.fill(x + measuredWidth - 1, y, x + measuredWidth, y + measuredHeight, borderColor);
+
+        // Optional leading icon.
+        int leftOffset = paddingLeft;
+        if (icon != null)
+        {
+            int iconSize = Math.min(16, measuredHeight - 6);
+            if (iconSize > 0)
+            {
+                guiGraphics.blit(icon, x + 4, y + (measuredHeight - iconSize) / 2, 0, 0, iconSize, iconSize);
+                leftOffset = 4 + iconSize + 4;
+            }
+        }
+
         if (text != null && !text.isEmpty())
         {
             var font = Minecraft.getInstance().font;
-            int textW = font.width(text);
-            int textX = x + (measuredWidth - textW) / 2;
-            int textY = y + (measuredHeight - font.lineHeight) / 2;
-            guiGraphics.drawString(font, text, textX, textY, textColor, true);
+            int color = enabled ? textColor : MoBendsTheme.TEXT_DISABLED;
+            int textW = (int) (font.width(text) * textScale);
+            int textH = (int) (font.lineHeight * textScale);
+
+            int regionLeft = x + leftOffset;
+            int regionRight = x + measuredWidth - paddingRight;
+            int textX = regionLeft + Math.max(0, (regionRight - regionLeft - textW) / 2);
+            int textY = y + (measuredHeight - textH) / 2;
+
+            if (textScale != 1.0f)
+            {
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().scale(textScale, textScale, 1.0f);
+                guiGraphics.drawString(font, text, (int) (textX / textScale), (int) (textY / textScale), color, true);
+                guiGraphics.pose().popPose();
+            }
+            else
+            {
+                guiGraphics.drawString(font, text, textX, textY, color, true);
+            }
         }
     }
 
-    @Override
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         var font = Minecraft.getInstance().font;
-        int contentW = (text != null ? font.width(text) : 0) + paddingLeft + paddingRight + 16;
-        int contentH = font.lineHeight + paddingTop + paddingBottom + 8;
+        int textW = (text != null ? (int) (font.width(text) * textScale) : 0);
+        int iconW = icon != null ? 20 : 0;
+        int contentW = textW + iconW + paddingLeft + paddingRight + 16;
+        int contentH = (int) (font.lineHeight * textScale) + paddingTop + paddingBottom + 8;
 
         measuredWidth = resolveSize(lpW, availableWidth, Math.max(contentW, minWidth));
         measuredHeight = resolveSize(lpH, availableHeight, Math.max(contentH, minHeight));

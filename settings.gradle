@@ -14,7 +14,6 @@ plugins {
 
 rootProject.name = 'MoBends'
 
-include 'gui-api'
 include 'common'
 include 'common-mc-1.21'
 include 'common-mc-1.20'

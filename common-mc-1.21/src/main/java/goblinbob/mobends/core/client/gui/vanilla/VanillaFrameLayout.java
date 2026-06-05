@@ -1,23 +1,19 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.IFrameLayout;
 
-public class VanillaFrameLayout extends VanillaViewGroup implements IFrameLayout
+public class VanillaFrameLayout extends VanillaViewGroup
 {
     private boolean measureAllChildren = false;
 
-    @Override
     public void setMeasureAllChildren(boolean measureAll)
     {
         this.measureAllChildren = measureAll;
     }
 
-    @Override
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         // Constrain available space to own fixed size when specified
         int effectiveW = (lpW > 0) ? Math.min(lpW, availableWidth) : availableWidth;
@@ -52,7 +48,6 @@ public class VanillaFrameLayout extends VanillaViewGroup implements IFrameLayout
         measuredHeight = resolveSize(lpH, availableHeight, maxChildH + paddingTop + paddingBottom);
     }
 
-    @Override
     public void layout(int left, int top, int right, int bottom)
     {
         super.layout(left, top, right, bottom);
@@ -63,7 +58,7 @@ public class VanillaFrameLayout extends VanillaViewGroup implements IFrameLayout
 
             VanillaLayoutParams clp = child.layoutParams;
             int ml = 0, mt = 0, mr = 0, mb = 0;
-            int childGravity = ILayoutParams.GRAVITY_NO_GRAVITY;
+            int childGravity = VanillaLayoutParams.GRAVITY_NO_GRAVITY;
             if (clp != null)
             {
                 ml = clp.getMarginLeft();
@@ -78,8 +73,8 @@ public class VanillaFrameLayout extends VanillaViewGroup implements IFrameLayout
             int availW = getContentWidth() - ml - mr;
             int availH = getContentHeight() - mt - mb;
 
-            if (clp != null && clp.getWidth() == ILayoutParams.MATCH_PARENT) childW = availW;
-            if (clp != null && clp.getHeight() == ILayoutParams.MATCH_PARENT) childH = availH;
+            if (clp != null && clp.getWidth() == VanillaLayoutParams.MATCH_PARENT) childW = availW;
+            if (clp != null && clp.getHeight() == VanillaLayoutParams.MATCH_PARENT) childH = availH;
 
             int childLeft;
             int horizontalGravity = childGravity & 0x07;

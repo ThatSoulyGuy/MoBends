@@ -1,11 +1,8 @@
 package goblinbob.mobends.core.client.gui.widget;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.IViewFactory;
-import goblinbob.mobends.api.gui.view.IFrameLayout;
-import goblinbob.mobends.api.gui.view.ILinearLayout;
-import goblinbob.mobends.api.gui.view.ITextView;
-import goblinbob.mobends.api.gui.view.IView;
+import goblinbob.mobends.core.client.gui.vanilla.*;
+import goblinbob.mobends.core.client.gui.EntityPreviewRenderer;
+
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.client.gui.EntityPreviewRenderer;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
@@ -40,12 +37,12 @@ public class EntityPreviewWidget
         SIT
     }
 
-    private final IViewFactory factory;
-    private final IFrameLayout rootLayout;
-    private final IView entityPreviewView;
-    private final ITextView titleView;
-    private final ITextView hintView;
-    private final ITextView statusView;
+    private final VanillaViewFactory factory;
+    private final VanillaFrameLayout rootLayout;
+    private final VanillaView entityPreviewView;
+    private final VanillaTextView titleView;
+    private final VanillaTextView hintView;
+    private final VanillaTextView statusView;
     private final EntityPreviewRenderer renderer;
 
     @Nullable
@@ -65,7 +62,7 @@ public class EntityPreviewWidget
      * @param width   The width in dp
      * @param height  The height in dp
      */
-    public EntityPreviewWidget(IViewFactory factory, int width, int height)
+    public EntityPreviewWidget(VanillaViewFactory factory, int width, int height)
     {
         this.factory = factory;
         this.renderer = new EntityPreviewRenderer();
@@ -77,11 +74,11 @@ public class EntityPreviewWidget
 
         // Create entity preview view as background layer (renders 3D entity in onDraw)
         this.entityPreviewView = factory.createEntityPreviewView(renderer);
-        this.entityPreviewView.setVisibility(IView.GONE);
+        this.entityPreviewView.setVisibility(VanillaView.GONE);
         rootLayout.addView(entityPreviewView, factory.createMatchParent());
 
         // Create vertical layout for content
-        ILinearLayout contentLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
+        VanillaLinearLayout contentLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         contentLayout.setLayoutParams(factory.createMatchParent());
         contentLayout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                                 MoBendsTheme.PADDING, MoBendsTheme.PADDING);
@@ -91,20 +88,20 @@ public class EntityPreviewWidget
         this.titleView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         this.titleView.setTextSize(14);
         this.titleView.setBold(true);
-        this.titleView.setGravity(ILinearLayout.GRAVITY_CENTER_HORIZONTAL);
+        this.titleView.setGravity(VanillaLinearLayout.GRAVITY_CENTER_HORIZONTAL);
         contentLayout.addView(titleView, factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         ));
 
         // Status/placeholder text in center
         this.statusView = factory.createTextView(I18n.get("mobends.gui.preview.select"));
         this.statusView.setTextColor(MoBendsTheme.TEXT_HINT);
         this.statusView.setTextSize(12);
-        this.statusView.setGravity(ILinearLayout.GRAVITY_CENTER);
-        ILayoutParams statusParams = factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.MATCH_PARENT
+        this.statusView.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        VanillaLayoutParams statusParams = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.MATCH_PARENT
         );
         statusParams.setMargins(0, MoBendsTheme.SPACING, 0, MoBendsTheme.SPACING);
         contentLayout.addView(statusView, statusParams);
@@ -113,10 +110,10 @@ public class EntityPreviewWidget
         this.hintView = factory.createTextView(I18n.get("mobends.gui.preview.hint"));
         this.hintView.setTextColor(MoBendsTheme.TEXT_HINT);
         this.hintView.setTextSize(10);
-        this.hintView.setGravity(ILinearLayout.GRAVITY_CENTER_HORIZONTAL);
+        this.hintView.setGravity(VanillaLinearLayout.GRAVITY_CENTER_HORIZONTAL);
         contentLayout.addView(hintView, factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         ));
 
         rootLayout.addView(contentLayout, factory.createMatchParent());
@@ -138,26 +135,26 @@ public class EntityPreviewWidget
             if (renderer.hasEntity())
             {
                 // Entity is ready - show the preview view, hide status text
-                entityPreviewView.setVisibility(IView.VISIBLE);
-                statusView.setVisibility(IView.GONE);
+                entityPreviewView.setVisibility(VanillaView.VISIBLE);
+                statusView.setVisibility(VanillaView.GONE);
             }
             else
             {
-                entityPreviewView.setVisibility(IView.GONE);
+                entityPreviewView.setVisibility(VanillaView.GONE);
                 statusView.setText("Entity creation failed for: " + bender.getLocalizedName());
                 statusView.setTextColor(MoBendsTheme.ACCENT_ERROR);
-                statusView.setVisibility(IView.VISIBLE);
+                statusView.setVisibility(VanillaView.VISIBLE);
             }
-            hintView.setVisibility(renderer.hasEntity() ? IView.VISIBLE : IView.GONE);
+            hintView.setVisibility(renderer.hasEntity() ? VanillaView.VISIBLE : VanillaView.GONE);
         }
         else
         {
             titleView.setText(I18n.get("mobends.gui.preview"));
-            entityPreviewView.setVisibility(IView.GONE);
+            entityPreviewView.setVisibility(VanillaView.GONE);
             statusView.setText(I18n.get("mobends.gui.preview.select"));
             statusView.setTextColor(MoBendsTheme.TEXT_HINT);
-            statusView.setVisibility(IView.VISIBLE);
-            hintView.setVisibility(IView.GONE);
+            statusView.setVisibility(VanillaView.VISIBLE);
+            hintView.setVisibility(VanillaView.GONE);
         }
 
         // Reset view state
@@ -380,7 +377,7 @@ public class EntityPreviewWidget
     /**
      * @return The root view to add to the layout
      */
-    public IView getView()
+    public VanillaView getView()
     {
         return rootLayout;
     }

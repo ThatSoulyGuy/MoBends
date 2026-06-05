@@ -1,52 +1,102 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.ITextView;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
 
-public class VanillaTextView extends VanillaView implements ITextView
+import java.util.Collections;
+import java.util.List;
+
+public class VanillaTextView extends VanillaView
 {
     private String text;
     private int textColor = MoBendsTheme.TEXT_PRIMARY;
     private float textSize = 1.0f;
-    private int textGravity = ILayoutParams.GRAVITY_NO_GRAVITY;
+    private int textGravity = VanillaLayoutParams.GRAVITY_NO_GRAVITY;
     private boolean bold = false;
+    private boolean italic = false;
+    private int maxLines = Integer.MAX_VALUE;
+
+    // Lines computed in measure(), reused in render().
+    private List<FormattedCharSequence> lines = Collections.emptyList();
 
     public VanillaTextView(String text)
     {
         this.text = text;
     }
 
-    @Override
     public void setText(String text) { this.text = text; }
 
-    @Override
     public String getText() { return text; }
 
-    @Override
     public void setTextColor(int color) { this.textColor = color; }
 
-    @Override
     public void setTextSize(float sizeSp) { this.textSize = sizeSp / 14.0f; }
 
-    @Override
     public void setGravity(int gravity) { this.textGravity = gravity; }
 
-    @Override
     public void setBold(boolean bold) { this.bold = bold; }
 
-    @Override
-    public void setItalic(boolean italic) { /* Not easily supported with MC font */ }
+    public void setItalic(boolean italic) { this.italic = italic; }
 
-    @Override
-    public void setMaxLines(int maxLines) { /* Not implemented */ }
+    public void setMaxLines(int maxLines) { this.maxLines = maxLines <= 0 ? Integer.MAX_VALUE : maxLines; }
 
-    @Override
     public void setTextIsSelectable(boolean selectable) { /* Not supported */ }
 
-    @Override
+    /**
+     * Wraps the text (with bold/italic style) to the given width in font-space pixels,
+     * clamped to maxLines. A width &lt;= 0 means "do not wrap" (single line).
+     */
+    private List<FormattedCharSequence> buildLines(int wrapWidthFontSpace)
+    {
+        if (text == null || text.isEmpty()) return Collections.emptyList();
+
+        Font font = Minecraft.getInstance().font;
+        Component styled = Component.literal(text).setStyle(Style.EMPTY.withBold(bold).withItalic(italic));
+        int width = wrapWidthFontSpace > 0 ? wrapWidthFontSpace : Integer.MAX_VALUE;
+
+        List<FormattedCharSequence> wrapped = font.split(styled, width);
+        if (wrapped.size() > maxLines)
+        {
+            wrapped = wrapped.subList(0, maxLines);
+        }
+        return wrapped;
+    }
+
+    public void measure(int availableWidth, int availableHeight)
+    {
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+
+        Font font = Minecraft.getInstance().font;
+        int horizPad = paddingLeft + paddingRight;
+
+        // Available text width in screen pixels, then converted to font-space (we scale by textSize when drawing).
+        int wrapPixels;
+        if (lpW == VanillaLayoutParams.MATCH_PARENT) wrapPixels = availableWidth - horizPad;
+        else if (lpW >= 0) wrapPixels = lpW - horizPad;
+        else wrapPixels = -1; // WRAP_CONTENT: single line, no wrapping
+        int wrapFontSpace = wrapPixels > 0 ? (int) (wrapPixels / textSize) : -1;
+
+        this.lines = buildLines(wrapFontSpace);
+
+        int maxLineW = 0;
+        for (FormattedCharSequence line : lines)
+        {
+            maxLineW = Math.max(maxLineW, font.width(line));
+        }
+
+        int contentW = (int) (maxLineW * textSize) + horizPad;
+        int contentH = (int) (Math.max(1, lines.size()) * font.lineHeight * textSize) + paddingTop + paddingBottom;
+
+        measuredWidth = resolveSize(lpW, availableWidth, Math.max(contentW, minWidth));
+        measuredHeight = resolveSize(lpH, availableHeight, Math.max(contentH, minHeight));
+    }
+
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
         if (visibility != VISIBLE) return;
@@ -58,76 +108,73 @@ public class VanillaTextView extends VanillaView implements ITextView
             guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, color);
         }
 
-        if (text == null || text.isEmpty()) return;
+        if (lines.isEmpty()) return;
 
-        var font = Minecraft.getInstance().font;
-        String displayText = bold ? "\u00a7l" + text : text;
-        int textW = font.width(displayText);
+        Font font = Minecraft.getInstance().font;
+        int lineH = font.lineHeight;
+        int blockH = (int) (lines.size() * lineH * textSize);
 
-        // Horizontal alignment
-        int textX;
-        int horizontalGravity = textGravity & 0x07;
-        if (horizontalGravity == 0x05)
-        {
-            textX = x + measuredWidth - paddingRight - textW;
-        }
-        else if (horizontalGravity == 0x01)
-        {
-            textX = x + (measuredWidth - textW) / 2;
-        }
-        else
-        {
-            textX = x + paddingLeft;
-        }
-
-        // Vertical alignment
-        int textY;
+        // Vertical alignment of the whole text block.
         int verticalGravity = textGravity & 0x70;
+        int startY;
         if (verticalGravity == 0x50)
         {
-            textY = y + measuredHeight - paddingBottom - font.lineHeight;
+            startY = y + measuredHeight - paddingBottom - blockH;
         }
         else if (verticalGravity == 0x10)
         {
-            textY = y + (measuredHeight - font.lineHeight) / 2;
+            startY = y + (measuredHeight - blockH) / 2;
         }
         else
         {
-            textY = y + paddingTop;
+            startY = y + paddingTop;
         }
 
-        // Apply alpha
         int a = (int) (((textColor >>> 24) & 0xFF) * alpha);
         int color = (a << 24) | (textColor & 0x00FFFFFF);
 
-        if (textSize != 1.0f)
+        boolean scaled = textSize != 1.0f;
+        if (scaled)
         {
             guiGraphics.pose().pushPose();
             guiGraphics.pose().scale(textSize, textSize, 1.0f);
-            int scaledX = (int) (textX / textSize);
-            int scaledY = (int) (textY / textSize);
-            guiGraphics.drawString(font, displayText, scaledX, scaledY, color, true);
+        }
+
+        int horizontalGravity = textGravity & 0x07;
+        for (int i = 0; i < lines.size(); i++)
+        {
+            FormattedCharSequence line = lines.get(i);
+            int lineW = (int) (font.width(line) * textSize);
+
+            int drawX;
+            if (horizontalGravity == 0x05)
+            {
+                drawX = x + measuredWidth - paddingRight - lineW;
+            }
+            else if (horizontalGravity == 0x01)
+            {
+                drawX = x + (measuredWidth - lineW) / 2;
+            }
+            else
+            {
+                drawX = x + paddingLeft;
+            }
+
+            int drawY = startY + (int) (i * lineH * textSize);
+
+            if (scaled)
+            {
+                guiGraphics.drawString(font, line, (int) (drawX / textSize), (int) (drawY / textSize), color, true);
+            }
+            else
+            {
+                guiGraphics.drawString(font, line, drawX, drawY, color, true);
+            }
+        }
+
+        if (scaled)
+        {
             guiGraphics.pose().popPose();
         }
-        else
-        {
-            guiGraphics.drawString(font, displayText, textX, textY, color, true);
-        }
-    }
-
-    @Override
-    public void measure(int availableWidth, int availableHeight)
-    {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
-
-        var font = Minecraft.getInstance().font;
-        String displayText = bold ? "\u00a7l" + text : text;
-        int textW = (text != null) ? font.width(displayText) : 0;
-        int contentW = (int) (textW * textSize) + paddingLeft + paddingRight;
-        int contentH = (int) (font.lineHeight * textSize) + paddingTop + paddingBottom;
-
-        measuredWidth = resolveSize(lpW, availableWidth, Math.max(contentW, minWidth));
-        measuredHeight = resolveSize(lpH, availableHeight, Math.max(contentH, minHeight));
     }
 }

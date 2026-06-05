@@ -1,7 +1,5 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.IToggle;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,7 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-public class VanillaToggle extends VanillaView implements IToggle
+public class VanillaToggle extends VanillaView
 {
     private boolean checked;
     private String text = "";
@@ -24,13 +22,10 @@ public class VanillaToggle extends VanillaView implements IToggle
         this.checked = initialState;
     }
 
-    @Override
     public void setChecked(boolean checked) { this.checked = checked; }
 
-    @Override
     public boolean isChecked() { return checked; }
 
-    @Override
     public void toggle()
     {
         setChecked(!checked);
@@ -40,19 +35,15 @@ public class VanillaToggle extends VanillaView implements IToggle
         }
     }
 
-    @Override
     public void setOnCheckedChangeListener(Consumer<Boolean> listener)
     {
         this.checkedChangeListener = listener;
     }
 
-    @Override
     public void setText(String text) { this.text = text; }
 
-    @Override
     public String getText() { return text; }
 
-    @Override
     public boolean handleClick(double mouseX, double mouseY, int button)
     {
         if (visibility != VISIBLE || !enabled) return false;
@@ -65,7 +56,6 @@ public class VanillaToggle extends VanillaView implements IToggle
         return false;
     }
 
-    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
         if (visibility != VISIBLE) return;
@@ -98,11 +88,10 @@ public class VanillaToggle extends VanillaView implements IToggle
         }
     }
 
-    @Override
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         var font = Minecraft.getInstance().font;
         int contentW = TOGGLE_WIDTH + paddingLeft + paddingRight + 4;

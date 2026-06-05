@@ -1,10 +1,7 @@
 package goblinbob.mobends.core.client.gui.widget;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.IViewFactory;
-import goblinbob.mobends.api.gui.view.ILinearLayout;
-import goblinbob.mobends.api.gui.view.ITextView;
-import goblinbob.mobends.api.gui.view.IView;
+import goblinbob.mobends.core.client.gui.vanilla.*;
+
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.resources.language.I18n;
 
@@ -20,8 +17,8 @@ public class TabBarWidget
 {
     private static final int TAB_GAP = 2;
 
-    private final IViewFactory factory;
-    private final ILinearLayout rootLayout;
+    private final VanillaViewFactory factory;
+    private final VanillaLinearLayout rootLayout;
     private final List<TabInfo> tabs;
     private int selectedIndex;
     private Consumer<Integer> onTabChanged;
@@ -31,16 +28,16 @@ public class TabBarWidget
      *
      * @param factory The view factory to use for creating views
      */
-    public TabBarWidget(IViewFactory factory)
+    public TabBarWidget(VanillaViewFactory factory)
     {
         this.factory = factory;
         this.tabs = new ArrayList<>();
         this.selectedIndex = -1;
 
         // Create horizontal layout for tabs
-        this.rootLayout = factory.createLinearLayout(IViewFactory.HORIZONTAL);
+        this.rootLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         this.rootLayout.setLayoutParams(factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.TAB_HEIGHT
         ));
     }
@@ -57,34 +54,34 @@ public class TabBarWidget
         int tabIndex = tabs.size();
 
         // Create tab container (vertical layout for text + indicator)
-        ILinearLayout tabContainer = factory.createLinearLayout(IViewFactory.VERTICAL);
+        VanillaLinearLayout tabContainer = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
 
         // Create tab label
-        ITextView label = factory.createTextView(I18n.get(labelKey));
+        VanillaTextView label = factory.createTextView(I18n.get(labelKey));
         label.setTextColor(MoBendsTheme.TEXT_SECONDARY);
         label.setTextSize(14);
-        label.setGravity(ILinearLayout.GRAVITY_CENTER);
+        label.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
         label.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_SMALL,
                         MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_SMALL);
 
         // Create selection indicator (a colored bar at bottom)
-        IView indicator = factory.createView();
+        VanillaView indicator = factory.createView();
         indicator.setBackgroundColor(accentColor);
-        indicator.setVisibility(IView.GONE);
+        indicator.setVisibility(VanillaView.GONE);
         indicator.setLayoutParams(factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.MATCH_PARENT,
                 3
         ));
 
         // Add label and indicator to container
         // Label uses weight=1 to fill remaining vertical space, pushing indicator to the bottom
         tabContainer.addView(label, factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.WRAP_CONTENT,
                 0,
                 1.0f
         ));
         tabContainer.addView(indicator, factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.MATCH_PARENT,
                 3
         ));
 
@@ -93,9 +90,9 @@ public class TabBarWidget
         tabContainer.setBackgroundColor(MoBendsTheme.BG_TAB_INACTIVE);
 
         // Add to root layout with margin
-        ILayoutParams params = factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
-                ILayoutParams.MATCH_PARENT
+        VanillaLayoutParams params = factory.createLayoutParams(
+                VanillaLayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.MATCH_PARENT
         );
         params.setMargins(0, 0, TAB_GAP, 0);
         rootLayout.addView(tabContainer, params);
@@ -140,7 +137,7 @@ public class TabBarWidget
         {
             TabInfo oldTab = tabs.get(selectedIndex);
             oldTab.label.setTextColor(MoBendsTheme.TEXT_SECONDARY);
-            oldTab.indicator.setVisibility(IView.GONE);
+            oldTab.indicator.setVisibility(VanillaView.GONE);
             oldTab.container.setBackgroundColor(MoBendsTheme.BG_TAB_INACTIVE);
         }
 
@@ -148,7 +145,7 @@ public class TabBarWidget
         selectedIndex = index;
         TabInfo newTab = tabs.get(index);
         newTab.label.setTextColor(MoBendsTheme.TEXT_PRIMARY);
-        newTab.indicator.setVisibility(IView.VISIBLE);
+        newTab.indicator.setVisibility(VanillaView.VISIBLE);
         newTab.container.setBackgroundColor(MoBendsTheme.BG_TAB_ACTIVE);
 
         // Notify listener
@@ -177,7 +174,7 @@ public class TabBarWidget
     /**
      * @return The root view that should be added to the layout
      */
-    public IView getView()
+    public VanillaView getView()
     {
         return rootLayout;
     }
@@ -189,12 +186,12 @@ public class TabBarWidget
     {
         final String labelKey;
         final int accentColor;
-        final ILinearLayout container;
-        final ITextView label;
-        final IView indicator;
+        final VanillaLinearLayout container;
+        final VanillaTextView label;
+        final VanillaView indicator;
 
-        TabInfo(String labelKey, int accentColor, ILinearLayout container,
-                ITextView label, IView indicator)
+        TabInfo(String labelKey, int accentColor, VanillaLinearLayout container,
+                VanillaTextView label, VanillaView indicator)
         {
             this.labelKey = labelKey;
             this.accentColor = accentColor;

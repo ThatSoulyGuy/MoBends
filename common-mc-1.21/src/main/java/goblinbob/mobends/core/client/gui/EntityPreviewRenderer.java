@@ -3,7 +3,6 @@ package goblinbob.mobends.core.client.gui;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexSorting;
-import goblinbob.mobends.api.gui.IEntityRenderer;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.IPreviewer;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
@@ -29,7 +28,7 @@ import javax.annotation.Nullable;
  * Renders entity previews for use in UI screens.
  * This bridges the UI layout system with Minecraft's entity rendering.
  */
-public class EntityPreviewRenderer implements IEntityRenderer
+public class EntityPreviewRenderer
 {
     private static final Logger LOGGER = LoggerFactory.getLogger("MoBends/Preview");
     private static final float DEFAULT_SCALE = 40.0f;
@@ -56,7 +55,6 @@ public class EntityPreviewRenderer implements IEntityRenderer
     @Nullable
     private LivingEntityData<?> previewEntityData;
 
-    @Override
     public void setBender(@Nullable Object bender)
     {
         // Clean up old preview entity
@@ -136,7 +134,6 @@ public class EntityPreviewRenderer implements IEntityRenderer
         }
     }
 
-    @Override
     public void setAnimationType(String animationType)
     {
         if (!this.currentAnimationType.equals(animationType.toLowerCase()))
@@ -148,38 +145,32 @@ public class EntityPreviewRenderer implements IEntityRenderer
         }
     }
 
-    @Override
     public void setRotation(float rotationX, float rotationY)
     {
         this.rotationX = Math.max(-80, Math.min(80, rotationX));
         this.rotationY = rotationY;
     }
 
-    @Override
     public void setScale(float scale)
     {
         this.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
     }
 
-    @Override
     public float getRotationX()
     {
         return rotationX;
     }
 
-    @Override
     public float getRotationY()
     {
         return rotationY;
     }
 
-    @Override
     public float getScale()
     {
         return scale;
     }
 
-    @Override
     public void update()
     {
         if (previewEntity == null) return;
@@ -311,7 +302,6 @@ public class EntityPreviewRenderer implements IEntityRenderer
         previewEntity.walkAnimation.update(limbSwingAmount, 0.4f);
     }
 
-    @Override
     public void render(int x, int y, int width, int height, float partialTicks)
     {
         if (previewEntity == null) return;
@@ -503,7 +493,6 @@ public class EntityPreviewRenderer implements IEntityRenderer
         previewEntity.tickCount = prevTickCount;
     }
 
-    @Override
     public void resetView()
     {
         this.rotationX = -10;
@@ -516,7 +505,6 @@ public class EntityPreviewRenderer implements IEntityRenderer
         this.lastUpdateNanos = -1;
     }
 
-    @Override
     public boolean hasEntity()
     {
         return previewEntity != null;

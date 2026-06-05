@@ -1,7 +1,5 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.ITextField;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -11,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-public class VanillaTextField extends VanillaView implements ITextField
+public class VanillaTextField extends VanillaView
 {
     private String text = "";
     private String hint;
@@ -57,7 +55,6 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public void setText(String text)
     {
         this.text = text;
@@ -67,10 +64,8 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public String getText() { return text; }
 
-    @Override
     public void setHint(String hint)
     {
         this.hint = hint;
@@ -80,10 +75,8 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public String getHint() { return hint; }
 
-    @Override
     public void setTextColor(int color)
     {
         this.textColor = color;
@@ -93,22 +86,17 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public void setHintTextColor(int color) { /* EditBox uses default hint color */ }
 
-    @Override
     public void setTextSize(float sizeSp) { /* MC font doesn't support runtime size changes */ }
 
-    @Override
     public void setOnTextChangedListener(Consumer<String> listener)
     {
         this.textChangedListener = listener;
     }
 
-    @Override
     public void setSingleLine(boolean singleLine) { /* EditBox is always single line */ }
 
-    @Override
     public void setMaxLength(int maxLength)
     {
         this.maxLength = maxLength;
@@ -118,7 +106,6 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public void requestFocus()
     {
         this.focused = true;
@@ -128,7 +115,6 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public void clearFocus()
     {
         this.focused = false;
@@ -138,7 +124,6 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public void layout(int left, int top, int right, int bottom)
     {
         super.layout(left, top, right, bottom);
@@ -151,7 +136,6 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
         if (visibility != VISIBLE) return;
@@ -175,22 +159,30 @@ public class VanillaTextField extends VanillaView implements ITextField
         }
     }
 
-    @Override
     public boolean handleClick(double mouseX, double mouseY, int button)
     {
         if (visibility != VISIBLE || !enabled) return false;
 
-        if (editBox != null)
+        ensureEditBox();
+        if (editBox == null) return false;
+
+        boolean inBounds = isInBounds(mouseX, mouseY);
+        if (inBounds)
         {
-            boolean inBounds = isInBounds(mouseX, mouseY);
+            // Focus must be set explicitly: our custom screen doesn't drive vanilla's
+            // widget focus traversal, so without this the EditBox never consumes input.
             editBox.mouseClicked(mouseX, mouseY, button);
-            if (inBounds) return true;
+            editBox.setFocused(true);
+            this.focused = true;
+            return true;
         }
 
+        // Clicking elsewhere releases focus.
+        editBox.setFocused(false);
+        this.focused = false;
         return false;
     }
 
-    @Override
     public boolean handleKeyPressed(int keyCode, int scanCode, int modifiers)
     {
         if (editBox != null && editBox.isFocused())
@@ -200,7 +192,6 @@ public class VanillaTextField extends VanillaView implements ITextField
         return false;
     }
 
-    @Override
     public boolean handleCharTyped(char ch, int modifiers)
     {
         if (editBox != null && editBox.isFocused())
@@ -210,11 +201,10 @@ public class VanillaTextField extends VanillaView implements ITextField
         return false;
     }
 
-    @Override
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         var font = Minecraft.getInstance().font;
         int contentW = 100 + paddingLeft + paddingRight;

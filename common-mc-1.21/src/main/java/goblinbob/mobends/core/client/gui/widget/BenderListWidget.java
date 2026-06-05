@@ -1,8 +1,7 @@
 package goblinbob.mobends.core.client.gui.widget;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.IViewFactory;
-import goblinbob.mobends.api.gui.view.*;
+import goblinbob.mobends.core.client.gui.vanilla.*;
+
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
@@ -21,12 +20,12 @@ import java.util.function.Consumer;
  */
 public class BenderListWidget
 {
-    private static final int ITEM_HEIGHT = 32;
-    private static final int EXPANDED_ANIMATION_ROW_HEIGHT = 24;
+    private static final int ITEM_HEIGHT = 24;
+    private static final int EXPANDED_ANIMATION_ROW_HEIGHT = 18;
 
-    private final IViewFactory factory;
-    private final IScrollView scrollView;
-    private final ILinearLayout contentLayout;
+    private final VanillaViewFactory factory;
+    private final VanillaScrollView scrollView;
+    private final VanillaLinearLayout contentLayout;
     private final List<BenderItemInfo> items;
 
     @Nullable
@@ -41,7 +40,7 @@ public class BenderListWidget
      *
      * @param factory The view factory
      */
-    public BenderListWidget(IViewFactory factory)
+    public BenderListWidget(VanillaViewFactory factory)
     {
         this.factory = factory;
         this.items = new ArrayList<>();
@@ -52,10 +51,10 @@ public class BenderListWidget
         this.scrollView.setBackgroundColor(MoBendsTheme.BG_LIST);
 
         // Create vertical layout for items
-        this.contentLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
+        this.contentLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         this.contentLayout.setLayoutParams(factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         ));
         this.contentLayout.setPadding(0, MoBendsTheme.PADDING_SMALL, 0, MoBendsTheme.PADDING_SMALL);
 
@@ -117,9 +116,9 @@ public class BenderListWidget
         BenderItemInfo item = createBenderItem(bender);
         items.add(item);
 
-        ILayoutParams params = factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
+        VanillaLayoutParams params = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         );
         params.setMargins(MoBendsTheme.PADDING_SMALL, MoBendsTheme.PADDING_SMALL,
                          MoBendsTheme.PADDING_SMALL, 0);
@@ -150,7 +149,7 @@ public class BenderListWidget
             boolean matches = query.isEmpty() ||
                     item.bender.getLocalizedName().toLowerCase().contains(lowerQuery);
 
-            item.rootLayout.setVisibility(matches ? IView.VISIBLE : IView.GONE);
+            item.rootLayout.setVisibility(matches ? VanillaView.VISIBLE : VanillaView.GONE);
         }
     }
 
@@ -195,7 +194,7 @@ public class BenderListWidget
     /**
      * @return The root view to add to the layout
      */
-    public IView getView()
+    public VanillaView getView()
     {
         return scrollView;
     }
@@ -205,45 +204,45 @@ public class BenderListWidget
     private BenderItemInfo createBenderItem(EntityBender<?> bender)
     {
         // Create root layout for item (vertical for header + expandable content)
-        ILinearLayout rootLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
+        VanillaLinearLayout rootLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         rootLayout.setBackgroundColor(MoBendsTheme.BG_LIST_ITEM);
 
         // Create header row (horizontal)
-        ILinearLayout headerLayout = factory.createLinearLayout(IViewFactory.HORIZONTAL);
+        VanillaLinearLayout headerLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         headerLayout.setLayoutParams(factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.MATCH_PARENT,
                 ITEM_HEIGHT
         ));
         headerLayout.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
-        headerLayout.setGravity(ILinearLayout.GRAVITY_CENTER_VERTICAL);
+        headerLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
 
         // Accent bar (left edge)
-        IView accentBar = factory.createView();
+        VanillaView accentBar = factory.createView();
         accentBar.setBackgroundColor(bender.isAnimated() ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
-        accentBar.setLayoutParams(factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
+        accentBar.setLayoutParams(factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
 
         // Entity name
-        ITextView nameView = factory.createTextView(bender.getLocalizedName());
+        VanillaTextView nameView = factory.createTextView(bender.getLocalizedName());
         nameView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         nameView.setTextSize(14);
-        ILayoutParams nameParams = factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
-                ILayoutParams.WRAP_CONTENT
+        VanillaLayoutParams nameParams = factory.createLayoutParams(
+                VanillaLayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.WRAP_CONTENT
         );
         nameParams.setMargins(MoBendsTheme.PADDING, 0, 0, 0);
 
         // Expand indicator
-        ITextView expandIndicator = factory.createTextView("\u25B6"); // Right arrow
+        VanillaTextView expandIndicator = factory.createTextView("\u25B6"); // Right arrow
         expandIndicator.setTextColor(MoBendsTheme.TEXT_HINT);
         expandIndicator.setTextSize(12);
-        ILayoutParams expandParams = factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
-                ILayoutParams.WRAP_CONTENT
+        VanillaLayoutParams expandParams = factory.createLayoutParams(
+                VanillaLayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.WRAP_CONTENT
         );
         expandParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
         // Master toggle
-        IToggle toggle = factory.createToggle(bender.isAnimated());
+        VanillaToggle toggle = factory.createToggle(bender.isAnimated());
         toggle.setOnCheckedChangeListener(checked -> {
             bender.setAnimate(checked);
             CoreClientConfig.getInstance().setEntityEnabled(bender.getKey(), checked);
@@ -251,27 +250,27 @@ public class BenderListWidget
         });
 
         // Add views to header
-        headerLayout.addView(accentBar, factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
+        headerLayout.addView(accentBar, factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
         headerLayout.addView(nameView, nameParams);
         // Add spacer
-        IView spacer = factory.createView();
-        ILayoutParams spacerParams = factory.createLayoutParams(0, 0);
+        VanillaView spacer = factory.createView();
+        VanillaLayoutParams spacerParams = factory.createLayoutParams(0, 0);
         spacerParams.setMargins(0, 0, 0, 0);
         // Use weight simulation - LinearLayout supports this internally
-        headerLayout.addView(spacer, factory.createLayoutParams(ILayoutParams.MATCH_PARENT, 1));
+        headerLayout.addView(spacer, factory.createLayoutParams(VanillaLayoutParams.MATCH_PARENT, 1));
         headerLayout.addView(expandIndicator, expandParams);
         headerLayout.addView(toggle, factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
-                ILayoutParams.WRAP_CONTENT
+                VanillaLayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.WRAP_CONTENT
         ));
 
         // Create animations container (initially hidden)
-        ILinearLayout animationsLayout = factory.createLinearLayout(IViewFactory.VERTICAL);
+        VanillaLinearLayout animationsLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         animationsLayout.setLayoutParams(factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         ));
-        animationsLayout.setVisibility(IView.GONE);
+        animationsLayout.setVisibility(VanillaView.GONE);
         animationsLayout.setPadding(MoBendsTheme.PADDING_LARGE, 0,
                                    MoBendsTheme.PADDING, MoBendsTheme.PADDING_SMALL);
 
@@ -283,19 +282,19 @@ public class BenderListWidget
             AnimationRowInfo rowInfo = createAnimationRow(animType);
             animationRows.add(rowInfo);
             animationsLayout.addView(rowInfo.layout, factory.createLayoutParams(
-                    ILayoutParams.MATCH_PARENT,
+                    VanillaLayoutParams.MATCH_PARENT,
                     EXPANDED_ANIMATION_ROW_HEIGHT
             ));
         }
 
         // Add to root
         rootLayout.addView(headerLayout, factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.MATCH_PARENT,
                 ITEM_HEIGHT
         ));
         rootLayout.addView(animationsLayout, factory.createLayoutParams(
-                ILayoutParams.MATCH_PARENT,
-                ILayoutParams.WRAP_CONTENT
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         ));
 
         // Create item info
@@ -312,30 +311,30 @@ public class BenderListWidget
 
     private AnimationRowInfo createAnimationRow(String animationType)
     {
-        ILinearLayout rowLayout = factory.createLinearLayout(IViewFactory.HORIZONTAL);
-        rowLayout.setGravity(ILinearLayout.GRAVITY_CENTER_VERTICAL);
+        VanillaLinearLayout rowLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        rowLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
         rowLayout.setBackgroundColor(0x00000000); // Transparent initially
 
         // Selection indicator
-        IView indicator = factory.createView();
+        VanillaView indicator = factory.createView();
         indicator.setBackgroundColor(MoBendsTheme.ACCENT_INFO);
-        indicator.setVisibility(IView.GONE);
-        indicator.setLayoutParams(factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
+        indicator.setVisibility(VanillaView.GONE);
+        indicator.setLayoutParams(factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
 
         // Animation name
         String labelKey = "mobends.animation." + animationType;
         String label = I18n.exists(labelKey) ? I18n.get(labelKey) : capitalizeFirst(animationType);
 
-        ITextView nameView = factory.createTextView(label);
+        VanillaTextView nameView = factory.createTextView(label);
         nameView.setTextColor(MoBendsTheme.TEXT_SECONDARY);
         nameView.setTextSize(12);
-        ILayoutParams nameParams = factory.createLayoutParams(
-                ILayoutParams.WRAP_CONTENT,
-                ILayoutParams.WRAP_CONTENT
+        VanillaLayoutParams nameParams = factory.createLayoutParams(
+                VanillaLayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.WRAP_CONTENT
         );
         nameParams.setMargins(MoBendsTheme.PADDING, 0, 0, 0);
 
-        rowLayout.addView(indicator, factory.createLayoutParams(3, ILayoutParams.MATCH_PARENT));
+        rowLayout.addView(indicator, factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
         rowLayout.addView(nameView, nameParams);
 
         AnimationRowInfo rowInfo = new AnimationRowInfo(animationType, rowLayout, indicator, nameView);
@@ -356,12 +355,12 @@ public class BenderListWidget
         if (item.isExpanded)
         {
             item.animationsLayout.setAlpha(0f);
-            item.animationsLayout.setVisibility(IView.VISIBLE);
+            item.animationsLayout.setVisibility(VanillaView.VISIBLE);
             item.animationsLayout.animateAlpha(1f, 120);
         }
         else
         {
-            item.animationsLayout.setVisibility(IView.GONE);
+            item.animationsLayout.setVisibility(VanillaView.GONE);
         }
         item.expandIndicator.setText(item.isExpanded ? "\u25BC" : "\u25B6"); // Down/Right arrow
 
@@ -411,7 +410,7 @@ public class BenderListWidget
 
     private void updateAnimationRowSelection(AnimationRowInfo row, boolean selected)
     {
-        row.indicator.setVisibility(selected ? IView.VISIBLE : IView.GONE);
+        row.indicator.setVisibility(selected ? VanillaView.VISIBLE : VanillaView.GONE);
         row.nameView.setTextColor(selected ? MoBendsTheme.TEXT_PRIMARY : MoBendsTheme.TEXT_SECONDARY);
         row.layout.setBackgroundColor(selected ? 0x20448888 : 0x00000000);
     }
@@ -427,19 +426,19 @@ public class BenderListWidget
     private static class BenderItemInfo
     {
         final EntityBender<?> bender;
-        final ILinearLayout rootLayout;
-        final ILinearLayout headerLayout;
-        final IView accentBar;
-        final ITextView expandIndicator;
-        final IToggle toggle;
-        final ILinearLayout animationsLayout;
+        final VanillaLinearLayout rootLayout;
+        final VanillaLinearLayout headerLayout;
+        final VanillaView accentBar;
+        final VanillaTextView expandIndicator;
+        final VanillaToggle toggle;
+        final VanillaLinearLayout animationsLayout;
         final List<AnimationRowInfo> animationRows;
         boolean isExpanded = false;
 
-        BenderItemInfo(EntityBender<?> bender, ILinearLayout rootLayout,
-                      ILinearLayout headerLayout, IView accentBar,
-                      ITextView expandIndicator, IToggle toggle,
-                      ILinearLayout animationsLayout, List<AnimationRowInfo> animationRows)
+        BenderItemInfo(EntityBender<?> bender, VanillaLinearLayout rootLayout,
+                      VanillaLinearLayout headerLayout, VanillaView accentBar,
+                      VanillaTextView expandIndicator, VanillaToggle toggle,
+                      VanillaLinearLayout animationsLayout, List<AnimationRowInfo> animationRows)
         {
             this.bender = bender;
             this.rootLayout = rootLayout;
@@ -455,12 +454,12 @@ public class BenderListWidget
     private static class AnimationRowInfo
     {
         final String animationType;
-        final ILinearLayout layout;
-        final IView indicator;
-        final ITextView nameView;
+        final VanillaLinearLayout layout;
+        final VanillaView indicator;
+        final VanillaTextView nameView;
 
-        AnimationRowInfo(String animationType, ILinearLayout layout,
-                        IView indicator, ITextView nameView)
+        AnimationRowInfo(String animationType, VanillaLinearLayout layout,
+                        VanillaView indicator, VanillaTextView nameView)
         {
             this.animationType = animationType;
             this.layout = layout;

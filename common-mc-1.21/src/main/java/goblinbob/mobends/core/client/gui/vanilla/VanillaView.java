@@ -1,13 +1,16 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.IView;
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 
 import javax.annotation.Nullable;
 
-public class VanillaView implements IView
+public class VanillaView
 {
+    public static final int VISIBLE = 0;
+    public static final int INVISIBLE = 4;
+    public static final int GONE = 8;
+
     protected int x, y;
     protected int measuredWidth, measuredHeight;
 
@@ -15,6 +18,14 @@ public class VanillaView implements IView
     protected int visibility = VISIBLE;
     protected boolean enabled = true;
     protected float alpha = 1.0f;
+
+    // Alpha tween state
+    private float alphaFrom = 1.0f;
+    private float alphaTo = 1.0f;
+    private long alphaStartMs;
+    private int alphaDurationMs;
+    private boolean alphaAnimating;
+
     protected int backgroundColor;
     protected int minWidth, minHeight;
     protected int paddingLeft, paddingTop, paddingRight, paddingBottom;
@@ -26,26 +37,18 @@ public class VanillaView implements IView
     @Nullable
     protected Object background;
 
-    @Override
     public void setId(int id) { this.id = id; }
 
-    @Override
     public int getId() { return id; }
 
-    @Override
-    public void setLayoutParams(ILayoutParams params)
+    public void setLayoutParams(VanillaLayoutParams params)
     {
-        if (params instanceof VanillaLayoutParams vlp)
-        {
-            this.layoutParams = vlp;
-        }
+        this.layoutParams = params;
     }
 
     @Nullable
-    @Override
-    public ILayoutParams getLayoutParams() { return layoutParams; }
+    public VanillaLayoutParams getLayoutParams() { return layoutParams; }
 
-    @Override
     public void setPadding(int left, int top, int right, int bottom)
     {
         this.paddingLeft = left;
@@ -54,37 +57,30 @@ public class VanillaView implements IView
         this.paddingBottom = bottom;
     }
 
-    @Override
     public int getWidth() { return measuredWidth; }
 
-    @Override
     public int getHeight() { return measuredHeight; }
 
-    @Override
     public void setMinimumWidth(int minWidth) { this.minWidth = minWidth; }
 
-    @Override
     public void setMinimumHeight(int minHeight) { this.minHeight = minHeight; }
 
-    @Override
     public void setVisibility(int visibility) { this.visibility = visibility; }
 
-    @Override
     public int getVisibility() { return visibility; }
 
-    @Override
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
-    @Override
     public boolean isEnabled() { return enabled; }
 
-    @Override
-    public void setAlpha(float alpha) { this.alpha = alpha; }
+    public void setAlpha(float alpha)
+    {
+        this.alpha = alpha;
+        this.alphaAnimating = false;
+    }
 
-    @Override
     public float getAlpha() { return alpha; }
 
-    @Override
     public void setBackground(@Nullable Object drawable)
     {
         this.background = drawable;
@@ -94,22 +90,58 @@ public class VanillaView implements IView
         }
     }
 
-    @Override
     public void setBackgroundColor(int color) { this.backgroundColor = color; }
 
-    @Override
     public void setOnClickListener(@Nullable Runnable listener) { this.clickListener = listener; }
 
-    @Override
+    /**
+     * Tweens the view's alpha to the target value over the given duration (linear).
+     * Advanced each frame from {@link #layout}.
+     */
+    public void animateAlpha(float targetAlpha, int durationMs)
+    {
+        if (durationMs <= 0)
+        {
+            setAlpha(targetAlpha);
+            return;
+        }
+        this.alphaFrom = this.alpha;
+        this.alphaTo = targetAlpha;
+        this.alphaStartMs = Util.getMillis();
+        this.alphaDurationMs = durationMs;
+        this.alphaAnimating = true;
+    }
+
+    /**
+     * Advances time-based animations. Called once per frame from {@link #layout}.
+     */
+    protected void tickAnimations()
+    {
+        if (alphaAnimating)
+        {
+            long elapsed = Util.getMillis() - alphaStartMs;
+            if (elapsed >= alphaDurationMs)
+            {
+                this.alpha = alphaTo;
+                this.alphaAnimating = false;
+            }
+            else
+            {
+                float t = (float) elapsed / alphaDurationMs;
+                this.alpha = alphaFrom + (alphaTo - alphaFrom) * t;
+            }
+        }
+    }
+
     public Object getNativeView() { return this; }
 
     // --- Layout engine ---
 
     public void measure(int availableWidth, int availableHeight)
     {
-        int w = resolveSize(layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT,
+        int w = resolveSize(layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT,
                 availableWidth, minWidth + paddingLeft + paddingRight);
-        int h = resolveSize(layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT,
+        int h = resolveSize(layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT,
                 availableHeight, minHeight + paddingTop + paddingBottom);
         measuredWidth = w;
         measuredHeight = h;
@@ -117,18 +149,19 @@ public class VanillaView implements IView
 
     protected int resolveSize(int spec, int available, int contentSize)
     {
-        if (spec == ILayoutParams.MATCH_PARENT)
+        if (spec == VanillaLayoutParams.MATCH_PARENT)
         {
             // Inside a ScrollView, available can be Integer.MAX_VALUE/2.
             // MATCH_PARENT should fall back to content size in that case.
             return (available > 100000) ? Math.max(contentSize, 0) : available;
         }
-        if (spec == ILayoutParams.WRAP_CONTENT) return Math.max(contentSize, 0);
+        if (spec == VanillaLayoutParams.WRAP_CONTENT) return Math.max(contentSize, 0);
         return spec;
     }
 
     public void layout(int left, int top, int right, int bottom)
     {
+        tickAnimations();
         this.x = left;
         this.y = top;
         this.measuredWidth = right - left;

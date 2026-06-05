@@ -1,57 +1,55 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.IScrollView;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.gui.GuiGraphics;
 
-public class VanillaScrollView extends VanillaViewGroup implements IScrollView
+public class VanillaScrollView extends VanillaViewGroup
 {
     protected int scrollOffset = 0;
     protected int maxScroll = 0;
     private boolean verticalScrollBarEnabled = true;
 
-    private static final int SCROLLBAR_WIDTH = 4;
+    // Smooth-scroll animation state
+    private int targetScroll = 0;
+    private boolean animatingScroll = false;
 
-    @Override
+    private static final int SCROLLBAR_WIDTH = 4;
+    private static final boolean SHOW_BORDER = true;
+
     public void scrollTo(int y)
     {
+        this.animatingScroll = false;
         this.scrollOffset = Math.max(0, Math.min(y, maxScroll));
         relayoutChildren();
     }
 
-    @Override
     public void scrollBy(int dy)
     {
         scrollTo(scrollOffset + dy);
     }
 
-    @Override
     public void smoothScrollTo(int y)
     {
-        scrollTo(y);
+        this.targetScroll = y;
+        this.animatingScroll = true;
     }
 
-    @Override
     public int getScrollY() { return scrollOffset; }
 
-    @Override
     public void setVerticalScrollBarEnabled(boolean visible)
     {
         this.verticalScrollBarEnabled = visible;
     }
 
-    @Override
     public void setOverScrollEnabled(boolean enabled)
     {
         // No-op
     }
 
-    @Override
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         measuredWidth = resolveSize(lpW, availableWidth, availableWidth);
         measuredHeight = resolveSize(lpH, availableHeight, availableHeight);
@@ -73,11 +71,30 @@ public class VanillaScrollView extends VanillaViewGroup implements IScrollView
         }
     }
 
-    @Override
     public void layout(int left, int top, int right, int bottom)
     {
         super.layout(left, top, right, bottom);
+        if (animatingScroll)
+        {
+            advanceSmoothScroll();
+        }
         relayoutChildren();
+    }
+
+    private void advanceSmoothScroll()
+    {
+        int target = Math.max(0, Math.min(targetScroll, maxScroll));
+        int diff = target - scrollOffset;
+        if (Math.abs(diff) <= 1)
+        {
+            scrollOffset = target;
+            animatingScroll = false;
+        }
+        else
+        {
+            // Ease toward the target; the per-frame step is at least 1px so it always converges.
+            scrollOffset += diff > 0 ? Math.max(1, (int) (diff * 0.30f)) : Math.min(-1, (int) (diff * 0.30f));
+        }
     }
 
     protected void relayoutChildren()
@@ -101,7 +118,7 @@ public class VanillaScrollView extends VanillaViewGroup implements IScrollView
             }
 
             int childW = child.measuredWidth;
-            if (clp != null && clp.getWidth() == ILayoutParams.MATCH_PARENT)
+            if (clp != null && clp.getWidth() == VanillaLayoutParams.MATCH_PARENT)
             {
                 childW = contentW - ml - mr;
             }
@@ -119,7 +136,6 @@ public class VanillaScrollView extends VanillaViewGroup implements IScrollView
         if (scrollOffset > maxScroll) scrollOffset = maxScroll;
     }
 
-    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
     {
         if (visibility != VISIBLE) return;
@@ -145,6 +161,15 @@ public class VanillaScrollView extends VanillaViewGroup implements IScrollView
         {
             renderScrollbar(guiGraphics);
         }
+
+        if (SHOW_BORDER)
+        {
+            int b = MoBendsTheme.BORDER;
+            guiGraphics.fill(x, y, x + measuredWidth, y + 1, b);
+            guiGraphics.fill(x, y + measuredHeight - 1, x + measuredWidth, y + measuredHeight, b);
+            guiGraphics.fill(x, y, x + 1, y + measuredHeight, b);
+            guiGraphics.fill(x + measuredWidth - 1, y, x + measuredWidth, y + measuredHeight, b);
+        }
     }
 
     private void renderScrollbar(GuiGraphics guiGraphics)
@@ -164,7 +189,6 @@ public class VanillaScrollView extends VanillaViewGroup implements IScrollView
                 MoBendsTheme.SCROLLBAR_THUMB);
     }
 
-    @Override
     public boolean handleMouseScrolled(double mouseX, double mouseY, double scrollY)
     {
         if (visibility != VISIBLE) return false;
@@ -184,7 +208,6 @@ public class VanillaScrollView extends VanillaViewGroup implements IScrollView
         return false;
     }
 
-    @Override
     public boolean handleClick(double mouseX, double mouseY, int button)
     {
         if (visibility != VISIBLE || !enabled) return false;

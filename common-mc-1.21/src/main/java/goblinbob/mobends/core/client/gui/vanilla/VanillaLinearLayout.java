@@ -1,31 +1,35 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-import goblinbob.mobends.api.gui.ILayoutParams;
-import goblinbob.mobends.api.gui.view.ILinearLayout;
 
-public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayout
+public class VanillaLinearLayout extends VanillaViewGroup
 {
+    public static final int HORIZONTAL = 0;
+    public static final int VERTICAL = 1;
+
+    public static final int GRAVITY_START = 0x00800003;
+    public static final int GRAVITY_END = 0x00800005;
+    public static final int GRAVITY_TOP = 0x30;
+    public static final int GRAVITY_BOTTOM = 0x50;
+    public static final int GRAVITY_CENTER = 0x11;
+    public static final int GRAVITY_CENTER_HORIZONTAL = 0x01;
+    public static final int GRAVITY_CENTER_VERTICAL = 0x10;
+
     private int orientation = VERTICAL;
-    private int gravity = ILayoutParams.GRAVITY_NO_GRAVITY;
+    private int gravity = VanillaLayoutParams.GRAVITY_NO_GRAVITY;
     private int spacing = 0;
 
-    @Override
     public void setOrientation(int orientation) { this.orientation = orientation; }
 
-    @Override
     public int getOrientation() { return orientation; }
 
-    @Override
     public void setGravity(int gravity) { this.gravity = gravity; }
 
-    @Override
     public void setSpacing(int spacing) { this.spacing = spacing; }
 
-    @Override
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         // Constrain available space to own fixed size when specified,
         // so children are measured within this layout's actual bounds
@@ -52,7 +56,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
     private static float effectiveWeight(float weight, int mainAxisSpec)
     {
         if (weight > 0) return weight;
-        return (mainAxisSpec == ILayoutParams.MATCH_PARENT) ? 1.0f : 0;
+        return (mainAxisSpec == VanillaLayoutParams.MATCH_PARENT) ? 1.0f : 0;
     }
 
     private void measureVertical(int contentW, int contentH, int availableWidth, int availableHeight)
@@ -71,7 +75,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
             VanillaLayoutParams clp = child.layoutParams;
             int ml = 0, mt = 0, mr = 0, mb = 0;
             float weight = 0;
-            int childHeightSpec = ILayoutParams.WRAP_CONTENT;
+            int childHeightSpec = VanillaLayoutParams.WRAP_CONTENT;
             if (clp != null)
             {
                 ml = clp.getMarginLeft();
@@ -95,8 +99,8 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                 totalFixedHeight += child.measuredHeight + mt + mb;
                 // Cross-axis MATCH_PARENT children will be stretched during layout,
                 // so don't let them inflate a WRAP_CONTENT parent's width.
-                int childWidthSpec = clp != null ? clp.getWidth() : ILayoutParams.WRAP_CONTENT;
-                if (childWidthSpec != ILayoutParams.MATCH_PARENT)
+                int childWidthSpec = clp != null ? clp.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+                if (childWidthSpec != VanillaLayoutParams.MATCH_PARENT)
                 {
                     maxChildWidth = Math.max(maxChildWidth, child.measuredWidth + ml + mr);
                 }
@@ -117,7 +121,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                 if (child.visibility == GONE) continue;
                 VanillaLayoutParams clp = child.layoutParams;
                 float weight = clp != null ? clp.getWeight() : 0;
-                int childHeightSpec = clp != null ? clp.getHeight() : ILayoutParams.WRAP_CONTENT;
+                int childHeightSpec = clp != null ? clp.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
                 float ew = effectiveWeight(weight, childHeightSpec);
 
                 if (ew > 0)
@@ -132,8 +136,8 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                     {
                         child.measuredHeight = childH;
                     }
-                    int childWidthSpec = clp != null ? clp.getWidth() : ILayoutParams.WRAP_CONTENT;
-                    if (childWidthSpec != ILayoutParams.MATCH_PARENT)
+                    int childWidthSpec = clp != null ? clp.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+                    if (childWidthSpec != VanillaLayoutParams.MATCH_PARENT)
                     {
                         maxChildWidth = Math.max(maxChildWidth, child.measuredWidth + ml + mr);
                     }
@@ -141,12 +145,12 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
             }
         }
 
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         measuredWidth = resolveSize(lpW, availableWidth, maxChildWidth + paddingLeft + paddingRight);
 
-        if (lpH == ILayoutParams.WRAP_CONTENT)
+        if (lpH == VanillaLayoutParams.WRAP_CONTENT)
         {
             measuredHeight = totalFixedHeight + paddingTop + paddingBottom;
             if (totalWeight > 0)
@@ -176,7 +180,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
             VanillaLayoutParams clp = child.layoutParams;
             int ml = 0, mt = 0, mr = 0, mb = 0;
             float weight = 0;
-            int childWidthSpec = ILayoutParams.WRAP_CONTENT;
+            int childWidthSpec = VanillaLayoutParams.WRAP_CONTENT;
             if (clp != null)
             {
                 ml = clp.getMarginLeft();
@@ -200,8 +204,8 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                 totalFixedWidth += child.measuredWidth + ml + mr;
                 // Cross-axis MATCH_PARENT children will be stretched during layout,
                 // so don't let them inflate a WRAP_CONTENT parent's height.
-                int childHeightSpec = clp != null ? clp.getHeight() : ILayoutParams.WRAP_CONTENT;
-                if (childHeightSpec != ILayoutParams.MATCH_PARENT)
+                int childHeightSpec = clp != null ? clp.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+                if (childHeightSpec != VanillaLayoutParams.MATCH_PARENT)
                 {
                     maxChildHeight = Math.max(maxChildHeight, child.measuredHeight + mt + mb);
                 }
@@ -221,7 +225,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                 if (child.visibility == GONE) continue;
                 VanillaLayoutParams clp = child.layoutParams;
                 float weight = clp != null ? clp.getWeight() : 0;
-                int childWidthSpec = clp != null ? clp.getWidth() : ILayoutParams.WRAP_CONTENT;
+                int childWidthSpec = clp != null ? clp.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
                 float ew = effectiveWeight(weight, childWidthSpec);
 
                 if (ew > 0)
@@ -236,8 +240,8 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                     {
                         child.measuredWidth = childW;
                     }
-                    int childHeightSpec = clp != null ? clp.getHeight() : ILayoutParams.WRAP_CONTENT;
-                    if (childHeightSpec != ILayoutParams.MATCH_PARENT)
+                    int childHeightSpec = clp != null ? clp.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+                    if (childHeightSpec != VanillaLayoutParams.MATCH_PARENT)
                     {
                         maxChildHeight = Math.max(maxChildHeight, child.measuredHeight + mt + mb);
                     }
@@ -245,10 +249,10 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
             }
         }
 
-        int lpW = layoutParams != null ? layoutParams.getWidth() : ILayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : ILayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
-        if (lpW == ILayoutParams.WRAP_CONTENT)
+        if (lpW == VanillaLayoutParams.WRAP_CONTENT)
         {
             measuredWidth = totalFixedWidth + paddingLeft + paddingRight;
             if (totalWeight > 0)
@@ -264,7 +268,6 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
         measuredHeight = resolveSize(lpH, availableHeight, maxChildHeight + paddingTop + paddingBottom);
     }
 
-    @Override
     public void layout(int left, int top, int right, int bottom)
     {
         super.layout(left, top, right, bottom);
@@ -296,7 +299,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                 mt = clp.getMarginTop();
                 mr = clp.getMarginRight();
                 mb = clp.getMarginBottom();
-                if (clp.getGravity() != ILayoutParams.GRAVITY_NO_GRAVITY)
+                if (clp.getGravity() != VanillaLayoutParams.GRAVITY_NO_GRAVITY)
                 {
                     childGravity = clp.getGravity();
                 }
@@ -307,7 +310,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
             int childW = child.measuredWidth;
             int availW = getContentWidth() - ml - mr;
 
-            if (clp != null && clp.getWidth() == ILayoutParams.MATCH_PARENT)
+            if (clp != null && clp.getWidth() == VanillaLayoutParams.MATCH_PARENT)
             {
                 childW = availW;
             }
@@ -349,7 +352,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
                 mt = clp.getMarginTop();
                 mr = clp.getMarginRight();
                 mb = clp.getMarginBottom();
-                if (clp.getGravity() != ILayoutParams.GRAVITY_NO_GRAVITY)
+                if (clp.getGravity() != VanillaLayoutParams.GRAVITY_NO_GRAVITY)
                 {
                     childGravity = clp.getGravity();
                 }
@@ -360,7 +363,7 @@ public class VanillaLinearLayout extends VanillaViewGroup implements ILinearLayo
             int childH = child.measuredHeight;
             int availH = getContentHeight() - mt - mb;
 
-            if (clp != null && clp.getHeight() == ILayoutParams.MATCH_PARENT)
+            if (clp != null && clp.getHeight() == VanillaLayoutParams.MATCH_PARENT)
             {
                 childH = availH;
             }

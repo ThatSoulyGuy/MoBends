@@ -6,16 +6,15 @@ import goblinbob.mobends.api.entity.IItemStack;
 import goblinbob.mobends.api.entity.ILivingEntity;
 import goblinbob.mobends.api.entity.IPlayer;
 import com.mojang.blaze3d.systems.RenderSystem;
-import goblinbob.mobends.api.gui.IUIServices;
 import goblinbob.mobends.api.platform.IPlatformServices;
 import goblinbob.mobends.api.armor.ArmorModelProviderHolder;
 import goblinbob.mobends.api.armor.IArmorTextureProvider;
+import goblinbob.mobends.api.rendering.IArmorColorProvider;
 import goblinbob.mobends.api.rendering.IArmorHelper;
 import goblinbob.mobends.api.rendering.IArmorLayerProvider;
 import goblinbob.mobends.api.rendering.IBufferSource;
 import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
-import goblinbob.mobends.core.client.gui.vanilla.VanillaUIServices;
 import goblinbob.mobends.api.rendering.IPoseStack;
 import goblinbob.mobends.api.rendering.IRenderLayerProvider;
 import goblinbob.mobends.api.rendering.ITesselator;
@@ -68,9 +67,7 @@ public class NeoForgePlatformServices implements IPlatformServices
         ArmorModelProviderHolder.setProvider(new NeoForgeArmorModelProvider());
         IArmorTextureProvider.Holder.setProvider(new NeoForgeArmorTextureProvider());
         IArmorLayerProvider.Holder.setProvider(new NeoForgeArmorLayerProvider());
-
-        // Initialize vanilla UI services
-        IUIServices.Holder.setServices(new VanillaUIServices());
+        IArmorColorProvider.Holder.setProvider(new NeoForgeArmorColorProvider());
     }
 
     @Override

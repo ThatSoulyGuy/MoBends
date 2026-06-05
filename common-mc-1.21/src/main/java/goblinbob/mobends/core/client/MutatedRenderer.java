@@ -6,8 +6,6 @@ import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.util.GlHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
 public abstract class MutatedRenderer<T extends LivingEntity>
@@ -26,20 +24,12 @@ public abstract class MutatedRenderer<T extends LivingEntity>
      */
     public void beforeRender(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
     {
-        double entityX = Mth.lerp(partialTicks, entity.xOld, entity.getX());
-        double entityY = Mth.lerp(partialTicks, entity.yOld, entity.getY());
-        double entityZ = Mth.lerp(partialTicks, entity.zOld, entity.getZ());
+        // NOTE: The poseStack is already translated to the entity's position by
+        // EntityRenderDispatcher. Do NOT add an extra entity-to-view translation here,
+        // as that creates a double-offset that causes remote players to visually teleport
+        // during rotational animations (attack spins, etc.).
 
-        Entity viewEntity = Minecraft.getInstance().getCameraEntity();
-        double viewX = entityX, viewY = entityY, viewZ = entityZ;
-        if (viewEntity != null)
-        {
-            // Checking in case of Main Menu or GUI rendering.
-            viewX = Mth.lerp(partialTicks, viewEntity.xOld, viewEntity.getX());
-            viewY = Mth.lerp(partialTicks, viewEntity.yOld, viewEntity.getY());
-            viewZ = Mth.lerp(partialTicks, viewEntity.zOld, viewEntity.getZ());
-        }
-        poseStack.translate(entityX - viewX, entityY - viewY, entityZ - viewZ);
+        // Remove body rotation so we can apply animations in entity-local space
         poseStack.mulPose(Axis.YP.rotationDegrees(-interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
 
         this.renderLocalAccessories(entity, data, partialTicks, poseStack);
@@ -68,8 +58,8 @@ public abstract class MutatedRenderer<T extends LivingEntity>
 
         this.transformLocally(entity, data, partialTicks, poseStack);
 
+        // Re-add body rotation
         poseStack.mulPose(Axis.YP.rotationDegrees(interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
-        poseStack.translate(viewX - entityX, viewY - entityY, viewZ - entityZ);
     }
 
     /**
