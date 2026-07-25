@@ -499,10 +499,25 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             vanillaPositionsStored = true;
         }
 
-        syncPartToModelPart(body, model.body, vanillaBodyPos);
-        syncPartToModelPart(head, model.head, vanillaHeadPos);
-        syncPartToModelPart(leftArm, model.leftArm, vanillaLeftArmPos);
-        syncPartToModelPart(rightArm, model.rightArm, vanillaRightArmPos);
+        Quaternion bodyRotation = body.rotation.getSmooth();
+        float bodyPivotX = body.globalOffset.x + (body.position.x + body.offset.x) * body.offsetScale;
+        float bodyPivotY = body.globalOffset.y + (body.position.y + body.offset.y) * body.offsetScale;
+        float bodyPivotZ = body.globalOffset.z + (body.position.z + body.offset.z) * body.offsetScale;
+
+        float[] bodyNeck = rotateVectorByQuaternion(bodyRotation, 0.0F, -12.0F, 0.0F);
+        model.body.x = bodyPivotX + bodyNeck[0];
+        model.body.y = bodyPivotY + bodyNeck[1];
+        model.body.z = bodyPivotZ + bodyNeck[2];
+        float[] bodyEuler = quaternionToEulerXYZ(bodyRotation);
+        model.body.xRot = bodyEuler[0];
+        model.body.yRot = bodyEuler[1];
+        model.body.zRot = bodyEuler[2];
+        model.body.visible = body.isShowing();
+
+        syncBodyChildToModelPart(head, model.head, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
+        syncBodyChildToModelPart(leftArm, model.leftArm, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
+        syncBodyChildToModelPart(rightArm, model.rightArm, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
+
         syncPartToModelPart(leftLeg, model.leftLeg, vanillaLeftLegPos);
         syncPartToModelPart(rightLeg, model.rightLeg, vanillaRightLegPos);
 
@@ -546,6 +561,53 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         // Sync visibility
         modelPart.visible = bendsPart.isShowing();
+    }
+
+    private void syncBodyChildToModelPart(BendsModelPart child, ModelPart modelPart,
+                                          float bodyPivotX, float bodyPivotY, float bodyPivotZ,
+                                          Quaternion bodyRotation)
+    {
+        if (child == null || modelPart == null) return;
+        float[] pivot = new float[3];
+        Quaternion rotation = composeChildWorld(bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation, child, pivot);
+        setEndModelPart(modelPart, pivot, rotation, child.isShowing());
+    }
+
+    private static Quaternion composeChildWorld(float parentPivotX, float parentPivotY, float parentPivotZ,
+                                                Quaternion parentRotation, BendsModelPart child, float[] outPivot)
+    {
+        float lx = (child.position.x + child.offset.x) * child.offsetScale;
+        float ly = (child.position.y + child.offset.y) * child.offsetScale;
+        float lz = (child.position.z + child.offset.z) * child.offsetScale;
+        float[] rotated = rotateVectorByQuaternion(parentRotation, lx, ly, lz);
+        outPivot[0] = parentPivotX + rotated[0];
+        outPivot[1] = parentPivotY + rotated[1];
+        outPivot[2] = parentPivotZ + rotated[2];
+        return Quaternion.mul(parentRotation, child.rotation.getSmooth(), new Quaternion());
+    }
+
+    private static void setEndModelPart(ModelPart modelPart, float[] pivot, Quaternion rotation, boolean visible)
+    {
+        modelPart.x = pivot[0];
+        modelPart.y = pivot[1];
+        modelPart.z = pivot[2];
+        float[] euler = quaternionToEulerXYZ(rotation);
+        modelPart.xRot = euler[0];
+        modelPart.yRot = euler[1];
+        modelPart.zRot = euler[2];
+        modelPart.visible = visible;
+    }
+
+    private static float[] rotateVectorByQuaternion(Quaternion q, float x, float y, float z)
+    {
+        float tx = 2.0F * (q.y * z - q.z * y);
+        float ty = 2.0F * (q.z * x - q.x * z);
+        float tz = 2.0F * (q.x * y - q.y * x);
+        return new float[]{
+                x + q.w * tx + (q.y * tz - q.z * ty),
+                y + q.w * ty + (q.z * tx - q.x * tz),
+                z + q.w * tz + (q.x * ty - q.y * tx)
+        };
     }
 
     private static final float[] ZERO_EULER = {0, 0, 0};
