@@ -66,7 +66,7 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 		mainForeArm.getRotation().setSmoothness(.3F).orientX(-20);
 		offForeArm.getRotation().setSmoothness(.3F).orientX(-60);
 
-		if (data.isStillHorizontally())
+		if (data.isStillHorizontally() && !living.isCrouching())
 		{
 			data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F)
 					.rotateZ(10)
@@ -78,8 +78,9 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 			data.rightForeLeg.rotation.setSmoothness(.3F).orientX(30F);
 			data.leftForeLeg.rotation.setSmoothness(.3F).orientX(30F);
 		}
-		
-		data.globalOffset.slideY(-2F);
+
+		if (!living.isCrouching())
+			data.globalOffset.slideY(-2F);
 		mainItemRotation.setSmoothness(.9F).orientX(90 * attackState);
 		float renderRotationY = 30 + 360 * var5;
 		data.renderRotation.orientInstantY(Mth.wrapDegrees(-renderRotationY * handDirMtp));

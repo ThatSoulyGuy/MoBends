@@ -27,12 +27,16 @@ public class PunchAnimationBit extends AnimationBit<BipedEntityData<?>>
 		if (data.isStillHorizontally())
 		{
 			renderRotationY = -20F;
-			data.globalOffset.slideY(-2.0f);
 
-			data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F).rotateZ(10);
-			data.leftLeg.rotation.setSmoothness(.3F).orientX(-30F).rotateY(-25F).rotateZ(-10);
-			data.rightForeLeg.rotation.setSmoothness(.3F).orientX(30);
-			data.leftForeLeg.rotation.setSmoothness(.3F).orientX(30);
+			if (!data.getEntity().isCrouching())
+			{
+				data.globalOffset.slideY(-2.0f);
+
+				data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F).rotateZ(10);
+				data.leftLeg.rotation.setSmoothness(.3F).orientX(-30F).rotateY(-25F).rotateZ(-10);
+				data.rightForeLeg.rotation.setSmoothness(.3F).orientX(30);
+				data.leftForeLeg.rotation.setSmoothness(.3F).orientX(30);
+			}
 		}
 
 		if (this.fistPunchArm == HumanoidArm.RIGHT)
