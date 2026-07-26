@@ -24,6 +24,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -60,6 +61,10 @@ public class MoBends
         // Register network handler
         modEventBus.addListener(NetworkHandler::register);
 
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT, NeoForgeConfig.SPEC);
+        modEventBus.addListener((ModConfigEvent.Loading event) -> onModConfigEvent(event));
+        modEventBus.addListener((ModConfigEvent.Reloading event) -> onModConfigEvent(event));
+
         LOGGER.info("Mo' Bends {} initializing...", ModStatics.VERSION);
     }
 
@@ -69,6 +74,14 @@ public class MoBends
     private void commonSetup(final FMLCommonSetupEvent event)
     {
         LOGGER.info("Mo' Bends common setup complete");
+    }
+
+    private void onModConfigEvent(final ModConfigEvent event)
+    {
+        if (event.getConfig().getSpec() == NeoForgeConfig.SPEC)
+        {
+            NeoForgeConfig.sync();
+        }
     }
 
     /**

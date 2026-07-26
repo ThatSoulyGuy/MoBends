@@ -69,10 +69,6 @@ public class BendsCube
              textureWidth, textureHeight, mirror, faceVisibilityFlag, texOffsetX, texOffsetY);
     }
 
-    /**
-     * Create a cube whose bottom face samples a separate texture offset, used for split
-     * limb segments so the hand/foot underside maps to the real arm/leg bottom.
-     */
     public BendsCube(int texOffsetX, int texOffsetY,
                      float x, float y, float z,
                      int width, int height, int depth,
@@ -85,9 +81,6 @@ public class BendsCube
              textureWidth, textureHeight, mirror, (byte) 0b111111, bottomTexOffsetX, bottomTexOffsetY);
     }
 
-    /**
-     * Create a cube with face visibility control and a bottom-face texture offset override.
-     */
     public BendsCube(int texOffsetX, int texOffsetY,
                      float x, float y, float z,
                      int width, int height, int depth,

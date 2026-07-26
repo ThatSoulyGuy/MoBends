@@ -10,6 +10,7 @@
     "AgeableListModelMixin",
     "SpiderModelMixin",
     "RenderLayerMixin",
+    "PlayerRendererSwimMixin",
     "LivingEntityRendererAccessor",
     "armor.ArmorTrimLayerMixin",
     "armor.ElytraLayerMixin",
