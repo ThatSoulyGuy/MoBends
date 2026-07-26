@@ -66,11 +66,6 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
         {
             poseStack.pushPose();
 
-            if (entity.isCrouching())
-            {
-                poseStack.translate(0.0F, 0.2F, 0.0F);
-            }
-
             // Translate to the hand position
             this.translateToHand(arm, entity, poseStack);
 
