@@ -166,6 +166,25 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     }
 
     @Override
+    public void updateModel(AbstractClientPlayer entity,
+                            LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer,
+                            float partialTicks)
+    {
+        if (entity != null && this.body != null && !PlayerPreviewer.isPreviewInProgress())
+        {
+            IPlayerSkinProvider skinProvider = IPlayerSkinProvider.Holder.getProvider();
+            boolean playerIsSlim = skinProvider != null && skinProvider.isSlimModel(entity);
+            if (playerIsSlim != this.smallArms)
+            {
+                this.smallArms = playerIsSlim;
+                createParts(renderer.getModel(), 0F);
+            }
+        }
+
+        super.updateModel(entity, renderer, partialTicks);
+    }
+
+    @Override
     public void storeVanillaModel(PlayerModel<AbstractClientPlayer> model)
     {
         super.storeVanillaModel(model);
