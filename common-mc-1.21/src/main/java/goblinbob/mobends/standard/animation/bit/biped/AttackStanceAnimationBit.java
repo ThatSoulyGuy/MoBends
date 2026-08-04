@@ -27,6 +27,7 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 	{
 		LivingEntity entity = data.getEntity();
 		HumanoidArm primaryHand = entity.getMainArm();
+		boolean crouching = entity.isCrouching();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		// Main Hand Direction Multiplier - it helps switch animation sides depending on
@@ -51,15 +52,18 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.head.rotation.rotateY(-30 * handDirMtp);
 		data.head.rotation.rotateX(-bodyRotationX);
 
-		data.rightLeg.rotation.setSmoothness(0.3F).orientX(-30)
-				.rotateZ(10)
-				.rotateY(25);
-		data.leftLeg.rotation.setSmoothness(0.3F).orientX(-30)
-				.rotateZ(-10)
-				.rotateY(-25);
+		if (!crouching)
+		{
+			data.rightLeg.rotation.setSmoothness(0.3F).orientX(-30)
+					.rotateZ(10)
+					.rotateY(25);
+			data.leftLeg.rotation.setSmoothness(0.3F).orientX(-30)
+					.rotateZ(-10)
+					.rotateY(-25);
 
-		data.rightForeLeg.rotation.setSmoothness(0.3F).orientX(30);
-		data.leftForeLeg.rotation.setSmoothness(0.3F).orientX(30);
+			data.rightForeLeg.rotation.setSmoothness(0.3F).orientX(30);
+			data.leftForeLeg.rotation.setSmoothness(0.3F).orientX(30);
+		}
 
 		mainArm.getRotation().setSmoothness(0.3F).orientZ(60F * handDirMtp + breath0 * 5F)
 				.rotateY(breath1 * 5F);
@@ -69,10 +73,11 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 		offForeArm.getRotation().setSmoothness(0.3F).orientX(-60);
 
 		mainItemRotation.setSmoothness(.3F).orientX(65);
-		data.globalOffset.slideY(-2.0F);
-		
+		if (!crouching)
+			data.globalOffset.slideY(-2.0F);
+
 		float touchdown = Math.min(data.getTicksAfterTouchdown() * kneelDuration, 1.0F);
-		if (touchdown < 1.0F)
+		if (!crouching && touchdown < 1.0F)
 		{
 			data.body.rotation.setSmoothness(1F);
 			data.body.rotation.orientX(5F * (1 - touchdown) + 15F);

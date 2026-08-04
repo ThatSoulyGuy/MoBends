@@ -51,7 +51,7 @@ public class BendsCube
                      boolean mirror)
     {
         this(texOffsetX, texOffsetY, x, y, z, width, height, depth, inflation,
-             textureWidth, textureHeight, mirror, (byte) 0b111111);
+             textureWidth, textureHeight, mirror, (byte) 0b111111, texOffsetX, texOffsetY);
     }
 
     /**
@@ -64,6 +64,31 @@ public class BendsCube
                      float textureWidth, float textureHeight,
                      boolean mirror,
                      byte faceVisibilityFlag)
+    {
+        this(texOffsetX, texOffsetY, x, y, z, width, height, depth, inflation,
+             textureWidth, textureHeight, mirror, faceVisibilityFlag, texOffsetX, texOffsetY);
+    }
+
+    public BendsCube(int texOffsetX, int texOffsetY,
+                     float x, float y, float z,
+                     int width, int height, int depth,
+                     float inflation,
+                     float textureWidth, float textureHeight,
+                     boolean mirror,
+                     int bottomTexOffsetX, int bottomTexOffsetY)
+    {
+        this(texOffsetX, texOffsetY, x, y, z, width, height, depth, inflation,
+             textureWidth, textureHeight, mirror, (byte) 0b111111, bottomTexOffsetX, bottomTexOffsetY);
+    }
+
+    public BendsCube(int texOffsetX, int texOffsetY,
+                     float x, float y, float z,
+                     int width, int height, int depth,
+                     float inflation,
+                     float textureWidth, float textureHeight,
+                     boolean mirror,
+                     byte faceVisibilityFlag,
+                     int bottomTexOffsetX, int bottomTexOffsetY)
     {
         this.faceVisibilityFlag = faceVisibilityFlag;
 
@@ -136,8 +161,8 @@ public class BendsCube
 
         // Bottom face (+Y side): vertices v110, v010, v011, v111
         quads[3] = createQuad(new BendsVertex[] {v110, v010, v011, v111},
-                u + depth + width, v,
-                u + depth + width + width, v + depth,
+                bottomTexOffsetX + depth + width, bottomTexOffsetY,
+                bottomTexOffsetX + depth + width + width, bottomTexOffsetY + depth,
                 textureWidth, textureHeight);
 
         // Front face (-Z side): vertices v100, v000, v010, v110

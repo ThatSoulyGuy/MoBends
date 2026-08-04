@@ -19,7 +19,7 @@ public class SneakAnimationBit extends AnimationBit<BipedEntityData<?>>
 	{
 		data.localOffset.slideToZero(0.3F);
 		data.globalOffset.slideToZero(0.3F);
-		data.globalOffset.slideY(-2.0F);
+		data.globalOffset.slideY(-4.0F);
 	
 		final float PI = (float) Math.PI;
 		float limbSwing = data.limbSwing.get() * 0.6662F;

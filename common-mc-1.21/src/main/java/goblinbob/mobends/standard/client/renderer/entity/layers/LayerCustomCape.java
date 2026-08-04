@@ -57,18 +57,6 @@ public class LayerCustomCape extends RenderLayer<AbstractClientPlayer, PlayerMod
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 poseStack.pushPose();
 
-                if (player.isCrouching())
-                {
-                    if (player.getAbilities().flying)
-                    {
-                        poseStack.translate(0F, 4F * scale, 0F);
-                    }
-                    else
-                    {
-                        poseStack.translate(0F, 4F * scale, 0F);
-                    }
-                }
-
                 data.body.applyLocalTransform(poseStack, 0.0625F);
                 poseStack.translate(0.0F, -12.0F * scale, 2.2F * scale);
                 data.cape.applyLocalTransform(poseStack, 0.0625F);

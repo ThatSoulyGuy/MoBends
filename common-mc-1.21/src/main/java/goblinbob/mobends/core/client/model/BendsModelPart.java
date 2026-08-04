@@ -469,6 +469,17 @@ public class BendsModelPart implements IModelPart
         return this;
     }
 
+    public BendsModelPart addCube(float x, float y, float z, int width, int height, int depth, float inflation,
+                                  int bottomTexOffsetX, int bottomTexOffsetY)
+    {
+        BendsCube cube = new BendsCube(textureOffsetX, textureOffsetY,
+                                       x, y, z, width, height, depth,
+                                       inflation, textureWidth, textureHeight, mirror,
+                                       bottomTexOffsetX, bottomTexOffsetY);
+        this.cubes.add(cube);
+        return this;
+    }
+
     public BendsModelPart addChild(BendsModelPart child)
     {
         child.setParent(this);

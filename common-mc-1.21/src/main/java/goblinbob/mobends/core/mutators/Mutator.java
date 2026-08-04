@@ -12,6 +12,8 @@ import goblinbob.mobends.core.network.NetworkConfiguration;
 import goblinbob.mobends.core.pack.BendsPackPerformer;
 import goblinbob.mobends.core.util.EntityHelper;
 import goblinbob.mobends.lib.util.GUtil;
+import goblinbob.mobends.standard.main.ModConfig;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
@@ -248,8 +250,14 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
             yaw = f1 - f;
         }
 
-        this.headYaw = yaw;
-        this.headPitch = pitch;
+        boolean suppressHead = ModConfig.disableMovementInGui
+                && Minecraft.getInstance().screen != null
+                && entity == Minecraft.getInstance().player;
+        if (!suppressHead)
+        {
+            this.headYaw = yaw;
+            this.headPitch = pitch;
+        }
         this.limbSwing = f6;
         this.limbSwingAmount = f5;
         this.swingProgress = entity.getAttackAnim(partialTicks);

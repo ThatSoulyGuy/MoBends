@@ -96,7 +96,11 @@ public class BipedActionController
         if (armPoseMain == HumanoidModel.ArmPose.BLOCK || armPoseOff == HumanoidModel.ArmPose.BLOCK)
             return UseActionType.SHIELD;
 
-        return UseActionType.FOOD;
+        UseAnim useAnim = new ItemStack(item).getUseAnimation();
+        if (useAnim == UseAnim.EAT || useAnim == UseAnim.DRINK)
+            return UseActionType.FOOD;
+
+        return null;
     }
 
     public static UseActionType getItemUseAction(Item item, HumanoidModel.ArmPose armPoseMain, HumanoidModel.ArmPose armPoseOff)

@@ -166,6 +166,25 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     }
 
     @Override
+    public void updateModel(AbstractClientPlayer entity,
+                            LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer,
+                            float partialTicks)
+    {
+        if (entity != null && this.body != null && !PlayerPreviewer.isPreviewInProgress())
+        {
+            IPlayerSkinProvider skinProvider = IPlayerSkinProvider.Holder.getProvider();
+            boolean playerIsSlim = skinProvider != null && skinProvider.isSlimModel(entity);
+            if (playerIsSlim != this.smallArms)
+            {
+                this.smallArms = playerIsSlim;
+                createParts(renderer.getModel(), 0F);
+            }
+        }
+
+        super.updateModel(entity, renderer, partialTicks);
+    }
+
+    @Override
     public void storeVanillaModel(PlayerModel<AbstractClientPlayer> model)
     {
         super.storeVanillaModel(model);
@@ -256,14 +275,14 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
-        leftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor);
+        leftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 32, 48);
         leftArm.addChild(leftForeArm);
 
         // Right Forearm - child of rightArm
         rightForeArm = new BendsModelPart(40, 16 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F);
-        rightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor);
+        rightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 40, 16);
         rightArm.addChild(rightForeArm);
 
         // Legs (texture at 16, 48 for left leg, 0, 16 for right leg in player model)
@@ -284,14 +303,14 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 6.0F, -2.0F)
                 .setMirror(true);
-        leftForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor);
+        leftForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 16, 48);
         leftLeg.addChild(leftForeLeg);
 
         // Right Foreleg - child of rightLeg
         rightForeLeg = new BendsModelPart(0, 16 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 6.0F, -2.0F);
-        rightForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor);
+        rightForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 0, 16);
         rightLeg.addChild(rightForeLeg);
 
         // Wear layers (second skin layer)

@@ -136,6 +136,12 @@ public class RenderingEventHandler
             return;
         }
 
+        if (entity.isSpectator())
+        {
+            bender.deapplyMutation(renderer, entity);
+            return;
+        }
+
         // Push pose for proper transform isolation
         poseStack.pushPose();
         entitiesWithPushedPose.add(entity.getId());

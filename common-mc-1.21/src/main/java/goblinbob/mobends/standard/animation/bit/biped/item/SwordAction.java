@@ -5,6 +5,7 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.*;
 import goblinbob.mobends.standard.animation.bit.biped.AttackStanceAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
+import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -40,10 +41,16 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
         LivingEntity entity = entityData.getEntity();
         boolean isLocal = entity == Minecraft.getInstance().player;
 
+        int moveCount = ModConfig.performSpinAttack ? bits.size() : bits.size() - 1;
+
         if (!isLocal)
         {
             // For remote players, derive moveId from tick count for deterministic multiplayer sync
-            moveId = (entity.tickCount / 6) % bits.size();
+            moveId = (entity.tickCount / 6) % moveCount;
+        }
+        else if (moveId >= moveCount)
+        {
+            moveId = 0;
         }
 
         AnimationBit<BipedEntityData<?>> bit = bits.get(moveId);
@@ -59,7 +66,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
 
         if (isLocal)
         {
-            moveId = (moveId + 1) % bits.size();
+            moveId = (moveId + 1) % moveCount;
         }
     }
 

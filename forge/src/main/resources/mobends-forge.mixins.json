@@ -9,7 +9,8 @@
   "client": [
     "AgeableListModelMixin",
     "SpiderModelMixin",
-    "RenderLayerMixin"
+    "RenderLayerMixin",
+    "PlayerRendererSwimMixin"
   ],
   "injectors": {
     "defaultRequire": 1

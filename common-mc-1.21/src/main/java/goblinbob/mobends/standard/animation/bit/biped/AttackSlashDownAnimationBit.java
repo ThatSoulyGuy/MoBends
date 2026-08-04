@@ -68,18 +68,22 @@ public class AttackSlashDownAnimationBit extends AnimationBit<BipedEntityData<?>
 
 		if (data.isStillHorizontally() && !living.isPassenger())
 		{
-			data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F)
-					.rotateZ(10)
-					.rotateY(25);
-			data.leftLeg.rotation.setSmoothness(.3F).orientX(-30F)
-					.rotateZ(-10)
-					.rotateY(-25);
-			
-			data.rightForeLeg.rotation.setSmoothness(.3F).orientX(30F);
-			data.leftForeLeg.rotation.setSmoothness(.3F).orientX(30F);
-			
+			if (!living.isCrouching())
+			{
+				data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F)
+						.rotateZ(10)
+						.rotateY(25);
+				data.leftLeg.rotation.setSmoothness(.3F).orientX(-30F)
+						.rotateZ(-10)
+						.rotateY(-25);
+
+				data.rightForeLeg.rotation.setSmoothness(.3F).orientX(30F);
+				data.leftForeLeg.rotation.setSmoothness(.3F).orientX(30F);
+
+				data.globalOffset.slideY(-2F);
+			}
+
 			data.head.rotation.rotateY(-30 * handDirMtp);
-			data.globalOffset.slideY(-2F);
 			data.renderRotation.setSmoothness(.3F).orientY(-30 * handDirMtp);
 		}
 
