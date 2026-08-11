@@ -26,36 +26,27 @@ public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
 	@Override
 	public void storeVanillaModel(SquidModel<Squid> model)
 	{
-		// In 1.20.1, model parts are accessed differently
-		// SquidModel uses root.getChild() pattern
 		this.vanillaModel = model;
 	}
 
 	@Override
 	public void applyVanillaModel(SquidModel<Squid> model)
 	{
-		// In 1.20.1, we can't directly set model fields
-		// The vanilla model restoration would need to be handled via mixin
 	}
 
 	@Override
 	public void swapLayer(LivingEntityRenderer<Squid, SquidModel<Squid>> renderer, int index, boolean isModelVanilla)
 	{
-		// No behaviour
 	}
 
 	@Override
 	public void deswapLayer(LivingEntityRenderer<Squid, SquidModel<Squid>> renderer, int index)
 	{
-		// No behaviour
 	}
 
 	@Override
 	public boolean createParts(SquidModel<Squid> original, float scaleFactor)
 	{
-		// In 1.20.1, SquidModel uses a completely different structure
-		// The model is baked from LayerDefinition and parts are accessed via root
-		// For now, create the custom parts without modifying the original model
 
 		this.squidBody = new ModelPart(0, 0);
 		this.squidBody.setPosition(0.0F, 8.0F, 0.0F);
@@ -100,7 +91,6 @@ public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
 	@Override
 	public boolean isModelVanilla(SquidModel<Squid> model)
 	{
-		// In 1.20.1, check if we've applied mutations
 		return !(model instanceof IModelPart);
 	}
 
@@ -113,7 +103,6 @@ public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
 	@Override
 	public boolean shouldRenderCustom()
 	{
-		// Squid doesn't use custom rendering yet
 		return false;
 	}
 
@@ -121,7 +110,6 @@ public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
 	public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
 	                          int packedLight, int packedOverlay, int color)
 	{
-		// Not implemented yet
 	}
 
 }

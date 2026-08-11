@@ -15,9 +15,9 @@ import net.minecraft.util.Mth;
 public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	private static final String[] ACTIONS = new String[] { "attack", "attack_slash_down" };
-	
+
 	private float ticksPlayed;
-	
+
 	@Override
 	public String[] getActions(BipedEntityData<?> entityData)
 	{
@@ -28,7 +28,7 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 	public void onPlay(BipedEntityData<?> data)
 	{
 		data.swordTrail.reset();
-		
+
 		this.ticksPlayed = 0F;
 	}
 
@@ -41,8 +41,6 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 		final HumanoidArm primaryHand = living.getMainArm();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 		IModelPart mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		IModelPart offArm = mainHandSwitch ? data.leftArm : data.rightArm;
@@ -66,7 +64,7 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 											 .orientY(bodyRotationY);
 		data.head.rotation.setSmoothness(.9F).orientX(Mth.wrapDegrees(data.headPitch.get()) - bodyRotationX)
 						  .rotateY(Mth.wrapDegrees(data.headYaw.get()) - bodyRotationY);
-		
+
 		mainArm.getRotation().setSmoothness(.3F).orientZ((70F + armSwing * 40F) * handDirMtp)
 												.rotateInstantY((-20F + armSwing * 70F) * handDirMtp);
 		offArm.getRotation().setSmoothness(.3F).orientZ(-80 * handDirMtp);

@@ -8,10 +8,6 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.world.entity.LivingEntity;
 
-/**
- * Renderer for bipedal entities with Mo' Bends animations.
- * Updated for 1.20.1 to use PoseStack and RenderSystem instead of GlStateManager.
- */
 public class BipedRenderer<T extends LivingEntity> extends MutatedRenderer<T>
 {
 

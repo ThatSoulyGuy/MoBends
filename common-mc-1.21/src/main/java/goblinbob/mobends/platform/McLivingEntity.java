@@ -10,10 +10,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 import javax.annotation.Nullable;
 
-/**
- * Shared implementation of ILivingEntity.
- * Wraps Minecraft's LivingEntity with a platform-agnostic interface.
- */
 public class McLivingEntity extends McEntity implements ILivingEntity
 {
     protected final LivingEntity livingEntity;

@@ -7,7 +7,7 @@ import net.minecraft.util.Mth;
 public class SneakAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	private static final String[] ACTIONS = new String[] { "sneak" };
-	
+
 	@Override
 	public String[] getActions(BipedEntityData<?> entityData)
 	{
@@ -20,7 +20,7 @@ public class SneakAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.localOffset.slideToZero(0.3F);
 		data.globalOffset.slideToZero(0.3F);
 		data.globalOffset.slideY(-4.0F);
-	
+
 		final float PI = (float) Math.PI;
 		float limbSwing = data.limbSwing.get() * 0.6662F;
 		float limbSwingAmount = data.limbSwingAmount.get() * 1.4F * 1.1F / PI * 180F;
@@ -34,7 +34,7 @@ public class SneakAnimationBit extends AnimationBit<BipedEntityData<?>>
 				.rotateZ(10.0F);
 		data.leftArm.rotation.setSmoothness(0.8F).orientX(20F * Mth.cos(limbSwing) - 20F)
 				.rotateZ(-10.0F);
-		
+
 		data.leftForeLeg.rotation.setSmoothness(0.3F).orientX(var > 1 ? 45F : 10F);
 		data.rightForeLeg.rotation.setSmoothness(0.3F).orientX(var > 1 ? 10F : 45F);
 

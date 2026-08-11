@@ -43,10 +43,6 @@ import net.neoforged.fml.loading.FMLLoader;
 
 import javax.annotation.Nullable;
 
-/**
- * NeoForge implementation of IPlatformServices.
- * Provides platform-specific functionality for NeoForge 1.21.1.
- */
 public class NeoForgePlatformServices implements IPlatformServices
 {
     private final McResourceManager resourceManager = new McResourceManager();
@@ -55,15 +51,12 @@ public class NeoForgePlatformServices implements IPlatformServices
 
     public NeoForgePlatformServices()
     {
-        // Initialize the version adapter first (shared code depends on it)
         VersionAdapter.Holder.set(new NeoForgeVersionAdapter());
 
-        // Initialize helper singletons
         IEntityVertexHelper.Holder.setHelper(new NeoForgeEntityVertexHelper());
         IArmorHelper.Holder.setHelper(new NeoForgeArmorHelper());
         IModelRenderHelper.Holder.setHelper(new NeoForgeModelRenderHelper());
 
-        // Initialize armor rendering providers
         ArmorModelProviderHolder.setProvider(new NeoForgeArmorModelProvider());
         IArmorTextureProvider.Holder.setProvider(new NeoForgeArmorTextureProvider());
         IArmorLayerProvider.Holder.setProvider(new NeoForgeArmorLayerProvider());

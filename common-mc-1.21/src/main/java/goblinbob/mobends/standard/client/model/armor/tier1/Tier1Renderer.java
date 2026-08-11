@@ -34,39 +34,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * Tier 1 renderer: Transform Injection.
- *
- * This is the most efficient rendering approach, used for ~85% of armor.
- * It works with vanilla and standard modded armor that uses HumanoidModel.
- *
- * Approach:
- * 1. Inject Mo'Bends transforms directly into the armor model's parts
- * 2. For limbs, use split rendering to handle elbow/knee bending
- * 3. Render using vanilla's rendering path with modified transforms
- * 4. Restore original transforms after rendering
- *
- * Falls back to Tier 2 if the model doesn't have expected structure.
- */
 public class Tier1Renderer
 {
     private final TransformInjector transformInjector;
     private final SplitLimbRenderer splitLimbRenderer;
     private final Tier2Renderer tier2Fallback;
 
-    // Store original part states for restoration
     private final PartStateStorage partStateStorage = new PartStateStorage();
 
-    // Vertex capture and slicing for limb joint deformation
     private final CapturingVertexConsumer limbCapture = new CapturingVertexConsumer();
     private final QuadSlicer quadSlicer = new QuadSlicer();
 
-    // Performance tracking
     private long renderCount = 0;
     private long fallbackCount = 0;
 
-    // Current armor color for rendering (set per-render, used by vertex output)
-    // Format: ARGB packed int (0xAARRGGBB)
     private int currentArmorColor = 0xFFFFFFFF;
 
     public Tier1Renderer()
@@ -83,18 +64,11 @@ public class Tier1Renderer
         this.tier2Fallback = tier2Fallback;
     }
 
-    /**
-     * Get the tier this renderer handles.
-     */
     public RenderTier getTier()
     {
         return RenderTier.TIER_1_TRANSFORM_INJECTION;
     }
 
-    /**
-     * Simple render method for facade integration.
-     * Returns true if rendering was handled, false to indicate fallback needed.
-     */
     public <E extends LivingEntity> boolean render(ArmorRenderContext<E> context, HumanoidModel<?> model)
     {
         if (context == null || model == null || context.getEntityData() == null)
@@ -102,15 +76,9 @@ public class Tier1Renderer
             return false;
         }
 
-        // We need a texture to render - check if it can be derived from context
-        // For now, return false to indicate caller should use renderWithTexture
         return false;
     }
 
-    /**
-     * Render armor with a specific texture.
-     * Returns true if rendering was handled, false to indicate fallback needed.
-     */
     public <E extends LivingEntity> boolean renderWithTexture(
             ArmorRenderContext<E> context,
             HumanoidModel<?> model,
@@ -124,7 +92,6 @@ public class Tier1Renderer
 
         try
         {
-            // Use ItemRenderer.getArmorFoilBuffer to properly handle enchantment glint
             renderWithFoil(context, model, texture, hasFoil);
             return true;
         }
@@ -134,44 +101,28 @@ public class Tier1Renderer
         }
     }
 
-    /**
-     * Render armor with proper foil/glint support.
-     */
     private <E extends LivingEntity> void renderWithFoil(
             ArmorRenderContext<E> context,
             HumanoidModel<?> model,
             ResourceLocation texture,
             boolean hasFoil)
     {
-        // Get the proper vertex consumer with foil support
         VertexConsumer vertexConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
                 context.getBufferSource(),
                 RenderType.armorCutoutNoCull(texture),
                 hasFoil);
 
-        // Render with the foil-enabled consumer
         renderInternal(context, model, vertexConsumer);
     }
 
-    /**
-     * Render armor using the transform injection approach.
-     *
-     * @param context The armor render context
-     * @param model The armor model to render
-     * @param texture The armor texture
-     * @param renderTypeProvider Function to get RenderType from texture
-     * @param <E> Entity type
-     */
     public <E extends LivingEntity> void render(
             ArmorRenderContext<E> context,
             Model model,
             ResourceLocation texture,
             Function<ResourceLocation, RenderType> renderTypeProvider)
     {
-        // Verify we have a HumanoidModel
         if (!(model instanceof HumanoidModel<?> humanoidModel))
         {
-            // Fall back to Tier 2
             fallbackCount++;
             tier2Fallback.render(context, model, texture, renderTypeProvider);
             return;
@@ -179,14 +130,12 @@ public class Tier1Renderer
 
         if (context.getEntityData() == null)
         {
-            // No animation data - render vanilla
             renderVanilla(context, humanoidModel, texture, renderTypeProvider);
             return;
         }
 
         renderCount++;
 
-        // Set armor color for leather armor support
         currentArmorColor = context.getArmorColor();
 
         BipedEntityData<?> entityData = context.getEntityData();
@@ -194,19 +143,15 @@ public class Tier1Renderer
         MultiBufferSource bufferSource = context.getBufferSource();
         EquipmentSlot slot = context.getSlot();
 
-        // Configure visibility based on slot
         configureVisibility(humanoidModel, slot);
 
         RenderType renderType = renderTypeProvider.apply(texture);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
-        // Get entity scale (1.0 for adults, 0.5 for babies)
         float entityScale = context.getEntityScale();
 
-        // Get slim arm flag for arm position correction
         boolean isSlimArms = context.isSlimArms();
 
-        // Render based on slot - each method applies proper hierarchical transforms
         switch (slot)
         {
             case HEAD:
@@ -223,14 +168,9 @@ public class Tier1Renderer
                 break;
         }
 
-        // Record cache statistics
         CacheManager.getInstance().recordCacheAssistedRender();
     }
 
-    /**
-     * Internal render method that takes a pre-configured VertexConsumer.
-     * Used by renderWithFoil to properly support enchantment glint.
-     */
     private <E extends LivingEntity> void renderInternal(
             ArmorRenderContext<E> context,
             HumanoidModel<?> humanoidModel,
@@ -243,23 +183,18 @@ public class Tier1Renderer
 
         renderCount++;
 
-        // Set armor color for leather armor support
         currentArmorColor = context.getArmorColor();
 
         BipedEntityData<?> entityData = context.getEntityData();
         PoseStack poseStack = context.getPoseStack();
         EquipmentSlot slot = context.getSlot();
 
-        // Configure visibility based on slot
         configureVisibility(humanoidModel, slot);
 
-        // Get entity scale (1.0 for adults, 0.5 for babies)
         float entityScale = context.getEntityScale();
 
-        // Get slim arm flag for arm position correction
         boolean isSlimArms = context.isSlimArms();
 
-        // Render based on slot - each method applies proper hierarchical transforms
         switch (slot)
         {
             case HEAD:
@@ -276,16 +211,9 @@ public class Tier1Renderer
                 break;
         }
 
-        // Record cache statistics
         CacheManager.getInstance().recordCacheAssistedRender();
     }
 
-    /**
-     * Render head armor piece.
-     * Head is parented to body, so we apply body transform first, then head transform.
-     *
-     * Uses vertex capture approach (like arms) for consistent transform handling.
-     */
     private void renderHead(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -297,19 +225,16 @@ public class Tier1Renderer
     {
         poseStack.pushPose();
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
         if (entityScale != 1.0f)
         {
             poseStack.scale(entityScale, entityScale, entityScale);
         }
 
-        // Render helmet
         if (model.head != null && model.head.visible)
         {
             renderCapturedPart(poseStack, vertexConsumer, model.head, entityData, true, packedLight, packedOverlay, entityScale);
         }
 
-        // Render hat overlay
         if (model.hat != null && model.hat.visible)
         {
             renderCapturedPart(poseStack, vertexConsumer, model.hat, entityData, true, packedLight, packedOverlay, entityScale);
@@ -318,19 +243,6 @@ public class Tier1Renderer
         poseStack.popPose();
     }
 
-    /**
-     * Render a part using vertex capture approach (consistent with arm/leg rendering).
-     * This captures geometry at rest pose, then transforms vertices using Mo'Bends data.
-     *
-     * @param poseStack The pose stack
-     * @param vertexConsumer The vertex consumer
-     * @param part The model part to render
-     * @param entityData The entity's animation data
-     * @param isHead true for head parts (uses body + head transform), false otherwise
-     * @param packedLight Light value
-     * @param packedOverlay Overlay value
-     * @param entityScale Scale factor (1.0 for adults, 0.5 for babies)
-     */
     private void renderCapturedPart(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -346,9 +258,8 @@ public class Tier1Renderer
             return;
         }
 
-        // 1. Capture geometry at rest pose using IDENTITY PoseStack
         limbCapture.clear();
-        PoseStack captureStack = new PoseStack();  // Identity matrix
+        PoseStack captureStack = new PoseStack();
         resetPartToOrigin(part);
         part.render(captureStack, limbCapture, packedLight, packedOverlay);
         restorePartFromCapture(part);
@@ -359,42 +270,32 @@ public class Tier1Renderer
             return;
         }
 
-        // 2. Apply Mo'Bends transforms to PoseStack
-        // Note: Global transforms (globalOffset, centerRotation, etc.) are already applied
-        // by MutatedRenderer.beforeRender() to the PoseStack before armor renders.
         poseStack.pushPose();
-        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);  // Body transform (head is parented to body)
+        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
 
         if (isHead)
         {
-            ArmorPoseHelper.applyPartTransform(poseStack, entityData.head, true);  // Head transform
+            ArmorPoseHelper.applyPartTransform(poseStack, entityData.head, true);
         }
 
-        // 3. Transform and output vertices
         Matrix4f matrix = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
 
-        // Output vertices directly (head has no slicing, just quads)
         for (CapturedVertex v : vertices)
         {
-            // Transform position by matrix
             float tx = matrix.m00() * v.x + matrix.m10() * v.y + matrix.m20() * v.z + matrix.m30();
             float ty = matrix.m01() * v.x + matrix.m11() * v.y + matrix.m21() * v.z + matrix.m31();
             float tz = matrix.m02() * v.x + matrix.m12() * v.y + matrix.m22() * v.z + matrix.m32();
 
-            // Transform normal by normal matrix
             float nx = normal.m00() * v.normalX + normal.m10() * v.normalY + normal.m20() * v.normalZ;
             float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
             float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
-            // Output transformed vertex
-            // Apply armor color tint (for leather armor dyeing)
             float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
             float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
             float tintB = (currentArmorColor & 0xFF) / 255.0F;
             float tintA = ((currentArmorColor >> 24) & 0xFF) / 255.0F;
 
-            // Pack tinted RGBA into single int
             int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
                         ((int)(v.red * tintR * 255.0F) << 16) |
                         ((int)(v.green * tintG * 255.0F) << 8) |
@@ -410,11 +311,6 @@ public class Tier1Renderer
         poseStack.popPose();
     }
 
-    /**
-     * Render chest armor piece (body + arms).
-     * Body uses vanilla position with Mo'Bends rotation.
-     * Arms are split at elbow joint for proper bending.
-     */
     private void renderChest(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -427,33 +323,23 @@ public class Tier1Renderer
     {
         poseStack.pushPose();
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
         if (entityScale != 1.0f)
         {
             poseStack.scale(entityScale, entityScale, entityScale);
         }
 
-        // Render body using vertex capture with pivot rotation (matching 3.X approach)
-        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         if (model.body != null && model.body.visible)
         {
             renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
         }
 
-        // Render left arm (split at elbow joint)
         renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms);
 
-        // Render right arm (split at elbow joint)
         renderSplitArm(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, isSlimArms);
 
         poseStack.popPose();
     }
 
-    /**
-     * Render leg armor piece (body skirt + upper legs).
-     * Body waist uses vanilla position with Mo'Bends rotation.
-     * Legs are split at knee joint for proper bending.
-     */
     private void renderLegs(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -465,32 +351,23 @@ public class Tier1Renderer
     {
         poseStack.pushPose();
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
         if (entityScale != 1.0f)
         {
             poseStack.scale(entityScale, entityScale, entityScale);
         }
 
-        // Render body (waist/skirt part of leggings) using vertex capture with pivot rotation
-        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         if (model.body != null && model.body.visible)
         {
             renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
         }
 
-        // Render left leg (split at knee joint)
         renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
 
-        // Render right leg (split at knee joint)
         renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
 
         poseStack.popPose();
     }
 
-    /**
-     * Render feet armor piece (boots/lower legs).
-     * Legs are split at knee joint for proper bending.
-     */
     private void renderFeet(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -502,35 +379,22 @@ public class Tier1Renderer
     {
         poseStack.pushPose();
 
-        // Apply baby scale if needed (babies render at 0.5 scale)
         if (entityScale != 1.0f)
         {
             poseStack.scale(entityScale, entityScale, entityScale);
         }
 
-        // Render left leg (split at knee joint)
         renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
 
-        // Render right leg (split at knee joint)
         renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
 
         poseStack.popPose();
     }
 
-    // ========== SPLIT LIMB RENDERING ==========
-
-    // Enable limb slicing for proper elbow/knee bending
     private static final boolean ENABLE_LIMB_SLICING = true;
 
-    // Slim arm Y offset: standard arm Y is -10F, slim arm Y is -9.5F
-    // The armor model always uses standard positions (-10F), but Mo'Bends animation
-    // for slim players uses -9.5F. We need to offset the armor UP by 0.5 model units.
-    private static final float SLIM_ARM_Y_OFFSET = 0.5f * ArmorPoseHelper.SCALE;  // 0.5 model units in render units
+    private static final float SLIM_ARM_Y_OFFSET = 0.5f * ArmorPoseHelper.SCALE;
 
-    /**
-     * Render an arm split at the elbow joint.
-     * Upper arm geometry follows upperArm transform, forearm geometry follows foreArm transform.
-     */
     private void renderSplitArm(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -552,13 +416,9 @@ public class Tier1Renderer
 
         if (!ENABLE_LIMB_SLICING)
         {
-            // Simple mode: render whole arm with upper arm transform only
-            // This means armor won't bend at elbow, but will render correctly
-            // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
             poseStack.pushPose();
             ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
             ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
-            // Apply slim arm Y offset correction
             if (isSlimArms)
             {
                 poseStack.translate(0, -SLIM_ARM_Y_OFFSET, 0);
@@ -568,15 +428,11 @@ public class Tier1Renderer
             return;
         }
 
-        // Advanced mode: split arm at elbow joint
         ModelPartTransform foreArm = isLeft ? entityData.leftForeArm : entityData.rightForeArm;
         JointPlane elbowPlane = JointDefinitions.getElbow(isLeft);
 
-        // 1. Capture arm geometry at rest pose using IDENTITY PoseStack
-        // Critical: We must use a fresh PoseStack so captured vertices are in model-local space
-        // The incoming poseStack already has entity transforms that would corrupt the capture
         limbCapture.clear();
-        PoseStack captureStack = new PoseStack();  // Identity matrix - no transforms
+        PoseStack captureStack = new PoseStack();
         resetPartToOrigin(armPart);
         armPart.render(captureStack, limbCapture, packedLight, packedOverlay);
         restorePartFromCapture(armPart);
@@ -587,29 +443,19 @@ public class Tier1Renderer
             return;
         }
 
-        // 2. Group vertices into quads and slice at elbow
         List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, elbowPlane);
 
-        // Slim arm Y offset for captured vertices (applied to output, not capture)
         float slimArmOffset = isSlimArms ? -SLIM_ARM_Y_OFFSET : 0;
 
-        // 3. Render upper arm portion with upper arm transform
-        // Upper portion vertices stay as-is (no offset needed except for slim arms)
-        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         poseStack.pushPose();
         ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
         ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
-        // Apply slim arm offset to Y
         ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
 
-        // 4. Render forearm portion with forearm transform (chained to upper arm)
-        // Lower portion vertices need to be offset by forearm's position to be in forearm-local-space
-        // foreArm.position is (0, 4, 2) in model units, so we offset by (-0, -0.25, -0.125) in render units
-        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         float foreArmOffsetX = -foreArm.position.x * ArmorPoseHelper.SCALE;
-        float foreArmOffsetY = -foreArm.position.y * ArmorPoseHelper.SCALE + slimArmOffset;  // Include slim arm offset
+        float foreArmOffsetY = -foreArm.position.y * ArmorPoseHelper.SCALE + slimArmOffset;
         float foreArmOffsetZ = -foreArm.position.z * ArmorPoseHelper.SCALE;
         poseStack.pushPose();
         ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
@@ -619,10 +465,6 @@ public class Tier1Renderer
         poseStack.popPose();
     }
 
-    /**
-     * Render a leg split at the knee joint.
-     * Upper leg geometry follows leg transform, lower leg geometry follows foreLeg transform.
-     */
     private void renderSplitLeg(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -641,14 +483,10 @@ public class Tier1Renderer
 
         ModelPartTransform upperLeg = isLeft ? entityData.leftLeg : entityData.rightLeg;
 
-        // Get vanilla leg X position for correct horizontal placement
         float vanillaLegX = legPart.x;
 
         if (!ENABLE_LIMB_SLICING)
         {
-            // Simple mode: render whole leg with upper leg transform only
-            // This means armor won't bend at knee, but will render correctly
-            // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
             poseStack.pushPose();
             ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
             ArmorPoseHelper.renderPartAtOrigin(legPart, poseStack, vertexConsumer, packedLight, packedOverlay);
@@ -656,15 +494,11 @@ public class Tier1Renderer
             return;
         }
 
-        // Advanced mode: split leg at knee joint
         ModelPartTransform lowerLeg = isLeft ? entityData.leftForeLeg : entityData.rightForeLeg;
         JointPlane kneePlane = JointDefinitions.getKnee(isLeft);
 
-        // 1. Capture leg geometry at rest pose using IDENTITY PoseStack
-        // Critical: We must use a fresh PoseStack so captured vertices are in model-local space
-        // The incoming poseStack already has entity transforms that would corrupt the capture
         limbCapture.clear();
-        PoseStack captureStack = new PoseStack();  // Identity matrix - no transforms
+        PoseStack captureStack = new PoseStack();
         resetPartToOrigin(legPart);
         legPart.render(captureStack, limbCapture, packedLight, packedOverlay);
         restorePartFromCapture(legPart);
@@ -675,28 +509,16 @@ public class Tier1Renderer
             return;
         }
 
-        // 2. Group vertices into quads and slice at knee
         List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
-        // Use the vanilla armor model's leg X position (stored in capturedX from resetPartToOrigin)
-        // This ensures leg armor renders at the correct horizontal position regardless of
-        // what Mo'Bends entityData has. Legs are root parts and should use vanilla positioning.
         float vanillaLegXSliced = capturedX;
 
-        // 3. Render upper leg portion with upper leg transform
-        // Note: Legs are NOT parented to body in Mo'Bends
-        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
-        // Upper portion vertices stay as-is (no offset needed)
         poseStack.pushPose();
         ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegXSliced);
         ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor);
         poseStack.popPose();
 
-        // 4. Render lower leg portion with lower leg transform (chained to upper leg)
-        // Lower portion vertices need to be offset by lowerLeg's position to be in lower-leg-local-space
-        // lowerLeg.position is (0, 6, -2) in model units, so we offset by (-0, -0.375, 0.125) in render units
-        // Note: Global transforms are already applied by MutatedRenderer.beforeRender()
         float lowerLegOffsetX = -lowerLeg.position.x * ArmorPoseHelper.SCALE;
         float lowerLegOffsetY = -lowerLeg.position.y * ArmorPoseHelper.SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * ArmorPoseHelper.SCALE;
@@ -707,16 +529,9 @@ public class Tier1Renderer
         poseStack.popPose();
     }
 
-    // ========== HELPER METHODS FOR SPLIT RENDERING ==========
-
-    // Storage for original part values during capture
     private float capturedX, capturedY, capturedZ;
     private float capturedXRot, capturedYRot, capturedZRot;
 
-    /**
-     * Reset a ModelPart to origin for geometry capture.
-     * Stores original values for later restoration.
-     */
     private void resetPartToOrigin(ModelPart part)
     {
         capturedX = part.x;
@@ -734,9 +549,6 @@ public class Tier1Renderer
         part.zRot = 0;
     }
 
-    /**
-     * Restore a ModelPart to its original values after capture.
-     */
     private void restorePartFromCapture(ModelPart part)
     {
         part.x = capturedX;
@@ -747,20 +559,6 @@ public class Tier1Renderer
         part.zRot = capturedZRot;
     }
 
-    /**
-     * Render body armor using vertex capture with pivot rotation.
-     * This matches the 3.X approach: capture geometry at origin, apply pivot transform, output vertices.
-     *
-     * Unlike renderPartWithVanillaPosition, this approach ensures the vanilla part position
-     * doesn't interfere with our pivot rotation transform.
-     *
-     * @param poseStack The pose stack (with entity transforms already applied)
-     * @param vertexConsumer The vertex consumer
-     * @param part The body model part
-     * @param entityData The entity's animation data
-     * @param packedLight Light value
-     * @param packedOverlay Overlay value
-     */
     private void renderBodyWithPivotRotation(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
@@ -780,9 +578,8 @@ public class Tier1Renderer
             return;
         }
 
-        // 1. Capture geometry at rest pose using IDENTITY PoseStack
         limbCapture.clear();
-        PoseStack captureStack = new PoseStack();  // Identity matrix
+        PoseStack captureStack = new PoseStack();
         resetPartToOrigin(part);
         part.render(captureStack, limbCapture, packedLight, packedOverlay);
         restorePartFromCapture(part);
@@ -793,13 +590,10 @@ public class Tier1Renderer
             return;
         }
 
-        // 2. Apply pivot rotation transform to PoseStack
-        // NOTE: Entity-level globalOffset is already on parent PoseStack from MutatedRenderer.beforeRender()
         poseStack.pushPose();
 
         float scale = 1.0f / 16.0f;
 
-        // Apply per-part globalOffset (before other transforms, without offsetScale)
         if (body.globalOffset.x != 0 || body.globalOffset.y != 0 || body.globalOffset.z != 0)
         {
             poseStack.translate(
@@ -811,14 +605,12 @@ public class Tier1Renderer
 
         float offsetScale = body.offsetScale;
 
-        // Translate to body pivot point (use offsetScale to match player transform exactly)
         poseStack.translate(
             body.position.x * scale * offsetScale,
             body.position.y * scale * offsetScale,
             body.position.z * scale * offsetScale
         );
 
-        // Apply animation offset with offsetScale (bobbing, etc.)
         if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
         {
             poseStack.translate(
@@ -828,21 +620,17 @@ public class Tier1Renderer
             );
         }
 
-        // Apply rotation (now around the correct pivot)
         GlHelper.rotate(poseStack, body.rotation.getSmooth());
 
-        // Translate back from pivot so armor stays at vanilla position (use offsetScale to match)
         poseStack.translate(
             -body.position.x * scale * offsetScale,
             -body.position.y * scale * offsetScale,
             -body.position.z * scale * offsetScale
         );
 
-        // 3. Transform and output vertices
         Matrix4f matrix = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
 
-        // Extract color tint from currentArmorColor (packed ARGB)
         float tintR = ((currentArmorColor >> 16) & 0xFF) / 255.0F;
         float tintG = ((currentArmorColor >> 8) & 0xFF) / 255.0F;
         float tintB = (currentArmorColor & 0xFF) / 255.0F;
@@ -850,17 +638,14 @@ public class Tier1Renderer
 
         for (CapturedVertex v : vertices)
         {
-            // Transform position by matrix
             float tx = matrix.m00() * v.x + matrix.m10() * v.y + matrix.m20() * v.z + matrix.m30();
             float ty = matrix.m01() * v.x + matrix.m11() * v.y + matrix.m21() * v.z + matrix.m31();
             float tz = matrix.m02() * v.x + matrix.m12() * v.y + matrix.m22() * v.z + matrix.m32();
 
-            // Transform normal by normal matrix
             float nx = normal.m00() * v.normalX + normal.m10() * v.normalY + normal.m20() * v.normalZ;
             float ny = normal.m01() * v.normalX + normal.m11() * v.normalY + normal.m21() * v.normalZ;
             float nz = normal.m02() * v.normalX + normal.m12() * v.normalY + normal.m22() * v.normalZ;
 
-            // Pack tinted RGBA into single int
             int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
                         ((int)(v.red * tintR * 255.0F) << 16) |
                         ((int)(v.green * tintG * 255.0F) << 8) |
@@ -876,9 +661,6 @@ public class Tier1Renderer
         poseStack.popPose();
     }
 
-    /**
-     * Configure model part visibility based on equipment slot.
-     */
     private void configureVisibility(HumanoidModel<?> model, EquipmentSlot slot)
     {
         model.head.visible = false;
@@ -912,9 +694,6 @@ public class Tier1Renderer
         }
     }
 
-    /**
-     * Render without animation (vanilla passthrough).
-     */
     private <E extends LivingEntity> void renderVanilla(
             ArmorRenderContext<E> context,
             HumanoidModel<?> model,
@@ -941,75 +720,48 @@ public class Tier1Renderer
         poseStack.popPose();
     }
 
-    /**
-     * Get the transform injector.
-     */
     public TransformInjector getTransformInjector()
     {
         return transformInjector;
     }
 
-    /**
-     * Get the split limb renderer.
-     */
     public SplitLimbRenderer getSplitLimbRenderer()
     {
         return splitLimbRenderer;
     }
 
-    /**
-     * Get the Tier 2 fallback renderer.
-     */
     public Tier2Renderer getTier2Fallback()
     {
         return tier2Fallback;
     }
 
-    /**
-     * Get the total number of render calls.
-     */
     public long getRenderCount()
     {
         return renderCount;
     }
 
-    /**
-     * Get the number of renders that fell back to Tier 2.
-     */
     public long getFallbackCount()
     {
         return fallbackCount;
     }
 
-    /**
-     * Get the fallback rate.
-     */
     public float getFallbackRate()
     {
         return renderCount > 0 ? (float) fallbackCount / renderCount : 0;
     }
 
-    /**
-     * Reset statistics.
-     */
     public void resetStats()
     {
         renderCount = 0;
         fallbackCount = 0;
     }
 
-    /**
-     * Get debug statistics.
-     */
     public String getStats()
     {
         return String.format("Tier1Renderer: %d renders, %d fallbacks (%.1f%% fallback rate)",
                 renderCount, fallbackCount, getFallbackRate() * 100);
     }
 
-    /**
-     * Storage for original part states to restore after rendering.
-     */
     private static class PartStateStorage
     {
         private float headX, headY, headZ, headXRot, headYRot, headZRot;
@@ -1071,7 +823,6 @@ public class Tier1Renderer
 
         private void storePart(ModelPart part)
         {
-            // Helper method placeholder
         }
     }
 }

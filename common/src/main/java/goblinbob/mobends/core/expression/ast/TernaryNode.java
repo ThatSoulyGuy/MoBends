@@ -2,9 +2,6 @@ package goblinbob.mobends.core.expression.ast;
 
 import goblinbob.mobends.core.expression.ExpressionContext;
 
-/**
- * AST node representing a ternary conditional expression (e.g., a ? b : c).
- */
 public class TernaryNode implements ExpressionNode {
     private final ExpressionNode condition;
     private final ExpressionNode thenBranch;
@@ -18,7 +15,6 @@ public class TernaryNode implements ExpressionNode {
 
     @Override
     public double evaluate(ExpressionContext context) {
-        // Short-circuit: only evaluate the branch we need
         if (condition.evaluate(context) != 0.0) {
             return thenBranch.evaluate(context);
         } else {
@@ -37,7 +33,6 @@ public class TernaryNode implements ExpressionNode {
         ExpressionNode optimizedThen = thenBranch.optimize();
         ExpressionNode optimizedElse = elseBranch.optimize();
 
-        // If condition is constant, we can eliminate the branch entirely
         if (optimizedCondition.isConstant()) {
             if (optimizedCondition.evaluate(null) != 0.0) {
                 return optimizedThen;

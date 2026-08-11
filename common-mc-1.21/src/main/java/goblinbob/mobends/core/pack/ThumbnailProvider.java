@@ -32,8 +32,8 @@ public class ThumbnailProvider
                     packCache.getThumbnailFile(packName),
                     thumbnailUrl,
                     DEFAULT_THUMBNAIL_LOCATION,
-                    false,  // legacySkin
-                    null    // callback
+                    false,
+                    null
             );
 
             Minecraft.getInstance().getTextureManager().register(resourceLocation, httpTexture);

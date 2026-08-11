@@ -19,10 +19,6 @@ import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-/**
- * Custom cape layer for Mo' Bends animated cape rendering.
- * Updated for 1.20.1 to use PoseStack and RenderSystem instead of GlStateManager.
- */
 public class LayerCustomCape extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
 

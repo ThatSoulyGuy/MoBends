@@ -18,9 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * NeoForge-specific client configuration that persists settings to disk.
- */
 public class NeoForgeClientConfig extends CoreClientConfig
 {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -46,10 +43,6 @@ public class NeoForgeClientConfig extends CoreClientConfig
         this.data = new ConfigData();
     }
 
-    /**
-     * Initialize the config with the game directory.
-     * Must be called after Minecraft is initialized.
-     */
     public void initialize()
     {
         File gameDir = Minecraft.getInstance().gameDirectory;
@@ -141,9 +134,6 @@ public class NeoForgeClientConfig extends CoreClientConfig
         save();
     }
 
-    /**
-     * Internal data structure for JSON serialization.
-     */
     private static class ConfigData
     {
         boolean enabled = true;

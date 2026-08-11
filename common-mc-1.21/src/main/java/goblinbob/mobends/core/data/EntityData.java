@@ -94,9 +94,6 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
         this.nameToPartMap.put("centerRotation", centerRotation);
     }
 
-    /**
-     * Updates all the model's parts to be in their next frame. Called in {@code EntityData.update()}
-     */
     public void updateParts(float ticksPerFrame)
     {
         this.globalOffset.update(ticksPerFrame);
@@ -110,7 +107,6 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
         if (this.onGroundOverride != null)
             return this.onGroundOverride;
 
-        // Checking if we're going down stairs.
         BlockPos position = new BlockPos(
             Mth.floor(entity.getX()),
             Mth.floor(entity.getY()),
@@ -123,7 +119,6 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
         if (motionY <= 0 && (block.getBlock() instanceof StairBlock || blockBelow.getBlock() instanceof StairBlock))
             return true;
 
-        // Checking collisions.
         Iterable<net.minecraft.world.phys.shapes.VoxelShape> collisions = entity.level().getBlockCollisions(entity, entity.getBoundingBox().move(0, -0.125F, 0));
         List<AABB> list = StreamSupport.stream(collisions.spliterator(), false)
             .map(voxelShape -> voxelShape.bounds())
@@ -173,7 +168,6 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
 
     public boolean isStillHorizontally()
     {
-        // The motion value that is the threshold for determining movement.
         final double deadZone = 0.0025;
         final double horizontalSqMagnitude = this.motionX * this.motionX + this.motionZ * this.motionZ;
         return this.stillnessOverride != null ? this.stillnessOverride : horizontalSqMagnitude < deadZone;
@@ -181,9 +175,6 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
 
     public abstract IAnimationController<?> getController();
 
-    /**
-     * Called during the render tick in {@code EntityDatabase.updateRender()}
-     */
     public void update(float partialTicks)
     {
         if (this.entity == null)
@@ -243,9 +234,6 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
                 || (angle >= -180.0F + STRAFING_THRESHOLD && angle <= -STRAFING_THRESHOLD);
     }
 
-    /**
-     * @return True, if the player is sufficiently underwater.
-     */
     public boolean isUnderwater()
     {
         if (!this.entity.isInWater())

@@ -7,7 +7,7 @@ public class HardAnimationLayer<T extends EntityData<?>> extends AnimationLayer<
 {
 	protected AnimationBit<T> performedBit;
 	protected AnimationBit<T> previousBit;
-	
+
 	@SuppressWarnings("unchecked")
 	public void playBit(AnimationBit<? extends T> bit, T entityData)
 	{
@@ -15,7 +15,7 @@ public class HardAnimationLayer<T extends EntityData<?>> extends AnimationLayer<
 		this.performedBit = (AnimationBit<T>) bit;
 		this.performedBit.setupForPlay(this, entityData);
 	}
-	
+
 	public void playOrContinueBit(AnimationBit<? extends T> bit, T entityData)
 	{
 		if (!this.isPlaying(bit))
@@ -33,7 +33,7 @@ public class HardAnimationLayer<T extends EntityData<?>> extends AnimationLayer<
 	{
 		return bit == this.performedBit;
 	}
-	
+
 	public boolean isPlaying()
 	{
 		return this.performedBit != null;

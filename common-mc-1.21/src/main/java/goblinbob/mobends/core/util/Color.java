@@ -28,12 +28,12 @@ public class Color implements IColor
 		this.b = b;
 		this.a = a;
 	}
-	
+
 	public Color(int hexValue)
 	{
 		this.hex(hexValue);
 	}
-	
+
 	public Color(IColorRead other)
 	{
 		this.r = other.getR();
@@ -41,7 +41,7 @@ public class Color implements IColor
 		this.b = other.getB();
 		this.a = other.getA();
 	}
-	
+
 	public void hex(int hexValue)
 	{
 		int valueB = hexValue & 255;
@@ -52,7 +52,7 @@ public class Color implements IColor
 		hexValue >>= 8;
 		int valueA = hexValue & 255;
 		hexValue >>= 8;
-		
+
 		this.a = valueA / 255.0F;
 		this.r = valueR / 255.0F;
 		this.g = valueG / 255.0F;
@@ -124,7 +124,7 @@ public class Color implements IColor
 		this.b += b;
 		this.a += a;
 	}
-	
+
 	public static int asHex(IColorRead color)
 	{
 		int valueA = (int) GUtil.clamp(color.getA() * 255F, 0, 255);
@@ -140,7 +140,7 @@ public class Color implements IColor
 		value |= valueB & 255;
 		return value;
 	}
-	
+
 	public static Color fromHexRGB(int hexValue)
 	{
 		int valueB = hexValue & 255;
@@ -149,7 +149,7 @@ public class Color implements IColor
 		hexValue >>= 8;
 		int valueR = hexValue & 255;
 		hexValue >>= 8;
-		
+
 		return new Color(valueR / 255.0F, valueG / 255.0F, valueB / 255.0F, 1.0F);
 	}
 
@@ -163,7 +163,7 @@ public class Color implements IColor
 		hexValue >>= 8;
 		int valueA = hexValue & 255;
 		hexValue >>= 8;
-		
+
 		return new Color(valueR / 255.0F, valueG / 255.0F, valueB / 255.0F, valueA / 255.0F);
 	}
 }

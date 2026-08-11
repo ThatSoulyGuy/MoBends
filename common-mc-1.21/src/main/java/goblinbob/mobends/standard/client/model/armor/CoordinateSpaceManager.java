@@ -8,58 +8,30 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-/**
- * Manages coordinate space transformations for armor rendering.
- *
- * Coordinate spaces (from outer to inner):
- * 1. World Space - Global coordinates
- * 2. Entity Space - Relative to entity position/rotation
- * 3. Model Space - Minecraft's model coordinate system (Y up, 1/16 scale)
- * 4. Bone Space - Local to a specific bone's transform
- * 5. Animated Space - After Mo'Bends animation transforms applied
- */
 public class CoordinateSpaceManager
 {
-    // Minecraft model scale (1 unit = 1/16 of a block)
     private static final float MODEL_SCALE = 1.0f / 16.0f;
 
-    // Reusable matrices to avoid allocations
     private final Matrix4f tempMatrix = new Matrix4f();
     private final Matrix4f resultMatrix = new Matrix4f();
     private final Vector3f tempVector = new Vector3f();
     private final Quaternionf tempQuat = new Quaternionf();
 
-    /**
-     * Get the transform matrix for a specific bone region from entity data.
-     * This matrix transforms from rest pose bone space to animated bone space.
-     *
-     * @param region The bone region to get the transform for
-     * @param entityData The entity's animation data
-     * @return Transform matrix for the bone
-     */
     public Matrix4f getBoneTransform(BoneRegion region, BipedEntityData<?> entityData)
     {
         ModelPartTransform transform = getTransformForRegion(region, entityData);
         if (transform == null)
         {
-            return new Matrix4f(); // Identity
+            return new Matrix4f();
         }
 
         return buildTransformMatrix(transform);
     }
 
-    /**
-     * Get the full transform chain for a bone, including parent transforms.
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     * @return Full transform matrix including parent chain
-     */
     public Matrix4f getFullBoneTransform(BoneRegion region, BipedEntityData<?> entityData)
     {
         resultMatrix.identity();
 
-        // Build transform chain from root to target bone
         switch (region)
         {
             case HEAD:
@@ -113,43 +85,25 @@ public class CoordinateSpaceManager
 
             case ROOT:
             default:
-                // Identity matrix
                 break;
         }
 
         return new Matrix4f(resultMatrix);
     }
 
-    /**
-     * Get the inverse rest pose matrix for a bone.
-     * Used to transform vertices from rest pose to bone-local space.
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data (for rest positions)
-     * @return Inverse rest pose matrix
-     */
     public Matrix4f getInverseRestPose(BoneRegion region, BipedEntityData<?> entityData)
     {
         Matrix4f restPose = getRestPoseMatrix(region, entityData);
         return restPose.invert(new Matrix4f());
     }
 
-    /**
-     * Get the rest pose matrix for a bone (before animation).
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data (for rest positions)
-     * @return Rest pose matrix
-     */
     public Matrix4f getRestPoseMatrix(BoneRegion region, BipedEntityData<?> entityData)
     {
         resultMatrix.identity();
 
-        // Build rest pose transform (position only, no rotation)
         ModelPartTransform transform = getTransformForRegion(region, entityData);
         if (transform != null)
         {
-            // Apply only position for rest pose
             tempVector.set(
                 transform.position.x * MODEL_SCALE,
                 transform.position.y * MODEL_SCALE,
@@ -161,23 +115,12 @@ public class CoordinateSpaceManager
         return new Matrix4f(resultMatrix);
     }
 
-    /**
-     * Transform a vertex from one bone's space to another.
-     *
-     * @param vertex The vertex position to transform
-     * @param fromRegion Source bone region
-     * @param toRegion Target bone region
-     * @param entityData The entity's animation data
-     * @return Transformed vertex position
-     */
     public Vector3f transformVertex(Vector3f vertex, BoneRegion fromRegion, BoneRegion toRegion,
                                    BipedEntityData<?> entityData)
     {
-        // Get transforms for both bones
         Matrix4f fromTransform = getFullBoneTransform(fromRegion, entityData);
         Matrix4f toTransform = getFullBoneTransform(toRegion, entityData);
 
-        // Transform: toInverse * from * vertex
         Matrix4f toInverse = toTransform.invert(new Matrix4f());
         Matrix4f combined = toInverse.mul(fromTransform, new Matrix4f());
 
@@ -185,17 +128,10 @@ public class CoordinateSpaceManager
         return combined.transformPosition(result);
     }
 
-    /**
-     * Apply a ModelPartTransform to a PoseStack.
-     *
-     * @param poseStack The pose stack to modify
-     * @param transform The transform to apply
-     */
     public void applyToPoseStack(PoseStack poseStack, ModelPartTransform transform)
     {
         if (transform == null) return;
 
-        // Apply global offset
         if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
         {
             poseStack.translate(
@@ -205,7 +141,6 @@ public class CoordinateSpaceManager
             );
         }
 
-        // Apply position
         if (transform.position.x != 0 || transform.position.y != 0 || transform.position.z != 0)
         {
             poseStack.translate(
@@ -215,7 +150,6 @@ public class CoordinateSpaceManager
             );
         }
 
-        // Apply offset
         if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
         {
             poseStack.translate(
@@ -225,7 +159,6 @@ public class CoordinateSpaceManager
             );
         }
 
-        // Apply rotation
         var smoothRot = transform.rotation.getSmooth();
         if (smoothRot != null)
         {
@@ -237,16 +170,12 @@ public class CoordinateSpaceManager
             ));
         }
 
-        // Apply scale
         if (transform.scale.x != 1 || transform.scale.y != 1 || transform.scale.z != 1)
         {
             poseStack.scale(transform.scale.x, transform.scale.y, transform.scale.z);
         }
     }
 
-    /**
-     * Get the ModelPartTransform for a specific bone region.
-     */
     private ModelPartTransform getTransformForRegion(BoneRegion region, BipedEntityData<?> entityData)
     {
         return switch (region)
@@ -265,14 +194,10 @@ public class CoordinateSpaceManager
         };
     }
 
-    /**
-     * Apply a ModelPartTransform to a matrix.
-     */
     private void applyTransform(Matrix4f matrix, ModelPartTransform transform)
     {
         if (transform == null) return;
 
-        // Apply global offset
         if (transform.globalOffset.x != 0 || transform.globalOffset.y != 0 || transform.globalOffset.z != 0)
         {
             tempVector.set(
@@ -283,7 +208,6 @@ public class CoordinateSpaceManager
             matrix.translate(tempVector);
         }
 
-        // Apply position
         if (transform.position.x != 0 || transform.position.y != 0 || transform.position.z != 0)
         {
             tempVector.set(
@@ -294,7 +218,6 @@ public class CoordinateSpaceManager
             matrix.translate(tempVector);
         }
 
-        // Apply offset
         if (transform.offset.x != 0 || transform.offset.y != 0 || transform.offset.z != 0)
         {
             tempVector.set(
@@ -305,7 +228,6 @@ public class CoordinateSpaceManager
             matrix.translate(tempVector);
         }
 
-        // Apply rotation
         var smoothRot = transform.rotation.getSmooth();
         if (smoothRot != null)
         {
@@ -313,16 +235,12 @@ public class CoordinateSpaceManager
             matrix.rotate(tempQuat);
         }
 
-        // Apply scale
         if (transform.scale.x != 1 || transform.scale.y != 1 || transform.scale.z != 1)
         {
             matrix.scale(transform.scale.x, transform.scale.y, transform.scale.z);
         }
     }
 
-    /**
-     * Build a transform matrix from a ModelPartTransform.
-     */
     private Matrix4f buildTransformMatrix(ModelPartTransform transform)
     {
         tempMatrix.identity();

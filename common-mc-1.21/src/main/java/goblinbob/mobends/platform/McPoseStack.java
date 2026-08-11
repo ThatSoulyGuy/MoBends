@@ -6,11 +6,6 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-/**
- * Shared implementation of IPoseStack.
- * Wraps Minecraft's PoseStack with a platform-agnostic interface.
- * Uses VersionAdapter for version-specific method differences.
- */
 public class McPoseStack implements IPoseStack
 {
     private final PoseStack poseStack;
@@ -104,7 +99,6 @@ public class McPoseStack implements IPoseStack
     public void getNormal(float[] dest)
     {
         Matrix3f normal = poseStack.last().normal();
-        // Get as 9 floats for 3x3
         if (dest.length >= 9)
         {
             normal.get(dest);
@@ -125,17 +119,14 @@ public class McPoseStack implements IPoseStack
     @Override
     public boolean isEmpty()
     {
-        // PoseStack always has at least one entry
         return false;
     }
 
     @Override
     public void clear()
     {
-        // Pop all poses except the bottom one, then set to identity
         while (!poseStack.clear())
         {
-            // clear() returns false when stack is empty
         }
         poseStack.setIdentity();
     }

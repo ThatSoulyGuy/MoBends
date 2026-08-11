@@ -12,13 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * This is an animation controller for a spider instance.
- * It's a part of the EntityData structure.
- *
- * @author Iwo Plaza
- *
- */
 public class SpiderController implements IAnimationController<SpiderData>
 {
 
@@ -107,7 +100,5 @@ public class SpiderController implements IAnimationController<SpiderData>
 		upperLimb.setSmoothness(smoothness).localRotateZ((float) (upperAngle / Math.PI * 180) * (odd ? -1 : 1));
 		lowerLimb.setSmoothness(smoothness).orientZ((float) (lowerAngle / Math.PI * 180) * (odd ? -1 : 1));
 	}
-
-
 
 }

@@ -10,14 +10,8 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/**
- * Custom box implementation for Mo' Bends animations.
- * Updated for Minecraft 1.20.1 - no longer extends ModelBox (which doesn't exist).
- * Uses immediate-mode rendering via VertexConsumer instead of display lists.
- */
 public class MutatedBox
 {
-    // We just need 6 bits (6 faces)
     protected final byte faceVisibilityFlag;
 
     public static final int LEFT = 0;
@@ -27,17 +21,12 @@ public class MutatedBox
     public static final int FRONT = 4;
     public static final int BACK = 5;
 
-    // Box bounds for collision detection
     public final float posX1, posY1, posZ1;
     public final float posX2, posY2, posZ2;
 
-    // Custom vertex structure
     protected final MutatedVertex[] vertices = new MutatedVertex[8];
     protected final MutatedQuad[] quads = new MutatedQuad[6];
 
-    /**
-     * Internal vertex class for storing position and texture coordinates
-     */
     public static class MutatedVertex
     {
         public float x, y, z;
@@ -58,9 +47,6 @@ public class MutatedBox
         }
     }
 
-    /**
-     * Internal quad class for storing 4 vertices and a normal
-     */
     public static class MutatedQuad
     {
         public final MutatedVertex[] vertices;
@@ -88,7 +74,6 @@ public class MutatedBox
 
         private void calculateNormal()
         {
-            // Calculate face normal from first 3 vertices
             float dx1 = vertices[1].x - vertices[0].x;
             float dy1 = vertices[1].y - vertices[0].y;
             float dz1 = vertices[1].z - vertices[0].z;
@@ -96,12 +81,10 @@ public class MutatedBox
             float dy2 = vertices[2].y - vertices[1].y;
             float dz2 = vertices[2].z - vertices[1].z;
 
-            // Cross product
             normalX = dy1 * dz2 - dz1 * dy2;
             normalY = dz1 * dx2 - dx1 * dz2;
             normalZ = dx1 * dy2 - dy1 * dx2;
 
-            // Normalize
             float length = (float) Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
             if (length > 0.0F)
             {
@@ -132,15 +115,12 @@ public class MutatedBox
 
             for (MutatedVertex vertex : this.vertices)
             {
-                // Transform position
                 Vector3f pos = new Vector3f(vertex.x, vertex.y, vertex.z);
                 pos.mulPosition(matrix);
 
-                // Transform normal
                 Vector3f normal = new Vector3f(normalX, normalY, normalZ);
                 normal.mul(normalMatrix);
 
-                // Pack RGBA into single int
                 int color = ((int)(alpha * 255.0F) << 24) | ((int)(red * 255.0F) << 16) | ((int)(green * 255.0F) << 8) | (int)(blue * 255.0F);
                 IEntityVertexHelper.Holder.getHelper().emitVertex(vertexConsumer,
                         pos.x, pos.y, pos.z,
@@ -163,7 +143,6 @@ public class MutatedBox
         float y1 = max.getY();
         float z1 = max.getZ();
 
-        // Store bounds
         this.posX1 = Math.min(x0, x1);
         this.posY1 = Math.min(y0, y1);
         this.posZ1 = Math.min(z0, z1);
@@ -178,7 +157,6 @@ public class MutatedBox
             x0 = temp;
         }
 
-        // Create 8 corner vertices
         vertices[0] = new MutatedVertex(x0, y0, z0, 0.0F, 0.0F);
         vertices[1] = new MutatedVertex(x1, y0, z0, 0.0F, 8.0F);
         vertices[2] = new MutatedVertex(x1, y1, z0, 8.0F, 8.0F);
@@ -191,7 +169,6 @@ public class MutatedBox
         float textureWidth = renderer != null ? 64 : 64;
         float textureHeight = renderer != null ? 64 : 64;
 
-        // Create quads for each face
         quads[0] = createQuadFromFace(new MutatedVertex[]{vertices[5], vertices[1], vertices[2], vertices[6]}, faces[0], textureWidth, textureHeight);
         quads[1] = createQuadFromFace(new MutatedVertex[]{vertices[0], vertices[4], vertices[7], vertices[3]}, faces[1], textureWidth, textureHeight);
         quads[2] = createQuadFromFace(new MutatedVertex[]{vertices[5], vertices[4], vertices[0], vertices[1]}, faces[2], textureWidth, textureHeight);
@@ -216,7 +193,6 @@ public class MutatedBox
         float f5 = y + (float) height;
         float f6 = z + (float) length;
 
-        // Store original bounds before inflation
         this.posX1 = x;
         this.posY1 = y;
         this.posZ1 = z;
@@ -241,7 +217,6 @@ public class MutatedBox
         float textureWidth = modelRenderer != null ? 64 : 64;
         float textureHeight = modelRenderer != null ? 64 : 64;
 
-        // Create 8 corner vertices
         vertices[0] = new MutatedVertex(x, y, z, 0.0F, 0.0F);
         vertices[1] = new MutatedVertex(f4, y, z, 0.0F, 8.0F);
         vertices[2] = new MutatedVertex(f4, f5, z, 8.0F, 8.0F);
@@ -251,7 +226,6 @@ public class MutatedBox
         vertices[6] = new MutatedVertex(f4, f5, f6, 8.0F, 8.0F);
         vertices[7] = new MutatedVertex(x, f5, f6, 8.0F, 0.0F);
 
-        // Create quads for each face with proper UV mapping
         quads[0] = new MutatedQuad(new MutatedVertex[]{vertices[5], vertices[1], vertices[2], vertices[6]},
                 texU + length + width, texV + length, texU + length + width + length, texV + length + height, textureWidth, textureHeight);
         quads[1] = new MutatedQuad(new MutatedVertex[]{vertices[0], vertices[4], vertices[7], vertices[3]},
@@ -338,10 +312,6 @@ public class MutatedBox
         }
     }
 
-    /**
-     * Render this box to the given VertexConsumer.
-     * This is the 1.20.1 rendering method replacing the old BufferBuilder approach.
-     */
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay,
                       float red, float green, float blue, float alpha)
     {
@@ -358,9 +328,6 @@ public class MutatedBox
         }
     }
 
-    /**
-     * Render at default scale - convenience method for compatibility.
-     */
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay)
     {
         render(poseStack, vertexConsumer, packedLight, packedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);

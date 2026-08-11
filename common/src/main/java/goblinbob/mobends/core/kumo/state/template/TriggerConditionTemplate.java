@@ -12,7 +12,6 @@ public class TriggerConditionTemplate
 
     public void validate(IKumoValidationContext context) throws MalformedKumoTemplateException
     {
-        // No default behaviour.
     }
 
 }

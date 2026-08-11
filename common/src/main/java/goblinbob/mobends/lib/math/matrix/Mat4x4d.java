@@ -10,14 +10,14 @@ public class Mat4x4d implements IMat4x4d
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	});
-	
+
 	private final double[] fields;
-	
+
 	public Mat4x4d()
 	{
 		this.fields = new double[16];
 	}
-	
+
 	public Mat4x4d(int fillValue)
 	{
 		this();
@@ -26,7 +26,7 @@ public class Mat4x4d implements IMat4x4d
 			this.fields[i] = fillValue;
 		}
 	}
-	
+
 	public Mat4x4d(double[] fields)
 	{
 		this();
@@ -35,7 +35,7 @@ public class Mat4x4d implements IMat4x4d
 			this.fields[i] = fields[i];
 		}
 	}
-	
+
 	public Mat4x4d(IMat4x4d other)
 	{
 		this();
@@ -45,7 +45,7 @@ public class Mat4x4d implements IMat4x4d
 			this.fields[i] = otherFields[i];
 		}
 	}
-	
+
 	@Override
 	public double[] getFields()
 	{
@@ -57,13 +57,13 @@ public class Mat4x4d implements IMat4x4d
 	{
 		return this.fields[r + c * 4];
 	}
-	
+
 	@Override
 	public void set(int c, int r, double value)
 	{
 		this.fields[r + c * 4] = value;
 	}
-	
+
 	@Override
 	public void setFields(double... values)
 	{

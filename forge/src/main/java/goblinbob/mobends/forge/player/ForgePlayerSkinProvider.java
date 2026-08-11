@@ -3,10 +3,6 @@ package goblinbob.mobends.forge.player;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import net.minecraft.client.player.AbstractClientPlayer;
 
-/**
- * Forge 1.20.1 implementation of IPlayerSkinProvider.
- * Uses MC 1.20.1 API: getModelName(), getCloakTextureLocation().
- */
 public class ForgePlayerSkinProvider implements IPlayerSkinProvider
 {
     @Override
@@ -32,7 +28,6 @@ public class ForgePlayerSkinProvider implements IPlayerSkinProvider
     @Override
     public Object getElytraTexture(Object player)
     {
-        // In 1.20.1, there's no separate per-player elytra texture
         return null;
     }
 }

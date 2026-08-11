@@ -3,10 +3,6 @@ package goblinbob.mobends.neoforge.platform;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.rendering.IVertexConsumer;
 
-/**
- * NeoForge 1.21.1 implementation of IVertexConsumer.
- * Uses the MC 1.21+ vertex API with addVertex() and no endVertex().
- */
 public class NeoForgeVertexConsumer implements IVertexConsumer
 {
     private final VertexConsumer consumer;
@@ -40,7 +36,6 @@ public class NeoForgeVertexConsumer implements IVertexConsumer
     @Override
     public IVertexConsumer setOverlay(int u, int v)
     {
-        // Pack u,v into single int: u | (v << 16)
         consumer.setOverlay(u | (v << 16));
         return this;
     }
@@ -55,7 +50,6 @@ public class NeoForgeVertexConsumer implements IVertexConsumer
     @Override
     public IVertexConsumer setLight(int u, int v)
     {
-        // Pack u,v into single int: u | (v << 16)
         consumer.setLight(u | (v << 16));
         return this;
     }

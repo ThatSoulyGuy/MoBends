@@ -16,9 +16,6 @@ public class EntityDatabase
 
     public static EntityDatabase instance = new EntityDatabase();
 
-    /**
-     * Contains data for all EntityData instances.
-     */
     protected final Map<Integer, LivingEntityData<?>> entryMap = new HashMap<>();
 
     private LivingEntityData<?> get(Integer identifier)
@@ -31,20 +28,10 @@ public class EntityDatabase
         return (T) this.get(entity.getId());
     }
 
-    /**
-     * If a data instance for that identifier is null, create one. Return the data
-     * instance for that identifier.
-     *
-     * @param dataCreationFunction The function that creates
-     *                             and returned a new EntityData instance
-     * @param entity               The entity whose data we want to get (or first create if there is none)
-     * @return Entity's data
-     */
     public <T extends LivingEntityData<E>, E extends LivingEntity> T getOrMake(IEntityDataFactory<E> dataCreationFunction, E entity)
     {
         final int entityId = entity.getId();
 
-        // Both T and the return type of #get(Entity) will be EntityData during runtime due to generic type erasure.
         @SuppressWarnings("unchecked")
         T data = (T) this.get(entityId);
 

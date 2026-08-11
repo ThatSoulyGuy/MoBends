@@ -7,5 +7,5 @@ public interface IVec4dRead
 	double getY();
 	double getZ();
 	double getW();
-	
+
 }

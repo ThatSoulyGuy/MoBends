@@ -67,7 +67,7 @@ public class ObservableTest
         sub.unsubscribe();
 
         obs.next(2);
-        assertEquals(1, notifyCount.get()); // Should not have increased
+        assertEquals(1, notifyCount.get());
     }
 
     @Test

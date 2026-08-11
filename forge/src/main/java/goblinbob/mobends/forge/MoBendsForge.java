@@ -33,9 +33,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
-/**
- * Mo' Bends Forge entry point for Minecraft 1.20.1
- */
 @Mod(MoBendsForge.MOD_ID)
 public class MoBendsForge
 {
@@ -51,7 +48,6 @@ public class MoBendsForge
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        // Register lifecycle event listeners
         modEventBus.addListener(this::commonSetup);
 
         ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, ForgeConfig.SPEC);
@@ -61,24 +57,18 @@ public class MoBendsForge
         if (FMLEnvironment.dist == Dist.CLIENT)
         {
             modEventBus.addListener(this::clientSetup);
-            // Register key mappings on mod event bus
             modEventBus.addListener(KeyboardEventHandler::registerKeyMappings);
         }
 
-        // Register ourselves for server and other game events
         MinecraftForge.EVENT_BUS.register(this);
 
         LOGGER.info("Mo' Bends {} initializing...", ModStatics.VERSION);
     }
 
-    /**
-     * Common setup - runs on both client and server.
-     */
     private void commonSetup(final FMLCommonSetupEvent event)
     {
         LOGGER.info("Mo' Bends common setup");
 
-        // Register network handler
         ForgeNetworkHandler.register();
     }
 
@@ -90,36 +80,25 @@ public class MoBendsForge
         }
     }
 
-    /**
-     * Client-specific setup.
-     */
     private void clientSetup(final FMLClientSetupEvent event)
     {
-        // Initialize platform services FIRST (before Core)
         PlatformServices.set(new ForgePlatformServices());
         LOGGER.info("Mo' Bends platform services initialized: {}", PlatformServices.get().getPlatformName());
 
-        // Register player skin provider for slim arm detection
         IPlayerSkinProvider.Holder.setProvider(new ForgePlayerSkinProvider());
 
-        // Initialize the Core for client
         ForgeCore.createAsClient();
 
-        // Perform client setup on the Core (registers event handlers)
         Core.getInstance().onClientSetup();
 
-        // Register the default addon (standard animations) - this registers entity benders
         AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());
 
-        // Apply configuration AFTER entity benders are registered
         Core.getInstance().applyConfigurationToEntityBenders();
 
-        // Register Forge event handlers
         MinecraftForge.EVENT_BUS.register(new RenderingEventHandler());
         MinecraftForge.EVENT_BUS.register(new KeyboardEventHandler());
         LOGGER.info("Mo' Bends event handlers registered");
 
-        // Initialize mod compatibility layers (Curios, Better Blood Overlay, PlayerAnimationLib, etc.)
         ModCompatManager.init();
 
         LOGGER.info("Mo' Bends client setup complete");
@@ -131,9 +110,6 @@ public class MoBendsForge
         LOGGER.info("Mo' Bends: Server starting");
     }
 
-    /**
-     * Used to refresh all systems, clear caches. Usually performed when configuration changes.
-     */
     public static void refreshSystems()
     {
         AnimationLoader.clearCache();

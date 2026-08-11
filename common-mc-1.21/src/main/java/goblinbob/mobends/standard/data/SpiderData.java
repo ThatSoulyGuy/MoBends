@@ -50,7 +50,6 @@ public class SpiderData extends LivingEntityData<Spider>
     @Override
     public void onTicksRestart()
     {
-        // No behaviour
     }
 
     @Override

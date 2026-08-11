@@ -11,7 +11,7 @@ public class KeyframeTest
     {
         Keyframe kf = new Keyframe();
         kf.position = new float[3];
-        kf.rotation = new float[] { 0, 0, 0, 1 }; // identity quaternion
+        kf.rotation = new float[] { 0, 0, 0, 1 };
         kf.scale = new float[] { 1, 1, 1 };
         return kf;
     }
@@ -20,7 +20,6 @@ public class KeyframeTest
     public void fieldsAreNullByDefault()
     {
         Keyframe kf = new Keyframe();
-        // Keyframe does not initialize arrays by default
         assertNull(kf.position);
         assertNull(kf.rotation);
         assertNull(kf.scale);
@@ -43,11 +42,10 @@ public class KeyframeTest
     public void setRotation()
     {
         Keyframe kf = createKeyframe();
-        // Set a rotation quaternion (90 degrees around Y)
-        kf.rotation[0] = 0.0f;  // x
-        kf.rotation[1] = 0.707f; // y
-        kf.rotation[2] = 0.0f;  // z
-        kf.rotation[3] = 0.707f; // w
+        kf.rotation[0] = 0.0f;
+        kf.rotation[1] = 0.707f;
+        kf.rotation[2] = 0.0f;
+        kf.rotation[3] = 0.707f;
 
         assertEquals(0.0f, kf.rotation[0], EPSILON);
         assertEquals(0.707f, kf.rotation[1], EPSILON);

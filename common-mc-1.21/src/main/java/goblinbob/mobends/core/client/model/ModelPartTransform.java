@@ -8,24 +8,13 @@ import goblinbob.mobends.lib.math.vector.IVec3f;
 import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.core.util.GlHelper;
 
-/**
- * Used for manipulating the transform of things that are
- * going to postRender this part.
- * Updated for 1.20.1 to use PoseStack instead of GlStateManager.
- */
 public class ModelPartTransform implements IModelPart
 {
 	public Vec3f position;
 	public Vec3f scale;
 	public Vec3f offset;
 	public SmoothOrientation rotation;
-	/**
-	 * The scale at which animation position offset is applied, used for child models.
-	 */
 	public float offsetScale = 1.0F;
-	/**
-	 * Offset applied before the parent transformation.
-	 */
 	public Vec3f globalOffset = new Vec3f();
 
 	public final ModelPartTransform parent;
@@ -47,7 +36,6 @@ public class ModelPartTransform implements IModelPart
 	@Override
 	public void renderPart(PoseStack poseStack, float scale)
 	{
-		// Since this is just a transform, do nothing.
 	}
 
 	@Override
@@ -138,7 +126,6 @@ public class ModelPartTransform implements IModelPart
 	@Override
 	public void setVisible(boolean showModel)
 	{
-		// Do nothing
 	}
 
 	@Override
@@ -152,8 +139,6 @@ public class ModelPartTransform implements IModelPart
 
 		TransformUtils.rotate(matrix, this.rotation.getSmooth());
 
-    	/*if(this.scale.x != 0.0F || this.scale.y != 0.0F || this.scale.z != 0.0F)
-    		TransformUtils.scale(dest, this.scale.x, this.scale.y, this.scale.z, dest);*/
 	}
 
 	@Override

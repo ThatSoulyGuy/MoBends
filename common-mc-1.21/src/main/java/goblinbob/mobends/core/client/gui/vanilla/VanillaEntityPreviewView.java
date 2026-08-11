@@ -26,13 +26,10 @@ public class VanillaEntityPreviewView extends VanillaView
         {
             renderer.update();
 
-            // Flush pending screen draws before entity rendering changes GL state
             guiGraphics.flush();
 
-            // Use the screen's GuiGraphics for correct buffer source ordering
             renderer.render(guiGraphics, x, y, measuredWidth, measuredHeight, partialTick);
 
-            // Flush entity draws before subsequent screen content
             guiGraphics.flush();
         }
     }

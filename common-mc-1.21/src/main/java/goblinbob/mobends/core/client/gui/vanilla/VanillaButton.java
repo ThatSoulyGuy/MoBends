@@ -55,14 +55,12 @@ public class VanillaButton extends VanillaView
 
         guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, bgColor);
 
-        // Border so buttons (especially disabled ones) read as distinct elements.
         int borderColor = enabled ? MoBendsTheme.BORDER : MoBendsTheme.BG_BUTTON_PRESSED;
         guiGraphics.fill(x, y, x + measuredWidth, y + 1, borderColor);
         guiGraphics.fill(x, y + measuredHeight - 1, x + measuredWidth, y + measuredHeight, borderColor);
         guiGraphics.fill(x, y, x + 1, y + measuredHeight, borderColor);
         guiGraphics.fill(x + measuredWidth - 1, y, x + measuredWidth, y + measuredHeight, borderColor);
 
-        // Optional leading icon.
         int leftOffset = paddingLeft;
         if (icon != null)
         {

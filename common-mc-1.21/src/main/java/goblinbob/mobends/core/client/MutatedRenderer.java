@@ -19,24 +19,15 @@ public abstract class MutatedRenderer<T extends LivingEntity>
         textureManager = Minecraft.getInstance().getTextureManager();
     }
 
-    /**
-     * Called right before the entity is rendered
-     */
     public void beforeRender(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
     {
-        // NOTE: The poseStack is already translated to the entity's position by
-        // EntityRenderDispatcher. Do NOT add an extra entity-to-view translation here,
-        // as that creates a double-offset that causes remote players to visually teleport
-        // during rotational animations (attack spins, etc.).
 
-        // Remove body rotation so we can apply animations in entity-local space
         poseStack.mulPose(Axis.YP.rotationDegrees(-interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
 
         this.renderLocalAccessories(entity, data, partialTicks, poseStack);
 
         float globalScale = entity.isBaby() ? getChildScale() : 1;
 
-        // Scale down the model for baby entities (vanilla uses 0.5x scale for babies)
         if (globalScale != 1.0f)
         {
             poseStack.scale(globalScale, globalScale, globalScale);
@@ -45,7 +36,6 @@ public abstract class MutatedRenderer<T extends LivingEntity>
         poseStack.translate(data.globalOffset.getX() * scale,
                 data.globalOffset.getY() * scale,
                 data.globalOffset.getZ() * scale);
-        // Compensate center rotation pivot for baby scaling (poseStack is already scaled)
         float centerY = entity.getBbHeight() / (2.0f * globalScale);
         poseStack.translate(0, centerY, 0);
         GlHelper.rotate(poseStack, data.centerRotation.getSmooth());
@@ -58,30 +48,19 @@ public abstract class MutatedRenderer<T extends LivingEntity>
 
         this.transformLocally(entity, data, partialTicks, poseStack);
 
-        // Re-add body rotation
         poseStack.mulPose(Axis.YP.rotationDegrees(interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
     }
 
-    /**
-     * Called right after the entity is rendered.
-     */
     public void afterRender(T entity, float partialTicks, PoseStack poseStack)
     {
-        // No default behaviour
     }
 
-    /**
-     * Used to render accessories for that entity, e.g. Sword trails. Also used to transform the entity, like offset or
-     * rotate it.
-     */
     protected void renderLocalAccessories(T entity, EntityData<?> data, float partialTicks, PoseStack poseStack)
     {
-        // No default behaviour
     }
 
     protected void transformLocally(T entity, EntityData<?> data, float partialTicks, PoseStack poseStack)
     {
-        // No default behaviour
     }
 
     protected static float interpolateRotation(float prevYawOffset, float yawOffset, float partialTicks)

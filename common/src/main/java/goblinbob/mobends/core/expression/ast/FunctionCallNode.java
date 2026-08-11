@@ -7,9 +7,6 @@ import goblinbob.mobends.core.expression.functions.FunctionRegistry;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * AST node representing a function call (e.g., sin(x), lerp(a, b, t)).
- */
 public class FunctionCallNode implements ExpressionNode {
     private final String functionName;
     private final List<ExpressionNode> arguments;

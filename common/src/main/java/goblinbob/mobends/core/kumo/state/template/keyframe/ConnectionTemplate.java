@@ -10,9 +10,6 @@ public class ConnectionTemplate
     public int targetNodeIndex;
     public TriggerConditionTemplate triggerCondition;
 
-    /**
-     * The duration of the transition in ticks.
-     */
     public float transitionDuration = 0;
 
     public Easing transitionEasing = Easing.EASE_IN_OUT;

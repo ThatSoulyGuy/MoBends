@@ -13,23 +13,23 @@ public class KeyframeAnimationLayer<T extends EntityData<?>> extends AnimationLa
 {
 	public KeyframeAnimation performedAnimation;
 	public float keyframeIndex = 0;
-	
+
 	public void playBit(KeyframeAnimation animation, T entityData)
 	{
 		this.performedAnimation = animation;
 	}
-	
+
 	public void playOrContinueBit(KeyframeAnimation animation, T entityData)
 	{
 		if (!this.isPlaying(animation))
 			this.playBit(animation, entityData);
 	}
-	
+
 	public boolean isPlaying(KeyframeAnimation animation)
 	{
 		return animation == this.performedAnimation;
 	}
-	
+
 	public boolean isPlaying()
 	{
 		return this.performedAnimation != null;
@@ -44,18 +44,18 @@ public class KeyframeAnimationLayer<T extends EntityData<?>> extends AnimationLa
 	{
 		return this.performedAnimation;
 	}
-	
+
 	@Override
 	public String[] getActions(T entityData)
 	{
 		return null;
 	}
-	
+
 	@Override
 	public void perform(T entityData)
 	{
 		int minKeyframes = Integer.MAX_VALUE;
-		
+
 		if (this.performedAnimation != null)
 		{
 			int index = (int) keyframeIndex;

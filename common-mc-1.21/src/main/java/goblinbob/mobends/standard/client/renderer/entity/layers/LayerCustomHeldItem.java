@@ -66,7 +66,6 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
         {
             poseStack.pushPose();
 
-            // Translate to the hand position
             this.translateToHand(arm, entity, poseStack);
 
             poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
@@ -84,16 +83,8 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
         }
     }
 
-    /**
-     * Translates to the hand position with Mo' Bends custom animation transforms applied.
-     * This replicates the original Mo' Bends postRenderArm behavior:
-     * 1. arm.applyCharacterTransform (body + arm transforms)
-     * 2. arm.applyPostTransform -> forearm.propagateTransform (forearm local + postOffset)
-     * 3. Item rotation adjustment with translate/rotate/untranslate
-     */
     protected void translateToHand(HumanoidArm arm, E entity, PoseStack poseStack)
     {
-        // Apply the full Mo' Bends transform chain matching the original postRenderArm behavior
         if (mutator != null && mutator.shouldRenderCustom())
         {
             var body = mutator.getBody();
@@ -104,8 +95,6 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
             {
                 float scale = 1.0F / 16.0F;
 
-                // === arm.applyCharacterTransform ===
-                // Apply body transform (position + offset + rotation)
                 poseStack.translate(body.position.x * scale, body.position.y * scale, body.position.z * scale);
                 if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
                 {
@@ -113,7 +102,6 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
                 }
                 GlHelper.rotate(poseStack, body.rotation.getSmooth());
 
-                // Apply arm transform (position + offset + rotation)
                 poseStack.translate(armPart.position.x * scale, armPart.position.y * scale, armPart.position.z * scale);
                 if (armPart.offset.x != 0 || armPart.offset.y != 0 || armPart.offset.z != 0)
                 {
@@ -121,8 +109,6 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
                 }
                 GlHelper.rotate(poseStack, armPart.rotation.getSmooth());
 
-                // === arm.applyPostTransform -> forearm.propagateTransform ===
-                // Apply forearm local transform (position + offset + rotation)
                 poseStack.translate(foreArm.position.x * scale, foreArm.position.y * scale, foreArm.position.z * scale);
                 if (foreArm.offset.x != 0 || foreArm.offset.y != 0 || foreArm.offset.z != 0)
                 {
@@ -130,12 +116,8 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
                 }
                 GlHelper.rotate(poseStack, foreArm.rotation.getSmooth());
 
-                // Apply forearm postOffset (0, -4, -2) - this positions the held item correctly
-                // In the original, this was set via ModelPartPostOffset.setPostOffset(0, -4F, -2F)
                 poseStack.translate(0, -4.0F * scale, -2.0F * scale);
 
-                // === Item rotation adjustment ===
-                // Apply custom item rotation with translate/rotate/untranslate pattern
                 EntityData<?> entityData = EntityDatabase.instance.get(entity);
                 if (entityData instanceof BipedEntityData<?> bipedData)
                 {
@@ -152,11 +134,9 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
             }
         }
 
-        // Fallback to vanilla transform if Mo' Bends parts not available
         M model = this.getParentModel();
         ((ArmedModel) model).translateToHand(arm, poseStack);
 
-        // Apply Mo' Bends custom item rotation
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         if (entityData instanceof BipedEntityData<?> bipedData)
         {

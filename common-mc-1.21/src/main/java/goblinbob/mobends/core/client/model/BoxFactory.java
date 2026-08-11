@@ -3,15 +3,8 @@ package goblinbob.mobends.core.client.model;
 import goblinbob.mobends.lib.math.vector.IVec3fRead;
 import goblinbob.mobends.lib.math.vector.Vec3f;
 
-/**
- * Factory class for creating MutatedBox instances.
- * Updated for 1.20.1 - no longer depends on Minecraft's ModelBox/ModelRenderer classes.
- */
 public class BoxFactory
 {
-    /**
-     * The optional ModelPart the box created by this factory should be added to.
-     */
     public ModelPart target;
     public final Vec3f min;
     public final Vec3f max;
@@ -25,9 +18,6 @@ public class BoxFactory
     int textureU, textureV;
     boolean textureUVSet = false;
 
-    /**
-     * Creates a BoxFactory from position and size with delta inflation.
-     */
     public BoxFactory(float x, float y, float z, int dx, int dy, int dz, float delta)
     {
         this.min = new Vec3f(x - delta, y - delta, z - delta);
@@ -42,9 +32,6 @@ public class BoxFactory
         this.textureV = 0;
     }
 
-    /**
-     * Creates a BoxFactory from min/max coordinates and texture faces.
-     */
     public BoxFactory(float x0, float y0, float z0, float x1, float y1, float z1, TextureFace[] faces)
     {
         this.min = new Vec3f(x0, y0, z0);

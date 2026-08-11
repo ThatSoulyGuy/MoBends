@@ -2,23 +2,23 @@ package goblinbob.mobends.lib.math.vector;
 
 public class Vec3dReadonly implements IVec3dRead
 {
-	
+
 	private final double x, y, z;
-	
+
 	public Vec3dReadonly(float x, float y, float z)
 	{
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
-	
+
 	public Vec3dReadonly(IVec3dRead other)
 	{
 		this.x = other.getX();
 		this.y = other.getY();
 		this.z = other.getZ();
 	}
-	
+
 	public Vec3dReadonly()
 	{
 		this(0, 0, 0);
@@ -41,11 +41,11 @@ public class Vec3dReadonly implements IVec3dRead
 	{
 		return z;
 	}
-	
+
 	@Override
 	public double lengthSq()
 	{
 		return x*x + y*y + z*z;
 	}
-	
+
 }

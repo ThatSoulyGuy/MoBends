@@ -20,11 +20,9 @@ import net.minecraft.world.entity.animal.Squid;
 
 public class DefaultAddon implements IAddon
 {
-	// Animation type arrays for different entity categories
 	private static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall"};
 	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump", "climb"};
 	private static final String[] SQUID_ANIMATIONS = {"swim"};
-
 
 	@Override
 	public void registerContent(AddonAnimationRegistry registry)
@@ -41,11 +39,6 @@ public class DefaultAddon implements IAddon
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
 						"rightLeg", "leftForeLeg", "rightForeLeg");
 
-//		registry.registerNewEntity(ZombieVillager.class, ZombieVillagerData::new, ZombieVillagerMutator::new, new ZombieRenderer<>(),
-//				new BipedPreviewer<>(),
-//				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
-//				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
-//
 		registry.registerNewEntity(ZombifiedPiglin.class, PigZombieData::new, PigZombieMutator::new, new ZombieRenderer<>(),
 				new BipedPreviewer<>(), BIPED_ANIMATIONS,
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
@@ -59,27 +52,6 @@ public class DefaultAddon implements IAddon
 		registry.registerNewEntity(Squid.class, SquidData::new, SquidMutator::new, new SquidRenderer<>(),
 				null, SQUID_ANIMATIONS,
 				"body", "tentacle1", "tentacle2", "tentacle3", "tentacle4", "tentacle5", "tentacle6", "tentacle7", "tentacle8");
-
-
-//		registry.registerEntity(new AnimatedEntity(EntityHusk.class,
-//						new RenderBendsHusk(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
-
-//		registry.registerEntity(new AnimatedEntity(Skeleton.class,
-//						new RenderBendsSkeleton(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
-
-//		registry.registerEntity(new AnimatedEntity(WitherSkeleton.class,
-//						new RenderBendsWitherSkeleton(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
-
-//		registry.registerEntity(new AnimatedEntity(Stray.class,
-//						new RenderBendsStray(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
 
 	}
 

@@ -27,7 +27,7 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 	public void perform(PlayerData data)
 	{
 		final AbstractClientPlayer player = data.getEntity();
-		
+
 		final double magnitude = data.getInterpolatedMotionMagnitude();
 
 		float ticks = DataUpdateHandler.getTicks();
@@ -35,19 +35,18 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 		float forwardMomentum = Mth.clamp((float) data.getForwardMomentum(), -1F, 1F);
 		float sideMomentum = Mth.clamp((float) data.getSidewaysMomentum(), -1F, 1F);
 		double xzMomentum = data.getInterpolatedXZMotionMagnitude();
-		
+
 		float headPitch = data.headPitch.get();
 		float headYaw = data.headYaw.get();
 		float headYawAbs = Mth.abs(headYaw);
 		float yMomentumAngle = (float) Mth.atan2(xzMomentum,  data.getMotionY()) * 180.0F / GUtil.PI;
-		
+
 		if (player.isSprinting() && !data.isDrawingBow() && data.getTicksAfterAttack() >= 10)
 		{
 			float speedFactor = Mth.clamp((float) magnitude, 0.0F, 0.2F) / 0.2F;
-			
-			// Full Speed
+
 			data.centerRotation.setSmoothness(1.0F).orientX(yMomentumAngle * speedFactor).rotateZ(headYaw);
-			
+
 			float bodyRotationX = Mth.clamp(headPitch * 0.8F, -60.0F, 0.0F);
 			data.head.rotation.setSmoothness(1.0F).orientY(headYaw).rotateX(headPitch - bodyRotationX - yMomentumAngle * speedFactor);
 			data.body.rotation.setSmoothness(0.7F).orientX(bodyRotationX);
@@ -62,8 +61,7 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 		}
 		else if (magnitude < STILL_MOTION_THRESHOLD)
 		{
-			// Hovering Still
-			
+
 			float armSway = (Mth.cos(ticks * .0825F) + 1) / 2;
 			float armSway2 = (-Mth.sin(ticks * .0825F) + 1) / 2;
 			float legFlap = Mth.cos(ticks * .125F);
@@ -72,7 +70,7 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 			float foreArmStretch = armSway * 2F;
 			foreArmStretch -= 1F;
 			foreArmStretch = Math.max(foreArmStretch, 0);
-			
+
 			data.leftArm.rotation.setSmoothness(.3F).orientX(armSway2*30-15).rotateZ(-armSway*30);
 			data.rightArm.rotation.setSmoothness(.3F).orientX(armSway2*30-15).rotateZ(armSway*30);
 			data.leftForeArm.rotation.setSmoothness(.3F).orientX(armSway2*-40);
@@ -82,15 +80,14 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 			data.leftForeLeg.rotation.setSmoothness(.4F).orientX(20 - legFlap2*15);
 			data.rightForeLeg.rotation.setSmoothness(.4F).orientX(5);
 			data.body.rotation.orientX(armSway * 10.0F);
-			
+
 			data.centerRotation.orientZero();
-			
+
 			data.head.rotation.setSmoothness(1.0F).orientX(headPitch)
 					.rotateY(headYaw);
 		}
 		else
 		{
-			// Moving
 
 			data.centerRotation.orientZero();
 			data.centerRotation.rotateX(forwardMomentum * 50.0F);
@@ -99,20 +96,20 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 			data.rightArm.rotation.orientX(forwardMomentum * 90.0F).localRotateZ(sideMomentum * -80.0F + 20.0F);
 			data.leftForeArm.rotation.orientZero();
 			data.rightForeArm.rotation.orientZero();
-			
+
 			data.leftLeg.rotation.orientX(-45F).localRotateZ(sideMomentum * -40.0F - 5.0F);
 			data.rightLeg.rotation.orientX(-6F).localRotateZ(sideMomentum * -40.0F + 5.0F);
 			data.leftForeLeg.rotation.orientX(30F);
 			data.rightForeLeg.rotation.orientX(10F);
-			
+
 			data.head.rotation.setSmoothness(1.0F).orientX(headPitch).rotateX(-forwardMomentum * 50.0F);
-			
+
 			if (!data.isDrawingBow())
 			{
 				data.centerRotation.localRotateY(-headYaw);
 			}
 		}
-		
+
 		data.renderRotation.setSmoothness(.7F).orientX(0);
 		data.globalOffset.slideToZero(.7F);
 	}

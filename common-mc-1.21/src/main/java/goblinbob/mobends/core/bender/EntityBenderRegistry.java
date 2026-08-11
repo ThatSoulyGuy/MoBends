@@ -8,9 +8,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.*;
 
-/**
- * This class is responsible for keeping track of all entity benders.
- */
 public class EntityBenderRegistry
 {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -19,9 +16,6 @@ public class EntityBenderRegistry
 
     private final Map<Class<? extends LivingEntity>, EntityBender<?>> entityClassToBenderMap = new HashMap<>();
 
-    /**
-     * Used to cache entity-to-bender relationships, so they won't be calculated every time.
-     */
     private final Map<LivingEntity, EntityBender<?>> entityToBenderMap = new HashMap<>();
 
     public void registerBender(EntityBender<?> entityBender)
@@ -59,25 +53,20 @@ public class EntityBenderRegistry
 
     public <E extends LivingEntity> EntityBender<E> getForEntityClass(Class<E> c)
     {
-        // noinspection unchecked
         return (EntityBender<E>) entityClassToBenderMap.get(c);
     }
 
     public <E extends LivingEntity> EntityBender<E> getForEntity(E entity)
     {
-        // noinspection unchecked
         return (EntityBender<E>) entityToBenderMap.computeIfAbsent(entity, key -> {
-            // Checking the config blacklist
             if (ModConfig.shouldKeepEntityAsVanilla(entity))
                 return null;
 
-            // Checking direct registration
             Class<? extends LivingEntity> entityClass = entity.getClass();
             for (EntityBender<?> entityBender : entityClassToBenderMap.values())
                 if (entityBender.entityClass.equals(entityClass))
                     return entityBender;
 
-            // Checking indirect inheritance
             for (EntityBender<?> entityBender : entityClassToBenderMap.values())
                 if (entityBender.entityClass.isInstance(entity))
                     return entityBender;
@@ -91,10 +80,6 @@ public class EntityBenderRegistry
         entityToBenderMap.remove(entity);
     }
 
-    /**
-     * Will clear any associations between entities and EntityBenders.
-     * This is usually called whenever the player joins a new world.
-     */
     public void clearCache()
     {
         entityToBenderMap.clear();

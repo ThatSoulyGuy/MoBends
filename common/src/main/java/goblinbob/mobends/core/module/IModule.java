@@ -11,9 +11,6 @@ public interface IModule
 
     void onRefresh();
 
-    /**
-     * Factory interface for creating modules.
-     */
     interface Factory
     {
         IModule create();

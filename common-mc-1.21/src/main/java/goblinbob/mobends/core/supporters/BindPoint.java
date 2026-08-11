@@ -5,9 +5,6 @@ import goblinbob.mobends.standard.data.PlayerData;
 
 import java.util.function.Function;
 
-/**
- * Defines where an accessory binds to the player model.
- */
 public class BindPoint
 {
     private final Function<PlayerData, IModelPart> partSelector;
@@ -22,7 +19,6 @@ public class BindPoint
         return partSelector;
     }
 
-    // Common bind points
     public static final BindPoint HEAD = new BindPoint(data -> data.head);
     public static final BindPoint BODY = new BindPoint(data -> data.body);
     public static final BindPoint LEFT_ARM = new BindPoint(data -> data.leftArm);

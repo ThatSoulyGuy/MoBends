@@ -1,6 +1,5 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-
 public class VanillaFrameLayout extends VanillaViewGroup
 {
     private boolean measureAllChildren = false;
@@ -15,7 +14,6 @@ public class VanillaFrameLayout extends VanillaViewGroup
         int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
         int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
-        // Constrain available space to own fixed size when specified
         int effectiveW = (lpW > 0) ? Math.min(lpW, availableWidth) : availableWidth;
         int effectiveH = (lpH > 0) ? Math.min(lpH, availableHeight) : availableHeight;
 

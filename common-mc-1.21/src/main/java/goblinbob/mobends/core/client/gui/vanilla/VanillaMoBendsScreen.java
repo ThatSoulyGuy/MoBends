@@ -39,8 +39,6 @@ public class VanillaMoBendsScreen extends Screen
 
         if (rootView != null)
         {
-            // Re-measure and re-layout every frame to handle dynamic changes
-            // (visibility toggles, item expansion, scroll updates, tab switching)
             rootView.measure(this.width, this.height);
             rootView.layout(0, 0, this.width, this.height);
 
@@ -68,10 +66,6 @@ public class VanillaMoBendsScreen extends Screen
         if (rootView != null && rootView.handleMouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
-
-    // MC 1.21.1: mouseScrolled(double, double, double, double)
-    // MC 1.20.1: mouseScrolled(double, double, double)
-    // Both defined — only the matching one will be an override per version.
 
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {

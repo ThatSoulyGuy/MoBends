@@ -33,7 +33,6 @@ public class PackAnimationState
 
     public void update(EntityData<?> entityData, BendsPackData data, String animatedEntityKey, float deltaTime) throws MalformedKumoTemplateException
     {
-        // If a new BendsPack has been equipped, reinitialize the state.
         if (bendsPackData != data)
         {
             bendsPackData = data;

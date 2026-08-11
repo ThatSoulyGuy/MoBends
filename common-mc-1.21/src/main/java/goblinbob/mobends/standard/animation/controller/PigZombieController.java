@@ -16,21 +16,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * This is an animation controller for a zombie instance.
- * It's a part of the EntityData structure.
- * 
- * @author Iwo Plaza
- *
- */
 public class PigZombieController implements IAnimationController<PigZombieData>
 {
-	
+
 	protected HardAnimationLayer<BipedEntityData<ZombifiedPiglin>> layerBase;
 	protected HardAnimationLayer<BipedEntityData<?>> layerAction;
 	protected AnimationBit<? extends BipedEntityData<ZombifiedPiglin>> bitStand, bitWalk, bitJump;
 	protected AttackSlashInwardAnimationBit bitAttack;
-	
+
 	public PigZombieController()
 	{
 		this.layerBase = new HardAnimationLayer<>();
@@ -40,12 +33,12 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 		this.bitJump = new JumpAnimationBit<>();
 		this.bitAttack = new AttackSlashInwardAnimationBit();
 	}
-	
+
 	@Override
 	public Collection<String> perform(PigZombieData pigZombieData)
 	{
 		ZombifiedPiglin pigZombie =  pigZombieData.getEntity();
-		
+
 		if (!pigZombieData.isOnGround() || pigZombieData.getTicksAfterTouchdown() < 1)
 		{
 			this.layerBase.playOrContinueBit(bitJump, pigZombieData);
@@ -61,7 +54,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 				this.layerBase.playOrContinueBit(bitWalk, pigZombieData);
 			}
 		}
-		
+
 		if (pigZombie.getAttackAnim(DataUpdateHandler.partialTicks) > 0)
 		{
 			this.layerAction.playOrContinueBit(this.bitAttack, pigZombieData);
@@ -70,7 +63,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 		{
 			this.layerAction.clearAnimation();
 		}
-		
+
 		List<String> actions = new ArrayList<>();
 		this.layerBase.perform(pigZombieData, actions);
 		this.layerAction.perform(pigZombieData, actions);

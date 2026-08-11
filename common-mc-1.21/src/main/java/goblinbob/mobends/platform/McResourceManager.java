@@ -15,11 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Shared implementation of IResourceManager.
- * Wraps Minecraft's ResourceManager with a platform-agnostic interface.
- * Uses VersionAdapter for version-specific ResourceLocation creation.
- */
 public class McResourceManager implements IResourceManager
 {
     @Override
@@ -38,7 +33,6 @@ public class McResourceManager implements IResourceManager
         }
         catch (IOException e)
         {
-            // Resource not found or couldn't be opened
         }
 
         return Optional.empty();
@@ -61,13 +55,11 @@ public class McResourceManager implements IResourceManager
                 }
                 catch (IOException e)
                 {
-                    // Skip resources that can't be opened
                 }
             }
         }
         catch (Exception e)
         {
-            // No resources found
         }
 
         return streams;

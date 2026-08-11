@@ -22,10 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
-/**
- * Runtime state for a procedural animation layer.
- * Evaluates expressions each frame to compute bone transforms.
- */
 public class ProceduralLayerState implements ILayerState
 {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -44,7 +40,6 @@ public class ProceduralLayerState implements ILayerState
         this.additive = template.additive;
         this.compiledBones = new HashMap<>();
 
-        // Compile all bone expressions
         for (Map.Entry<String, ProceduralBoneTemplate> entry : template.bones.entrySet())
         {
             String boneName = entry.getKey();
@@ -65,7 +60,6 @@ public class ProceduralLayerState implements ILayerState
     @Override
     public void start(IKumoContext context)
     {
-        // Procedural layers don't need initialization
     }
 
     @Override
@@ -79,16 +73,13 @@ public class ProceduralLayerState implements ILayerState
             String boneName = entry.getKey();
             CompiledBoneExpression bone = entry.getValue();
 
-            // Check mask
             if (!shouldPartBeAffected(boneName))
             {
                 continue;
             }
 
-            // Get the model part
             Object partObj = entityData.getPartForName(boneName);
 
-            // Handle special bones
             if (boneName.equals("root"))
             {
                 applyRootBone(entityData, bone, exprContext);
@@ -125,17 +116,14 @@ public class ProceduralLayerState implements ILayerState
 
             if (additive)
             {
-                // Add to existing rotation - use instant versions for immediate effect
                 if (bone.hasRotationX()) rotation.rotateInstantX(rotX * blendWeight);
                 if (bone.hasRotationY()) rotation.rotateInstantY(rotY * blendWeight);
                 if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ * blendWeight);
             }
             else
             {
-                // Set rotation (blended)
                 if (blendWeight >= 1.0f)
                 {
-                    // Reset and apply full rotation immediately
                     rotation.identity();
                     if (bone.hasRotationX()) rotation.orientInstantX(rotX);
                     if (bone.hasRotationY()) rotation.rotateInstantY(rotY);
@@ -143,7 +131,6 @@ public class ProceduralLayerState implements ILayerState
                 }
                 else
                 {
-                    // Blend with existing - use instant versions for immediate effect
                     if (bone.hasRotationX()) rotation.rotateInstantX(rotX * blendWeight);
                     if (bone.hasRotationY()) rotation.rotateInstantY(rotY * blendWeight);
                     if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ * blendWeight);
@@ -159,7 +146,6 @@ public class ProceduralLayerState implements ILayerState
 
             if (additive)
             {
-                // Add to existing offset
                 offset.set(
                         offset.getX() + offX,
                         offset.getY() + offY,
@@ -168,7 +154,6 @@ public class ProceduralLayerState implements ILayerState
             }
             else
             {
-                // Set offset
                 offset.set(offX, offY, offZ);
             }
         }
@@ -209,7 +194,6 @@ public class ProceduralLayerState implements ILayerState
 
             if (additive)
             {
-                // Add to existing rotation - use instant versions for immediate effect
                 if (bone.hasRotationX()) rotation.rotateInstantX(rotX * blendWeight);
                 if (bone.hasRotationY()) rotation.rotateInstantY(rotY * blendWeight);
                 if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ * blendWeight);
@@ -218,7 +202,6 @@ public class ProceduralLayerState implements ILayerState
             {
                 if (blendWeight >= 1.0f)
                 {
-                    // Reset and apply full rotation immediately
                     rotation.identity();
                     if (bone.hasRotationX()) rotation.orientInstantX(rotX);
                     if (bone.hasRotationY()) rotation.rotateInstantY(rotY);
@@ -226,7 +209,6 @@ public class ProceduralLayerState implements ILayerState
                 }
                 else
                 {
-                    // Blend with existing - use instant versions for immediate effect
                     if (bone.hasRotationX()) rotation.rotateInstantX(rotX * blendWeight);
                     if (bone.hasRotationY()) rotation.rotateInstantY(rotY * blendWeight);
                     if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ * blendWeight);
@@ -260,9 +242,6 @@ public class ProceduralLayerState implements ILayerState
         return mask == null || mask.doesAllow(partName);
     }
 
-    /**
-     * Creates a ProceduralLayerState from a template.
-     */
     public static ProceduralLayerState createFromTemplate(IKumoInstancingContext context, ProceduralLayerTemplate template)
             throws MalformedKumoTemplateException
     {

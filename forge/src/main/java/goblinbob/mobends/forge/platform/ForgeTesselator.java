@@ -10,17 +10,6 @@ import goblinbob.mobends.api.rendering.IBufferBuilder;
 import goblinbob.mobends.api.rendering.ITesselator;
 import goblinbob.mobends.api.rendering.VertexFormatType;
 
-/**
- * Forge 1.20.1 implementation of ITesselator.
- * Translates 1.21.1-style API to 1.20.1 API.
- *
- * Key differences:
- * - MC 1.21.1: tesselator.begin() returns BufferBuilder
- * - MC 1.20.1: tesselator.getBuilder() then builder.begin()
- *
- * - MC 1.21.1: builder.buildOrThrow() returns data
- * - MC 1.20.1: builder.end() returns data
- */
 public class ForgeTesselator implements ITesselator
 {
     private final Tesselator tesselator;
@@ -36,7 +25,6 @@ public class ForgeTesselator implements ITesselator
         VertexFormat.Mode mcMode = mapDrawMode(mode);
         VertexFormat mcFormat = mapVertexFormat(format);
 
-        // In 1.20.1, we get the builder first, then call begin on it
         BufferBuilder builder = tesselator.getBuilder();
         builder.begin(mcMode, mcFormat);
         return new ForgeBufferBuilder(builder);
@@ -47,10 +35,8 @@ public class ForgeTesselator implements ITesselator
     {
         ForgeBufferBuilder forgeBuilder = (ForgeBufferBuilder) builder;
 
-        // Finish any in-progress vertex
         forgeBuilder.finishVertex();
 
-        // Get the native builder and end it (1.20.1 uses end(), not buildOrThrow())
         BufferBuilder nativeBuilder = (BufferBuilder) builder.getNative();
         BufferUploader.drawWithShader(nativeBuilder.end());
     }

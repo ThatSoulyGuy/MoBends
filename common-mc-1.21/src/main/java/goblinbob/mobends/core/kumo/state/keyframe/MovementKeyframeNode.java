@@ -24,9 +24,6 @@ public class MovementKeyframeNode implements INodeState
     private final float playbackSpeed;
     List<ConnectionState> connections = new ArrayList<>();
 
-    /**
-     * Progress counted in keyframes.
-     */
     private float progress;
 
     public MovementKeyframeNode(IKumoInstancingContext context, MovementKeyframeNodeTemplate nodeTemplate)
@@ -44,7 +41,6 @@ public class MovementKeyframeNode implements INodeState
 
         if (animation != null)
         {
-            // Evaluating the animation duration.
             this.animationDuration = 0;
             for (Bone bone : animation.bones.values())
             {

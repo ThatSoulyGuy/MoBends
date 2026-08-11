@@ -6,10 +6,6 @@ import goblinbob.mobends.api.rendering.IVertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 
-/**
- * NeoForge implementation of IBufferSource.
- * Wraps Minecraft's MultiBufferSource.
- */
 public class NeoForgeBufferSource implements IBufferSource
 {
     private final MultiBufferSource bufferSource;

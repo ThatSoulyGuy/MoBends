@@ -14,21 +14,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * This is an animation controller for a zombie instance.
- * It's a part of the EntityData structure.
- * 
- * @author Iwo Plaza
- *
- */
 public class ZombieController implements IAnimationController<ZombieData>
 {
-	
+
 	protected HardAnimationLayer<ZombieData> layerBase;
 	protected HardAnimationLayer<ZombieData> layerSet;
 	protected AnimationBit<ZombieData> bitStand, bitWalk, bitJump;
 	protected AnimationBit<ZombieData>[] bitAnimationSet;
-	
+
 	public ZombieController()
 	{
 		this.layerBase = new HardAnimationLayer<>();
@@ -41,7 +34,7 @@ public class ZombieController implements IAnimationController<ZombieData>
 			new ZombieStumblingAnimationBit()
 		};
 	}
-	
+
 	@Override
 	public Collection<String> perform(ZombieData zombieData)
 	{
@@ -60,13 +53,13 @@ public class ZombieController implements IAnimationController<ZombieData>
 				this.layerBase.playOrContinueBit(bitWalk, zombieData);
 			}
 		}
-		
+
 		this.layerSet.playOrContinueBit(bitAnimationSet[zombieData.getAnimationSet()], zombieData);
-		
+
 		final List<String> actions = new ArrayList<>();
 		this.layerBase.perform(zombieData, actions);
 		this.layerSet.perform(zombieData, actions);
 		return actions;
 	}
-	
+
 }

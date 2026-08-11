@@ -9,33 +9,29 @@ import net.minecraft.util.Mth;
 public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 {
 	private float relax = 0F;
-	
+
 	@Override
 	public String[] getActions(PlayerData entityData)
 	{
 		return new String[] { "sprint_jump" };
 	}
-	
+
 	@Override
 	public void onPlay(PlayerData entityData)
 	{
 		this.relax = 0F;
 	}
-	
+
 	@Override
 	public void perform(PlayerData data)
 	{
 		if (data.getPrevMotionY() < 0 && data.getMotionY() > 0)
 		{
-			/*
-			 * Restarting the animation if the player is going back up again after falling
-			 * down.
-			 */
 			this.onPlay(data);
 		}
-		
+
 		boolean sprintLegSwitch = data.getSprintJumpLeg();
-		
+
 		float legSwitchMtp = sprintLegSwitch ? 1 : -1;
 		IModelPart mainArm = sprintLegSwitch ? data.rightArm : data.leftArm;
 		IModelPart offArm = sprintLegSwitch ? data.leftArm : data.rightArm;
@@ -43,17 +39,17 @@ public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 		IModelPart offLeg = sprintLegSwitch ? data.leftLeg : data.rightLeg;
 		IModelPart mainForeLeg = sprintLegSwitch ? data.rightForeLeg : data.leftForeLeg;
 		IModelPart offForeLeg = sprintLegSwitch ? data.leftForeLeg : data.rightForeLeg;
-		
+
 		float bodyRotationY = 20 * legSwitchMtp;
 		float bodyLean = Mth.clamp((float) data.getMotionY(), -.2F, .2F);
 		bodyLean = bodyLean * -100F + 20F;
-		
+
 		if (this.relax < 1F)
 		{
 			this.relax += DataUpdateHandler.ticksPerFrame * 0.1F;
 			this.relax = Math.min(this.relax, 1F);
 		}
-		
+
 		float relaxAngle = Mth.sqrt(Mth.sqrt(this.relax));
 
 		data.centerRotation.setSmoothness(.3F).orientZero();
@@ -70,10 +66,10 @@ public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 		offLeg.getRotation().rotateX(45);
 		mainArm.getRotation().rotateX(50);
 		offArm.getRotation().rotateX(-50);
-		
+
 		mainForeLeg.getRotation().orientX(80F - relaxAngle * 80F);
 		offForeLeg.getRotation().orientX(relaxAngle * 70F);
-		
+
 		data.head.rotation.orientX(data.headPitch.get() - 20);
 		data.head.rotation.rotateY(data.headYaw.get() - bodyRotationY);
 	}

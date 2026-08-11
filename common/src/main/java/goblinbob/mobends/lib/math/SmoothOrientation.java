@@ -161,10 +161,6 @@ public class SmoothOrientation
         return this.rotateInstant(angle, 0F, 0F, 1F);
     }
 
-    /**
-     * Rotates the orientation based on the local
-     * space, not the global space.
-     */
     public SmoothOrientation localRotate(float angle, float x, float y, float z)
     {
         Quaternion rotation = new Quaternion();

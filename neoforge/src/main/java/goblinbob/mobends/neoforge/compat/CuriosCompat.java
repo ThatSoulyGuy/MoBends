@@ -13,17 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
-/**
- * Compatibility helper for Curios API (NeoForge version).
- * Ensures curio items rendered on players follow Mo'Bends animations.
- *
- * Basic curio rendering (head, body, back) works automatically because Mo'Bends
- * syncs animated poses to the vanilla HumanoidModel via syncPosesToVanillaModel().
- * Curios render layers call followBodyRotations() which copies these values.
- *
- * This compat layer additionally computes combined forearm/foreleg transforms
- * (upper + lower limb) for curios that attach to split-joint body parts.
- */
 @OnlyIn(Dist.CLIENT)
 public class CuriosCompat
 {
@@ -33,18 +22,12 @@ public class CuriosCompat
     private static boolean initialized = false;
     private static boolean isLoaded = false;
 
-    // Reflection cache for Curios API
     private static Class<?> curiosApiClass;
     private static Method getCuriosInventoryMethod;
 
-    // Thread-local storage for split limb transforms (available to curio renderers)
     private static final ThreadLocal<SplitLimbTransforms> currentSplitTransforms =
             ThreadLocal.withInitial(SplitLimbTransforms::new);
 
-    /**
-     * Combined limb transforms including forearm/foreleg contributions.
-     * Curio renderers can query this for accurate end-of-limb positions.
-     */
     public static class SplitLimbTransforms
     {
         public float leftArmEndXRot, leftArmEndYRot, leftArmEndZRot;
@@ -92,11 +75,6 @@ public class CuriosCompat
         return isLoaded;
     }
 
-    /**
-     * Sync Mo'Bends transforms for curio rendering.
-     * Computes combined upper+lower limb euler angles for split joints.
-     * Called from RenderingEventHandler after syncPosesToVanillaModel().
-     */
     public static void syncTransformsForCurios(LivingEntity entity, HumanoidModel<?> model, PoseStack poseStack)
     {
         if (!isModLoaded()) return;
@@ -107,7 +85,6 @@ public class CuriosCompat
         SplitLimbTransforms transforms = currentSplitTransforms.get();
         transforms.valid = false;
 
-        // Compute combined euler angles: upper limb rotation + forearm/foreleg rotation
         float[] leftForeArm = mutator.getLeftForeArmEulerAngles();
         transforms.leftArmEndXRot = model.leftArm.xRot + leftForeArm[0];
         transforms.leftArmEndYRot = model.leftArm.yRot + leftForeArm[1];
@@ -131,26 +108,16 @@ public class CuriosCompat
         transforms.valid = true;
     }
 
-    /**
-     * Get the current split limb transforms for curio rendering.
-     * Available during the entity render pass after syncTransformsForCurios() is called.
-     */
     public static SplitLimbTransforms getCurrentSplitLimbTransforms()
     {
         return currentSplitTransforms.get();
     }
 
-    /**
-     * Clear the split limb transforms. Called after entity rendering completes.
-     */
     public static void clearSplitLimbTransforms()
     {
         currentSplitTransforms.remove();
     }
 
-    /**
-     * Check if an entity has any curio items equipped.
-     */
     public static boolean hasCurioItems(LivingEntity entity)
     {
         if (!isModLoaded() || getCuriosInventoryMethod == null) return false;

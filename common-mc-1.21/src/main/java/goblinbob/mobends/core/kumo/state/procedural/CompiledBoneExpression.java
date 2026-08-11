@@ -7,9 +7,6 @@ import goblinbob.mobends.core.kumo.state.template.procedural.ProceduralBoneTempl
 
 import javax.annotation.Nullable;
 
-/**
- * Holds compiled expressions for a single bone's procedural transforms.
- */
 public class CompiledBoneExpression
 {
     @Nullable
@@ -43,95 +40,56 @@ public class CompiledBoneExpression
         this.hasOffset = offsetX != null || offsetY != null || offsetZ != null;
     }
 
-    /**
-     * Evaluates the rotation X expression.
-     * @return Rotation in degrees, or 0 if no expression defined.
-     */
     public float evaluateRotationX(ExpressionContext context)
     {
         return rotationX != null ? rotationX.evaluateFloat(context) : 0.0f;
     }
 
-    /**
-     * Evaluates the rotation Y expression.
-     * @return Rotation in degrees, or 0 if no expression defined.
-     */
     public float evaluateRotationY(ExpressionContext context)
     {
         return rotationY != null ? rotationY.evaluateFloat(context) : 0.0f;
     }
 
-    /**
-     * Evaluates the rotation Z expression.
-     * @return Rotation in degrees, or 0 if no expression defined.
-     */
     public float evaluateRotationZ(ExpressionContext context)
     {
         return rotationZ != null ? rotationZ.evaluateFloat(context) : 0.0f;
     }
 
-    /**
-     * Evaluates the offset X expression.
-     * @return Offset in units, or 0 if no expression defined.
-     */
     public float evaluateOffsetX(ExpressionContext context)
     {
         return offsetX != null ? offsetX.evaluateFloat(context) : 0.0f;
     }
 
-    /**
-     * Evaluates the offset Y expression.
-     * @return Offset in units, or 0 if no expression defined.
-     */
     public float evaluateOffsetY(ExpressionContext context)
     {
         return offsetY != null ? offsetY.evaluateFloat(context) : 0.0f;
     }
 
-    /**
-     * Evaluates the offset Z expression.
-     * @return Offset in units, or 0 if no expression defined.
-     */
     public float evaluateOffsetZ(ExpressionContext context)
     {
         return offsetZ != null ? offsetZ.evaluateFloat(context) : 0.0f;
     }
 
-    /**
-     * Checks if this bone has any rotation expressions.
-     */
     public boolean hasRotation()
     {
         return hasRotation;
     }
 
-    /**
-     * Checks if this bone has any offset expressions.
-     */
     public boolean hasOffset()
     {
         return hasOffset;
     }
 
-    /**
-     * Checks if rotation X is defined.
-     */
     public boolean hasRotationX()
     {
         return rotationX != null;
     }
 
-    /**
-     * Checks if rotation Y is defined.
-     */
     public boolean hasRotationY()
     {
         return rotationY != null;
     }
 
-    /**
-     * Checks if rotation Z is defined.
-     */
     public boolean hasRotationZ()
     {
         return rotationZ != null;

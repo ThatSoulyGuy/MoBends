@@ -4,10 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 
 import java.util.LinkedList;
 
-/**
- * Holds properties that are shared by the server with the client on world join.
- * These are usually permissions and restrictions.
- */
 public class SharedConfig
 {
 

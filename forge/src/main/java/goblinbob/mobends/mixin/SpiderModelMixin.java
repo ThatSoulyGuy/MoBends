@@ -11,12 +11,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Mixin to intercept HierarchicalModel rendering and redirect to MoBends custom rendering
- * when a spider mutation is active.
- *
- * MC 1.20.1: renderToBuffer uses float RGBA instead of packed int color
- */
 @Mixin(HierarchicalModel.class)
 public abstract class SpiderModelMixin<T extends Entity> {
 
@@ -25,7 +19,6 @@ public abstract class SpiderModelMixin<T extends Entity> {
                                          int packedLight, int packedOverlay,
                                          float red, float green, float blue, float alpha,
                                          CallbackInfo ci) {
-        // Only intercept if this is a SpiderModel
         if (!((Object) this instanceof SpiderModel)) {
             return;
         }

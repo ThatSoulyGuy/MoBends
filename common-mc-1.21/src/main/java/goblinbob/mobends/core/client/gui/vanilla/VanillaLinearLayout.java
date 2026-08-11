@@ -1,6 +1,5 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-
 public class VanillaLinearLayout extends VanillaViewGroup
 {
     public static final int HORIZONTAL = 0;
@@ -31,8 +30,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
         int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
-        // Constrain available space to own fixed size when specified,
-        // so children are measured within this layout's actual bounds
         int effectiveW = (lpW > 0) ? Math.min(lpW, availableWidth) : availableWidth;
         int effectiveH = (lpH > 0) ? Math.min(lpH, availableHeight) : availableHeight;
 
@@ -49,10 +46,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
         }
     }
 
-    /**
-     * Returns the effective weight for a child in the main axis.
-     * MATCH_PARENT in the main axis is treated as weight=1 (fill remaining space).
-     */
     private static float effectiveWeight(float weight, int mainAxisSpec)
     {
         if (weight > 0) return weight;
@@ -66,7 +59,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int maxChildWidth = 0;
         int visibleCount = 0;
 
-        // First pass: measure fixed/wrap children, accumulate weights
         for (VanillaView child : children)
         {
             if (child.visibility == GONE) continue;
@@ -97,8 +89,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
                 int childAvailW = contentW - ml - mr;
                 child.measure(childAvailW, contentH);
                 totalFixedHeight += child.measuredHeight + mt + mb;
-                // Cross-axis MATCH_PARENT children will be stretched during layout,
-                // so don't let them inflate a WRAP_CONTENT parent's width.
                 int childWidthSpec = clp != null ? clp.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
                 if (childWidthSpec != VanillaLayoutParams.MATCH_PARENT)
                 {
@@ -112,7 +102,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
             totalFixedHeight += spacing * (visibleCount - 1);
         }
 
-        // Second pass: distribute remaining space to weighted / MATCH_PARENT children
         int remainingHeight = Math.max(0, contentH - totalFixedHeight);
         if (totalWeight > 0)
         {
@@ -131,7 +120,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
                     int childH = (int) (remainingHeight * ew / totalWeight);
                     int childAvailW = contentW - ml - mr;
                     child.measure(childAvailW, childH);
-                    // Only override measured height when the allocation is reasonable
                     if (childH < 100000)
                     {
                         child.measuredHeight = childH;
@@ -171,7 +159,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int maxChildHeight = 0;
         int visibleCount = 0;
 
-        // First pass: measure fixed/wrap children, accumulate weights
         for (VanillaView child : children)
         {
             if (child.visibility == GONE) continue;
@@ -202,8 +189,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
                 int childAvailH = contentH - mt - mb;
                 child.measure(contentW, childAvailH);
                 totalFixedWidth += child.measuredWidth + ml + mr;
-                // Cross-axis MATCH_PARENT children will be stretched during layout,
-                // so don't let them inflate a WRAP_CONTENT parent's height.
                 int childHeightSpec = clp != null ? clp.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
                 if (childHeightSpec != VanillaLayoutParams.MATCH_PARENT)
                 {
@@ -235,7 +220,6 @@ public class VanillaLinearLayout extends VanillaViewGroup
                     int childW = (int) (remainingWidth * ew / totalWeight);
                     int childAvailH = contentH - mt - mb;
                     child.measure(childW, childAvailH);
-                    // Only override measured width when the allocation is reasonable
                     if (childW < 100000)
                     {
                         child.measuredWidth = childW;

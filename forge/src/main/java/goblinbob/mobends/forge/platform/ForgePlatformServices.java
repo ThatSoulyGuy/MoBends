@@ -43,10 +43,6 @@ import net.minecraftforge.fml.loading.FMLLoader;
 
 import javax.annotation.Nullable;
 
-/**
- * Forge 1.20.1 implementation of IPlatformServices.
- * Provides platform-specific functionality for Forge 1.20.1.
- */
 public class ForgePlatformServices implements IPlatformServices
 {
     private final McResourceManager resourceManager = new McResourceManager();
@@ -55,15 +51,12 @@ public class ForgePlatformServices implements IPlatformServices
 
     public ForgePlatformServices()
     {
-        // Initialize the version adapter first (shared code depends on it)
         VersionAdapter.Holder.set(new ForgeVersionAdapter());
 
-        // Initialize helper singletons
         IEntityVertexHelper.Holder.setHelper(new ForgeEntityVertexHelper());
         IArmorHelper.Holder.setHelper(new ForgeArmorHelper());
         IModelRenderHelper.Holder.setHelper(new ForgeModelRenderHelper());
 
-        // Initialize armor rendering providers
         ArmorModelProviderHolder.setProvider(new ForgeArmorModelProvider());
         IArmorTextureProvider.Holder.setProvider(new ForgeArmorTextureProvider());
         IArmorLayerProvider.Holder.setProvider(new ForgeArmorLayerProvider());

@@ -4,7 +4,7 @@ public class ColorReadonly implements IColorRead
 {
 
 	private final float r, g, b, a;
-	
+
 	public ColorReadonly(float r, float g, float b)
 	{
 		this.r = r;
@@ -20,7 +20,7 @@ public class ColorReadonly implements IColorRead
 		this.b = b;
 		this.a = a;
 	}
-	
+
 	public ColorReadonly(int hexValue)
 	{
 		int valueB = hexValue & 255;
@@ -31,13 +31,13 @@ public class ColorReadonly implements IColorRead
 		hexValue >>= 8;
 		int valueA = hexValue & 255;
 		hexValue >>= 8;
-		
+
 		this.a = valueA / 255.0F;
 		this.r = valueR / 255.0F;
 		this.g = valueG / 255.0F;
 		this.b = valueB / 255.0F;
 	}
-	
+
 	@Override
 	public float getR()
 	{

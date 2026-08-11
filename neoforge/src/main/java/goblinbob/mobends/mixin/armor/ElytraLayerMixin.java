@@ -10,9 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Mixin to ensure elytra renders correctly with Mo'Bends body transforms.
- */
 @Mixin(ElytraLayer.class)
 public abstract class ElytraLayerMixin<T extends LivingEntity>
 {
@@ -33,13 +30,10 @@ public abstract class ElytraLayerMixin<T extends LivingEntity>
             float headPitch,
             CallbackInfo ci)
     {
-        // Check if Mo'Bends has data for this entity
         if (!MixinBridge.hasAnimationData(entity))
         {
             return;
         }
 
-        // The body transform will be applied to the elytra through the parent
-        // model's transform. Additional adjustments can be applied here if needed.
     }
 }

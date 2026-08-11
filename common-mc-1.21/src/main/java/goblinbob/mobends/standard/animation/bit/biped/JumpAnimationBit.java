@@ -4,13 +4,7 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.util.Mth;
 
-/**
- * Represents a jump animation bit for biped entities.
- */
 public class JumpAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T> {
-    /**
-     * Holds the actions that the bits of this type perform.
-     */
     private static final String[] ACTIONS = new String[]{"jump"};
 
     @Override
@@ -36,10 +30,6 @@ public class JumpAnimationBit<T extends BipedEntityData<?>> extends AnimationBit
     @Override
     public void perform(T data) {
         if (data.getPrevMotionY() < 0 && data.getMotionY() > 0) {
-            /*
-             * Restarting the animation if the player is going back up again after falling
-             * down.
-             */
             onPlay(data);
         }
 

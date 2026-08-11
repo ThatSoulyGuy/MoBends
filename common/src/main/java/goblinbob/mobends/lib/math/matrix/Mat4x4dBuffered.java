@@ -12,20 +12,19 @@ public class Mat4x4dBuffered extends Mat4x4d
 	public Mat4x4dBuffered()
 	{
 		super();
-		// Allocate a direct buffer with native byte order (required for OpenGL)
 		this.buffer = ByteBuffer.allocateDirect(16 * Float.BYTES)
 				.order(ByteOrder.nativeOrder())
 				.asFloatBuffer();
 	}
-	
+
 	public void updateBuffer()
 	{
 		MatrixUtils.matToGlMatrix(this, this.buffer);
 	}
-	
+
 	public FloatBuffer getBuffer()
 	{
 		return this.buffer;
 	}
-	
+
 }

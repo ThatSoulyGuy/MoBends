@@ -2,9 +2,6 @@ package goblinbob.mobends.neoforge.network;
 
 import goblinbob.mobends.core.network.NetworkConfiguration;
 
-/**
- * NeoForge-specific NetworkConfiguration that provides SharedConfig for network sync.
- */
 public class NeoForgeNetworkConfiguration extends NetworkConfiguration
 {
     public static final NeoForgeNetworkConfiguration INSTANCE = new NeoForgeNetworkConfiguration();
@@ -40,13 +37,8 @@ public class NeoForgeNetworkConfiguration extends NetworkConfiguration
         return limitMovement.getValue();
     }
 
-    /**
-     * Initialize the NeoForge network configuration.
-     * Should be called during mod initialization.
-     */
     public static void init()
     {
-        // Replace the common-mc stub with our implementation
         NetworkConfiguration.instance = INSTANCE;
     }
 }

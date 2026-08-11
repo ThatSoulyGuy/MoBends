@@ -5,10 +5,6 @@ import net.minecraft.client.gui.Font;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Minecraft GUI utility methods for MoBends.
- * Provides MC-specific font/GUI functionality.
- */
 public class GuiUtil
 {
     public static String[] wrapText(Font font, String text, int maxWidth)

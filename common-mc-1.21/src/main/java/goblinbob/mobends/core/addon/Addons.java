@@ -5,13 +5,6 @@ import goblinbob.mobends.core.Core;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The class responsible for managing the registered addons.
- *
- * -- FOR ADDON DEVELOPERS: -- Don't use this class directly. Use the AddonHelper class instead.
- *
- * @author Iwo Plaza
- */
 public class Addons
 {
 

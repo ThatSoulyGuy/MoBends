@@ -32,9 +32,6 @@ public class DefaultEntityBender<T extends LivingEntity> extends EntityBender<T>
         this.alterableParts = alterableParts;
     }
 
-    /**
-     * Legacy constructor without supportedAnimations - uses default animations.
-     */
     public DefaultEntityBender(String modId, String key, String unlocalizedName, Class<T> entityClass,
                                IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
                                MutatedRenderer<T> renderer, IPreviewer<?> previewer, String... alterableParts)

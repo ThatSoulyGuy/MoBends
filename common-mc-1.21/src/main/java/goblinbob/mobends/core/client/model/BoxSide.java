@@ -8,9 +8,9 @@ public enum BoxSide
 	BOTTOM(3),
 	FRONT(4),
 	BACK(5);
-	
+
 	int faceIndex;
-	
+
 	BoxSide(int index)
 	{
 		this.faceIndex = index;

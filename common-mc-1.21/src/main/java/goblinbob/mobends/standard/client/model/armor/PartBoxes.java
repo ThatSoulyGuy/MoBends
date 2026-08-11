@@ -5,15 +5,6 @@ import net.minecraft.client.model.geom.ModelPart;
 
 import java.util.*;
 
-/**
- * Stores MutatedBox instances mapped to ModelPart instances.
- * Updated for Minecraft 1.20.1 - uses modern ModelPart and our custom MutatedBox.
- *
- * @deprecated This class is part of the legacy armor rendering system.
- *             Use the three-tier rendering system caching infrastructure
- *             (ArmorStructureCache, ArmorGeometryCache) instead.
- *             This class is kept for backward compatibility and will be removed in a future version.
- */
 @Deprecated
 public class PartBoxes
 {

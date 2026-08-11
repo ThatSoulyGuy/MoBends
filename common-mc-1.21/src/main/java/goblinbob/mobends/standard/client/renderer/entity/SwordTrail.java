@@ -120,21 +120,18 @@ public class SwordTrail
             return;
         }
 
-        RenderSystem.depthFunc(515); // GL_LEQUAL
+        RenderSystem.depthFunc(515);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableCull();
         PlatformServices.get().setPositionColorShader();
 
-        // Need at least 2 trail parts to draw quads
         if (trailPartList.size() < 2)
         {
             RenderSystem.enableCull();
             return;
         }
 
-        // Get the transformation matrix from the PoseStack
-        // This includes the scale and any other transforms applied before render
         Matrix4f matrix = poseStack.last().pose();
 
         ITesselator tesselator = ITesselator.getInstance();
@@ -152,13 +149,10 @@ public class SwordTrail
             final float alpha = part.getAlpha();
             final IColorRead color = part.baseColor;
 
-            // Transform points by the PoseStack matrix (includes scale)
             Vec3f[] transformedPoints = transformPoints(points, matrix);
 
             if (prevPart != null && prevTransformedPoints != null)
             {
-                // Draw quad connecting previous part to current
-                // Convert RGBA float to packed ARGB int
                 int prevColor = ((int)(prevAlpha * 255.0F) << 24) |
                                ((int)(color.getR() * 255.0F) << 16) |
                                ((int)(color.getG() * 255.0F) << 8) |
@@ -188,9 +182,6 @@ public class SwordTrail
         RenderSystem.enableCull();
     }
 
-    /**
-     * Transform points by the given matrix.
-     */
     private Vec3f[] transformPoints(Vec3f[] points, Matrix4f matrix)
     {
         Vec3f[] result = new Vec3f[points.length];

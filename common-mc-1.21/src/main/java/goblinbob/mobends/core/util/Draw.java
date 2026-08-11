@@ -7,21 +7,9 @@ import goblinbob.mobends.api.rendering.IBufferBuilder;
 import goblinbob.mobends.api.rendering.ITesselator;
 import goblinbob.mobends.api.rendering.VertexFormatType;
 
-/**
- * Utility class for immediate-mode rendering.
- * Uses platform-agnostic abstractions for cross-version compatibility.
- */
 public class Draw
 {
 
-    /**
-     * Draws a filled rectangle using absolute coordinates.
-     * @param left The left edge X coordinate
-     * @param top The top edge Y coordinate
-     * @param right The right edge X coordinate (absolute, not width)
-     * @param bottom The bottom edge Y coordinate (absolute, not height)
-     * @param color The ARGB color
-     */
     public static void rectangle(int left, int top, int right, int bottom, int color)
     {
         float alpha = (float) (color >> 24 & 255) / 255.0F;
@@ -42,7 +30,6 @@ public class Draw
         tesselator.endAndDraw(bufferBuilder);
 
         RenderSystem.disableBlend();
-        // Reset color to white for subsequent text rendering
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
@@ -198,32 +185,26 @@ public class Draw
         ITesselator tesselator = ITesselator.getInstance();
         IBufferBuilder bufferBuilder = tesselator.begin(DrawMode.QUADS, VertexFormatType.POSITION_TEX_COLOR);
 
-        // NEG_X
         bufferBuilder.addVertex((float) minX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
-        // POS_X
         bufferBuilder.addVertex((float) maxX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
-        // NEG_Z
         bufferBuilder.addVertex((float) maxX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
-        // POS_Z
         bufferBuilder.addVertex((float) minX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
-        // NEG_Y
         bufferBuilder.addVertex((float) minX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) minY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) minY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
-        // POS_Y
         bufferBuilder.addVertex((float) maxX, (float) maxY, (float) maxZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) maxX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex((float) minX, (float) maxY, (float) minZ).setUv(0, 0).setColor(r, g, b, a);
@@ -287,7 +268,6 @@ public class Draw
 
         RenderSystem.disableBlend();
     }
-    //Trimmed - HalfStretched
 
     public static void thsPuzzle(int x, int y, int left, int middle, int right, int height, int textureX, int textureY)
     {
@@ -298,15 +278,15 @@ public class Draw
 
     public static void borderBox(int x, int y, int width, int height, int border, int textureX, int textureY)
     {
-		/* Top-Left		*/ Draw.texturedModalRect(x-border, y-border, textureX, textureY, border, border);
-		/* Top 			*/ Draw.texturedModalRect(x, y-border, width, border, textureX+border, textureY, 1, border);
-		/* Top-Right 	*/ Draw.texturedModalRect(x+width, y-border, textureX+border+1, textureY, border, border);
-		/* Right 		*/ Draw.texturedModalRect(x+width, y, border, height, textureX+border+1, textureY+border, border, 1);
-		/* Bottom-Right */ Draw.texturedModalRect(x+width, y+height, textureX+border+1, textureY+border+1, border, border);
-		/* Bottom		*/ Draw.texturedModalRect(x, y+height, width, border, textureX+border, textureY+border+1, 1, border);
-		/* Bottom-Left	*/ Draw.texturedModalRect(x-border, y+height, textureX, textureY+border+1, border, border);
-		/* Left 		*/ Draw.texturedModalRect(x-border, y, border, height, textureX, textureY+border, border, 1);
-		/* Inside		*/ Draw.texturedModalRect(x, y, width, height, textureX+border, textureY+border, 1, 1);
+		 Draw.texturedModalRect(x-border, y-border, textureX, textureY, border, border);
+		 Draw.texturedModalRect(x, y-border, width, border, textureX+border, textureY, 1, border);
+		 Draw.texturedModalRect(x+width, y-border, textureX+border+1, textureY, border, border);
+		 Draw.texturedModalRect(x+width, y, border, height, textureX+border+1, textureY+border, border, 1);
+		 Draw.texturedModalRect(x+width, y+height, textureX+border+1, textureY+border+1, border, border);
+		 Draw.texturedModalRect(x, y+height, width, border, textureX+border, textureY+border+1, 1, border);
+		 Draw.texturedModalRect(x-border, y+height, textureX, textureY+border+1, border, border);
+		 Draw.texturedModalRect(x-border, y, border, height, textureX, textureY+border, border, 1);
+		 Draw.texturedModalRect(x, y, width, height, textureX+border, textureY+border, 1, 1);
 	}
 
     public static void line(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, IColorRead color)

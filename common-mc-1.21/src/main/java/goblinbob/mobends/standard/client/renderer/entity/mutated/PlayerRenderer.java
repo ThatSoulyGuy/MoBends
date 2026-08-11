@@ -4,10 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.data.EntityData;
 import net.minecraft.client.player.AbstractClientPlayer;
 
-/**
- * Renderer for player entities with Mo' Bends animations.
- * Updated for 1.20.1 to use PoseStack instead of GlStateManager.
- */
 public class PlayerRenderer extends BipedRenderer<AbstractClientPlayer>
 {
 

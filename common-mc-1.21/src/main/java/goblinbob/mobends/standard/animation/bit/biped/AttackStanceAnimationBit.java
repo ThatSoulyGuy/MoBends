@@ -30,20 +30,16 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 		boolean crouching = entity.isCrouching();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 		IModelPart mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		IModelPart offArm = mainHandSwitch ? data.leftArm : data.rightArm;
 		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 		SmoothOrientation mainItemRotation = mainHandSwitch ? data.renderRightItemRotation : data.renderLeftItemRotation;
-		
-		// ItemStack offHandItemStack = player.getHeldItemOffhand();
 
 		float breath0 = (float) Math.sin(DataUpdateHandler.getTicks() / 5.0);
 		float breath1 = (float) Math.cos(DataUpdateHandler.getTicks() / 5.7);
-		
+
 		data.renderRotation.setSmoothness(.3F).orientY(-30 * handDirMtp);
 
 		float bodyRotationX = 20.0F + breath0 * 2.0F;

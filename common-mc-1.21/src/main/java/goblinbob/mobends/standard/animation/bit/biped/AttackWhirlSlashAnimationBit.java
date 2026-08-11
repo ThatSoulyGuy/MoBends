@@ -23,15 +23,13 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 		final HumanoidArm primaryHand = living.getMainArm();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 		IModelPart mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		IModelPart offArm = mainHandSwitch ? data.leftArm : data.rightArm;
 		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 		SmoothOrientation mainItemRotation = mainHandSwitch ? data.renderRightItemRotation : data.renderLeftItemRotation;
-		
+
 		if (data.getTicksAfterAttack() < 0.5f)
 		{
 			data.swordTrail.reset();
@@ -56,10 +54,10 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 				.orientY(bodyRot.y);
 		data.head.rotation.orientX(Mth.wrapDegrees(data.headPitch.get()) - bodyRot.x)
 						  .rotateY(Mth.wrapDegrees(data.headYaw.get()) - bodyRot.y - 30 * handDirMtp);
-		
+
 		offArm.getRotation().setSmoothness(.3F).orientZ(20F * handDirMtp);
 		offArm.getRotation().setSmoothness(.3F).orientZ(-80F * handDirMtp);
-		
+
 		mainArm.getRotation().setSmoothness(.3F).orientZ(-(-10.0f - var5 * 120) * handDirMtp)
 				.rotateInstantY((-20 + armSwing * 70) * handDirMtp);
 
@@ -74,7 +72,7 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 			data.leftLeg.rotation.setSmoothness(.3F).orientX(-30F)
 					.rotateZ(-10)
 					.rotateY(-25);
-			
+
 			data.rightForeLeg.rotation.setSmoothness(.3F).orientX(30F);
 			data.leftForeLeg.rotation.setSmoothness(.3F).orientX(30F);
 		}

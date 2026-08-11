@@ -4,12 +4,6 @@ import goblinbob.mobends.api.rendering.IArmorColorProvider;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Forge 1.20.1 implementation of IArmorColorProvider.
- *
- * In MC 1.20.1 armor dye colors are stored in NBT and accessed through the
- * {@link DyeableLeatherItem} interface (leather armor, etc.).
- */
 public class ForgeArmorColorProvider implements IArmorColorProvider
 {
     @Override

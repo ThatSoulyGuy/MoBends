@@ -13,10 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.slf4j.Logger;
 
-/**
- * This packet is sent by the server to a client as a response
- * to a {@link ConfigRequestPayload}.
- */
 public record ConfigResponsePayload(CompoundTag configData) implements CustomPacketPayload {
 
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -30,9 +26,6 @@ public record ConfigResponsePayload(CompoundTag configData) implements CustomPac
         ConfigResponsePayload::new
     );
 
-    /**
-     * Constructor for creating the packet (server side).
-     */
     public ConfigResponsePayload() {
         this(createConfigData());
     }
@@ -48,9 +41,6 @@ public record ConfigResponsePayload(CompoundTag configData) implements CustomPac
         return TYPE;
     }
 
-    /**
-     * Handle the packet on the receiving side (client).
-     */
     public static void handle(ConfigResponsePayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (payload.configData == null) {
@@ -60,7 +50,6 @@ public record ConfigResponsePayload(CompoundTag configData) implements CustomPac
 
             NeoForgeNetworkConfiguration.INSTANCE.getSharedConfig().readFromNBT(payload.configData);
 
-            // Log received configuration
             final StringBuilder builder = new StringBuilder("Received Mo' Bends server configuration.\n");
             final Iterable<SharedProperty<?>> properties = NeoForgeNetworkConfiguration.INSTANCE.getSharedConfig().getProperties();
             for (SharedProperty<?> property : properties) {

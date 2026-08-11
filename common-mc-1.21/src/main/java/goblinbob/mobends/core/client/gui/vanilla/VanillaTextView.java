@@ -21,7 +21,6 @@ public class VanillaTextView extends VanillaView
     private boolean italic = false;
     private int maxLines = Integer.MAX_VALUE;
 
-    // Lines computed in measure(), reused in render().
     private List<FormattedCharSequence> lines = Collections.emptyList();
 
     public VanillaTextView(String text)
@@ -45,12 +44,8 @@ public class VanillaTextView extends VanillaView
 
     public void setMaxLines(int maxLines) { this.maxLines = maxLines <= 0 ? Integer.MAX_VALUE : maxLines; }
 
-    public void setTextIsSelectable(boolean selectable) { /* Not supported */ }
+    public void setTextIsSelectable(boolean selectable) {  }
 
-    /**
-     * Wraps the text (with bold/italic style) to the given width in font-space pixels,
-     * clamped to maxLines. A width &lt;= 0 means "do not wrap" (single line).
-     */
     private List<FormattedCharSequence> buildLines(int wrapWidthFontSpace)
     {
         if (text == null || text.isEmpty()) return Collections.emptyList();
@@ -75,11 +70,10 @@ public class VanillaTextView extends VanillaView
         Font font = Minecraft.getInstance().font;
         int horizPad = paddingLeft + paddingRight;
 
-        // Available text width in screen pixels, then converted to font-space (we scale by textSize when drawing).
         int wrapPixels;
         if (lpW == VanillaLayoutParams.MATCH_PARENT) wrapPixels = availableWidth - horizPad;
         else if (lpW >= 0) wrapPixels = lpW - horizPad;
-        else wrapPixels = -1; // WRAP_CONTENT: single line, no wrapping
+        else wrapPixels = -1;
         int wrapFontSpace = wrapPixels > 0 ? (int) (wrapPixels / textSize) : -1;
 
         this.lines = buildLines(wrapFontSpace);
@@ -114,7 +108,6 @@ public class VanillaTextView extends VanillaView
         int lineH = font.lineHeight;
         int blockH = (int) (lines.size() * lineH * textSize);
 
-        // Vertical alignment of the whole text block.
         int verticalGravity = textGravity & 0x70;
         int startY;
         if (verticalGravity == 0x50)

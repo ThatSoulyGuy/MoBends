@@ -4,5 +4,5 @@ public interface ICollider
 {
 
 	RayHitInfo intersect(Ray ray);
-	
+
 }

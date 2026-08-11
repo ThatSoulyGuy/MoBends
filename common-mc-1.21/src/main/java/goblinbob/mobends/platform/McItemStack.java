@@ -8,10 +8,6 @@ import net.minecraft.world.item.*;
 
 import javax.annotation.Nullable;
 
-/**
- * Shared implementation of IItemStack.
- * Wraps Minecraft's ItemStack with a platform-agnostic interface.
- */
 public class McItemStack implements IItemStack
 {
     private final ItemStack itemStack;

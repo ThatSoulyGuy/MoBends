@@ -8,7 +8,7 @@ public class WalkAnimationBit extends goblinbob.mobends.standard.animation.bit.b
 	public void perform(PlayerData data)
 	{
 		super.perform(data);
-		
+
 		if (data.getTicksAfterAttack() < 10) {
 			data.head.rotation.setSmoothness(0.5F).orientX(data.headPitch.get())
 		  	  									  .rotateY(data.headYaw.get());

@@ -19,7 +19,6 @@ public class VanillaView
     protected boolean enabled = true;
     protected float alpha = 1.0f;
 
-    // Alpha tween state
     private float alphaFrom = 1.0f;
     private float alphaTo = 1.0f;
     private long alphaStartMs;
@@ -94,10 +93,6 @@ public class VanillaView
 
     public void setOnClickListener(@Nullable Runnable listener) { this.clickListener = listener; }
 
-    /**
-     * Tweens the view's alpha to the target value over the given duration (linear).
-     * Advanced each frame from {@link #layout}.
-     */
     public void animateAlpha(float targetAlpha, int durationMs)
     {
         if (durationMs <= 0)
@@ -112,9 +107,6 @@ public class VanillaView
         this.alphaAnimating = true;
     }
 
-    /**
-     * Advances time-based animations. Called once per frame from {@link #layout}.
-     */
     protected void tickAnimations()
     {
         if (alphaAnimating)
@@ -135,8 +127,6 @@ public class VanillaView
 
     public Object getNativeView() { return this; }
 
-    // --- Layout engine ---
-
     public void measure(int availableWidth, int availableHeight)
     {
         int w = resolveSize(layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT,
@@ -151,8 +141,6 @@ public class VanillaView
     {
         if (spec == VanillaLayoutParams.MATCH_PARENT)
         {
-            // Inside a ScrollView, available can be Integer.MAX_VALUE/2.
-            // MATCH_PARENT should fall back to content size in that case.
             return (available > 100000) ? Math.max(contentSize, 0) : available;
         }
         if (spec == VanillaLayoutParams.WRAP_CONTENT) return Math.max(contentSize, 0);
@@ -204,7 +192,6 @@ public class VanillaView
 
     public void handleMouseReleased(double mouseX, double mouseY, int button)
     {
-        // Override in subclasses
     }
 
     public boolean handleKeyPressed(int keyCode, int scanCode, int modifiers)

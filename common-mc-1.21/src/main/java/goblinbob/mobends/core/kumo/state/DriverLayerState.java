@@ -13,13 +13,11 @@ public class DriverLayerState implements ILayerState
     @Override
     public void start(IKumoContext context)
     {
-        // TODO Implement this.
     }
 
     @Override
     public void update(IKumoContext context, float deltaTime)
     {
-        // TODO Implement this.
     }
 
 }

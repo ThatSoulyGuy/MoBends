@@ -14,13 +14,6 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Custom elytra model for Mo' Bends animations.
- * Updated for Minecraft 1.20.1 - uses modern model architecture.
- *
- * NOTE: This is a simplified implementation. Full integration with the
- * MoBends animation system would require additional work.
- */
 public class ModelBendsElytra<T extends LivingEntity> extends ElytraModel<T>
 {
     private final ModelPart leftWing;
@@ -80,11 +73,8 @@ public class ModelBendsElytra<T extends LivingEntity> extends ElytraModel<T>
         this.leftWing.x = 5.0F;
         this.leftWing.y = f2;
 
-        // In 1.20.1, the elytra rotation fields are handled differently
-        // For now, use simpler animation
         if (entity instanceof AbstractClientPlayer)
         {
-            // Apply smooth rotation (simplified from original)
             this.leftWing.xRot = f;
             this.leftWing.yRot = f3;
             this.leftWing.zRot = f1;

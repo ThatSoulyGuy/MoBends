@@ -18,11 +18,6 @@ public class AnimationEditorRegistry
         registeredEditors.add(editor);
     }
 
-    /**
-     * Right now, this returns the first registered editor.
-     * Consider a more sophisticated method if more people create editors.
-     * @return
-     */
     public IAnimationEditor getPrimaryEditor()
     {
         return registeredEditors.size() > 0 ? registeredEditors.get(0) : null;

@@ -2,22 +2,32 @@ package goblinbob.mobends.neoforge.platform;
 
 import goblinbob.mobends.api.armor.IArmorModelProvider;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.Model;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
-/**
- * NeoForge 1.21.1 implementation of IArmorModelProvider.
- *
- * Returns the default model. Custom model handling in NeoForge 1.21.1
- * is done through the data-driven armor system.
- */
 public class NeoForgeArmorModelProvider implements IArmorModelProvider
 {
     @Override
-    public <E extends LivingEntity> HumanoidModel<E> getCustomArmorModel(
+    public <E extends LivingEntity> Model getCustomArmorModel(
             E entity, ItemStack itemStack, EquipmentSlot slot, HumanoidModel<E> defaultModel)
     {
+        try
+        {
+            IClientItemExtensions extensions = IClientItemExtensions.of(itemStack);
+            Model model = extensions.getGenericArmorModel(entity, itemStack, slot, defaultModel);
+
+            if (model != null)
+            {
+                return model;
+            }
+        }
+        catch (Exception e)
+        {
+        }
+
         return defaultModel;
     }
 }

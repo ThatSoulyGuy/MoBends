@@ -29,8 +29,6 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
         final float headYaw = data.headYaw.get();
 
         boolean mainHandSwitch = actionHand == HumanoidArm.RIGHT;
-        // Side Multiplier - it helps switch animation sides depending on
-        // what is your main hand.
         float sideMultiplier = actionHand == HumanoidArm.RIGHT ? 1.0F : -1.0F;
         ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
         ModelPartTransform offArm = mainHandSwitch ? data.leftArm : data.rightArm;

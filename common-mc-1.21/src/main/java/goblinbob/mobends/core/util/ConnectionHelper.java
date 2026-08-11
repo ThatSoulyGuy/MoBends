@@ -28,9 +28,6 @@ public class ConnectionHelper
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private Gson gson;
 
-    /**
-     * Makes it so we can't instantiate this class.
-     */
     private ConnectionHelper()
     {
         GsonBuilder builder = new GsonBuilder();
@@ -62,7 +59,6 @@ public class ConnectionHelper
             HttpEntity entity = response.getEntity();
 
             if (entity != null) {
-                // return it as a String
                 return INSTANCE.gson.fromJson(EntityUtils.toString(entity), responseClass);
             }
         }
@@ -88,7 +84,6 @@ public class ConnectionHelper
             os.write(out);
         }
 
-        // Response
         BufferedReader json = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         T response = INSTANCE.gson.fromJson(json, responseClass);
 

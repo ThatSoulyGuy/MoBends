@@ -27,13 +27,8 @@ import org.joml.Quaternionf;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Debug screen for visualizing armor rendering issues.
- * Shows original captured vertices vs transformed vertices.
- */
 public class ArmorDebugScreen extends Screen
 {
-    // Debug settings
     private static boolean showOriginalVertices = true;
     private static boolean showTransformedVertices = true;
     private static boolean showBoneRegions = true;
@@ -44,7 +39,6 @@ public class ArmorDebugScreen extends Screen
     private static float rotationY = 0.0f;
     private static float rotationX = 20.0f;
 
-    // Per-bone enable flags
     private static final Map<BoneRegion, Boolean> boneEnabled = new EnumMap<>(BoneRegion.class);
     static {
         for (BoneRegion region : BoneRegion.values()) {
@@ -52,7 +46,6 @@ public class ArmorDebugScreen extends Screen
         }
     }
 
-    // UI state
     private int selectedBone = 0;
     private boolean dragging = false;
     private double lastMouseX, lastMouseY;
@@ -73,7 +66,6 @@ public class ArmorDebugScreen extends Screen
         int y = 30;
         int spacing = 22;
 
-        // Toggle buttons
         addRenderableWidget(Button.builder(
                 Component.literal("Original: " + (showOriginalVertices ? "ON" : "OFF")),
                 btn -> {
@@ -140,7 +132,6 @@ public class ArmorDebugScreen extends Screen
                 .build());
         y += spacing;
 
-        // Scale controls
         addRenderableWidget(Button.builder(
                 Component.literal("Scale -"),
                 btn -> debugScale = Math.max(10, debugScale - 10))
@@ -156,7 +147,6 @@ public class ArmorDebugScreen extends Screen
                 .build());
         y += spacing;
 
-        // Reset view
         addRenderableWidget(Button.builder(
                 Component.literal("Reset View"),
                 btn -> {
@@ -169,7 +159,6 @@ public class ArmorDebugScreen extends Screen
                 .build());
         y += spacing + 10;
 
-        // Per-bone toggles
         BoneRegion[] regions = BoneRegion.values();
         for (int i = 0; i < regions.length; i++) {
             BoneRegion region = regions[i];
@@ -209,16 +198,13 @@ public class ArmorDebugScreen extends Screen
     {
         ScreenHelper.renderBackground(this, guiGraphics, mouseX, mouseY, partialTicks);
 
-        // Title
         guiGraphics.drawCenteredString(font, "Armor Debug - Drag to rotate", width / 2, 10, 0xFFFFFF);
 
-        // Render 3D preview
         int previewX = width / 2 + 50;
         int previewY = height / 2 + 50;
 
         renderArmorPreview(guiGraphics, previewX, previewY, debugScale, partialTicks);
 
-        // Info text
         int infoX = width - 200;
         int infoY = 30;
         guiGraphics.drawString(font, "Scale: " + (int)debugScale, infoX, infoY, 0xAAAAAA);
@@ -228,23 +214,19 @@ public class ArmorDebugScreen extends Screen
         guiGraphics.drawString(font, "Rotation X: " + (int)rotationX, infoX, infoY, 0xAAAAAA);
         infoY += 12;
 
-        // Show captured vertex count
         int vertexCount = ArmorDebugRenderer.getCapturedVertexCount();
         int vertexColor = vertexCount > 0 ? 0x00FF00 : 0xFF0000;
         guiGraphics.drawString(font, "Vertices: " + vertexCount, infoX, infoY, vertexColor);
         infoY += 12;
 
-        // Show armor slot info
         String armorInfo = ArmorDebugRenderer.getArmorSlotInfo();
         guiGraphics.drawString(font, "Armor: " + armorInfo, infoX, infoY, 0xAAAAAA);
         infoY += 12;
 
-        // Show capture status
         String captureStatus = ArmorDebugRenderer.getCaptureStatus();
         guiGraphics.drawString(font, captureStatus, infoX, infoY, 0xAAAAAA);
         infoY += 20;
 
-        // Legend
         guiGraphics.drawString(font, "Legend:", infoX, infoY, 0xFFFFFF);
         infoY += 12;
         guiGraphics.drawString(font, "Green = Original", infoX, infoY, 0x00FF00);
@@ -267,28 +249,19 @@ public class ArmorDebugScreen extends Screen
 
         BipedEntityData<?> data = (BipedEntityData<?>) entityData;
 
-        // Set up 3D rendering
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
 
-        // Position the preview - center vertically on the model
-        // Model Y range is -8 (head) to 24 (feet), center is at Y=8 in model units
-        // At SCALE (1/16), this is 0.5 render units
         poseStack.translate(x, y, 100);
         poseStack.scale(scale, scale, scale);
 
-        // Apply rotation from mouse drag
         poseStack.mulPose(new Quaternionf().rotationX((float) Math.toRadians(rotationX)));
         poseStack.mulPose(new Quaternionf().rotationY((float) Math.toRadians(rotationY)));
 
-        // Center the model vertically - shift up by half the model height (8 model units * SCALE)
         poseStack.translate(0, -0.5f, 0);
 
-        // No Y flip needed - GUI Y+ is down, model Y+ is down, they match
-        // Enable depth test for proper 3D rendering
         RenderSystem.enableDepthTest();
 
-        // Render debug visualization
         ArmorDebugRenderer.renderDebug(
                 poseStack,
                 data,
@@ -308,7 +281,7 @@ public class ArmorDebugScreen extends Screen
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
-        if (button == 0 && mouseX > 140) { // Don't drag when clicking buttons
+        if (button == 0 && mouseX > 140) {
             dragging = true;
             lastMouseX = mouseX;
             lastMouseY = mouseY;
@@ -340,13 +313,11 @@ public class ArmorDebugScreen extends Screen
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
-    // MC 1.21.1 version (4 params) - no @Override for cross-version compilation
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
         return handleMouseScrolled(mouseX, mouseY, scrollY);
     }
 
-    // MC 1.20.1 version (3 params) - no @Override for cross-version compilation
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollY)
     {
         return handleMouseScrolled(mouseX, mouseY, scrollY);
@@ -365,13 +336,10 @@ public class ArmorDebugScreen extends Screen
         return false;
     }
 
-    // No @Override - method only exists in MC 1.21.1
     protected void renderBlurredBackground(float partialTick)
     {
-        // Skip blur effect - we want a clear view of the game behind the debug screen
     }
 
-    // Static accessors for the debug renderer
     public static boolean isFreezeAnimation() {
         return freezeAnimation;
     }

@@ -4,10 +4,6 @@ import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.resources.PlayerSkin;
 
-/**
- * NeoForge 1.21.1 implementation of IPlayerSkinProvider.
- * Uses MC 1.21.1 API: getSkin().model(), getSkin().capeTexture(), getSkin().elytraTexture().
- */
 public class NeoForgePlayerSkinProvider implements IPlayerSkinProvider
 {
     @Override

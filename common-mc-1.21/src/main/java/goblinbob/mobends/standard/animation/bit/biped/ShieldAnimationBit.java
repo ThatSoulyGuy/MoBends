@@ -35,8 +35,6 @@ public class ShieldAnimationBit extends AnimationBit<BipedEntityData<?>>
     public void perform(BipedEntityData<?> data)
     {
         final boolean mainHandSwitch = this.actionHand == HumanoidArm.RIGHT;
-        // Main Hand Direction Multiplier - it helps switch animation sides depending on
-        // what is your main hand.
         final float handDirMtp = mainHandSwitch ? 1 : -1;
         final ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
         final ModelPartTransform mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
@@ -49,7 +47,6 @@ public class ShieldAnimationBit extends AnimationBit<BipedEntityData<?>>
 
         mainArm.rotation.orientX(bringUpAnimation * 0.0F)
                         .rotateY(-45.0F * bringUpAnimation * handDirMtp);
-                        //.rotateZ(45.0F * bringUpAnimation * handDirMtp);
 
         mainForeArm.rotation.orientX(bringUpAnimation * -45.0F);
     }

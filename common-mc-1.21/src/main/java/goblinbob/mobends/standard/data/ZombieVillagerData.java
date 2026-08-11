@@ -7,12 +7,12 @@ public class ZombieVillagerData extends ZombieDataBase<ZombieVillager>
 {
 
 	private final ZombieVillagerController controller = new ZombieVillagerController();
-	
+
 	public ZombieVillagerData(ZombieVillager entity)
 	{
 		super(entity);
 	}
-	
+
 	@Override
 	public ZombieVillagerController getController()
 	{
@@ -22,7 +22,6 @@ public class ZombieVillagerData extends ZombieDataBase<ZombieVillager>
 	@Override
 	public void onTicksRestart()
 	{
-		// No behaviour
 	}
 
 }

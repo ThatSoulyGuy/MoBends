@@ -8,37 +8,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Holds the result of spatial analysis for a model part.
- * Used by Tier 2 rendering to map arbitrary ModelParts to bone regions.
- * Immutable after construction.
- */
 public class PartClassification
 {
-    /**
-     * The bone region this part was classified as.
-     */
     private final BoneRegion boneRegion;
 
-    /**
-     * Confidence score of the classification (0.0 to 1.0).
-     * Higher values indicate more certainty in the classification.
-     */
     private final float confidence;
 
-    /**
-     * The original ModelPart that was classified.
-     */
     private final ModelPart modelPart;
 
-    /**
-     * Classifications for child parts, keyed by child name.
-     */
     private final Map<String, PartClassification> childClassifications;
 
-    /**
-     * The name this part was found under (may be null if root).
-     */
     @Nullable
     private final String partName;
 
@@ -55,25 +34,16 @@ public class PartClassification
         this.childClassifications = Collections.unmodifiableMap(new HashMap<>(childClassifications));
     }
 
-    /**
-     * Create a classification with no children.
-     */
     public static PartClassification of(BoneRegion boneRegion, float confidence, ModelPart modelPart, @Nullable String partName)
     {
         return new PartClassification(boneRegion, confidence, modelPart, partName, Collections.emptyMap());
     }
 
-    /**
-     * Create a classification with child classifications.
-     */
     public static PartClassification of(BoneRegion boneRegion, float confidence, ModelPart modelPart, @Nullable String partName, Map<String, PartClassification> children)
     {
         return new PartClassification(boneRegion, confidence, modelPart, partName, children);
     }
 
-    /**
-     * Create an unclassified/unknown part (falls back to ROOT).
-     */
     public static PartClassification unknown(ModelPart modelPart, @Nullable String partName)
     {
         return new PartClassification(BoneRegion.ROOT, 0.0f, modelPart, partName, Collections.emptyMap());
@@ -105,25 +75,16 @@ public class PartClassification
         return childClassifications;
     }
 
-    /**
-     * Returns true if this classification has high confidence (>= 0.8).
-     */
     public boolean isHighConfidence()
     {
         return confidence >= 0.8f;
     }
 
-    /**
-     * Returns true if this classification has moderate or better confidence (>= 0.5).
-     */
     public boolean isModerateConfidence()
     {
         return confidence >= 0.5f;
     }
 
-    /**
-     * Returns true if this is a limb bone (arm or leg, upper or lower).
-     */
     public boolean isLimbBone()
     {
         return switch (boneRegion)
@@ -136,9 +97,6 @@ public class PartClassification
         };
     }
 
-    /**
-     * Returns true if this is an upper limb segment (upper arm or upper leg).
-     */
     public boolean isUpperLimbSegment()
     {
         return switch (boneRegion)
@@ -149,9 +107,6 @@ public class PartClassification
         };
     }
 
-    /**
-     * Returns true if this is a lower limb segment (forearm or lower leg).
-     */
     public boolean isLowerLimbSegment()
     {
         return switch (boneRegion)
@@ -162,10 +117,6 @@ public class PartClassification
         };
     }
 
-    /**
-     * Get the child classification for a specific child name.
-     * @return The child classification, or null if not found
-     */
     @Nullable
     public PartClassification getChildClassification(String childName)
     {

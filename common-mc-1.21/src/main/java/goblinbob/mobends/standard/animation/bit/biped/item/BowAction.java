@@ -27,8 +27,6 @@ public class BowAction extends AnimationBit<BipedEntityData<?>>
 		final float headYaw = data.headYaw.get();
 
 		boolean mainHandSwitch = this.actionHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 		ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		ModelPartTransform offArm = mainHandSwitch ? data.leftArm : data.rightArm;
@@ -62,7 +60,6 @@ public class BowAction extends AnimationBit<BipedEntityData<?>>
 		mainArm.rotation.setSmoothness(.8F).orientX(headPitch - 90F)
 				.rotateY(bodyTwistY);
 		offArm.rotation.setSmoothness(1F).orientY(80F * handDirMtp)
-				// Keeping it close to the arm no matter the head pitch
 				.rotateZ((-Mth.cos(headPitch/180F * GUtil.PI) * 40F + 40F) * handDirMtp)
 				.rotateX(var5);
 

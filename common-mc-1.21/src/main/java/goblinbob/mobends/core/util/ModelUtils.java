@@ -11,23 +11,13 @@ import goblinbob.mobends.lib.math.vector.Vec3f;
 import java.util.Collection;
 import java.util.LinkedList;
 
-/**
- * Utility methods for working with models.
- * Updated for Minecraft 1.20.1 - removed dependencies on ModelRenderer, ModelBox, etc.
- */
 public class ModelUtils
 {
-    /**
-     * Get the bounding box for a MoBends ModelPart
-     */
     public static AABBox getBounds(ModelPart modelPart)
     {
         return getBounds(modelPart, new Vec3f(0, 0, 0), new AABBox(0, 0, 0, 0, 0, 0));
     }
 
-    /**
-     * Get the bounding box for a MoBends ModelPart with position offset
-     */
     public static AABBox getBounds(ModelPart modelPart, Vec3f position, AABBox oldBounds)
     {
         double minX = oldBounds.min.getX();
@@ -41,12 +31,10 @@ public class ModelUtils
         float y = modelPart.position.y + position.y;
         float z = modelPart.position.z + position.z;
 
-        // Check bounds from mutated boxes in the model part
         MutatedBox box = null;
         try {
             box = modelPart.getBox(0);
         } catch (IndexOutOfBoundsException e) {
-            // No boxes in this part
         }
 
         if (box != null)
@@ -62,10 +50,6 @@ public class ModelUtils
         return new AABBox((float)minX, (float)minY, (float)minZ, (float)maxX, (float)maxY, (float)maxZ);
     }
 
-    /**
-     * This method iterates through all parts looking for the parent of the specified part. It then runs itself with
-     * that parent as the next part, and it does that until the part is not null.
-     */
     public static IModelPart getRootParent(final IModelPart partIn, final Collection<IModelPart> partsIn)
     {
         for (IModelPart possibleParent : partsIn)
@@ -114,10 +98,6 @@ public class ModelUtils
         return origin;
     }
 
-    /**
-     * Create a MutatedQuad from vertices and a texture face definition.
-     * This is the 1.20.1 version that creates our custom quad type.
-     */
     public static MutatedBox.MutatedQuad createQuad(MutatedBox.MutatedVertex[] positions, BoxFactory.TextureFace face, float textureWidth, float textureHeight)
     {
         int uSize = face.uSize;

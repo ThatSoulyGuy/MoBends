@@ -15,23 +15,16 @@ import goblinbob.mobends.core.pack.IBendsPack;
 import goblinbob.mobends.core.network.NetworkConfiguration;
 import net.minecraft.client.resources.language.I18n;
 
-/**
- * UI implementation of the MoBends settings screen.
- * Uses the abstraction layer to work across UI backend versions.
- */
 public class MoBendsScreenBuilder
 {
-    // Tab indices
     private static final int TAB_SETTINGS = 0;
     private static final int TAB_PACKS = 1;
     private static final int TAB_CUSTOMIZE = 2;
 
-    // Tab accent colors from theme
     private static final int COLOR_SETTINGS = MoBendsTheme.COLOR_SETTINGS;
     private static final int COLOR_PACKS = MoBendsTheme.COLOR_PACKS;
     private static final int COLOR_CUSTOMIZE = MoBendsTheme.COLOR_CUSTOMIZE;
 
-    // State
     private TabBarWidget tabBar;
     private BenderListWidget benderList;
     private EntityPreviewWidget entityPreview;
@@ -51,12 +44,6 @@ public class MoBendsScreenBuilder
         return I18n.get("mobends.gui.title");
     }
 
-    /**
-     * Gets the entity preview widget for external rendering.
-     * Used by platform-specific code to render entities in Minecraft's render cycle.
-     *
-     * @return The entity preview widget, or null if not yet created
-     */
     public EntityPreviewWidget getEntityPreview()
     {
         return entityPreview;
@@ -64,17 +51,13 @@ public class MoBendsScreenBuilder
 
     public VanillaView buildContent(VanillaViewFactory factory)
     {
-        // Create root layout with FrameLayout.LayoutParams for proper positioning in the fragment container
         VanillaLinearLayout root = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        // Use FrameLayout params since the fragment container is a FrameLayout
         root.setLayoutParams(factory.createFrameLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.GRAVITY_CENTER
         ));
         root.setBackgroundColor(MoBendsTheme.BG_PANEL);
-
-        // ==================== Header with Title ====================
 
         VanillaLinearLayout header = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         header.setLayoutParams(factory.createLayoutParams(
@@ -100,8 +83,6 @@ public class MoBendsScreenBuilder
                 MoBendsTheme.HEADER_HEIGHT
         ));
 
-        // ==================== Tab Bar ====================
-
         tabBar = new TabBarWidget(factory);
         tabBar.addTab("mobends.gui.section.settings", COLOR_SETTINGS);
         if (NetworkConfiguration.instance.areBendsPacksAllowed())
@@ -112,7 +93,6 @@ public class MoBendsScreenBuilder
         boolean devMode = isDevEnvironment();
         if (devMode)
         {
-            // Dev-only "kitchen-sink" tab for visually verifying every UI element.
             tabBar.addTab("UI Test", MoBendsTheme.ACCENT_ERROR);
             galleryTabIndex = NetworkConfiguration.instance.areBendsPacksAllowed() ? 3 : 2;
         }
@@ -124,18 +104,14 @@ public class MoBendsScreenBuilder
         );
         root.addView(tabBar.getView(), tabParams);
 
-        // ==================== Content Frame (for tab switching) ====================
-
         contentFrame = factory.createFrameLayout();
         contentFrame.setLayoutParams(factory.createMatchParent());
         contentFrame.setBackgroundColor(MoBendsTheme.BG_CONTENT);
 
-        // Build tab contents
         settingsContent = buildSettingsContent(factory);
         packsContent = buildPacksContent(factory);
         customizeContent = buildCustomizeContent(factory);
 
-        // Add all contents to frame (only one visible at a time)
         contentFrame.addView(settingsContent, factory.createMatchParent());
         contentFrame.addView(packsContent, factory.createMatchParent());
         contentFrame.addView(customizeContent, factory.createMatchParent());
@@ -145,7 +121,6 @@ public class MoBendsScreenBuilder
             contentFrame.addView(galleryContent, factory.createMatchParent());
         }
 
-        // Initially show settings tab
         showTab(TAB_SETTINGS);
 
         root.addView(contentFrame, factory.createMatchParent());
@@ -153,24 +128,17 @@ public class MoBendsScreenBuilder
         return root;
     }
 
-    // ==================== Tab Content Builders ====================
-
     private VanillaView buildSettingsContent(VanillaViewFactory factory)
     {
-        // Horizontal layout: left (list) | right (preview)
         VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         layout.setLayoutParams(factory.createMatchParent());
         layout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                          MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        // ==================== Left Panel (Search + Bender List) ====================
-
         VanillaLinearLayout leftPanel = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         VanillaLayoutParams leftParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT);
-        // Weight simulation - will take remaining space
         leftPanel.setLayoutParams(leftParams);
 
-        // Search field
         searchField = factory.createTextField(I18n.get("mobends.gui.search"));
         searchField.setOnTextChangedListener(this::onSearchTextChanged);
         VanillaLayoutParams searchParams = factory.createLayoutParams(
@@ -180,7 +148,6 @@ public class MoBendsScreenBuilder
         searchParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         leftPanel.addView(searchField, searchParams);
 
-        // Bender list
         benderList = new BenderListWidget(factory);
         benderList.setOnBenderSelected(this::onBenderSelected);
         benderList.setOnAnimationSelected(this::onAnimationSelected);
@@ -188,9 +155,6 @@ public class MoBendsScreenBuilder
 
         leftPanel.addView(benderList.getView(), factory.createMatchParent());
 
-        // ==================== Right Panel (Entity Preview) ====================
-
-        // Fixed width for preview panel
         int previewWidth = 150;
 
         entityPreview = new EntityPreviewWidget(factory, previewWidth, 0);
@@ -200,11 +164,8 @@ public class MoBendsScreenBuilder
         );
         previewParams.setMargins(MoBendsTheme.SPACING, 0, 0, 0);
 
-        // Add panels to layout using weight-based sizing
-        // Left panel takes remaining space (weight = 1)
         VanillaLayoutParams leftPanelParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
         layout.addView(leftPanel, leftPanelParams);
-        // Right panel has fixed width
         layout.addView(entityPreview.getView(), previewParams);
 
         return layout;
@@ -212,17 +173,13 @@ public class MoBendsScreenBuilder
 
     private VanillaView buildPacksContent(VanillaViewFactory factory)
     {
-        // Horizontal layout: left (pack list) | right (pack details)
         VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         layout.setLayoutParams(factory.createMatchParent());
         layout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                          MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        // ==================== Left Panel (Search + Pack List) ====================
-
         VanillaLinearLayout leftPanel = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
 
-        // Search field for packs
         packSearchField = factory.createTextField(I18n.get("mobends.gui.search"));
         packSearchField.setOnTextChangedListener(this::onPackSearchTextChanged);
         VanillaLayoutParams searchParams = factory.createLayoutParams(
@@ -232,14 +189,11 @@ public class MoBendsScreenBuilder
         searchParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         leftPanel.addView(packSearchField, searchParams);
 
-        // Pack list
         packList = new PackListWidget(factory);
         packList.setOnPackSelected(this::onPackSelected);
         packList.populateFromManager();
 
         leftPanel.addView(packList.getView(), factory.createMatchParent());
-
-        // ==================== Right Panel (Pack Details) ====================
 
         int detailsWidth = 160;
 
@@ -248,7 +202,6 @@ public class MoBendsScreenBuilder
         detailsPanel.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                                MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        // Details header
         VanillaTextView detailsHeader = factory.createTextView(I18n.get("mobends.gui.packs.details"));
         detailsHeader.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         detailsHeader.setTextSize(14);
@@ -258,7 +211,6 @@ public class MoBendsScreenBuilder
                 VanillaLayoutParams.WRAP_CONTENT
         ));
 
-        // Placeholder for details content
         VanillaTextView detailsPlaceholder = factory.createTextView(I18n.get("mobends.gui.packs.select_pack"));
         detailsPlaceholder.setTextColor(MoBendsTheme.TEXT_HINT);
         detailsPlaceholder.setTextSize(12);
@@ -275,11 +227,8 @@ public class MoBendsScreenBuilder
         );
         detailsParams.setMargins(MoBendsTheme.SPACING, 0, 0, 0);
 
-        // Add panels to layout using weight-based sizing
-        // Left panel takes remaining space (weight = 1)
         VanillaLayoutParams leftPanelParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
         layout.addView(leftPanel, leftPanelParams);
-        // Right panel has fixed width
         layout.addView(detailsPanel, detailsParams);
 
         return layout;
@@ -293,7 +242,6 @@ public class MoBendsScreenBuilder
         layout.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_LARGE,
                          MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_LARGE);
 
-        // Info text
         VanillaTextView info = factory.createTextView(I18n.get("mobends.gui.customize.editor_info"));
         info.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         info.setTextSize(14);
@@ -303,7 +251,6 @@ public class MoBendsScreenBuilder
                 VanillaLayoutParams.WRAP_CONTENT
         ));
 
-        // Spacer
         VanillaView spacer = factory.createView();
         VanillaLayoutParams spacerParams = factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
@@ -311,7 +258,6 @@ public class MoBendsScreenBuilder
         );
         layout.addView(spacer, spacerParams);
 
-        // Editor status
         VanillaTextView status = factory.createTextView(I18n.get("mobends.gui.customize.no_editor"));
         status.setTextColor(MoBendsTheme.ACCENT_ERROR);
         status.setTextSize(12);
@@ -324,13 +270,10 @@ public class MoBendsScreenBuilder
         return layout;
     }
 
-    // ==================== Event Handlers ====================
-
     private void onTabChanged(int tabIndex)
     {
         showTab(tabIndex);
 
-        // Reset search when changing tabs
         if (searchField != null)
         {
             searchField.setText("");
@@ -349,12 +292,10 @@ public class MoBendsScreenBuilder
     {
         boolean packsAllowed = NetworkConfiguration.instance.areBendsPacksAllowed();
 
-        // Determine actual tab based on whether packs are allowed
         int settingsIdx = TAB_SETTINGS;
         int packsIdx = packsAllowed ? TAB_PACKS : -1;
         int customizeIdx = packsAllowed ? TAB_CUSTOMIZE : TAB_PACKS;
 
-        // Update visibility with fade-in for newly shown tab
         showOrHideTab(settingsContent, tabIndex == settingsIdx);
         showOrHideTab(packsContent, tabIndex == packsIdx);
         showOrHideTab(customizeContent, tabIndex == customizeIdx);
@@ -416,7 +357,5 @@ public class MoBendsScreenBuilder
 
     private void onPackSelected(IBendsPack pack)
     {
-        // TODO: Update details panel with pack info
-        // For now, just log the selection
     }
 }

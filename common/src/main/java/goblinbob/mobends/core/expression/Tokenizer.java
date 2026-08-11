@@ -3,9 +3,6 @@ package goblinbob.mobends.core.expression;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Tokenizes expression strings into a list of tokens.
- */
 public class Tokenizer {
     private final String source;
     private int position;
@@ -81,10 +78,10 @@ public class Tokenizer {
                 }
                 default -> {
                     if (isDigit(c) || (c == '.' && !isAtEnd() && isDigit(peek()))) {
-                        position--; // Back up to re-read
+                        position--;
                         scanNumber(startPos);
                     } else if (isIdentifierStart(c)) {
-                        position--; // Back up to re-read
+                        position--;
                         scanIdentifier(startPos);
                     } else {
                         throw new ExpressionException("Unexpected character: '" + c + "'", source, startPos);
@@ -107,12 +104,10 @@ public class Tokenizer {
             if (isDigit(c)) {
                 sb.append(advance());
             } else if (c == '.' && !hasDecimal && !hasExponent) {
-                // Check that there's a digit after the decimal
                 if (position + 1 < source.length() && isDigit(source.charAt(position + 1))) {
                     hasDecimal = true;
                     sb.append(advance());
                 } else if (sb.isEmpty()) {
-                    // .5 is valid
                     hasDecimal = true;
                     sb.append(advance());
                 } else {
@@ -121,7 +116,6 @@ public class Tokenizer {
             } else if ((c == 'e' || c == 'E') && !hasExponent && !sb.isEmpty()) {
                 hasExponent = true;
                 sb.append(advance());
-                // Handle optional +/- after exponent
                 if (!isAtEnd() && (peek() == '+' || peek() == '-')) {
                     sb.append(advance());
                 }

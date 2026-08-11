@@ -22,7 +22,6 @@ public class BinaryAnimationLoader
     {
         DataInputStream dataInputStream = new DataInputStream(stream);
 
-        // Checking header
         String header = SerialHelper.readChar(dataInputStream, HEADER.length());
         if (!header.equals(HEADER))
         {

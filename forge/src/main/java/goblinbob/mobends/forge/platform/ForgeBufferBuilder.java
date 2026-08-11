@@ -3,18 +3,6 @@ package goblinbob.mobends.forge.platform;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import goblinbob.mobends.api.rendering.IBufferBuilder;
 
-/**
- * Forge 1.20.1 implementation of IBufferBuilder.
- * Translates 1.21.1-style API calls to 1.20.1 API.
- *
- * Key difference:
- * - MC 1.21.1: addVertex().setColor().setUv() (no endVertex)
- * - MC 1.20.1: vertex().color().uv().endVertex()
- *
- * This implementation tracks vertex state and calls endVertex() appropriately:
- * - When a new vertex is started (addVertex called again)
- * - When end() is called on the tesselator
- */
 public class ForgeBufferBuilder implements IBufferBuilder
 {
     private final BufferBuilder builder;
@@ -28,13 +16,11 @@ public class ForgeBufferBuilder implements IBufferBuilder
     @Override
     public IBufferBuilder addVertex(float x, float y, float z)
     {
-        // End the previous vertex if one was in progress
         if (vertexStarted)
         {
             builder.endVertex();
         }
 
-        // Start the new vertex (1.20.1 uses vertex() instead of addVertex())
         builder.vertex(x, y, z);
         vertexStarted = true;
         return this;
@@ -57,7 +43,6 @@ public class ForgeBufferBuilder implements IBufferBuilder
     @Override
     public IBufferBuilder setColorPacked(int packedColor)
     {
-        // Unpack ARGB color
         int a = (packedColor >> 24) & 0xFF;
         int r = (packedColor >> 16) & 0xFF;
         int g = (packedColor >> 8) & 0xFF;
@@ -100,10 +85,6 @@ public class ForgeBufferBuilder implements IBufferBuilder
         return builder;
     }
 
-    /**
-     * Finalizes the current vertex if one is in progress.
-     * Called by ForgeTesselator before ending the build.
-     */
     void finishVertex()
     {
         if (vertexStarted)

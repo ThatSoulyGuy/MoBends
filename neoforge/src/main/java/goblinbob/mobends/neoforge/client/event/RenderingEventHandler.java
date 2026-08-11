@@ -36,7 +36,6 @@ import java.util.Set;
 
 public class RenderingEventHandler
 {
-    // Track which entities we pushed pose for (to avoid imbalanced stack)
     private static final Set<Integer> entitiesWithPushedPose = new HashSet<>();
 
     @SubscribeEvent
@@ -46,8 +45,6 @@ public class RenderingEventHandler
         if (mc.player == null || mc.isPaused())
             return;
 
-        // Update entity data each game tick (state updates, not rendering)
-        // This is client-side only, so motion calculations will be correct
         EntityDatabase.instance.updateClient();
         Addons.onClientTick();
     }
@@ -59,7 +56,6 @@ public class RenderingEventHandler
         if (mc.level == null || mc.player == null)
             return;
 
-        // Reevaluate dirty computed values (FluxHandler functionality)
         ComputedDependencyHelper.reevaluateDirty();
 
         float renderTickTime = event.getPartialTick().getGameTimeDeltaPartialTick(false);
@@ -69,7 +65,6 @@ public class RenderingEventHandler
             DataUpdateHandler.partialTicks = renderTickTime;
         }
 
-        // Use player.tickCount like the original code
         final float newTicks = mc.player.tickCount + renderTickTime;
 
         if (DataUpdateHandler.checkTicksRestart(newTicks))
@@ -88,7 +83,6 @@ public class RenderingEventHandler
             DataUpdateHandler.onPaused();
         }
     }
-
 
     @SubscribeEvent
     public void beforeHandRender(RenderHandEvent event)
@@ -123,10 +117,8 @@ public class RenderingEventHandler
         if (bender == null)
             return;
 
-        // Check if another mod should take priority (PlayerAnimationLib, Physics Mod, etc.)
         if (ModCompatManager.shouldDeferAnimation(entity))
         {
-            // De-apply any existing mutation so the other mod can render normally
             bender.deapplyMutation(renderer, entity);
             return;
         }
@@ -137,19 +129,15 @@ public class RenderingEventHandler
             return;
         }
 
-        // Push pose for proper transform isolation
         poseStack.pushPose();
         entitiesWithPushedPose.add(entity.getId());
 
         if (bender.isAnimated())
         {
-            // Apply mutation - this creates the mutator if it doesn't exist,
-            // updates the model, performs animations, and syncs with data
             boolean mutationApplied = bender.applyMutation(renderer, entity, partialTicks);
 
             if (mutationApplied)
             {
-                // Get the mutator that was just created/updated
                 final Object rawMutator = bender.getMutator(renderer);
                 if (rawMutator == null)
                 {
@@ -159,14 +147,11 @@ public class RenderingEventHandler
                 final Mutator<?, LivingEntity, ?> mutator = (Mutator<?, LivingEntity, ?>) rawMutator;
                 final LivingEntityData<LivingEntity> data = (LivingEntityData<LivingEntity>) mutator.getData(entity);
 
-                // Set up render context based on mutator type
                 if (rawMutator instanceof BipedMutator<?, ?, ?> bipedMutator)
                 {
                     MoBendsRenderContext.setCurrentBipedMutator(bipedMutator);
-                    // Begin main model render phase - mixin will end it after rendering player model
                     MoBendsRenderContext.beginMainModelRender();
 
-                    // Store vanilla model reference for post-render pose sync (overlay layers)
                     EntityModel<?> model = renderer.getModel();
                     if (model instanceof HumanoidModel<?> humanoidModel)
                     {
@@ -185,13 +170,11 @@ public class RenderingEventHandler
                     MoBendsRenderContext.setCurrentSquidMutator(squidMutator);
                     MoBendsRenderContext.beginMainModelRender();
                 }
-                // Call beforeRender for any entity-specific setup
                 bender.beforeRender(data, entity, partialTicks, poseStack);
             }
         }
         else
         {
-            // Entity is not animated - deapply any existing mutation
             bender.deapplyMutation(renderer, entity);
         }
     }
@@ -200,7 +183,6 @@ public class RenderingEventHandler
     @SubscribeEvent
     public void afterLivingRender(RenderLivingEvent.Post<?, ?> event)
     {
-        // Always clear the render context after rendering
         MoBendsRenderContext.clear();
         CuriosCompat.clearSplitLimbTransforms();
 
@@ -210,7 +192,6 @@ public class RenderingEventHandler
         if (bender == null)
             return;
 
-        // Only pop if we pushed for this entity
         if (entitiesWithPushedPose.remove(entity.getId()))
         {
             bender.afterRender(entity, event.getPartialTick(), event.getPoseStack());

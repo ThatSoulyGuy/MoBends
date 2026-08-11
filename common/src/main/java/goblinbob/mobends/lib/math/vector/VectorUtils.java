@@ -3,8 +3,6 @@ package goblinbob.mobends.lib.math.vector;
 public class VectorUtils
 {
 
-    /*-- Normalizing --*/
-
     public static void normalize(IVec3fRead v, IVec3f dest) throws IllegalArgumentException
     {
         float length = v.length();

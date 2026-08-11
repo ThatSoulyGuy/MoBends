@@ -14,12 +14,12 @@ public class SquidData extends LivingEntityData<Squid>
 	public ModelPartTransform[][] squidTentacles;
 
 	private final SquidController controller = new SquidController();
-	
+
 	public SquidData(Squid entity)
 	{
 		super(entity);
 	}
-	
+
 	@Override
 	public SquidController getController()
 	{
@@ -29,7 +29,6 @@ public class SquidData extends LivingEntityData<Squid>
 	@Override
 	public void onTicksRestart()
 	{
-		// No behaviour
 	}
 
 	@Override
@@ -59,7 +58,7 @@ public class SquidData extends LivingEntityData<Squid>
 				this.squidTentacles[i][j].position.set(0.0F, SECTION_HEIGHT, 0.0F);
 				nameToPartMap.put("tentacle_" + i + "_" + j, this.squidTentacles[i][j]);
 			}
-			
+
 			this.squidTentacles[i][1].position.set(0, SquidData.SECTION_HEIGHT, 2);
 		}
 	}

@@ -4,12 +4,6 @@ import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 
-/**
- * This condition is met once the entity is in the provided state.
- * (e.g. ON_GROUND, AIRBORNE, etc.)
- *
- * @author Iwo Plaza
- */
 public class StateCondition implements ITriggerCondition
 {
 
@@ -62,6 +56,5 @@ public class StateCondition implements ITriggerCondition
         STANDING_STILL,
         MOVING_HORIZONTALLY,
     }
-
 
 }

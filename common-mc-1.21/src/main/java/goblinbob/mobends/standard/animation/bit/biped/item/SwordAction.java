@@ -45,7 +45,6 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
 
         if (!isLocal)
         {
-            // For remote players, derive moveId from tick count for deterministic multiplayer sync
             moveId = (entity.tickCount / 6) % moveCount;
         }
         else if (moveId >= moveCount)
@@ -84,7 +83,6 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
 
         int comboClearTime = 20;
 
-        // Creating the combo.
         if (ticksAfterAttack > comboClearTime)
         {
             moveId = 0;

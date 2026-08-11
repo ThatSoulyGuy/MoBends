@@ -13,9 +13,6 @@ public interface INodeState
 
     KeyframeAnimation getAnimation();
 
-    /**
-     * Returns progress counted in keyframes including the in-betweens (not just whole number indices).
-     */
     float getProgress();
 
     boolean isAnimationFinished();

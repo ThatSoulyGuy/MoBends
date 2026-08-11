@@ -21,9 +21,6 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.entity.LivingEntity;
 
-/**
- * Instantiated once per PlayerRenderer
- */
 public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerMutator.class);
@@ -70,24 +67,14 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     {
         super.fetchFields(renderer);
 
-        // Does the renderer have Small Arms?
-        // In 1.20.1, slim is a field in PlayerRenderer that determines arm width.
-        // The access transformer makes f_117788_ (slim) public.
         if (renderer instanceof PlayerRenderer playerRenderer)
         {
             this.smallArms = detectSlimArms(playerRenderer);
         }
     }
 
-    /**
-     * Detect slim arms from the PlayerRenderer.
-     * Uses reflection on the 'slim' field (made accessible via access widener),
-     * with model cube width analysis as fallback.
-     */
     private boolean detectSlimArms(PlayerRenderer playerRenderer)
     {
-        // Approach 1: Reflection on 'slim' field (Mojang name + SRG fallback)
-        // Access widener makes setAccessible succeed reliably at runtime
         String[] fieldNames = {"slim", "f_117788_"};
         for (String fieldName : fieldNames)
         {
@@ -104,13 +91,11 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             }
         }
 
-        // Approach 2: Check model arm cube width (slim = 3px, default = 4px)
         try
         {
             PlayerModel<?> model = playerRenderer.getModel();
             if (model != null && model.leftArm != null)
             {
-                // 'cubes' field also made accessible via access widener
                 String[] cubeFieldNames = {"cubes", "f_104222_"};
                 java.util.List<?> cubes = null;
                 for (String fieldName : cubeFieldNames)
@@ -152,10 +137,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         return false;
     }
 
-    /**
-     * Update the smallArms field based on the player's model name.
-     * This should be called when we have access to the player entity.
-     */
     public void updateSmallArms(AbstractClientPlayer player)
     {
         if (player != null)
@@ -211,8 +192,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             layerRenderers.set(index, this.layerCape);
         }
 
-        // Note: ElytraLayer is NOT swapped - vanilla elytra layer uses the synced
-        // rotations from syncPosesToVanillaModel() and renders correctly
     }
 
     @Override
@@ -231,31 +210,25 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     @Override
     public boolean createParts(PlayerModel<AbstractClientPlayer> original, float scaleFactor)
     {
-        // Arms
         int armWidth = this.smallArms ? 3 : 4;
         float armY = this.smallArms ? -9.5F : -10F;
 
-        // Create custom bendable parts using BendsModelPart
-        // Body - root of upper body hierarchy
         body = new BendsModelPart(16, 16)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 12.0F, 0.0F);
         body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
 
-        // Head - child of body
         head = new BendsModelPart(0, 0)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, -12.0F, 0.0F);
         head.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor);
         body.addChild(head);
 
-        // Headwear - child of head
         headwear = new BendsModelPart(32, 0)
                 .setTextureSize(64, 64);
         headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
         head.addChild(headwear);
 
-        // Left Arm (texture at 32, 48 for player) - child of body
         leftArm = new BendsModelPart(32, 48)
                 .setTextureSize(64, 64)
                 .setPosition(5.0F, armY, 0.0F)
@@ -263,14 +236,12 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         leftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
         body.addChild(leftArm);
 
-        // Right Arm (texture at 40, 16 for player) - child of body
         rightArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
                 .setPosition(-5.0F, armY, 0.0F);
         rightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
         body.addChild(rightArm);
 
-        // Left Forearm - child of leftArm
         leftForeArm = new BendsModelPart(32, 48 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F)
@@ -278,15 +249,12 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         leftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 32, 48);
         leftArm.addChild(leftForeArm);
 
-        // Right Forearm - child of rightArm
         rightForeArm = new BendsModelPart(40, 16 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F);
         rightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 40, 16);
         rightArm.addChild(rightForeArm);
 
-        // Legs (texture at 16, 48 for left leg, 0, 16 for right leg in player model)
-        // Legs are independent roots (not children of body)
         leftLeg = new BendsModelPart(16, 48)
                 .setTextureSize(64, 64)
                 .setPosition(1.9F, 12.0F, 0.0F)
@@ -298,7 +266,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 .setPosition(-1.9F, 12.0F, 0.0F);
         rightLeg.addCube(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
 
-        // Left Foreleg - child of leftLeg
         leftForeLeg = new BendsModelPart(16, 48 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 6.0F, -2.0F)
@@ -306,71 +273,64 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         leftForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 16, 48);
         leftLeg.addChild(leftForeLeg);
 
-        // Right Foreleg - child of rightLeg
         rightForeLeg = new BendsModelPart(0, 16 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 6.0F, -2.0F);
         rightForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 0, 16);
         rightLeg.addChild(rightForeLeg);
 
-        // Wear layers (second skin layer)
         float wearOffset = 0.25F;
 
-        // Bodywear - child of body
         bodywear = new BendsModelPart(16, 32)
                 .setTextureSize(64, 64);
         bodywear.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor + wearOffset);
         body.addChild(bodywear);
 
-        // Left arm wear - child of leftArm
         leftArmwear = new BendsModelPart(48, 48)
                 .setTextureSize(64, 64)
                 .setMirror(true);
         leftArmwear.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + wearOffset);
         leftArm.addChild(leftArmwear);
 
-        // Right arm wear - child of rightArm
         rightArmwear = new BendsModelPart(40, 32)
                 .setTextureSize(64, 64);
         rightArmwear.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + wearOffset);
         rightArm.addChild(rightArmwear);
 
-        // Left forearm wear - child of leftForeArm
         leftForeArmwear = new BendsModelPart(48, 48 + 6)
                 .setTextureSize(64, 64)
+                .setOffset(0.0F, 0.25F, 0.0F)
                 .setMirror(true);
         leftForeArmwear.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + wearOffset);
         leftForeArm.addChild(leftForeArmwear);
 
-        // Right forearm wear - child of rightForeArm
         rightForeArmwear = new BendsModelPart(40, 32 + 6)
-                .setTextureSize(64, 64);
+                .setTextureSize(64, 64)
+                .setOffset(0.0F, 0.25F, 0.0F);
         rightForeArmwear.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + wearOffset);
         rightForeArm.addChild(rightForeArmwear);
 
-        // Left leg wear - child of leftLeg
         leftLegwear = new BendsModelPart(0, 48)
                 .setTextureSize(64, 64)
                 .setMirror(true);
         leftLegwear.addCube(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + wearOffset);
         leftLeg.addChild(leftLegwear);
 
-        // Right leg wear - child of rightLeg
         rightLegwear = new BendsModelPart(0, 32)
                 .setTextureSize(64, 64);
         rightLegwear.addCube(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + wearOffset);
         rightLeg.addChild(rightLegwear);
 
-        // Left foreleg wear - child of leftForeLeg
         leftForeLegwear = new BendsModelPart(0, 48 + 6)
                 .setTextureSize(64, 64)
+                .setOffset(0.0F, 0.25F, 0.0F)
                 .setMirror(true);
         leftForeLegwear.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + wearOffset);
         leftForeLeg.addChild(leftForeLegwear);
 
-        // Right foreleg wear - child of rightForeLeg
         rightForeLegwear = new BendsModelPart(0, 32 + 6)
-                .setTextureSize(64, 64);
+                .setTextureSize(64, 64)
+                .setOffset(0.0F, 0.25F, 0.0F);
         rightForeLegwear.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + wearOffset);
         rightForeLeg.addChild(rightForeLegwear);
 
@@ -381,7 +341,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     public void syncUpWithData(PlayerData data)
     {
         super.syncUpWithData(data);
-        // Sync wear parts with their base parts - they share the same transforms
     }
 
     @Override
@@ -389,7 +348,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                                    LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer,
                                    float partialTicks)
     {
-        // Sync wear visibility with base parts
         if (leftForeArmwear != null && leftArmwear != null)
             leftForeArmwear.setVisible(leftArmwear.isShowing());
         if (rightForeArmwear != null && rightArmwear != null)
@@ -409,10 +367,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             this.layerArmor.initArmor();
     }
 
-    /**
-     * Called before the first person hand is rendered, so the mutator can pose it
-     * in any way.
-     */
     public void poseForFirstPersonView()
     {
         if (this.body != null) this.body.getRotation().identity();
@@ -425,7 +379,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     @Override
     public boolean isModelVanilla(PlayerModel<AbstractClientPlayer> model)
     {
-        // Check if we've already created custom parts
         return this.body == null;
     }
 
@@ -438,8 +391,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     @Override
     public PlayerData getData(AbstractClientPlayer entity)
     {
-        // Update slim arms based on the actual player's skin model
-        // This ensures correct detection even if initial reflection failed
         if (entity != null && !PlayerPreviewer.isPreviewInProgress())
         {
             IPlayerSkinProvider skinProvider = IPlayerSkinProvider.Holder.getProvider();
@@ -450,8 +401,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                     "Slim arm mismatch detected for {}: mutator={}, player={}. Updating.",
                     entity.getName().getString(), this.smallArms, playerIsSlim);
                 this.smallArms = playerIsSlim;
-                // Note: Parts are already created with the old dimension.
-                // They will be corrected on next mutation cycle.
             }
         }
         return PlayerPreviewer.isPreviewInProgress() ? PlayerPreviewer.getPreviewData() : super.getData(entity);
@@ -468,13 +417,11 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                               int packedLight, int packedOverlay,
                               int packedColor)
     {
-        // Render body and all attached parts (head, arms)
         if (body != null)
         {
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
         }
 
-        // Render legs (not attached to body)
         if (leftLeg != null)
         {
             leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
@@ -485,7 +432,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         }
     }
 
-    // Getters for wear parts
     public BendsModelPart getBodywear() { return bodywear; }
     public BendsModelPart getLeftArmwear() { return leftArmwear; }
     public BendsModelPart getRightArmwear() { return rightArmwear; }

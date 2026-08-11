@@ -2,9 +2,6 @@ package goblinbob.mobends.core.expression.ast;
 
 import goblinbob.mobends.core.expression.ExpressionContext;
 
-/**
- * AST node representing a variable reference (e.g., ticks, health).
- */
 public class VariableNode implements ExpressionNode {
     private final String name;
 

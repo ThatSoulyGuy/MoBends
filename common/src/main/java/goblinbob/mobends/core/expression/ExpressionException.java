@@ -1,8 +1,5 @@
 package goblinbob.mobends.core.expression;
 
-/**
- * Exception thrown when an expression cannot be parsed or evaluated.
- */
 public class ExpressionException extends RuntimeException {
     private final String expression;
     private final int position;

@@ -6,7 +6,7 @@ import java.nio.FloatBuffer;
 
 public class MatrixUtils
 {
-	
+
 	public static FloatBuffer matToGlMatrix(IMat4x4d matIn, FloatBuffer destBuffer)
     {
         destBuffer.clear();
@@ -18,7 +18,7 @@ public class MatrixUtils
         destBuffer.rewind();
         return destBuffer;
     }
-	
+
 	public static void identity(IMat4x4d dest)
 	{
 		dest.setFields(
@@ -28,11 +28,11 @@ public class MatrixUtils
 			0, 0, 0, 1
 		);
 	}
-	
+
 	public static void inverse(IMat4x4d src, IMat4x4d dest)
 	{
 		double[] f = src.getFields();
-		
+
 		double Coef00 = f[2*4 + 2] * f[3*4 + 3] - f[3*4 + 2] * f[2*4 + 3];
 		double Coef02 = f[1*4 + 2] * f[3*4 + 3] - f[3*4 + 2] * f[1*4 + 3];
 		double Coef03 = f[1*4 + 2] * f[2*4 + 3] - f[2*4 + 2] * f[1*4 + 3];
@@ -80,21 +80,18 @@ public class MatrixUtils
 			Vec0.y * Fac0.y - Vec2.y * Fac3.y + Vec3.y * Fac4.y,
 			Vec0.z * Fac0.z - Vec2.z * Fac3.z + Vec3.z * Fac4.z,
 			Vec0.w * Fac0.w - Vec2.w * Fac3.w + Vec3.w * Fac4.w
-			// Vec0 * Fac0 - Vec2 * Fac3 + Vec3 * Fac4
 		);
 		Vec4d Inv2 = new Vec4d(
 			Vec0.x * Fac1.x - Vec1.x * Fac3.x + Vec3.x * Fac5.x,
 			Vec0.y * Fac1.y - Vec1.y * Fac3.y + Vec3.y * Fac5.y,
 			Vec0.z * Fac1.z - Vec1.z * Fac3.z + Vec3.z * Fac5.z,
 			Vec0.w * Fac1.w - Vec1.w * Fac3.w + Vec3.w * Fac5.w
-			// Vec0 * Fac1 - Vec1 * Fac3 + Vec3 * Fac5
 		);
 		Vec4d Inv3 = new Vec4d(
 			Vec0.x * Fac2.x - Vec1.x * Fac4.x + Vec2.x * Fac5.x,
 			Vec0.y * Fac2.y - Vec1.y * Fac4.y + Vec2.y * Fac5.y,
 			Vec0.z * Fac2.z - Vec1.z * Fac4.z + Vec2.z * Fac5.z,
 			Vec0.w * Fac2.w - Vec1.w * Fac4.w + Vec2.w * Fac5.w
-			// Vec0 * Fac2 - Vec1 * Fac4 + Vec2 * Fac5
 		);
 
 		Vec4d SignA = new Vec4d(+1, -1, +1, -1);
@@ -112,7 +109,6 @@ public class MatrixUtils
 			f[1] * inverseFields[4],
 			f[2] * inverseFields[8],
 			f[3] * inverseFields[12]
-			// f[0] * (Row 0 of Inverse)
 		);
 		double Dot1 = (Dot0.x + Dot0.y) + (Dot0.z + Dot0.w);
 
@@ -121,7 +117,7 @@ public class MatrixUtils
 		dest.copyFrom(Inverse);
 		dest.scale(OneOverDeterminant);
 	}
-	
+
 	public static void multiply(IMatd a, IMatd b, IMatd dest)
 	{
 		int aCols = a.getCols();
@@ -130,15 +126,15 @@ public class MatrixUtils
 		int bRows = b.getRows();
 		double[] aFields = a.getFields();
 		double[] bFields = b.getFields();
-		
+
 		if (aCols != bRows)
 			return;
-		
+
 		double[] newFields = new double[bCols * aRows];
-		
-		for (int i = 0; i < bCols; ++i) // Columns
+
+		for (int i = 0; i < bCols; ++i)
 		{
-			for (int j = 0; j < aRows; ++j) // Rows
+			for (int j = 0; j < aRows; ++j)
 			{
 				double dot = 0;
 				newFields[i * aRows + j] = 0;
@@ -146,22 +142,22 @@ public class MatrixUtils
 					newFields[i * aRows + j] += aFields[k * aRows + j] * bFields[i * bRows + k];
 			}
 		}
-		
+
 		dest.setFields(newFields);
 	}
-	
+
 	public static String toString(IMatd a)
 	{
 		final double[] fields = a.getFields();
 		final int cols = a.getCols();
 		final int rows = a.getRows();
 		StringBuilder builder = new StringBuilder();
-		
+
 		int maxRowLength = 0;
-		
+
 		for (int r = 0; r < rows; ++r)
 		{
-			int rowLength = 4; // Starts at 4, the combined length of the borders
+			int rowLength = 4;
 			builder.append("[ ");
 			for (int c = 0; c < cols; ++c)
 			{
@@ -176,19 +172,19 @@ public class MatrixUtils
 				}
 			}
 			builder.append(" ]\n");
-			
+
 			if (rowLength > maxRowLength)
 				maxRowLength = rowLength;
 		}
-		
+
 		builder.insert(0, '\n');
 		for (int i = 0; i < maxRowLength; i++)
 		{
 			builder.insert(0, '-');
 			builder.append('-');
 		}
-		
+
 		return builder.toString();
 	}
-	
+
 }
