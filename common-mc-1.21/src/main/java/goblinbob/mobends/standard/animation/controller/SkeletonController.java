@@ -7,10 +7,9 @@ import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.skeleton.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.skeleton.WalkAnimationBit;
-import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.SkeletonData;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -18,10 +17,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class SkeletonController implements IAnimationController<SkeletonData>
+public class SkeletonController implements IAnimationController<SkeletonData<?>>
 {
-	protected HardAnimationLayer<BipedEntityData<Skeleton>> layerBase;
-	protected AnimationBit<? extends BipedEntityData<Skeleton>> bitStand, bitWalk, bitJump;
+	protected HardAnimationLayer<SkeletonData<?>> layerBase;
+	protected AnimationBit<? extends SkeletonData<?>> bitStand, bitWalk, bitJump;
 
 	protected final BipedActionController actionController = new BipedActionController();
 
@@ -31,10 +30,10 @@ public class SkeletonController implements IAnimationController<SkeletonData>
 
 		this.bitStand = new StandAnimationBit();
 		this.bitWalk = new WalkAnimationBit();
-		this.bitJump = new JumpAnimationBit<>();
+		this.bitJump = new JumpAnimationBit<SkeletonData<?>>();
 	}
 
-	public void performActionAnimations(SkeletonData data, Skeleton skeleton)
+	public void performActionAnimations(SkeletonData<?> data, AbstractSkeleton skeleton)
 	{
 		final HumanoidArm primaryHand = skeleton.getMainArm();
 		final ItemStack heldItemMainhand = skeleton.getMainHandItem();
@@ -45,9 +44,9 @@ public class SkeletonController implements IAnimationController<SkeletonData>
 	}
 
 	@Override
-	public Collection<String> perform(SkeletonData skeletonData)
+	public Collection<String> perform(SkeletonData<?> skeletonData)
 	{
-		Skeleton skeleton = skeletonData.getEntity();
+		AbstractSkeleton skeleton = skeletonData.getEntity();
 
 		if (!skeletonData.isOnGround() || skeletonData.getTicksAfterTouchdown() < 1)
 		{

@@ -18,7 +18,7 @@ import goblinbob.mobends.neoforge.network.NetworkHandler;
 import goblinbob.mobends.neoforge.platform.NeoForgePlatformServices;
 import goblinbob.mobends.core.pack.PackDataProvider;
 import goblinbob.mobends.core.util.GsonResources;
-import goblinbob.mobends.standard.DefaultAddon;
+import goblinbob.mobends.neoforge.NeoForgeAddon;
 import goblinbob.mobends.standard.main.ModStatics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -86,7 +86,7 @@ public class MoBends
 
         Core.getInstance().onClientSetup();
 
-        AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());
+        AddonHelper.registerAddon(ModStatics.MODID, new NeoForgeAddon());
 
         Core.getInstance().applyConfigurationToEntityBenders();
 

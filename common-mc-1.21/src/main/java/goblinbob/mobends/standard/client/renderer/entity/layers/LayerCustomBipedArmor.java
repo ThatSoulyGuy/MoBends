@@ -129,7 +129,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         {
             if (mutator != null)
             {
-                mutator.syncPosesToVanillaModel(defaultModel);
+                mutator.syncPosesToVanillaModel(
+                        armorModel instanceof HumanoidModel<?> selfDrawn ? selfDrawn : defaultModel);
             }
 
             renderSelfDrawnArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
@@ -159,8 +160,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                                   ItemStack itemStack, BipedEntityData<?> bipedData,
                                   boolean isCustomModel)
     {
-        boolean isInnerModel = usesInnerModel(slot);
-
         if (isCustomModel)
         {
             IArmorLayerProvider layerProvider = IArmorLayerProvider.Holder.getProvider();
@@ -169,8 +168,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             if (layerProvider != null)
             {
                 layerProvider.forEachLayer(armorItem, layer -> {
-                    ResourceLocation texture = IArmorTextureProvider.Holder.getProvider()
-                            .getArmorTexture(armorItem, itemStack, entity, slot, layer, isInnerModel);
+                    ResourceLocation texture = resolveArmorTexture(armorItem, itemStack, entity, slot, layer, null);
                     if (texture == null)
                     {
                         return;
@@ -201,7 +199,23 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 ResourceLocation fallbackTexture = getArmorTexture(armorItem, itemStack, entity, slot, null);
                 if (fallbackTexture != null)
                 {
-                    renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, fallbackTexture);
+                    boolean rendered = armorFacade.renderArmor(
+                            poseStack,
+                            bufferSource,
+                            packedLight,
+                            entity,
+                            slot,
+                            itemStack,
+                            armorItem,
+                            armorModel,
+                            bipedData,
+                            fallbackTexture
+                    );
+
+                    if (!rendered)
+                    {
+                        renderLegacyRigidArmor(poseStack, bufferSource, packedLight, armorModel, slot, itemStack, bipedData, fallbackTexture);
+                    }
                 }
             }
         }
@@ -354,10 +368,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
     private ResourceLocation getArmorTexture(ArmorItem armorItem, ItemStack itemStack, E entity, EquipmentSlot slot, @Nullable String overlay)
     {
+        return resolveArmorTexture(armorItem, itemStack, entity, slot, null, overlay);
+    }
+
+    private ResourceLocation resolveArmorTexture(ArmorItem armorItem, ItemStack itemStack, E entity, EquipmentSlot slot,
+                                                 @Nullable Object layer, @Nullable String overlay)
+    {
         boolean isInnerModel = usesInnerModel(slot);
 
         IArmorTextureProvider textureProvider = IArmorTextureProvider.Holder.getProvider();
-        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, null, isInnerModel);
+        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, layer, isInnerModel);
         if (customTexture != null)
         {
             return customTexture;
@@ -375,10 +395,10 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             path = materialName.substring(colonIndex + 1);
         }
 
-        int layer = isInnerModel ? 2 : 1;
+        int layerIndex = isInnerModel ? 2 : 1;
         String suffix = overlay == null ? "" : "_" + overlay;
 
-        return goblinbob.mobends.core.util.ResourceLocationFactory.create(domain, "textures/models/armor/" + path + "_layer_" + layer + suffix + ".png");
+        return goblinbob.mobends.core.util.ResourceLocationFactory.create(domain, "textures/models/armor/" + path + "_layer_" + layerIndex + suffix + ".png");
     }
 
     private boolean usesInnerModel(EquipmentSlot slot)

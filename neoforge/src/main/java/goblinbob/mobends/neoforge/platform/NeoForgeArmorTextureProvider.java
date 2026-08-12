@@ -9,6 +9,7 @@ import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class NeoForgeArmorTextureProvider implements IArmorTextureProvider
 {
@@ -19,6 +20,30 @@ public class NeoForgeArmorTextureProvider implements IArmorTextureProvider
             EquipmentSlot slot, @Nullable Object layer, boolean isInnerModel)
     {
         ArmorMaterial.Layer materialLayer = (layer instanceof ArmorMaterial.Layer) ? (ArmorMaterial.Layer) layer : null;
-        return armorItem.getArmorTexture(itemStack, entity, slot, materialLayer, isInnerModel);
+
+        if (materialLayer == null)
+        {
+            materialLayer = getFirstLayer(armorItem);
+        }
+
+        if (materialLayer == null)
+        {
+            return null;
+        }
+
+        ResourceLocation overridden = armorItem.getArmorTexture(itemStack, entity, slot, materialLayer, isInnerModel);
+        if (overridden != null)
+        {
+            return overridden;
+        }
+
+        return materialLayer.texture(isInnerModel);
+    }
+
+    @Nullable
+    private static ArmorMaterial.Layer getFirstLayer(ArmorItem armorItem)
+    {
+        List<ArmorMaterial.Layer> layers = armorItem.getMaterial().value().layers();
+        return layers.isEmpty() ? null : layers.get(0);
     }
 }

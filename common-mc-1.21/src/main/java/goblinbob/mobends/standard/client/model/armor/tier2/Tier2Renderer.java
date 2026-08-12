@@ -342,10 +342,13 @@ public class Tier2Renderer
         List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, elbowPlane);
 
+        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.ARM_INFLATION);
+        LimbInflation lowerInflation = upperInflation.plus(LimbInflation.LOWER_LIMB_INFLATION_STEP);
+
         poseStack.pushPose();
         ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
         ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor, upperInflation);
         poseStack.popPose();
 
         float foreArmOffsetX = -foreArm.position.x * ArmorPoseHelper.SCALE;
@@ -355,7 +358,7 @@ public class Tier2Renderer
         ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
         ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
         ArmorPoseHelper.applyPartTransform(poseStack, foreArm, true);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, currentArmorColor);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, currentArmorColor, lowerInflation);
         poseStack.popPose();
     }
 
@@ -390,9 +393,12 @@ public class Tier2Renderer
 
         float vanillaLegX = storage[0];
 
+        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION);
+        LimbInflation lowerInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION + LimbInflation.LOWER_LIMB_INFLATION_STEP);
+
         poseStack.pushPose();
         ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor, upperInflation);
         poseStack.popPose();
 
         float lowerLegOffsetX = -lowerLeg.position.x * ArmorPoseHelper.SCALE;
@@ -401,7 +407,7 @@ public class Tier2Renderer
         poseStack.pushPose();
         ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
         ArmorPoseHelper.applyPartTransform(poseStack, lowerLeg, true);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, currentArmorColor);
+        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, currentArmorColor, lowerInflation);
         poseStack.popPose();
     }
 

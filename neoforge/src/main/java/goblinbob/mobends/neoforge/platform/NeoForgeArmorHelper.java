@@ -2,6 +2,7 @@ package goblinbob.mobends.neoforge.platform;
 
 import goblinbob.mobends.api.rendering.IArmorHelper;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 
@@ -18,7 +19,7 @@ public class NeoForgeArmorHelper implements IArmorHelper
         net.minecraft.core.Holder<ArmorMaterial> materialHolder = item.getMaterial();
         return materialHolder.unwrapKey()
                 .map(ResourceKey::location)
-                .map(loc -> loc.getPath())
+                .map(ResourceLocation::toString)
                 .orElse("unknown");
     }
 }

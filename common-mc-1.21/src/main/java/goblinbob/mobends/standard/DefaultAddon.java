@@ -14,6 +14,7 @@ import goblinbob.mobends.standard.previewer.PlayerPreviewer;
 import goblinbob.mobends.standard.previewer.SpiderPreviewer;
 import goblinbob.mobends.standard.previewer.ZombiePreviewer;
 import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.entity.monster.Stray;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
@@ -22,10 +23,17 @@ import net.minecraft.world.entity.animal.Wolf;
 
 public class DefaultAddon implements IAddon
 {
-	private static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall"};
+	protected static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall"};
 	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump", "climb"};
 	private static final String[] SQUID_ANIMATIONS = {"swim"};
 	private static final String[] WOLF_ANIMATIONS = {"walk", "sit"};
+
+	protected static final String[] BIPED_PARTS = {
+			"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
+			"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg"};
+
+	protected static final float STRAY_CLOTHING_DEFORMATION = 0.25F;
+	protected static final float BOGGED_CLOTHING_DEFORMATION = 0.2F;
 
 	@Override
 	public void registerContent(AddonAnimationRegistry registry)
@@ -38,9 +46,11 @@ public class DefaultAddon implements IAddon
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
 		registry.registerNewEntity(Skeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
-				null, BIPED_ANIMATIONS,
-				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-						"rightLeg", "leftForeLeg", "rightForeLeg");
+				null, BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(Stray.class, SkeletonData::new,
+				dataFactory -> new SkeletonMutator<>(dataFactory, STRAY_CLOTHING_DEFORMATION), new BipedRenderer<>(),
+				null, BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(ZombifiedPiglin.class, PigZombieData::new, PigZombieMutator::new, new ZombieRenderer<>(),
 				new BipedPreviewer<>(), BIPED_ANIMATIONS,
@@ -63,6 +73,12 @@ public class DefaultAddon implements IAddon
 				"nose", "mouth", "tongue", "leftEar", "rightEar");
 
 		registry.registerTriggerCondition("wolf_state", WolfStateCondition::new, WolfStateCondition.Template.class);
+
+		registerVersionSpecificContent(registry);
+	}
+
+	protected void registerVersionSpecificContent(AddonAnimationRegistry registry)
+	{
 	}
 
 	@Override
