@@ -111,7 +111,6 @@ public class Tier2Renderer
         EquipmentSlot slot = context.getSlot();
         int packedLight = context.getPackedLight();
         int packedOverlay = context.getPackedOverlay();
-        float entityScale = context.getEntityScale();
 
         ModelPart root = getModelRoot(model);
         if (root == null)
@@ -121,11 +120,6 @@ public class Tier2Renderer
         }
 
         poseStack.pushPose();
-
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
 
         switch (slot)
         {

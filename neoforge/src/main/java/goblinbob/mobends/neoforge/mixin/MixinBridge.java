@@ -7,6 +7,7 @@ import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
+import goblinbob.mobends.standard.mutators.WolfMutator;
 import net.minecraft.world.entity.LivingEntity;
 
 public final class MixinBridge {
@@ -35,9 +36,6 @@ public final class MixinBridge {
     }
 
     public static boolean shouldRenderSpiderCustom() {
-        if (!MoBendsRenderContext.isInMainModelRender()) {
-            return false;
-        }
         SpiderMutator mutator = MoBendsRenderContext.getCurrentSpiderMutator();
         return mutator != null && mutator.shouldRenderCustom();
     }
@@ -48,6 +46,19 @@ public final class MixinBridge {
         if (mutator != null) {
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             MoBendsRenderContext.endMainModelRender();
+        }
+    }
+
+    public static boolean shouldRenderWolfCustom() {
+        WolfMutator mutator = MoBendsRenderContext.getCurrentWolfMutator();
+        return mutator != null && mutator.shouldRenderCustom();
+    }
+
+    public static void renderWolfMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
+                                          int packedLight, int packedOverlay, int color) {
+        WolfMutator mutator = MoBendsRenderContext.getCurrentWolfMutator();
+        if (mutator != null) {
+            mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
     }
 

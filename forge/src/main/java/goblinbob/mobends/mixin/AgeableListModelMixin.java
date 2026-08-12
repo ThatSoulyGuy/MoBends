@@ -5,6 +5,7 @@ import goblinbob.mobends.forge.mixin.MixinBridge;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.AgeableListModel;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.WolfModel;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +23,12 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
         if ((Object) this instanceof HumanoidModel) {
             if (MixinBridge.shouldRenderBipedCustom()) {
                 MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                ci.cancel();
+            }
+        }
+        else if ((Object) this instanceof WolfModel) {
+            if (MixinBridge.shouldRenderWolfCustom()) {
+                MixinBridge.renderWolfMutated(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
                 ci.cancel();
             }
         }

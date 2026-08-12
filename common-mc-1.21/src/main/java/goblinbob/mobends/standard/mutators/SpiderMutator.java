@@ -84,12 +84,17 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
             spiderUpperLimbs[i] = new BendsModelPart(odd ? 18 : 26, 0)
                     .setTextureSize(64, 32)
                     .setPosition(odd ? 4F : -4F, 15F, z);
-            spiderUpperLimbs[i].addCube(odd ? -1F : (-legLength + 1F), -1.0F, -1.0F, (int) legLength, 2, 2, scaleFactor);
+            spiderUpperLimbs[i].developBox(odd ? -1F : (-legLength + 1F), -1.0F, -1.0F, 8, 2, 2, 0.0F)
+                    .setWidth(legLength)
+                    .create();
 
             spiderLowerLimbs[i] = new BendsModelPart(odd ? 26 : 18, 0)
                     .setTextureSize(64, 32)
                     .setPosition(odd ? foreLegLength : -foreLegLength, 0F, 0F);
-            spiderLowerLimbs[i].addCube(odd ? 0F : -foreLegLength, 0F, -1F, (int) foreLegLength, 2, 2, scaleFactor);
+            spiderLowerLimbs[i].developBox(odd ? 0F : -foreLegLength, 0F, -1F, 8, 2, 2, 0F)
+                    .offset(0F, 0F, 0.005F)
+                    .resize(foreLegLength, 1.99F, 1.99F)
+                    .create();
             spiderUpperLimbs[i].addChild(spiderLowerLimbs[i]);
         }
 

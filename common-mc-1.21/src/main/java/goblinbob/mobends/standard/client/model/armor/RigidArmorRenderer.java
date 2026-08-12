@@ -46,7 +46,7 @@ public class RigidArmorRenderer
             int packedOverlay,
             BipedEntityData<?> data)
     {
-        renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, 1.0f, 0xFFFFFFFF);
+        renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, 0xFFFFFFFF);
     }
 
     public void renderCapturedVertices(
@@ -55,18 +55,6 @@ public class RigidArmorRenderer
             int packedLight,
             int packedOverlay,
             BipedEntityData<?> data,
-            float entityScale)
-    {
-        renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, entityScale, 0xFFFFFFFF);
-    }
-
-    public void renderCapturedVertices(
-            PoseStack poseStack,
-            VertexConsumer outputConsumer,
-            int packedLight,
-            int packedOverlay,
-            BipedEntityData<?> data,
-            float entityScale,
             int armorColor)
     {
         List<CapturedVertex> vertices = captureConsumer.getVertices();

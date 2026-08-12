@@ -127,11 +127,6 @@ public class ArmorRenderContext<E extends LivingEntity>
         return isSlimArms;
     }
 
-    public float getEntityScale()
-    {
-        return isBaby ? 0.5f : 1.0f;
-    }
-
     public boolean isLimbSlot()
     {
         return slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET;

@@ -1,7 +1,6 @@
-package goblinbob.mobends.neoforge.network;
+package goblinbob.mobends.core.network;
 
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.common.ModConfigSpec;
 
 public abstract class SharedProperty<T>
 {
@@ -44,10 +43,13 @@ public abstract class SharedProperty<T>
         this.value = value;
     }
 
+    public void resetToDefault()
+    {
+        this.value = this.defaultValue;
+    }
+
     public abstract void writeToNBT(CompoundTag tag);
 
     public abstract void readFromNBT(CompoundTag tag);
-
-    public abstract void updateWithConfigValue(ModConfigSpec.ConfigValue<T> configValue);
 
 }

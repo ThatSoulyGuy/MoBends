@@ -2,6 +2,8 @@ package goblinbob.mobends.forge.network;
 
 import com.mojang.logging.LogUtils;
 import goblinbob.mobends.forge.MoBendsForge;
+import goblinbob.mobends.forge.network.msg.MessageConfigRequest;
+import goblinbob.mobends.forge.network.msg.MessageConfigResponse;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -22,6 +24,20 @@ public class ForgeNetworkHandler {
                 s -> true,
                 s -> true
         );
+
+        int id = 0;
+
+        CHANNEL.registerMessage(id++,
+                MessageConfigRequest.class,
+                MessageConfigRequest::encode,
+                MessageConfigRequest::decode,
+                MessageConfigRequest::handle);
+
+        CHANNEL.registerMessage(id++,
+                MessageConfigResponse.class,
+                MessageConfigResponse::encode,
+                MessageConfigResponse::decode,
+                MessageConfigResponse::handle);
 
         LOGGER.info("Mo' Bends network channel registered");
     }

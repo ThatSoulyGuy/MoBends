@@ -179,26 +179,38 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64)
                 .setPosition(5.0F, armY, 0.0F)
                 .setMirror(true);
-        leftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor, BendsModelPart.hiding(BoxSide.BOTTOM));
+        leftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(leftArm);
 
         rightArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
                 .setPosition(-5.0F, armY, 0.0F);
-        rightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor, BendsModelPart.hiding(BoxSide.BOTTOM));
+        rightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(rightArm);
 
         leftForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
-        leftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 40, 16, BendsModelPart.hiding(BoxSide.TOP));
+        leftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftArm.addChild(leftForeArm);
 
         rightForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F);
-        rightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 40, 16, BendsModelPart.hiding(BoxSide.TOP));
+        rightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightArm.addChild(rightForeArm);
 
         rightLeg = new BendsModelPart(0, 16)
@@ -216,13 +228,19 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F)
                 .setMirror(true);
-        leftForeLeg.addCube(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 0, 16);
+        leftForeLeg.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftLeg.addChild(leftForeLeg);
 
         rightForeLeg = new BendsModelPart(0, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F);
-        rightForeLeg.addCube(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 0, 16);
+        rightForeLeg.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightLeg.addChild(rightForeLeg);
 
         createOuterParts(scaleFactor);
@@ -251,26 +269,38 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64)
                 .setPosition(5.0F, armY, 0.0F)
                 .setMirror(true);
-        outerLeftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerLeftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         outerBody.addChild(outerLeftArm);
 
         outerRightArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
                 .setPosition(-5.0F, armY, 0.0F);
-        outerRightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerRightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         outerBody.addChild(outerRightArm);
 
         outerLeftForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
-        outerLeftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset, 40, 16);
+        outerLeftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerLeftArm.addChild(outerLeftForeArm);
 
         outerRightForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F);
-        outerRightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset, 40, 16);
+        outerRightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerRightArm.addChild(outerRightForeArm);
 
         outerRightLeg = new BendsModelPart(0, 16)
@@ -288,13 +318,19 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F)
                 .setMirror(true);
-        outerLeftForeLeg.addCube(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset, 0, 16);
+        outerLeftForeLeg.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerLeftLeg.addChild(outerLeftForeLeg);
 
         outerRightForeLeg = new BendsModelPart(0, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F);
-        outerRightForeLeg.addCube(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset, 0, 16);
+        outerRightForeLeg.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerRightLeg.addChild(outerRightForeLeg);
     }
 

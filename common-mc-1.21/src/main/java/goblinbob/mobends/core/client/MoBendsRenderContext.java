@@ -3,12 +3,14 @@ package goblinbob.mobends.core.client;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
 import goblinbob.mobends.standard.mutators.SquidMutator;
+import goblinbob.mobends.standard.mutators.WolfMutator;
 
 public class MoBendsRenderContext {
 
     private static final ThreadLocal<BipedMutator<?, ?, ?>> currentBipedMutator = new ThreadLocal<>();
     private static final ThreadLocal<SpiderMutator> currentSpiderMutator = new ThreadLocal<>();
     private static final ThreadLocal<SquidMutator> currentSquidMutator = new ThreadLocal<>();
+    private static final ThreadLocal<WolfMutator> currentWolfMutator = new ThreadLocal<>();
 
     private static final ThreadLocal<Boolean> inMainModelRender = ThreadLocal.withInitial(() -> false);
 
@@ -58,10 +60,19 @@ public class MoBendsRenderContext {
         return currentSquidMutator.get();
     }
 
+    public static void setCurrentWolfMutator(WolfMutator mutator) {
+        currentWolfMutator.set(mutator);
+    }
+
+    public static WolfMutator getCurrentWolfMutator() {
+        return currentWolfMutator.get();
+    }
+
     public static void clear() {
         currentBipedMutator.remove();
         currentSpiderMutator.remove();
         currentSquidMutator.remove();
+        currentWolfMutator.remove();
         inMainModelRender.remove();
         currentVanillaModel.remove();
     }

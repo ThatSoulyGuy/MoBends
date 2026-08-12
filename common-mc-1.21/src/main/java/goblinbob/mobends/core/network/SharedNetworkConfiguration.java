@@ -1,16 +1,14 @@
-package goblinbob.mobends.neoforge.network;
+package goblinbob.mobends.core.network;
 
-import goblinbob.mobends.core.network.NetworkConfiguration;
-
-public class NeoForgeNetworkConfiguration extends NetworkConfiguration
+public class SharedNetworkConfiguration extends NetworkConfiguration
 {
-    public static final NeoForgeNetworkConfiguration INSTANCE = new NeoForgeNetworkConfiguration();
+    public static final SharedNetworkConfiguration INSTANCE = new SharedNetworkConfiguration();
 
     private final SharedConfig sharedConfig;
     private final SharedBooleanProp allowBendspacks;
     private final SharedBooleanProp limitMovement;
 
-    private NeoForgeNetworkConfiguration()
+    private SharedNetworkConfiguration()
     {
         this.sharedConfig = new SharedConfig();
         this.allowBendspacks = new SharedBooleanProp("allow_bendspacks", true, "Whether bendspacks are allowed");
@@ -35,6 +33,11 @@ public class NeoForgeNetworkConfiguration extends NetworkConfiguration
     public boolean isMovementLimited()
     {
         return limitMovement.getValue();
+    }
+
+    public void resetToDefaults()
+    {
+        sharedConfig.resetToDefaults();
     }
 
     public static void init()

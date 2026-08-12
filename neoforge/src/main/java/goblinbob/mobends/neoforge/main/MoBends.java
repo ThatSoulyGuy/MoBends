@@ -62,6 +62,8 @@ public class MoBends
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
+        goblinbob.mobends.core.network.SharedNetworkConfiguration.init();
+
         LOGGER.info("Mo' Bends common setup complete");
     }
 
@@ -90,6 +92,7 @@ public class MoBends
 
         NeoForge.EVENT_BUS.register(new RenderingEventHandler());
         NeoForge.EVENT_BUS.register(new KeyboardEventHandler());
+        NeoForge.EVENT_BUS.register(new goblinbob.mobends.neoforge.network.ConfigSyncClientHandler());
         LOGGER.info("Mo' Bends event handlers registered");
 
         ModCompatManager.init();

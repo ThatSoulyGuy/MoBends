@@ -166,8 +166,8 @@ public class MutatedBox
         vertices[6] = new MutatedVertex(x1, y1, z1, 8.0F, 8.0F);
         vertices[7] = new MutatedVertex(x0, y1, z1, 8.0F, 0.0F);
 
-        float textureWidth = renderer != null ? 64 : 64;
-        float textureHeight = renderer != null ? 64 : 64;
+        float textureWidth = renderer != null ? renderer.getTextureWidth() : 64;
+        float textureHeight = renderer != null ? renderer.getTextureHeight() : 32;
 
         quads[0] = createQuadFromFace(new MutatedVertex[]{vertices[5], vertices[1], vertices[2], vertices[6]}, faces[0], textureWidth, textureHeight);
         quads[1] = createQuadFromFace(new MutatedVertex[]{vertices[0], vertices[4], vertices[7], vertices[3]}, faces[1], textureWidth, textureHeight);
@@ -214,8 +214,8 @@ public class MutatedBox
             x = f7;
         }
 
-        float textureWidth = modelRenderer != null ? 64 : 64;
-        float textureHeight = modelRenderer != null ? 64 : 64;
+        float textureWidth = modelRenderer != null ? modelRenderer.getTextureWidth() : 64;
+        float textureHeight = modelRenderer != null ? modelRenderer.getTextureHeight() : 32;
 
         vertices[0] = new MutatedVertex(x, y, z, 0.0F, 0.0F);
         vertices[1] = new MutatedVertex(f4, y, z, 0.0F, 8.0F);

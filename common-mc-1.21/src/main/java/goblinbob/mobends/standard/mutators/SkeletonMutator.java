@@ -1,6 +1,7 @@
 package goblinbob.mobends.standard.mutators;
 
 import goblinbob.mobends.core.client.model.BendsModelPart;
+import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.data.SkeletonData;
 import net.minecraft.client.model.EntityModel;
@@ -54,27 +55,39 @@ public class SkeletonMutator extends BipedMutator<SkeletonData, Skeleton, Skelet
         rightArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 32)
                 .setPosition(-5.0F, -10.0F, 0.0F);
-        rightArm.addCube(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor);
+        rightArm.developBox(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(rightArm);
 
         leftArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 32)
                 .setPosition(5.0F, -10.0F, 0.0F)
                 .setMirror(true);
-        leftArm.addCube(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor);
+        leftArm.developBox(-1.0F, -2.0F, -1.0F, 2, 6, 2, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(leftArm);
 
         rightForeArm = new BendsModelPart(40, 16 + 6)
                 .setTextureSize(64, 32)
                 .setPosition(0.0F, 4.0F, 1.0F);
-        rightForeArm.addCube(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor);
+        rightForeArm.developBox(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightArm.addChild(rightForeArm);
 
         leftForeArm = new BendsModelPart(40, 16 + 6)
                 .setTextureSize(64, 32)
                 .setPosition(0.0F, 4.0F, 1.0F)
                 .setMirror(true);
-        leftForeArm.addCube(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor);
+        leftForeArm.developBox(-1.0F, 0.0F, -2.0F, 2, 6, 2, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftArm.addChild(leftForeArm);
 
         rightLeg = new BendsModelPart(0, 16)
@@ -91,14 +104,20 @@ public class SkeletonMutator extends BipedMutator<SkeletonData, Skeleton, Skelet
         rightForeLeg = new BendsModelPart(0, 16 + 6)
                 .setTextureSize(64, 32)
                 .setPosition(0.0F, 6.0F, -2.0F);
-        rightForeLeg.addCube(-1.0F, 0.0F, 0.0F, 2, 6, 2, scaleFactor);
+        rightForeLeg.developBox(-1.0F, 0.0F, 0.0F, 2, 6, 2, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightLeg.addChild(rightForeLeg);
 
         leftForeLeg = new BendsModelPart(0, 16 + 6)
                 .setTextureSize(64, 32)
                 .setPosition(0.0F, 6.0F, -2.0F)
                 .setMirror(true);
-        leftForeLeg.addCube(-1.0F, 0.0F, 0.0F, 2, 6, 2, scaleFactor);
+        leftForeLeg.developBox(-1.0F, 0.0F, 0.0F, 2, 6, 2, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftLeg.addChild(leftForeLeg);
 
         return true;

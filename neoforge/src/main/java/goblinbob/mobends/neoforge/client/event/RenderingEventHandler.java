@@ -170,6 +170,11 @@ public class RenderingEventHandler
                     MoBendsRenderContext.setCurrentSquidMutator(squidMutator);
                     MoBendsRenderContext.beginMainModelRender();
                 }
+                else if (rawMutator instanceof goblinbob.mobends.standard.mutators.WolfMutator wolfMutator)
+                {
+                    MoBendsRenderContext.setCurrentWolfMutator(wolfMutator);
+                    MoBendsRenderContext.beginMainModelRender();
+                }
                 bender.beforeRender(data, entity, partialTicks, poseStack);
             }
         }

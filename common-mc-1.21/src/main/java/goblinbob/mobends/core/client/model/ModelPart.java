@@ -33,6 +33,8 @@ public class ModelPart implements IModelPart
 
     protected int textureOffsetX;
     protected int textureOffsetY;
+    protected float textureWidth = 64.0F;
+    protected float textureHeight = 32.0F;
     protected boolean showModel = true;
     protected boolean isHidden = false;
     protected boolean mirror = false;
@@ -306,6 +308,23 @@ public class ModelPart implements IModelPart
     public int getTextureOffsetY()
     {
         return this.textureOffsetY;
+    }
+
+    public float getTextureWidth()
+    {
+        return this.textureWidth;
+    }
+
+    public float getTextureHeight()
+    {
+        return this.textureHeight;
+    }
+
+    public ModelPart setTextureSize(float width, float height)
+    {
+        this.textureWidth = width;
+        this.textureHeight = height;
+        return this;
     }
 
     public void setTextureOffset(int x, int y)

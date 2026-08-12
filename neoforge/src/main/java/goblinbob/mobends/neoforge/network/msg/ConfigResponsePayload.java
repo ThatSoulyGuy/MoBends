@@ -1,8 +1,8 @@
 package goblinbob.mobends.neoforge.network.msg;
 
 import com.mojang.logging.LogUtils;
-import goblinbob.mobends.neoforge.network.NeoForgeNetworkConfiguration;
-import goblinbob.mobends.neoforge.network.SharedProperty;
+import goblinbob.mobends.core.network.SharedNetworkConfiguration;
+import goblinbob.mobends.core.network.SharedProperty;
 import goblinbob.mobends.standard.main.ModStatics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -32,7 +32,7 @@ public record ConfigResponsePayload(CompoundTag configData) implements CustomPac
 
     private static CompoundTag createConfigData() {
         CompoundTag data = new CompoundTag();
-        NeoForgeNetworkConfiguration.INSTANCE.getSharedConfig().writeToNBT(data);
+        SharedNetworkConfiguration.INSTANCE.getSharedConfig().writeToNBT(data);
         return data;
     }
 
@@ -48,10 +48,10 @@ public record ConfigResponsePayload(CompoundTag configData) implements CustomPac
                 return;
             }
 
-            NeoForgeNetworkConfiguration.INSTANCE.getSharedConfig().readFromNBT(payload.configData);
+            SharedNetworkConfiguration.INSTANCE.getSharedConfig().readFromNBT(payload.configData);
 
             final StringBuilder builder = new StringBuilder("Received Mo' Bends server configuration.\n");
-            final Iterable<SharedProperty<?>> properties = NeoForgeNetworkConfiguration.INSTANCE.getSharedConfig().getProperties();
+            final Iterable<SharedProperty<?>> properties = SharedNetworkConfiguration.INSTANCE.getSharedConfig().getProperties();
             for (SharedProperty<?> property : properties) {
                 builder.append(String.format(" - %s: %s\n", property.getKey(), property.getValue()));
             }

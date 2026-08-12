@@ -148,23 +148,22 @@ public class Tier1Renderer
         RenderType renderType = renderTypeProvider.apply(texture);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
-        float entityScale = context.getEntityScale();
 
         boolean isSlimArms = context.isSlimArms();
 
         switch (slot)
         {
             case HEAD:
-                renderHead(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                renderHead(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
                 break;
             case CHEST:
-                renderChest(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, isSlimArms);
+                renderChest(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), isSlimArms);
                 break;
             case LEGS:
-                renderLegs(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                renderLegs(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
                 break;
             case FEET:
-                renderFeet(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                renderFeet(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
                 break;
         }
 
@@ -191,23 +190,22 @@ public class Tier1Renderer
 
         configureVisibility(humanoidModel, slot);
 
-        float entityScale = context.getEntityScale();
 
         boolean isSlimArms = context.isSlimArms();
 
         switch (slot)
         {
             case HEAD:
-                renderHead(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                renderHead(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
                 break;
             case CHEST:
-                renderChest(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale, isSlimArms);
+                renderChest(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), isSlimArms);
                 break;
             case LEGS:
-                renderLegs(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                renderLegs(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
                 break;
             case FEET:
-                renderFeet(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), entityScale);
+                renderFeet(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
                 break;
         }
 
@@ -220,24 +218,18 @@ public class Tier1Renderer
             HumanoidModel<?> model,
             BipedEntityData<?> entityData,
             int packedLight,
-            int packedOverlay,
-            float entityScale)
+            int packedOverlay)
     {
         poseStack.pushPose();
 
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
-
         if (model.head != null && model.head.visible)
         {
-            renderCapturedPart(poseStack, vertexConsumer, model.head, entityData, true, packedLight, packedOverlay, entityScale);
+            renderCapturedPart(poseStack, vertexConsumer, model.head, entityData, true, packedLight, packedOverlay);
         }
 
         if (model.hat != null && model.hat.visible)
         {
-            renderCapturedPart(poseStack, vertexConsumer, model.hat, entityData, true, packedLight, packedOverlay, entityScale);
+            renderCapturedPart(poseStack, vertexConsumer, model.hat, entityData, true, packedLight, packedOverlay);
         }
 
         poseStack.popPose();
@@ -250,8 +242,7 @@ public class Tier1Renderer
             BipedEntityData<?> entityData,
             boolean isHead,
             int packedLight,
-            int packedOverlay,
-            float entityScale)
+            int packedOverlay)
     {
         if (part == null || !part.visible)
         {
@@ -318,24 +309,18 @@ public class Tier1Renderer
             BipedEntityData<?> entityData,
             int packedLight,
             int packedOverlay,
-            float entityScale,
             boolean isSlimArms)
     {
         poseStack.pushPose();
-
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
 
         if (model.body != null && model.body.visible)
         {
             renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
         }
 
-        renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale, isSlimArms);
+        renderSplitArm(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, isSlimArms);
 
-        renderSplitArm(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale, isSlimArms);
+        renderSplitArm(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, isSlimArms);
 
         poseStack.popPose();
     }
@@ -346,24 +331,18 @@ public class Tier1Renderer
             HumanoidModel<?> model,
             BipedEntityData<?> entityData,
             int packedLight,
-            int packedOverlay,
-            float entityScale)
+            int packedOverlay)
     {
         poseStack.pushPose();
-
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
 
         if (model.body != null && model.body.visible)
         {
             renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
         }
 
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay);
 
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay);
 
         poseStack.popPose();
     }
@@ -374,19 +353,13 @@ public class Tier1Renderer
             HumanoidModel<?> model,
             BipedEntityData<?> entityData,
             int packedLight,
-            int packedOverlay,
-            float entityScale)
+            int packedOverlay)
     {
         poseStack.pushPose();
 
-        if (entityScale != 1.0f)
-        {
-            poseStack.scale(entityScale, entityScale, entityScale);
-        }
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay);
 
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, true, packedLight, packedOverlay, entityScale);
-
-        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay, entityScale);
+        renderSplitLeg(poseStack, vertexConsumer, model, entityData, false, packedLight, packedOverlay);
 
         poseStack.popPose();
     }
@@ -403,7 +376,6 @@ public class Tier1Renderer
             boolean isLeft,
             int packedLight,
             int packedOverlay,
-            float entityScale,
             boolean isSlimArms)
     {
         ModelPart armPart = isLeft ? model.leftArm : model.rightArm;
@@ -472,8 +444,7 @@ public class Tier1Renderer
             BipedEntityData<?> entityData,
             boolean isLeft,
             int packedLight,
-            int packedOverlay,
-            float entityScale)
+            int packedOverlay)
     {
         ModelPart legPart = isLeft ? model.leftLeg : model.rightLeg;
         if (legPart == null || !legPart.visible)

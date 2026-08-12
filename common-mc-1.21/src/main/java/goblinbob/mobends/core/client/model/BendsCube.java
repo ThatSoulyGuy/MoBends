@@ -129,8 +129,8 @@ public class BendsCube
                 textureWidth, textureHeight);
 
         quads[3] = createQuad(new BendsVertex[] {v110, v010, v011, v111},
-                bottomTexOffsetX + depth + width, bottomTexOffsetY,
-                bottomTexOffsetX + depth + width + width, bottomTexOffsetY + depth,
+                bottomTexOffsetX + depth + width, bottomTexOffsetY + depth,
+                bottomTexOffsetX + depth + width + width, bottomTexOffsetY,
                 textureWidth, textureHeight);
 
         quads[4] = createQuad(new BendsVertex[] {v100, v000, v010, v110},
@@ -149,6 +149,114 @@ public class BendsCube
             {
                 quad.flipFace();
             }
+        }
+    }
+
+    public BendsCube(float x0, float y0, float z0, float x1, float y1, float z1,
+                     BoxFactory.TextureFace[] faces,
+                     byte faceVisibilityFlag,
+                     boolean mirror,
+                     float textureWidth, float textureHeight)
+    {
+        this.faceVisibilityFlag = faceVisibilityFlag;
+
+        this.minX = Math.min(x0, x1);
+        this.minY = Math.min(y0, y1);
+        this.minZ = Math.min(z0, z1);
+        this.maxX = Math.max(x0, x1);
+        this.maxY = Math.max(y0, y1);
+        this.maxZ = Math.max(z0, z1);
+
+        float scale = 1.0F / 16.0F;
+        float sx1 = x0 * scale;
+        float sy1 = y0 * scale;
+        float sz1 = z0 * scale;
+        float sx2 = x1 * scale;
+        float sy2 = y1 * scale;
+        float sz2 = z1 * scale;
+
+        if (mirror)
+        {
+            float temp = sx2;
+            sx2 = sx1;
+            sx1 = temp;
+        }
+
+        BendsVertex v000 = new BendsVertex(sx1, sy1, sz1, 0, 0);
+        BendsVertex v100 = new BendsVertex(sx2, sy1, sz1, 0, 0);
+        BendsVertex v110 = new BendsVertex(sx2, sy2, sz1, 0, 0);
+        BendsVertex v010 = new BendsVertex(sx1, sy2, sz1, 0, 0);
+        BendsVertex v001 = new BendsVertex(sx1, sy1, sz2, 0, 0);
+        BendsVertex v101 = new BendsVertex(sx2, sy1, sz2, 0, 0);
+        BendsVertex v111 = new BendsVertex(sx2, sy2, sz2, 0, 0);
+        BendsVertex v011 = new BendsVertex(sx1, sy2, sz2, 0, 0);
+
+        quads[0] = createQuadFromFace(new BendsVertex[] {v101, v100, v110, v111}, faces[0], textureWidth, textureHeight);
+        quads[1] = createQuadFromFace(new BendsVertex[] {v000, v001, v011, v010}, faces[1], textureWidth, textureHeight);
+        quads[2] = createQuadFromFace(new BendsVertex[] {v101, v001, v000, v100}, faces[2], textureWidth, textureHeight);
+        quads[3] = createQuadFromFace(new BendsVertex[] {v110, v010, v011, v111}, faces[3], textureWidth, textureHeight);
+        quads[4] = createQuadFromFace(new BendsVertex[] {v100, v000, v010, v110}, faces[4], textureWidth, textureHeight);
+        quads[5] = createQuadFromFace(new BendsVertex[] {v001, v101, v111, v011}, faces[5], textureWidth, textureHeight);
+
+        if (mirror)
+        {
+            for (BendsQuad quad : quads)
+            {
+                quad.flipFace();
+            }
+        }
+    }
+
+    private BendsQuad createQuadFromFace(BendsVertex[] vertices, BoxFactory.TextureFace face,
+                                          float textureWidth, float textureHeight)
+    {
+        if (face == null)
+        {
+            return new BendsQuad(vertices);
+        }
+
+        int uSize = face.uSize;
+        int vSize = face.vSize;
+
+        if (face.faceRotation == FaceRotation.CLOCKWISE || face.faceRotation == FaceRotation.COUNTER_CLOCKWISE)
+        {
+            uSize = face.vSize;
+            vSize = face.uSize;
+        }
+
+        BendsQuad quad = createQuad(vertices,
+                face.uPos, face.vPos,
+                face.uPos + uSize, face.vPos + vSize,
+                textureWidth, textureHeight);
+
+        applyFaceRotation(quad, face.faceRotation);
+
+        return quad;
+    }
+
+    private void applyFaceRotation(BendsQuad quad, FaceRotation rotation)
+    {
+        if (rotation == null || rotation == FaceRotation.IDENTITY)
+            return;
+
+        float[] uCoords = new float[4];
+        float[] vCoords = new float[4];
+
+        for (int i = 0; i < 4; ++i)
+        {
+            uCoords[i] = quad.vertices[i].u;
+            vCoords[i] = quad.vertices[i].v;
+        }
+
+        int offset = 2;
+        if (rotation == FaceRotation.CLOCKWISE)
+            offset = 3;
+        else if (rotation == FaceRotation.COUNTER_CLOCKWISE)
+            offset = 1;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            quad.vertices[i] = quad.vertices[i].withUV(uCoords[(i + offset) % 4], vCoords[(i + offset) % 4]);
         }
     }
 

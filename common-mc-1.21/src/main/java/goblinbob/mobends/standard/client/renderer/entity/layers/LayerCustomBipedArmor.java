@@ -106,6 +106,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         M parentModel = getParentModel();
         parentModel.copyPropertiesTo(defaultModel);
+        defaultModel.young = false;
         setPartVisibility(defaultModel, slot);
 
         Model customModel = ArmorModelProviderHolder.getProvider()
@@ -118,6 +119,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         {
             HumanoidModel<E> humanoidCustom = (HumanoidModel<E>) armorModel;
             parentModel.copyPropertiesTo(humanoidCustom);
+            humanoidCustom.young = false;
             setPartVisibility(humanoidCustom, slot);
         }
 

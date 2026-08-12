@@ -428,6 +428,11 @@ public class BendsModelPart implements IModelPart
         return this;
     }
 
+    public BendsBoxFactory developBox(float x, float y, float z, int dx, int dy, int dz, float delta)
+    {
+        return new BendsBoxFactory(x, y, z, dx, dy, dz, delta).setTarget(this);
+    }
+
     public BendsModelPart addChild(BendsModelPart child)
     {
         child.setParent(this);
@@ -453,6 +458,16 @@ public class BendsModelPart implements IModelPart
     public int getTextureOffsetY()
     {
         return textureOffsetY;
+    }
+
+    public float getTextureWidth()
+    {
+        return textureWidth;
+    }
+
+    public float getTextureHeight()
+    {
+        return textureHeight;
     }
 
     public void finish()

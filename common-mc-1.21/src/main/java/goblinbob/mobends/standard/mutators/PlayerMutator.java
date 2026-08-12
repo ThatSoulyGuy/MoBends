@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.core.client.model.BendsModelPart;
+import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomCape;
@@ -233,26 +234,38 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 .setTextureSize(64, 64)
                 .setPosition(5.0F, armY, 0.0F)
                 .setMirror(true);
-        leftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
+        leftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(leftArm);
 
         rightArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
                 .setPosition(-5.0F, armY, 0.0F);
-        rightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
+        rightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(rightArm);
 
         leftForeArm = new BendsModelPart(32, 48 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
-        leftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 32, 48);
+        leftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftArm.addChild(leftForeArm);
 
         rightForeArm = new BendsModelPart(40, 16 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F);
-        rightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor, 40, 16);
+        rightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightArm.addChild(rightForeArm);
 
         leftLeg = new BendsModelPart(16, 48)
@@ -270,16 +283,23 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 6.0F, -2.0F)
                 .setMirror(true);
-        leftForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 16, 48);
+        leftForeLeg.developBox(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftLeg.addChild(leftForeLeg);
 
         rightForeLeg = new BendsModelPart(0, 16 + 6)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 6.0F, -2.0F);
-        rightForeLeg.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor, 0, 16);
+        rightForeLeg.developBox(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightLeg.addChild(rightForeLeg);
 
         float wearOffset = 0.25F;
+        float limbWearHeight = (6F + 2 * scaleFactor + 0.5F) - 0.25F;
 
         bodywear = new BendsModelPart(16, 32)
                 .setTextureSize(64, 64);
@@ -289,49 +309,83 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         leftArmwear = new BendsModelPart(48, 48)
                 .setTextureSize(64, 64)
                 .setMirror(true);
-        leftArmwear.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + wearOffset);
+        leftArmwear.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .inflate(0.0025F, 0F, 0.0025F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         leftArm.addChild(leftArmwear);
 
         rightArmwear = new BendsModelPart(40, 32)
                 .setTextureSize(64, 64);
-        rightArmwear.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + wearOffset);
+        rightArmwear.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .inflate(0.0025F, 0F, 0.0025F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         rightArm.addChild(rightArmwear);
 
         leftForeArmwear = new BendsModelPart(48, 48 + 6)
                 .setTextureSize(64, 64)
-                .setOffset(0.0F, 0.25F, 0.0F)
                 .setMirror(true);
-        leftForeArmwear.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + wearOffset);
+        leftForeArmwear.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .inflate(0.005F, 0F, 0.005F)
+                .offset(0F, 0.25F, 0F)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftForeArm.addChild(leftForeArmwear);
 
         rightForeArmwear = new BendsModelPart(40, 32 + 6)
-                .setTextureSize(64, 64)
-                .setOffset(0.0F, 0.25F, 0.0F);
-        rightForeArmwear.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + wearOffset);
+                .setTextureSize(64, 64);
+        rightForeArmwear.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .inflate(0.005F, 0F, 0.005F)
+                .offset(0F, 0.25F, 0F)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightForeArm.addChild(rightForeArmwear);
 
         leftLegwear = new BendsModelPart(0, 48)
                 .setTextureSize(64, 64)
                 .setMirror(true);
-        leftLegwear.addCube(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + wearOffset);
+        leftLegwear.developBox(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         leftLeg.addChild(leftLegwear);
 
         rightLegwear = new BendsModelPart(0, 32)
                 .setTextureSize(64, 64);
-        rightLegwear.addCube(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + wearOffset);
+        rightLegwear.developBox(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         rightLeg.addChild(rightLegwear);
 
         leftForeLegwear = new BendsModelPart(0, 48 + 6)
                 .setTextureSize(64, 64)
-                .setOffset(0.0F, 0.25F, 0.0F)
                 .setMirror(true);
-        leftForeLegwear.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + wearOffset);
+        leftForeLegwear.developBox(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .inflate(0.005F, 0F, 0.005F)
+                .offset(0F, 0.25F, 0F)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftForeLeg.addChild(leftForeLegwear);
 
         rightForeLegwear = new BendsModelPart(0, 32 + 6)
-                .setTextureSize(64, 64)
-                .setOffset(0.0F, 0.25F, 0.0F);
-        rightForeLegwear.addCube(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + wearOffset);
+                .setTextureSize(64, 64);
+        rightForeLegwear.developBox(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + wearOffset)
+                .setHeight(limbWearHeight)
+                .inflate(0.005F, 0F, 0.005F)
+                .offset(0F, 0.25F, 0F)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightForeLeg.addChild(rightForeLegwear);
 
         return true;

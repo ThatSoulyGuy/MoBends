@@ -14,6 +14,8 @@ public class GlHelper
     {
         if (quaternionIn == null) return;
 
+        if (quaternionIn.lengthSquared() < 1.0E-6F) return;
+
         Quaternionf jomlQuat = new Quaternionf(
                 quaternionIn.x,
                 quaternionIn.y,
@@ -27,6 +29,7 @@ public class GlHelper
     public static void rotate(PoseStack poseStack, Quaternionf quaternionIn)
     {
         if (quaternionIn == null) return;
+        if (quaternionIn.lengthSquared() < 1.0E-6F) return;
         poseStack.mulPose(quaternionIn);
     }
 

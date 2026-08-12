@@ -1,4 +1,4 @@
-package goblinbob.mobends.neoforge.network;
+package goblinbob.mobends.core.network;
 
 import net.minecraft.nbt.CompoundTag;
 
@@ -7,11 +7,7 @@ import java.util.LinkedList;
 public class SharedConfig
 {
 
-    private LinkedList<SharedProperty<?>> properties = new LinkedList<>();
-
-    public SharedConfig()
-    {
-    }
+    private final LinkedList<SharedProperty<?>> properties = new LinkedList<>();
 
     public void addProperty(SharedProperty<?> property)
     {
@@ -36,6 +32,14 @@ public class SharedConfig
         for (SharedProperty<?> property : properties)
         {
             property.readFromNBT(tag);
+        }
+    }
+
+    public void resetToDefaults()
+    {
+        for (SharedProperty<?> property : properties)
+        {
+            property.resetToDefault();
         }
     }
 

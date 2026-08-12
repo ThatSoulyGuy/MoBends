@@ -69,6 +69,8 @@ public class MoBendsForge
     {
         LOGGER.info("Mo' Bends common setup");
 
+        goblinbob.mobends.core.network.SharedNetworkConfiguration.init();
+
         ForgeNetworkHandler.register();
     }
 
@@ -97,6 +99,7 @@ public class MoBendsForge
 
         MinecraftForge.EVENT_BUS.register(new RenderingEventHandler());
         MinecraftForge.EVENT_BUS.register(new KeyboardEventHandler());
+        MinecraftForge.EVENT_BUS.register(new goblinbob.mobends.forge.network.ConfigSyncClientHandler());
         LOGGER.info("Mo' Bends event handlers registered");
 
         ModCompatManager.init();
