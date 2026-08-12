@@ -10,9 +10,9 @@ import net.minecraft.world.entity.LivingEntity;
 public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	private static final String[] ACTIONS = new String[] { "riding" };
-	
+
 	private static final float PI = (float) Math.PI;
-	
+
 	@Override
 	public String[] getActions(BipedEntityData<?> entityData)
 	{
@@ -29,21 +29,21 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.centerRotation.setSmoothness(.3F).orientZero();
 		data.renderLeftItemRotation.orientZero();
 		data.renderRightItemRotation.orientZero();
-		
+
 		data.head.rotation.orientX(data.headPitch.get())
 		  				  .rotateY(data.headYaw.get());
 		data.body.rotation.orientY(0).setSmoothness(0.5F);
-		
+
 		data.leftLeg.rotation.orientX(-90.0F).rotateZ(-10.0F).rotateY(-25.0F);
 		data.rightLeg.rotation.orientX(-90.0F).rotateZ(10.0F).rotateY(25.0F);
 		data.leftForeLeg.rotation.orientX(60.0F);
 		data.rightForeLeg.rotation.orientX(60.0F);
-		
+
 		data.leftArm.rotation.orientX(0.0F).rotateZ(-10F);
 		data.leftForeArm.rotation.orientX(-10.0F);
 		data.rightArm.rotation.orientX(0.0F).rotateZ(10F);
 		data.rightForeArm.rotation.orientX(-10.0F);
-		
+
 		Entity ridden = living.getVehicle();
 		if (ridden instanceof LivingEntity riddenLiving)
 		{
@@ -54,7 +54,7 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.leftLeg.rotation.rotateX(-Mth.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
 			data.rightLeg.rotation.rotateX(Mth.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
 		}
-		
+
 		if (!data.isStillHorizontally())
 		{
 			data.body.rotation.orientX(25.0F);
@@ -62,7 +62,7 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.leftForeArm.rotation.orientX(-10.0F);
 			data.rightArm.rotation.orientX(-45.0F).rotateZ(-10F);
 			data.rightForeArm.rotation.orientX(-10.0F);
-			
+
 			float motionMagnitude = (float) (Math.sqrt(living.getDeltaMovement().x*living.getDeltaMovement().x + living.getDeltaMovement().z*living.getDeltaMovement().z)) * 100;
 			if (motionMagnitude > 1)
 			{

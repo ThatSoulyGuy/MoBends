@@ -17,11 +17,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Replaces vanilla overlay-copy rendering (Drowned outer layer, Stray clothing, etc.) with
- * MoBends' outer-parts pass so the overlay texture renders with joint bending instead of
- * vanilla's rigid HumanoidModel geometry.
- */
 @Mixin(RenderLayer.class)
 public abstract class RenderLayerMixin {
 

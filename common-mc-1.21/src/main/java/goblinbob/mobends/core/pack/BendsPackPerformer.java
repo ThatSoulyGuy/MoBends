@@ -26,7 +26,6 @@ public class BendsPackPerformer
         }
         catch (MalformedKumoTemplateException e)
         {
-            // Resetting the applied packs due to malformed templates.
             e.printStackTrace();
             PackManager.INSTANCE.resetAppliedPacks(true);
         }

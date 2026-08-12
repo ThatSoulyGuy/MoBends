@@ -1,9 +1,5 @@
 package goblinbob.mobends.standard.client.model.armor;
 
-
-/**
- * Enumeration of bone regions for armor vertex assignment.
- */
 public enum BoneRegion
 {
     HEAD,
@@ -16,5 +12,5 @@ public enum BoneRegion
     LEFT_LEG_LOWER,
     RIGHT_LEG_UPPER,
     RIGHT_LEG_LOWER,
-    ROOT  // Fallback for unassigned vertices
+    ROOT
 }

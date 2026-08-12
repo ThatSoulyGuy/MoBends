@@ -6,13 +6,6 @@ import net.minecraft.resources.ResourceLocation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-/**
- * Factory for creating ResourceLocation objects in a cross-version compatible way.
- *
- * Uses reflection to handle API differences:
- * - MC 1.21.1: ResourceLocation.fromNamespaceAndPath() and ResourceLocation.parse()
- * - MC 1.20.1: new ResourceLocation() constructors
- */
 public final class ResourceLocationFactory
 {
     private static final Method FROM_NAMESPACE_AND_PATH;
@@ -29,12 +22,10 @@ public final class ResourceLocationFactory
 
         try
         {
-            // Try 1.21.1 static methods first
             fromNsPath = ResourceLocation.class.getMethod("fromNamespaceAndPath", String.class, String.class);
         }
         catch (NoSuchMethodException e)
         {
-            // Fall back to 1.20.1 constructor
             try
             {
                 ssConstructor = ResourceLocation.class.getConstructor(String.class, String.class);
@@ -47,12 +38,10 @@ public final class ResourceLocationFactory
 
         try
         {
-            // Try 1.21.1 parse method
             parseMethod = ResourceLocation.class.getMethod("parse", String.class);
         }
         catch (NoSuchMethodException e)
         {
-            // Fall back to 1.20.1 constructor
             try
             {
                 sConstructor = ResourceLocation.class.getConstructor(String.class);
@@ -71,26 +60,16 @@ public final class ResourceLocationFactory
 
     private ResourceLocationFactory()
     {
-        // Utility class
     }
 
-    /**
-     * Creates a ResourceLocation from namespace and path.
-     *
-     * @param namespace The namespace (e.g., "mobends")
-     * @param path The path (e.g., "textures/gui/icons.png")
-     * @return The ResourceLocation
-     */
     public static ResourceLocation create(String namespace, String path)
     {
-        // First check if platform helper is available (preferred)
         ResourceLocationHelper helper = ResourceLocationHelper.Holder.getHelper();
         if (helper != null)
         {
             return (ResourceLocation) helper.create(namespace, path);
         }
 
-        // Fall back to reflection
         try
         {
             if (FROM_NAMESPACE_AND_PATH != null)
@@ -109,22 +88,14 @@ public final class ResourceLocationFactory
         throw new IllegalStateException("No ResourceLocation creation method available");
     }
 
-    /**
-     * Parses a ResourceLocation from a string.
-     *
-     * @param location The location string (e.g., "minecraft:textures/gui/widgets.png")
-     * @return The ResourceLocation
-     */
     public static ResourceLocation parse(String location)
     {
-        // First check if platform helper is available (preferred)
         ResourceLocationHelper helper = ResourceLocationHelper.Holder.getHelper();
         if (helper != null)
         {
             return (ResourceLocation) helper.parse(location);
         }
 
-        // Fall back to reflection
         try
         {
             if (PARSE_METHOD != null)

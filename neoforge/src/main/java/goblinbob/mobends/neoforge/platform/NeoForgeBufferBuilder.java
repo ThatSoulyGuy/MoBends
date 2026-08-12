@@ -3,10 +3,6 @@ package goblinbob.mobends.neoforge.platform;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import goblinbob.mobends.api.rendering.IBufferBuilder;
 
-/**
- * NeoForge implementation of IBufferBuilder.
- * Direct passthrough to MC 1.21.1's BufferBuilder API.
- */
 public class NeoForgeBufferBuilder implements IBufferBuilder
 {
     private final BufferBuilder builder;

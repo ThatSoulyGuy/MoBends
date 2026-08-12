@@ -39,14 +39,12 @@ public class BipedActionController
         ITEM_ATTACK_ACTION_MAP.put(AttackActionType.FISTS, PunchingAction::new);
         ITEM_ATTACK_ACTION_MAP.put(AttackActionType.SWORD, SwordAction::new);
 
-        // Completeness checks
         for (UseActionType type : UseActionType.values())
         {
             if (!ITEM_USE_ACTION_MAP.containsKey(type))
                 throw new IllegalStateException("The ITEM_USE_ACTION_MAP map needs to be complete.");
         }
 
-        // Completeness checks
         for (AttackActionType type : AttackActionType.values())
         {
             if (!ITEM_ATTACK_ACTION_MAP.containsKey(type))
@@ -83,7 +81,6 @@ public class BipedActionController
         if (item == Items.AIR)
             return null;
 
-        // Use platform abstraction to check if item is food (handles DataComponents in 1.21.1, isEdible in 1.20.1)
         IItemCapabilityProvider capabilityProvider = IItemCapabilityProvider.Holder.getProvider();
         if (capabilityProvider != null && capabilityProvider.isFood(item))
             return UseActionType.FOOD;

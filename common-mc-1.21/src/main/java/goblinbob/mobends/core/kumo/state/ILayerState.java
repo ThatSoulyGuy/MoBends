@@ -11,12 +11,6 @@ import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException
 import goblinbob.mobends.core.kumo.state.template.keyframe.KeyframeLayerTemplate;
 import goblinbob.mobends.core.kumo.state.template.procedural.ProceduralLayerTemplate;
 
-/**
- * Represent the state of a KUMO animation layer. This doesn't have to be keyframe animation,
- * this can be any mutation over time.
- *
- * @author Iwo Plaza
- */
 public interface ILayerState
 {
     Logger LOGGER = LogUtils.getLogger();

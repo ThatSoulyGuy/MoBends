@@ -4,7 +4,7 @@ public class AABBoxGroup implements ICollider
 {
 
 	private AABBox[] boxes;
-	
+
 	public AABBoxGroup(IAABBox[] boxes)
 	{
 		this.boxes = new AABBox[boxes.length];
@@ -13,7 +13,7 @@ public class AABBoxGroup implements ICollider
 			this.boxes[i] = new AABBox(boxes[i]);
 		}
 	}
-	
+
 	@Override
 	public RayHitInfo intersect(Ray ray)
 	{
@@ -25,5 +25,5 @@ public class AABBoxGroup implements ICollider
 		}
 		return null;
 	}
-	
+
 }

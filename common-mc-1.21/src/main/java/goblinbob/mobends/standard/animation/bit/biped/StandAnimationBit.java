@@ -8,7 +8,7 @@ import net.minecraft.util.Mth;
 public class StandAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
 	private static final String[] ACTIONS = new String[] { "stand" };
-	
+
 	protected final float kneelDuration = 0.15F;
 
 	@Override
@@ -40,7 +40,7 @@ public class StandAnimationBit<T extends BipedEntityData<?>> extends AnimationBi
 		data.centerRotation.setSmoothness(.3F).orientZero();
 		data.renderRightItemRotation.setSmoothness(.3F).orientZero();
 		data.renderLeftItemRotation.setSmoothness(.3F).orientZero();
-		
+
 		data.rightLeg.rotation.orient(0F, 1F, 0F, 0F);
 		data.rightLeg.rotation.rotate(2F, 0F, 0F, 1F);
 		data.rightLeg.rotation.rotate(5, 0F, 1F, 0F);

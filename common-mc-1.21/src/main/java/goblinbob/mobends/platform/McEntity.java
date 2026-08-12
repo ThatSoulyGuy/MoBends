@@ -3,10 +3,6 @@ package goblinbob.mobends.platform;
 import goblinbob.mobends.api.entity.IEntity;
 import net.minecraft.world.entity.Entity;
 
-/**
- * Shared implementation of IEntity.
- * Wraps Minecraft's Entity with a platform-agnostic interface.
- */
 public class McEntity implements IEntity
 {
     protected final Entity entity;

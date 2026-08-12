@@ -8,10 +8,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * General utility methods for MoBends.
- * Pure Java utilities without Minecraft dependencies.
- */
 public class GUtil
 {
 

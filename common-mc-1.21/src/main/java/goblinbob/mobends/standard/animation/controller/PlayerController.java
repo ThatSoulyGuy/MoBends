@@ -20,11 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * This is an animation controller for a player instance. It's a part of the EntityData structure.
- *
- * @author Iwo Plaza
- */
 public class PlayerController implements IAnimationController<PlayerData>
 {
     protected HardAnimationLayer<BipedEntityData<?>> layerBase = new HardAnimationLayer<>();
@@ -126,10 +121,8 @@ public class PlayerController implements IAnimationController<PlayerData>
             }
             else if (!data.isOnGround() || data.getTicksAfterTouchdown() < 1)
             {
-                // Airborne
                 if (data.isFlying())
                 {
-                    // Flying
                     layerBase.playOrContinueBit(bitFlying, data);
                 }
                 else
@@ -178,8 +171,6 @@ public class PlayerController implements IAnimationController<PlayerData>
             }
         }
 
-
-        // Resetting item rotations
         data.renderLeftItemRotation.orientZero();
         data.renderRightItemRotation.orientZero();
 

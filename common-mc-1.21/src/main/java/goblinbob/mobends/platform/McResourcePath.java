@@ -5,10 +5,6 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
 
-/**
- * Shared implementation of IResourcePath.
- * Wraps Minecraft's ResourceLocation with a platform-agnostic interface.
- */
 public class McResourcePath implements IResourcePath
 {
     private final ResourceLocation location;

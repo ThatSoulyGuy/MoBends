@@ -26,8 +26,6 @@ public class ElytraAnimationBit extends AnimationBit<PlayerData>
 
         float speedFactor = Mth.clamp((float) magnitude, 0.0F, 0.2F) / 0.2F;
 
-        // Full Speed
-
         data.head.rotation.setSmoothness(1.0F).orientY(headYaw).rotateX(-90.0F);
         data.body.rotation.setSmoothness(0.7F).orientX(0);
         data.leftArm.rotation.setSmoothness(0.7F).orientX(0).rotateZ(-60F + 55F * speedFactor - headYawAbs * 0.5F);

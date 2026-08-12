@@ -11,10 +11,6 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/**
- * Custom cape renderer for Mo' Bends animations.
- * Updated for Minecraft 1.20.1 - uses PoseStack and VertexConsumer instead of display lists.
- */
 public class BendsCapeRenderer
 {
 
@@ -59,10 +55,6 @@ public class BendsCapeRenderer
         this.slabs[0].render(poseStack, vertexConsumer, packedLight, packedOverlay, 1.0F / 16.0F);
     }
 
-    /**
-     * Render the cape using MultiBufferSource.
-     * This overload gets a VertexConsumer from the bufferSource for the player's cape texture.
-     */
     public void render(PoseStack poseStack, net.minecraft.client.renderer.MultiBufferSource bufferSource,
                        int packedLight, net.minecraft.client.player.AbstractClientPlayer player, float scale)
     {
@@ -73,7 +65,6 @@ public class BendsCapeRenderer
             net.minecraft.client.renderer.RenderType renderType =
                 net.minecraft.client.renderer.RenderType.entitySolid(capeTexture);
             VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
-            // Use default overlay coords (no hurt overlay)
             int packedOverlay = net.minecraft.client.renderer.entity.LivingEntityRenderer.getOverlayCoords(player, 0.0F);
             this.slabs[0].render(poseStack, vertexConsumer, packedLight, packedOverlay, scale);
         }
@@ -147,7 +138,6 @@ public class BendsCapeRenderer
             this.vertexPositions[6] = v6;
             this.vertexPositions[7] = v7;
 
-            // Create quads with proper texture coordinates
             this.quadList[0] = new CapeQuad(new CapeVertex[] { v5, v1, v2, v6 },
                     texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH,
                     texU + MODEL_DEPTH + MODEL_WIDTH + MODEL_DEPTH, texV + MODEL_DEPTH + slabLength,
@@ -197,12 +187,10 @@ public class BendsCapeRenderer
             {
                 poseStack.pushPose();
 
-                // Apply transformations
                 poseStack.translate(this.rotationPointX * scale, this.rotationPointY * scale, (this.rotationPointZ + this.hingeOffset) * scale);
                 poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(this.rotateAngle));
                 poseStack.translate(0, 0, -this.hingeOffset * scale);
 
-                // Render quads
                 PoseStack.Pose pose = poseStack.last();
                 Matrix4f matrix = pose.pose();
                 Matrix3f normal = pose.normal();
@@ -212,7 +200,6 @@ public class BendsCapeRenderer
                     quad.render(matrix, normal, vertexConsumer, packedLight, packedOverlay, scale);
                 }
 
-                // Render child slab
                 if (this.childSlab != null)
                 {
                     this.childSlab.render(poseStack, vertexConsumer, packedLight, packedOverlay, scale);
@@ -259,7 +246,6 @@ public class BendsCapeRenderer
             this.vertices[2] = vertices[2].remap(u1 * uScale, v2 * vScale);
             this.vertices[3] = vertices[3].remap(u2 * uScale, v2 * vScale);
 
-            // Calculate normal
             Vector3f v0 = new Vector3f(vertices[1].x - vertices[0].x, vertices[1].y - vertices[0].y, vertices[1].z - vertices[0].z);
             Vector3f v1Vec = new Vector3f(vertices[2].x - vertices[0].x, vertices[2].y - vertices[0].y, vertices[2].z - vertices[0].z);
             Vector3f normal = v0.cross(v1Vec).normalize();
@@ -284,7 +270,6 @@ public class BendsCapeRenderer
                 Vector3f pos = new Vector3f(x, y, z);
                 pos.mulPosition(matrix);
 
-                // Pack RGBA into single int (white color = 0xFFFFFFFF)
                 int color = 0xFFFFFFFF;
                 vertexHelper.emitVertex(vertexConsumer, pos.x, pos.y, pos.z,
                         color, vertex.u, vertex.v,

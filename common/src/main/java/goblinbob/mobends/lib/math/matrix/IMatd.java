@@ -7,9 +7,9 @@ public interface IMatd
 	double get(int c, int r);
 	int getCols();
 	int getRows();
-	
+
 	void set(int c, int r, double value);
 	void setFields(double... values);
 	void scale(double scalar);
-	
+
 }

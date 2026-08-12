@@ -2,7 +2,7 @@ package goblinbob.mobends.lib.math.vector;
 
 public class Vec4fReadOnly implements IVec4fRead
 {
-	
+
 	private final float x, y, z, w;
 
 	public Vec4fReadOnly(float x, float y, float z, float w)
@@ -12,7 +12,7 @@ public class Vec4fReadOnly implements IVec4fRead
 		this.z = z;
 		this.w = w;
 	}
-	
+
 	public Vec4fReadOnly(IVec4fRead other)
 	{
 		this.x = other.getX();
@@ -20,12 +20,12 @@ public class Vec4fReadOnly implements IVec4fRead
 		this.z = other.getZ();
 		this.w = other.getW();
 	}
-	
+
 	public Vec4fReadOnly()
 	{
 		this(0, 0, 0, 0);
 	}
-	
+
 	@Override
 	public float getX()
 	{
@@ -49,5 +49,5 @@ public class Vec4fReadOnly implements IVec4fRead
 	{
 		return w;
 	}
-	
+
 }

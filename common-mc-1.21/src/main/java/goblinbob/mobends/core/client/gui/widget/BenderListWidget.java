@@ -14,10 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Bender list widget.
- * Displays a scrollable list of entity benders with expandable settings.
- */
 public class BenderListWidget
 {
     private static final int ITEM_HEIGHT = 24;
@@ -35,22 +31,15 @@ public class BenderListWidget
     @Nullable
     private Consumer<String> onAnimationSelected;
 
-    /**
-     * Creates a new bender list view.
-     *
-     * @param factory The view factory
-     */
     public BenderListWidget(VanillaViewFactory factory)
     {
         this.factory = factory;
         this.items = new ArrayList<>();
 
-        // Create scrollable container
         this.scrollView = factory.createScrollView();
         this.scrollView.setLayoutParams(factory.createMatchParent());
         this.scrollView.setBackgroundColor(MoBendsTheme.BG_LIST);
 
-        // Create vertical layout for items
         this.contentLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         this.contentLayout.setLayoutParams(factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
@@ -61,31 +50,16 @@ public class BenderListWidget
         scrollView.addView(contentLayout, factory.createMatchParent());
     }
 
-    /**
-     * Sets the callback for bender selection.
-     *
-     * @param callback Called when a bender is selected
-     */
     public void setOnBenderSelected(Consumer<EntityBender<?>> callback)
     {
         this.onBenderSelected = callback;
     }
 
-    /**
-     * Sets the callback for animation selection.
-     *
-     * @param callback Called when an animation is clicked for preview
-     */
     public void setOnAnimationSelected(Consumer<String> callback)
     {
         this.onAnimationSelected = callback;
     }
 
-    /**
-     * Populates the list with benders from the registry.
-     *
-     * @param filter Optional filter for the benders
-     */
     public void populateFromRegistry(@Nullable EntityBenderRegistry.Filter filter)
     {
         clear();
@@ -106,11 +80,6 @@ public class BenderListWidget
         }
     }
 
-    /**
-     * Adds a bender to the list.
-     *
-     * @param bender The bender to add
-     */
     public void addBender(EntityBender<?> bender)
     {
         BenderItemInfo item = createBenderItem(bender);
@@ -125,9 +94,6 @@ public class BenderListWidget
         contentLayout.addView(item.rootLayout, params);
     }
 
-    /**
-     * Clears all items from the list.
-     */
     public void clear()
     {
         contentLayout.removeAllViews();
@@ -135,11 +101,6 @@ public class BenderListWidget
         selectedItem = null;
     }
 
-    /**
-     * Filters the list by search query.
-     *
-     * @param query The search query
-     */
     public void filter(String query)
     {
         String lowerQuery = query.toLowerCase();
@@ -153,20 +114,13 @@ public class BenderListWidget
         }
     }
 
-    /**
-     * Selects a bender by reference.
-     *
-     * @param bender The bender to select
-     */
     public void selectBender(@Nullable EntityBender<?> bender)
     {
-        // Deselect previous
         if (selectedItem != null)
         {
             updateItemSelection(selectedItem, false);
         }
 
-        // Find and select new
         selectedItem = null;
         if (bender != null)
         {
@@ -182,32 +136,22 @@ public class BenderListWidget
         }
     }
 
-    /**
-     * @return The currently selected bender, or null
-     */
     @Nullable
     public EntityBender<?> getSelectedBender()
     {
         return selectedItem != null ? selectedItem.bender : null;
     }
 
-    /**
-     * @return The root view to add to the layout
-     */
     public VanillaView getView()
     {
         return scrollView;
     }
 
-    // ==================== Private Methods ====================
-
     private BenderItemInfo createBenderItem(EntityBender<?> bender)
     {
-        // Create root layout for item (vertical for header + expandable content)
         VanillaLinearLayout rootLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         rootLayout.setBackgroundColor(MoBendsTheme.BG_LIST_ITEM);
 
-        // Create header row (horizontal)
         VanillaLinearLayout headerLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         headerLayout.setLayoutParams(factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
@@ -216,12 +160,10 @@ public class BenderListWidget
         headerLayout.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
         headerLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
 
-        // Accent bar (left edge)
         VanillaView accentBar = factory.createView();
         accentBar.setBackgroundColor(bender.isAnimated() ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
         accentBar.setLayoutParams(factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
 
-        // Entity name
         VanillaTextView nameView = factory.createTextView(bender.getLocalizedName());
         nameView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         nameView.setTextSize(14);
@@ -231,8 +173,7 @@ public class BenderListWidget
         );
         nameParams.setMargins(MoBendsTheme.PADDING, 0, 0, 0);
 
-        // Expand indicator
-        VanillaTextView expandIndicator = factory.createTextView("\u25B6"); // Right arrow
+        VanillaTextView expandIndicator = factory.createTextView("\u25B6");
         expandIndicator.setTextColor(MoBendsTheme.TEXT_HINT);
         expandIndicator.setTextSize(12);
         VanillaLayoutParams expandParams = factory.createLayoutParams(
@@ -241,7 +182,6 @@ public class BenderListWidget
         );
         expandParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
-        // Master toggle
         VanillaToggle toggle = factory.createToggle(bender.isAnimated());
         toggle.setOnCheckedChangeListener(checked -> {
             bender.setAnimate(checked);
@@ -249,14 +189,11 @@ public class BenderListWidget
             accentBar.setBackgroundColor(checked ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
         });
 
-        // Add views to header
         headerLayout.addView(accentBar, factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
         headerLayout.addView(nameView, nameParams);
-        // Add spacer
         VanillaView spacer = factory.createView();
         VanillaLayoutParams spacerParams = factory.createLayoutParams(0, 0);
         spacerParams.setMargins(0, 0, 0, 0);
-        // Use weight simulation - LinearLayout supports this internally
         headerLayout.addView(spacer, factory.createLayoutParams(VanillaLayoutParams.MATCH_PARENT, 1));
         headerLayout.addView(expandIndicator, expandParams);
         headerLayout.addView(toggle, factory.createLayoutParams(
@@ -264,7 +201,6 @@ public class BenderListWidget
                 VanillaLayoutParams.WRAP_CONTENT
         ));
 
-        // Create animations container (initially hidden)
         VanillaLinearLayout animationsLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         animationsLayout.setLayoutParams(factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
@@ -274,7 +210,6 @@ public class BenderListWidget
         animationsLayout.setPadding(MoBendsTheme.PADDING_LARGE, 0,
                                    MoBendsTheme.PADDING, MoBendsTheme.PADDING_SMALL);
 
-        // Add animation rows
         String[] animations = bender.getSupportedAnimations();
         List<AnimationRowInfo> animationRows = new ArrayList<>();
         for (String animType : animations)
@@ -287,7 +222,6 @@ public class BenderListWidget
             ));
         }
 
-        // Add to root
         rootLayout.addView(headerLayout, factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 ITEM_HEIGHT
@@ -297,13 +231,11 @@ public class BenderListWidget
                 VanillaLayoutParams.WRAP_CONTENT
         ));
 
-        // Create item info
         BenderItemInfo itemInfo = new BenderItemInfo(
                 bender, rootLayout, headerLayout, accentBar,
                 expandIndicator, toggle, animationsLayout, animationRows
         );
 
-        // Set click handlers
         headerLayout.setOnClickListener(() -> onItemHeaderClicked(itemInfo));
 
         return itemInfo;
@@ -313,15 +245,13 @@ public class BenderListWidget
     {
         VanillaLinearLayout rowLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         rowLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
-        rowLayout.setBackgroundColor(0x00000000); // Transparent initially
+        rowLayout.setBackgroundColor(0x00000000);
 
-        // Selection indicator
         VanillaView indicator = factory.createView();
         indicator.setBackgroundColor(MoBendsTheme.ACCENT_INFO);
         indicator.setVisibility(VanillaView.GONE);
         indicator.setLayoutParams(factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
 
-        // Animation name
         String labelKey = "mobends.animation." + animationType;
         String label = I18n.exists(labelKey) ? I18n.get(labelKey) : capitalizeFirst(animationType);
 
@@ -339,7 +269,6 @@ public class BenderListWidget
 
         AnimationRowInfo rowInfo = new AnimationRowInfo(animationType, rowLayout, indicator, nameView);
 
-        // Click handler
         rowLayout.setOnClickListener(() -> onAnimationRowClicked(rowInfo));
 
         return rowInfo;
@@ -347,11 +276,9 @@ public class BenderListWidget
 
     private void onItemHeaderClicked(BenderItemInfo item)
     {
-        // Toggle expansion
         boolean wasExpanded = item.isExpanded;
         item.isExpanded = !wasExpanded;
 
-        // Update UI with animation
         if (item.isExpanded)
         {
             item.animationsLayout.setAlpha(0f);
@@ -362,9 +289,8 @@ public class BenderListWidget
         {
             item.animationsLayout.setVisibility(VanillaView.GONE);
         }
-        item.expandIndicator.setText(item.isExpanded ? "\u25BC" : "\u25B6"); // Down/Right arrow
+        item.expandIndicator.setText(item.isExpanded ? "\u25BC" : "\u25B6");
 
-        // Select this item
         if (selectedItem != item)
         {
             if (selectedItem != null)
@@ -383,7 +309,6 @@ public class BenderListWidget
 
     private void onAnimationRowClicked(AnimationRowInfo row)
     {
-        // Deselect all animation rows in selected item
         if (selectedItem != null)
         {
             for (AnimationRowInfo r : selectedItem.animationRows)
@@ -392,7 +317,6 @@ public class BenderListWidget
             }
         }
 
-        // Select this row
         updateAnimationRowSelection(row, true);
 
         if (onAnimationSelected != null)
@@ -420,8 +344,6 @@ public class BenderListWidget
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1).replace("_", " ");
     }
-
-    // ==================== Inner Classes ====================
 
     private static class BenderItemInfo
     {

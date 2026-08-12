@@ -7,11 +7,6 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.UUID;
 
-/**
- * Shared implementation of IPlayer.
- * Wraps Minecraft's Player with a platform-agnostic interface.
- * Uses VersionAdapter for version-specific API differences.
- */
 public class McPlayer extends McLivingEntity implements IPlayer
 {
     private final Player player;

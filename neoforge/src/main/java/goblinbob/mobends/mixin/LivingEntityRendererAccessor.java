@@ -9,16 +9,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.List;
 
-/**
- * Accessor mixin for LivingEntityRenderer to expose internal fields.
- */
 @Mixin(LivingEntityRenderer.class)
 public interface LivingEntityRendererAccessor<T extends LivingEntity, M extends EntityModel<T>> {
 
-    /**
-     * Gets the list of render layers.
-     * @return The render layers list
-     */
     @Accessor("layers")
     List<RenderLayer<T, M>> mobends$getLayers();
 }

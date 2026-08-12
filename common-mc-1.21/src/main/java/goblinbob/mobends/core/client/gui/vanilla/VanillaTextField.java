@@ -86,16 +86,16 @@ public class VanillaTextField extends VanillaView
         }
     }
 
-    public void setHintTextColor(int color) { /* EditBox uses default hint color */ }
+    public void setHintTextColor(int color) {  }
 
-    public void setTextSize(float sizeSp) { /* MC font doesn't support runtime size changes */ }
+    public void setTextSize(float sizeSp) {  }
 
     public void setOnTextChangedListener(Consumer<String> listener)
     {
         this.textChangedListener = listener;
     }
 
-    public void setSingleLine(boolean singleLine) { /* EditBox is always single line */ }
+    public void setSingleLine(boolean singleLine) {  }
 
     public void setMaxLength(int maxLength)
     {
@@ -140,11 +140,9 @@ public class VanillaTextField extends VanillaView
     {
         if (visibility != VISIBLE) return;
 
-        // Background
         int bgColor = backgroundColor != 0 ? backgroundColor : MoBendsTheme.BG_LIST;
         guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, bgColor);
 
-        // Border
         boolean isFocused = editBox != null && editBox.isFocused();
         int borderColor = isFocused ? MoBendsTheme.BORDER_FOCUSED : MoBendsTheme.BORDER;
         guiGraphics.fill(x, y, x + measuredWidth, y + 1, borderColor);
@@ -169,15 +167,12 @@ public class VanillaTextField extends VanillaView
         boolean inBounds = isInBounds(mouseX, mouseY);
         if (inBounds)
         {
-            // Focus must be set explicitly: our custom screen doesn't drive vanilla's
-            // widget focus traversal, so without this the EditBox never consumes input.
             editBox.mouseClicked(mouseX, mouseY, button);
             editBox.setFocused(true);
             this.focused = true;
             return true;
         }
 
-        // Clicking elsewhere releases focus.
         editBox.setFocused(false);
         this.focused = false;
         return false;

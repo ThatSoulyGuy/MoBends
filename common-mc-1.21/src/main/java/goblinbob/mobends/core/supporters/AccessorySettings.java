@@ -2,9 +2,6 @@ package goblinbob.mobends.core.supporters;
 
 import goblinbob.mobends.core.util.Color;
 
-/**
- * Settings for an accessory.
- */
 public class AccessorySettings
 {
     public static final AccessorySettings DEFAULT = new AccessorySettings();

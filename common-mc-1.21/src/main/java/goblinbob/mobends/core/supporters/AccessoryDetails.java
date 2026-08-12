@@ -3,9 +3,6 @@ package goblinbob.mobends.core.supporters;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Details about an accessory item.
- */
 public class AccessoryDetails
 {
     private final List<AccessoryPart> parts;

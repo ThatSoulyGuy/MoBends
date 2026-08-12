@@ -31,7 +31,6 @@ public class QuaternionTest
     public void identityQuaternion()
     {
         Quaternion q = new Quaternion();
-        // Identity quaternion should have length 1
         float length = (float) Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
         assertEquals(1, length, EPSILON);
     }
@@ -66,7 +65,6 @@ public class QuaternionTest
         Quaternion identity = new Quaternion();
         Quaternion result = new Quaternion();
 
-        // q * identity should equal q
         Quaternion.mul(q, identity, result);
         assertEquals(q.x, result.x, EPSILON);
         assertEquals(q.y, result.y, EPSILON);
@@ -78,12 +76,8 @@ public class QuaternionTest
     public void fromAxisAngle()
     {
         Quaternion q = new Quaternion();
-        // Rotate 90 degrees around Y axis (angle in radians)
         q.setFromAxisAngle(0, 1, 0, (float)(Math.PI / 2));
 
-        // For a 90 degree rotation around Y:
-        // w = cos(45°) ≈ 0.707
-        // y = sin(45°) ≈ 0.707
         assertEquals(0, q.x, EPSILON);
         assertEquals(0.707f, q.y, 0.01f);
         assertEquals(0, q.z, EPSILON);

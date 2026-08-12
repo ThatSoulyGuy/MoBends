@@ -1,6 +1,5 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -11,7 +10,6 @@ public class VanillaListView extends VanillaScrollView
     private final VanillaLinearLayout innerLayout;
     private final List<VanillaView> itemViews = new ArrayList<>();
 
-    // Divider config
     private boolean dividersShown = false;
     private int dividerColor = 0xFF2A2E3C;
     private int dividerHeight = 1;
@@ -27,7 +25,6 @@ public class VanillaListView extends VanillaScrollView
 
     public void setAdapter(Object adapter)
     {
-        // Not supported
     }
 
     public void setSimpleAdapter(List<String> items, BiConsumer<Integer, String> onItemClick)
@@ -61,10 +58,6 @@ public class VanillaListView extends VanillaScrollView
         rebuildItems();
     }
 
-    /**
-     * Rebuilds the inner layout from the current item views, interleaving divider
-     * views between them when dividers are enabled.
-     */
     private void rebuildItems()
     {
         innerLayout.removeAllViews();
@@ -106,7 +99,6 @@ public class VanillaListView extends VanillaScrollView
 
     public void notifyDataSetChanged()
     {
-        // Will be re-measured/laid out on next render cycle
     }
 
     public void setItemSpacing(int spacing)

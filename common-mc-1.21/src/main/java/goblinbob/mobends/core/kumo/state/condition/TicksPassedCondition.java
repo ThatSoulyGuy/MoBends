@@ -3,12 +3,6 @@ package goblinbob.mobends.core.kumo.state.condition;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 
-/**
- * This condition is met once a certain amount of ticks have passed since the
- * start of the node's lifetime.
- *
- * @author Iwo Plaza
- */
 public class TicksPassedCondition implements ITriggerCondition
 {
 

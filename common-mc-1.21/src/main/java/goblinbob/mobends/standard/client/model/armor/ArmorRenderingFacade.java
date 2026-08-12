@@ -24,30 +24,17 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-/**
- * Unified facade for the two-tier armor rendering system.
- * This class coordinates tier selection and delegates to the appropriate renderer.
- *
- * <p>Tier selection priority:</p>
- * <ul>
- *   <li>Tier 1 (Transform Injection): ~85% of armor - vanilla/standard HumanoidModel</li>
- *   <li>Tier 2 (Model Interception): ~15% of armor - modded armor with non-HumanoidModel</li>
- * </ul>
- */
 public class ArmorRenderingFacade
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArmorRenderingFacade.class);
 
-    // Tier renderers
     private final Tier1Renderer tier1Renderer;
     private final Tier2Renderer tier2Renderer;
 
-    // Performance tracking
     private long tier1Count = 0;
     private long tier2Count = 0;
     private long fallbackCount = 0;
 
-    // Debug mode
     private boolean debugMode = false;
     private RenderTier forcedTier = null;
 
@@ -57,13 +44,6 @@ public class ArmorRenderingFacade
         this.tier2Renderer = new Tier2Renderer();
     }
 
-    /**
-     * Render armor using the appropriate tier for the given context.
-     *
-     * @param context The armor render context
-     * @param armorModel The armor model to render
-     * @return true if rendering was handled, false to fall back to vanilla
-     */
     public <T extends LivingEntity> boolean render(ArmorRenderContext<T> context, Model armorModel)
     {
         if (context == null || armorModel == null)
@@ -71,7 +51,6 @@ public class ArmorRenderingFacade
             return false;
         }
 
-        // Determine which tier to use
         RenderTier tier = determineTier(armorModel);
 
         if (debugMode)
@@ -82,7 +61,6 @@ public class ArmorRenderingFacade
                     tier);
         }
 
-        // Delegate to appropriate tier renderer
         boolean success = false;
         try
         {
@@ -97,15 +75,11 @@ public class ArmorRenderingFacade
             }
         }
 
-        // Update statistics
         updateStats(tier, success);
 
         return success;
     }
 
-    /**
-     * Render armor with the specified tier, with automatic fallback.
-     */
     @SuppressWarnings("unchecked")
     private <T extends LivingEntity> boolean renderWithTier(RenderTier tier, ArmorRenderContext<T> context, Model armorModel)
     {
@@ -119,10 +93,8 @@ public class ArmorRenderingFacade
                     {
                         return true;
                     }
-                    // Fall through to Tier 2
                     LOGGER.debug("Tier 1 failed, falling back to Tier 2");
                 }
-                // Fall through
 
             case TIER_2_MODEL_INTERCEPTION:
             default:
@@ -130,12 +102,8 @@ public class ArmorRenderingFacade
         }
     }
 
-    /**
-     * Determine the appropriate tier for the given armor model.
-     */
     private RenderTier determineTier(Model armorModel)
     {
-        // Check for forced tier (debug mode)
         if (forcedTier != null)
         {
             return forcedTier;
@@ -144,9 +112,6 @@ public class ArmorRenderingFacade
         return TierClassifier.getInstance().classify(armorModel);
     }
 
-    /**
-     * Update rendering statistics.
-     */
     private void updateStats(RenderTier tier, boolean success)
     {
         if (!success)
@@ -166,11 +131,6 @@ public class ArmorRenderingFacade
         }
     }
 
-    /**
-     * Render armor using the context built from parameters.
-     * Convenience method for LayerCustomBipedArmor integration.
-     */
-    @SuppressWarnings("unchecked")
     public <T extends LivingEntity> boolean renderArmor(
             PoseStack poseStack,
             MultiBufferSource bufferSource,
@@ -179,7 +139,7 @@ public class ArmorRenderingFacade
             EquipmentSlot slot,
             ItemStack armorStack,
             ArmorItem armorItem,
-            HumanoidModel<?> armorModel,
+            Model armorModel,
             BipedEntityData<?> entityData,
             ResourceLocation texture)
     {
@@ -188,7 +148,6 @@ public class ArmorRenderingFacade
             return false;
         }
 
-        // Build render context
         ArmorRenderContext<T> context = ArmorRenderContext.<T>builder()
                 .entity(entity)
                 .entityData(entityData)
@@ -198,24 +157,19 @@ public class ArmorRenderingFacade
                 .bufferSource(bufferSource)
                 .packedLight(packedLight)
                 .packedOverlay(OverlayTexture.NO_OVERLAY)
-                .partialTicks(0) // Will be set by caller if needed
-                .armorModel((HumanoidModel<T>) armorModel)
+                .partialTicks(0)
+                .armorModel(armorModel)
                 .build();
 
-        // Set texture in context or handle separately
         return renderWithTexture(context, armorModel, texture, armorStack.hasFoil());
     }
 
-    /**
-     * Render with a specific texture.
-     */
     private <T extends LivingEntity> boolean renderWithTexture(
             ArmorRenderContext<T> context,
             Model armorModel,
             ResourceLocation texture,
             boolean hasFoil)
     {
-        // Determine tier and render
         RenderTier tier = determineTier(armorModel);
 
         if (debugMode)
@@ -237,7 +191,6 @@ public class ArmorRenderingFacade
                             break;
                         }
                     }
-                    // Fall through to Tier 2
 
                 case TIER_2_MODEL_INTERCEPTION:
                 default:
@@ -258,35 +211,21 @@ public class ArmorRenderingFacade
         return success;
     }
 
-    // === Debug and Statistics ===
-
-    /**
-     * Enable or disable debug mode.
-     */
     public void setDebugMode(boolean enabled)
     {
         this.debugMode = enabled;
     }
 
-    /**
-     * Force a specific tier for all rendering (debug/testing).
-     */
     public void forceTier(@Nullable RenderTier tier)
     {
         this.forcedTier = tier;
     }
 
-    /**
-     * Get rendering statistics.
-     */
     public RenderingStats getStats()
     {
         return new RenderingStats(tier1Count, tier2Count, fallbackCount);
     }
 
-    /**
-     * Reset rendering statistics.
-     */
     public void resetStats()
     {
         tier1Count = 0;
@@ -294,33 +233,21 @@ public class ArmorRenderingFacade
         fallbackCount = 0;
     }
 
-    /**
-     * Clear all caches.
-     */
     public void clearCaches()
     {
         CacheManager.getInstance().clearAll();
     }
 
-    /**
-     * Get the Tier 1 renderer for advanced configuration.
-     */
     public Tier1Renderer getTier1Renderer()
     {
         return tier1Renderer;
     }
 
-    /**
-     * Get the Tier 2 renderer for advanced configuration.
-     */
     public Tier2Renderer getTier2Renderer()
     {
         return tier2Renderer;
     }
 
-    /**
-     * Statistics about armor rendering.
-     */
     public static class RenderingStats
     {
         public final long tier1Count;

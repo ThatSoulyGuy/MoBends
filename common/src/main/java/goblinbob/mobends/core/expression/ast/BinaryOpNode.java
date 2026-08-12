@@ -2,9 +2,6 @@ package goblinbob.mobends.core.expression.ast;
 
 import goblinbob.mobends.core.expression.ExpressionContext;
 
-/**
- * AST node representing a binary operation (e.g., a + b, x * y).
- */
 public class BinaryOpNode implements ExpressionNode {
     private final ExpressionNode left;
     private final ExpressionNode right;
@@ -45,7 +42,6 @@ public class BinaryOpNode implements ExpressionNode {
 
     @Override
     public double evaluate(ExpressionContext context) {
-        // Short-circuit evaluation for logical operators
         if (operator == Operator.AND) {
             double leftVal = left.evaluate(context);
             if (leftVal == 0.0) return 0.0;
@@ -88,7 +84,6 @@ public class BinaryOpNode implements ExpressionNode {
         ExpressionNode optimizedRight = right.optimize();
 
         if (optimizedLeft.isConstant() && optimizedRight.isConstant()) {
-            // Constant folding
             return new LiteralNode(new BinaryOpNode(optimizedLeft, operator, optimizedRight).evaluate(null));
         }
 

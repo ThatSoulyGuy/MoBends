@@ -6,9 +6,6 @@ import java.util.Set;
 public class Computed<T> implements IObservable<T>, IObserver
 {
 
-    /**
-     * True, if the this computed property should be reevaluated.
-     */
     private boolean dirty = true;
     private T value;
     private IComputedExpression<T> expression;
@@ -28,9 +25,6 @@ public class Computed<T> implements IObservable<T>, IObserver
 
         if (dirty)
         {
-            // Keeping track of the currently evaluated, so that
-            // the observables inside the expression can attach themselves
-            // onto the dependency graph.
             ComputedDependencyHelper.evaluatedStack.push(this);
 
             T newValue = expression.compute();

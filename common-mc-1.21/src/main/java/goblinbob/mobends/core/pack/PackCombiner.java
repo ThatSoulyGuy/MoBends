@@ -6,13 +6,6 @@ import java.util.List;
 public class PackCombiner
 {
 
-    /**
-     * Combining given packs into one data. The resulting data will contain
-     * animations and targets from each pack. If packs share a target, the ones
-     * that appear first in the array will take precedence.
-     * @param packs
-     * @return
-     */
     public static BendsPackData combineData(List<BendsPackData> packs)
     {
         BendsPackData combinedData = new BendsPackData();

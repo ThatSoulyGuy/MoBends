@@ -7,7 +7,7 @@ import net.minecraft.util.Mth;
 public class SprintAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
 	private static String[] ACTIONS = new String[] { "sprint" };
-	
+
 	@Override
 	public String[] getActions(T entityData)
 	{
@@ -34,7 +34,7 @@ public class SprintAnimationBit<T extends BipedEntityData<?>> extends AnimationB
 				.rotateZ(5);
 		data.leftArm.rotation.setSmoothness(0.8F).orientX(Mth.cos(limbSwing) * armSwingAmount)
 				.rotateZ(-5);
-		
+
 		float legSwingAmount = 1.26F * data.limbSwingAmount.get() / PI * 180F;
 		data.rightLeg.rotation.setSmoothness(1.0F).orientX(-5F + Mth.cos(limbSwing) * legSwingAmount)
 				.rotateZ(2);
@@ -57,7 +57,6 @@ public class SprintAnimationBit<T extends BipedEntityData<?>> extends AnimationB
 				.rotateZ(-var10);
 		data.head.rotation.setSmoothness(.5F).orientX(headPitch - bodyRotationX)
 											 .rotateY(headYaw - bodyRotationY);
-		
 
 		data.globalOffset.slideY(Mth.cos(limbSwing * 2F + 0.6F) * 1.5f, .9f);
 	}

@@ -22,10 +22,6 @@ public class KumoVariableRegistry
         this.tempData = tempData;
     }
 
-    /**
-     * Gets the value of a variable by name.
-     * @return The variable value, or 0 if not found
-     */
     public double getVariableValue(String name)
     {
         KumoVariableEntry entry = variables.get(name);
@@ -36,45 +32,30 @@ public class KumoVariableRegistry
         return 0;
     }
 
-    /**
-     * Checks if a variable exists in the registry.
-     */
     public boolean hasVariable(String name)
     {
         return variables.containsKey(name);
     }
 
-    /**
-     * Gets all registered variable names.
-     */
     public Set<String> getVariableNames()
     {
         return variables.keySet();
     }
 
-    /**
-     * Gets the temporary entity data currently being animated.
-     */
     public EntityData<?> getTempData()
     {
         return tempData;
     }
 
-    // Static methods
-
     static
     {
-        // Time
         registerVariable("ticks", DataUpdateHandler::getTicks);
 
-        // Constants
         registerVariable("PI", () -> Math.PI);
         registerVariable("E", () -> Math.E);
 
-        // Random
         registerVariable("random", Math::random);
 
-        // Attack timing
         registerVariable("ticksAfterPunch", () -> {
             if (instance.tempData instanceof LivingEntityData<?> livingData)
                 return livingData.getTicksAfterAttack();
@@ -86,7 +67,6 @@ public class KumoVariableRegistry
             return 0;
         });
 
-        // Health
         registerVariable("health", () -> {
             Entity entity = instance.tempData.getEntity();
             if (entity instanceof LivingEntity living)
@@ -106,26 +86,22 @@ public class KumoVariableRegistry
             return 0;
         });
 
-        // Motion
         registerVariable("motionX", () -> instance.tempData != null ? instance.tempData.getMotionX() : 0);
         registerVariable("motionY", () -> instance.tempData != null ? instance.tempData.getMotionY() : 0);
         registerVariable("motionZ", () -> instance.tempData != null ? instance.tempData.getMotionZ() : 0);
         registerVariable("motionMagnitude", () -> instance.tempData != null ? instance.tempData.getMotionMagnitude() : 0);
         registerVariable("xzMotionMagnitude", () -> instance.tempData != null ? instance.tempData.getXZMotionMagnitude() : 0);
 
-        // Ground state
         registerVariable("onGround", () -> instance.tempData != null && instance.tempData.isOnGround() ? 1 : 0);
         registerVariable("isStill", () -> instance.tempData != null && instance.tempData.isStillHorizontally() ? 1 : 0);
         registerVariable("isStrafing", () -> instance.tempData != null && instance.tempData.isStrafing() ? 1 : 0);
         registerVariable("isUnderwater", () -> instance.tempData != null && instance.tempData.isUnderwater() ? 1 : 0);
 
-        // Movement angles
         registerVariable("movementAngle", () -> instance.tempData != null ? instance.tempData.getMovementAngle() : 0);
         registerVariable("lookAngle", () -> instance.tempData != null ? instance.tempData.getLookAngle() : 0);
         registerVariable("forwardMomentum", () -> instance.tempData != null ? instance.tempData.getForwardMomentum() : 0);
         registerVariable("sidewaysMomentum", () -> instance.tempData != null ? instance.tempData.getSidewaysMomentum() : 0);
 
-        // Living entity timing
         registerVariable("ticksInAir", () -> {
             if (instance.tempData instanceof LivingEntityData<?> livingData)
                 return livingData.getTicksInAir();
@@ -142,7 +118,6 @@ public class KumoVariableRegistry
             return 0;
         });
 
-        // Limb swing
         registerVariable("limbSwing", () -> {
             if (instance.tempData instanceof LivingEntityData<?> livingData)
                 return livingData.limbSwing.get();
@@ -154,7 +129,6 @@ public class KumoVariableRegistry
             return 0;
         });
 
-        // Head rotation
         registerVariable("headYaw", () -> {
             if (instance.tempData instanceof LivingEntityData<?> livingData)
                 return livingData.headYaw.get();
@@ -166,14 +140,12 @@ public class KumoVariableRegistry
             return 0;
         });
 
-        // Arm swing
         registerVariable("swingProgress", () -> {
             if (instance.tempData instanceof LivingEntityData<?> livingData)
                 return livingData.swingProgress.get();
             return 0;
         });
 
-        // Climbing
         registerVariable("isClimbing", () -> {
             if (instance.tempData instanceof LivingEntityData<?> livingData)
                 return livingData.isClimbing() ? 1 : 0;
@@ -185,7 +157,6 @@ public class KumoVariableRegistry
             return 0;
         });
 
-        // Bow
         registerVariable("isDrawingBow", () -> {
             if (instance.tempData instanceof LivingEntityData<?> livingData)
                 return livingData.isDrawingBow() ? 1 : 0;

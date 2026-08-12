@@ -65,19 +65,16 @@ public class VanillaToggle extends VanillaView
             guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, backgroundColor);
         }
 
-        // Draw toggle track
         int toggleX = x + measuredWidth - TOGGLE_WIDTH - 2;
         int toggleY = y + (measuredHeight - TOGGLE_HEIGHT) / 2;
         int trackColor = checked ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF;
         guiGraphics.fill(toggleX, toggleY, toggleX + TOGGLE_WIDTH, toggleY + TOGGLE_HEIGHT, trackColor);
 
-        // Draw toggle thumb
         int thumbSize = TOGGLE_HEIGHT - 2;
         int thumbX = checked ? toggleX + TOGGLE_WIDTH - thumbSize - 1 : toggleX + 1;
         int thumbY = toggleY + 1;
         guiGraphics.fill(thumbX, thumbY, thumbX + thumbSize, thumbY + thumbSize, 0xFFFFFFFF);
 
-        // Draw text
         if (text != null && !text.isEmpty())
         {
             var font = Minecraft.getInstance().font;

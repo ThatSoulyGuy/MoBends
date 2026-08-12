@@ -1,12 +1,7 @@
 accessWidener v2 named
 
-# Mo' Bends Access Wideners for Forge 1.20.1
-# Minimal for initial setup - add fields during migration
-
-# LivingEntityRenderer - access to layers list
 accessible field net/minecraft/client/renderer/entity/LivingEntityRenderer layers Ljava/util/List;
 
-# HumanoidModel parts
 accessible field net/minecraft/client/model/HumanoidModel head Lnet/minecraft/client/model/geom/ModelPart;
 accessible field net/minecraft/client/model/HumanoidModel hat Lnet/minecraft/client/model/geom/ModelPart;
 accessible field net/minecraft/client/model/HumanoidModel body Lnet/minecraft/client/model/geom/ModelPart;
@@ -15,8 +10,6 @@ accessible field net/minecraft/client/model/HumanoidModel leftArm Lnet/minecraft
 accessible field net/minecraft/client/model/HumanoidModel rightLeg Lnet/minecraft/client/model/geom/ModelPart;
 accessible field net/minecraft/client/model/HumanoidModel leftLeg Lnet/minecraft/client/model/geom/ModelPart;
 
-# PlayerModel - cloak
 accessible field net/minecraft/client/model/PlayerModel cloak Lnet/minecraft/client/model/geom/ModelPart;
 
-# ModelPart - cube access for arm width detection fallback
 accessible field net/minecraft/client/model/geom/ModelPart cubes Ljava/util/List;

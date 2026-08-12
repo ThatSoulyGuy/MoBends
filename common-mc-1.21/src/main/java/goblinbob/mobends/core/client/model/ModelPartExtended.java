@@ -2,10 +2,6 @@ package goblinbob.mobends.core.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-/**
- * Extended model part that includes an optional extension part.
- * Updated for 1.20.1 to use PoseStack instead of GlStateManager.
- */
 public class ModelPartExtended extends ModelPart
 {
 
@@ -35,7 +31,6 @@ public class ModelPartExtended extends ModelPart
         poseStack.pushPose();
 
         this.applyCharacterTransform(poseStack, scale);
-        // Render the cubes - handled by parent renderer in 1.20.1
         if (extension != null)
             extension.renderJustPart(poseStack, scale);
 
@@ -43,7 +38,6 @@ public class ModelPartExtended extends ModelPart
         {
             for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
             {
-                // Child models render themselves
             }
         }
         poseStack.popPose();
@@ -57,7 +51,6 @@ public class ModelPartExtended extends ModelPart
         poseStack.pushPose();
 
         this.applyLocalTransform(poseStack, scale);
-        // Render the cubes
         if (extension != null)
             extension.renderJustPart(poseStack, scale);
 
@@ -65,7 +58,6 @@ public class ModelPartExtended extends ModelPart
         {
             for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
             {
-                // Child models render themselves
             }
         }
         poseStack.popPose();

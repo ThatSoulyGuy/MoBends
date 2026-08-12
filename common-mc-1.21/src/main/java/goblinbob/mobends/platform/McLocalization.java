@@ -3,10 +3,6 @@ package goblinbob.mobends.platform;
 import goblinbob.mobends.api.resource.ILocalization;
 import net.minecraft.client.resources.language.I18n;
 
-/**
- * Shared implementation of ILocalization.
- * Wraps Minecraft's I18n system.
- */
 public class McLocalization implements ILocalization
 {
     @Override

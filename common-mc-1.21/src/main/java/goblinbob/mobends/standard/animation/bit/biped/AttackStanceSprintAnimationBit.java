@@ -19,8 +19,6 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 		final HumanoidArm primaryHand = living.getMainArm();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 		IModelPart mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		IModelPart offArm = mainHandSwitch ? data.leftArm : data.rightArm;
@@ -37,7 +35,7 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 		mainArm.getRotation().orientZ(60.0F * handDirMtp);
 		mainArm.getRotation().rotateY(60.0F * handDirMtp);
 		offArm.getRotation().rotateZ(-30.0F * handDirMtp);
-		
+
 		if (mainHandSwitch)
 		{
 			data.renderRightItemRotation.setSmoothness(.3F).orientX(45);

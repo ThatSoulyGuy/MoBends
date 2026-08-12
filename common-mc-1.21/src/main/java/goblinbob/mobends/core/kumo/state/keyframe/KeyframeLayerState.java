@@ -91,7 +91,6 @@ public class KeyframeLayerState implements ILayerState
                             break;
                     }
 
-                    // Transition is in progress
                     KeyframeAnimation previousAnimation = previousNode.getAnimation();
                     applyKeyframeAnimation(data, previousAnimation, previousNode.getProgress(), 1 - t);
                     applyKeyframeAnimation(data, animation, currentNode.getProgress(), t);
@@ -109,21 +108,17 @@ public class KeyframeLayerState implements ILayerState
             }
         }
 
-        // Populating the context.
         context.setCurrentNode(currentNode);
 
-        // Updating node states.
         for (INodeState node : nodeStates)
         {
             node.update(context, deltaTime);
         }
 
-        // Evaluating connection trigger conditions.
         for (ConnectionState connection : currentNode.getConnections())
         {
             if (connection.triggerCondition.isConditionMet(context))
             {
-                // Transition setup
                 transitionDuration = connection.transitionDuration;
                 transitionEasing = connection.transitionEasing;
                 if (transitionDuration == 0.0F)
@@ -224,7 +219,6 @@ public class KeyframeLayerState implements ILayerState
                         if (part instanceof IModelPart)
                         {
                             KeyframeUtils.tweenOrientationAdditive(((IModelPart) part).getRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
-                            // Note that the amount is negated.
                             KeyframeUtils.tweenVectorAdditive(((IModelPart) part).getOffset(), keyframe.position, nextFrame.position, tween, -amount);
                         }
                     }

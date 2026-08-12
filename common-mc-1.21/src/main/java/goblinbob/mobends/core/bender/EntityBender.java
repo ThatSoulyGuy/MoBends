@@ -51,7 +51,6 @@ public abstract class EntityBender<T extends LivingEntity>
 
         if (key == null)
         {
-            // Get entity type from registry
             EntityType<?> entityType = getEntityTypeForClass(entityClass);
             if (entityType == null)
                 throw new RuntimeException("Unable to find an EntityType for " + entityClass.getName());
@@ -75,8 +74,6 @@ public abstract class EntityBender<T extends LivingEntity>
     {
         for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE)
         {
-            // We need to check if this entity type creates instances of our class
-            // This is a simplified check - in practice, this should work for most entities
             try
             {
                 if (entityClass.getSimpleName().equalsIgnoreCase(
@@ -92,14 +89,8 @@ public abstract class EntityBender<T extends LivingEntity>
 
     public abstract String[] getAlterableParts();
 
-    /**
-     * Returns the animation types supported by this entity bender.
-     * Override this to provide entity-specific animations.
-     * Default returns common biped animations.
-     */
     public String[] getSupportedAnimations()
     {
-        // Default: common animations most bipeds support
         return new String[] { "walk", "jump", "fall" };
     }
 
@@ -126,10 +117,6 @@ public abstract class EntityBender<T extends LivingEntity>
         return I18n.get(this.unlocalizedName);
     }
 
-    /**
-     * Returns true if entities assigned to this EntityBender
-     * should be animated.
-     */
     public boolean isAnimated()
     {
         return this.animate;
@@ -150,10 +137,6 @@ public abstract class EntityBender<T extends LivingEntity>
         this.renderer.afterRender(entity, partialTicks, poseStack);
     }
 
-    /**
-     * Used to apply the effect of the mutation, or just to update the model if it was already mutated.
-     * Called from EntityBender.
-     */
     @SuppressWarnings("unchecked")
     public <M extends EntityModel<T>> boolean applyMutation(LivingEntityRenderer<T, M> renderer, T entity, float partialTicks)
     {
@@ -177,10 +160,6 @@ public abstract class EntityBender<T extends LivingEntity>
         return true;
     }
 
-    /**
-     * Used to reverse the effect of the mutation.
-     * Called from EntityBender.
-     */
     @SuppressWarnings("unchecked")
     public <M extends EntityModel<T>> void deapplyMutation(LivingEntityRenderer<T, M> renderer, LivingEntity entity)
     {
@@ -192,9 +171,6 @@ public abstract class EntityBender<T extends LivingEntity>
         }
     }
 
-    /**
-     * Used to refresh the mutators in case of real-time changes during development.
-     */
     @SuppressWarnings("unchecked")
     public void refreshMutation()
     {
@@ -219,7 +195,6 @@ public abstract class EntityBender<T extends LivingEntity>
             Mob entity = (Mob) this.entityClass.getConstructor(EntityType.class, Level.class)
                 .newInstance(getEntityTypeForClass(entityClass), level);
             entity.moveTo(0, 0, 0, 0, 0);
-            // Use abstraction for cross-version compatibility (4 params in 1.21.1, 5 params in 1.20.1)
             IMobSpawnHelper helper = IMobSpawnHelper.Holder.getHelper();
             if (helper != null)
             {

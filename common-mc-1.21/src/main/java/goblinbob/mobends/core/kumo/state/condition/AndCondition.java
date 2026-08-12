@@ -6,11 +6,6 @@ import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * This condition is met if either of the nested conditions are met.
- *
- * @author Iwo Plaza
- */
 public class AndCondition implements ITriggerCondition
 {
 

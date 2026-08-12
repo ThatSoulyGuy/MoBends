@@ -21,12 +21,8 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		put("leftArm", new BoneMetadata(-1.0F, -2.0F, -2.0F, 3F, 4F, 2F));
 		put("rightArm", new BoneMetadata(-4F + 1F, -2.0F, -2.0F, 1F, 4F, 2F));
 
-//		"body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg", "rightLeg",
-//		"leftForeLeg", "rightForeLeg", "totalRotation", "leftItemRotation", "rightItemRotation"
 	}};
 
-	// Store Y offset for jump animation preview
-	// This will be applied during rendering via PoseStack
 	protected double previewYOffset = 0;
 
 	@Override
@@ -85,12 +81,10 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		{
 			data.overrideOnGroundState(false);
 
-			// Store offset for later application via PoseStack during rendering
 			previewYOffset = Math.sin(t/JUMP_DURATION * Math.PI) * 0.8;
 		} else {
 			data.overrideOnGroundState(true);
 		}
-
 
 		data.limbSwingAmount.override(0F);
 		data.overrideStillness(true);
@@ -144,7 +138,6 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 	@Override
 	public void postPreview(D data, String animationToPreview)
 	{
-		// Clean up any overrides
 		if ("climb".equals(animationToPreview))
 		{
 			data.setClimbing(false);
@@ -160,10 +153,6 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		return BONE_METADATA;
 	}
 
-	/**
-	 * Get the Y offset for preview rendering.
-	 * Should be applied to PoseStack during rendering.
-	 */
 	public double getPreviewYOffset()
 	{
 		return previewYOffset;

@@ -24,10 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-/**
- * Renders entity previews for use in UI screens.
- * This bridges the UI layout system with Minecraft's entity rendering.
- */
 public class EntityPreviewRenderer
 {
     private static final Logger LOGGER = LoggerFactory.getLogger("MoBends/Preview");
@@ -35,19 +31,16 @@ public class EntityPreviewRenderer
     private static final float MIN_SCALE = 20.0f;
     private static final float MAX_SCALE = 80.0f;
 
-    // View state
     private float rotationX = -10;
     private float rotationY = 45;
     private float scale = DEFAULT_SCALE;
 
-    // Animation state
     private String currentAnimationType = "idle";
     private float animationTicks = 0;
     private float limbSwing = 0;
     private float limbSwingAmount = 0;
     private long lastUpdateNanos = -1;
 
-    // Entity state
     @Nullable
     private LivingEntity previewEntity;
     @Nullable
@@ -57,7 +50,6 @@ public class EntityPreviewRenderer
 
     public void setBender(@Nullable Object bender)
     {
-        // Clean up old preview entity
         if (previewEntity != null)
         {
             previewEntity = null;
@@ -74,16 +66,9 @@ public class EntityPreviewRenderer
             this.currentBender = null;
         }
 
-        // Reset view for new entity
         resetView();
     }
 
-    /**
-     * Sets the bender with type safety.
-     * Convenience method that accepts EntityBender directly.
-     *
-     * @param bender The bender to preview, or null to clear
-     */
     public void setBenderTyped(@Nullable EntityBender<?> bender)
     {
         setBender(bender);
@@ -183,10 +168,8 @@ public class EntityPreviewRenderer
         float deltaSec = (now - lastUpdateNanos) / 1_000_000_000.0f;
         lastUpdateNanos = now;
 
-        // Cap delta to prevent large jumps (e.g., after tab-out)
         deltaSec = Math.min(deltaSec, 0.1f);
 
-        // MC runs at 20 ticks/second
         animationTicks += deltaSec * 20.0f;
         updateAnimationState();
     }
@@ -289,7 +272,7 @@ public class EntityPreviewRenderer
                 previewEntity.setSwimming(false);
                 break;
 
-            default: // idle
+            default:
                 limbSwing = 0;
                 limbSwingAmount = 0;
                 previewEntity.setOnGround(true);
@@ -312,10 +295,6 @@ public class EntityPreviewRenderer
         renderEntity(guiGraphics, x, y, width, height, partialTicks);
     }
 
-    /**
-     * Renders the entity using the provided GuiGraphics.
-     * This is the preferred method when a GuiGraphics is already available.
-     */
     public void render(GuiGraphics guiGraphics, int x, int y, int width, int height, float partialTicks)
     {
         if (previewEntity == null) return;
@@ -335,7 +314,6 @@ public class EntityPreviewRenderer
 
         IPreviewer previewer = currentBender != null ? currentBender.getPreviewer() : null;
 
-        // Override DataUpdateHandler ticks so previewer animations advance while game is paused
         float savedTicksPerFrame = DataUpdateHandler.ticksPerFrame;
         DataUpdateHandler.setPreviewTicks(animationTicks);
         DataUpdateHandler.ticksPerFrame = 1.0f;
@@ -350,11 +328,9 @@ public class EntityPreviewRenderer
             }
             catch (Exception e)
             {
-                // Continue with fallback
             }
         }
 
-        // Store original entity state
         float prevBodyRot = previewEntity.yBodyRot;
         float prevYRot = previewEntity.getYRot();
         float prevXRot = previewEntity.getXRot();
@@ -369,13 +345,11 @@ public class EntityPreviewRenderer
         previewEntity.yHeadRot = previewEntity.getYRot();
         previewEntity.tickCount = (int) animationTicks;
 
-        // --- Save GL state that Modern UI's canvas may have changed ---
         boolean prevDepthTest = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
         boolean prevScissorTest = GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);
         int prevDepthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
         boolean prevDepthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
 
-        // Save and set MC's orthographic projection (Modern UI uses a different one)
         Matrix4f savedProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
         Matrix4f mcProjection = new Matrix4f().setOrtho(
             0.0f, (float) mc.getWindow().getGuiScaledWidth(),
@@ -384,10 +358,8 @@ public class EntityPreviewRenderer
         );
         RenderSystem.setProjectionMatrix(mcProjection, VertexSorting.ORTHOGRAPHIC_Z);
 
-        // Set viewport to match MC's full window
         GL11.glViewport(0, 0, mc.getWindow().getWidth(), mc.getWindow().getHeight());
 
-        // Set up scissor clipping via raw GL (GuiGraphics.enableScissor may not work in CustomDrawable context)
         double guiScale = mc.getWindow().getGuiScale();
         int windowHeight = mc.getWindow().getHeight();
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
@@ -398,24 +370,20 @@ public class EntityPreviewRenderer
             (int) (height * guiScale)
         );
 
-        // Enable depth testing and clear depth buffer for correct 3D entity rendering
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
         GL11.glDepthMask(true);
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 
-        // Set up pose stack
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(centerX, centerY, 50.0);
 
         float adjustedScale = scale / entityScale;
         guiGraphics.pose().scale(adjustedScale, adjustedScale, -adjustedScale);
 
-        // Entity height offset to center vertically
         Vector3f translation = new Vector3f(0, entityHeight / 2.0f, 0);
         guiGraphics.pose().translate(translation.x(), translation.y(), translation.z());
 
-        // Rotation: flip upside down (Z rotation by PI), then apply user rotation
         Quaternionf pose = new Quaternionf().rotateZ((float) Math.PI);
         Quaternionf cameraRot = new Quaternionf()
             .rotateX((float) Math.toRadians(rotationX));
@@ -426,17 +394,14 @@ public class EntityPreviewRenderer
 
         guiGraphics.pose().mulPose(pose);
 
-        // Use vanilla's inventory lighting
         Lighting.setupForEntityInInventory();
 
-        // Set up camera orientation
         Quaternionf cameraOrientation = cameraRot.conjugate(new Quaternionf()).rotateY((float) Math.PI);
         dispatcher.overrideCameraOrientation(cameraOrientation);
         dispatcher.setRenderShadow(false);
 
         try
         {
-            // Wrap in runAsFancy to ensure entity renders regardless of graphics settings
             RenderSystem.runAsFancy(() -> {
                 dispatcher.render(
                     previewEntity,
@@ -458,10 +423,8 @@ public class EntityPreviewRenderer
         dispatcher.setRenderShadow(true);
         guiGraphics.pose().popPose();
 
-        // Restore vanilla GUI lighting
         Lighting.setupFor3DItems();
 
-        // --- Restore GL state ---
         RenderSystem.setProjectionMatrix(savedProjection, VertexSorting.ORTHOGRAPHIC_Z);
         if (!prevScissorTest) GL11.glDisable(GL11.GL_SCISSOR_TEST);
         if (!prevDepthTest) GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -476,15 +439,12 @@ public class EntityPreviewRenderer
             }
             catch (Exception e)
             {
-                // Cleanup failed
             }
         }
 
-        // Restore timing overrides
         DataUpdateHandler.clearPreviewTicks();
         DataUpdateHandler.ticksPerFrame = savedTicksPerFrame;
 
-        // Restore entity state
         previewEntity.yBodyRot = prevBodyRot;
         previewEntity.setYRot(prevYRot);
         previewEntity.setXRot(prevXRot);
@@ -510,9 +470,6 @@ public class EntityPreviewRenderer
         return previewEntity != null;
     }
 
-    /**
-     * @return The current bender being previewed
-     */
     @Nullable
     public EntityBender<?> getCurrentBender()
     {

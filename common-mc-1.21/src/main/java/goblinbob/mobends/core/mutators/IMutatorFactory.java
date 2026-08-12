@@ -1,6 +1,5 @@
 package goblinbob.mobends.core.mutators;
 
-
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.core.data.LivingEntityData;
 import net.minecraft.world.entity.LivingEntity;

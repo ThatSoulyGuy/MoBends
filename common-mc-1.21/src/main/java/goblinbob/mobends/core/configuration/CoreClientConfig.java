@@ -15,9 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Client-side configuration with JSON persistence.
- */
 public class CoreClientConfig
 {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -39,10 +36,6 @@ public class CoreClientConfig
         return instance;
     }
 
-    /**
-     * Initialize config file path and load from disk.
-     * Must be called after Minecraft is available.
-     */
     public void initialize()
     {
         if (initialized) return;

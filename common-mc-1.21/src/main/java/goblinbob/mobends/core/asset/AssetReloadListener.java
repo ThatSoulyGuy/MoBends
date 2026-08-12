@@ -21,7 +21,6 @@ public class AssetReloadListener implements ResourceManagerReloadListener
     @Override
     public void onResourceManagerReload(ResourceManager resourceManager)
     {
-        // Refreshing assets
         if (AssetsModule.INSTANCE != null)
         {
             AssetsModule.INSTANCE.updateAssets();

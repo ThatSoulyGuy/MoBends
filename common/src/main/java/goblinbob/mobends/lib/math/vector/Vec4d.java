@@ -7,7 +7,7 @@ public class Vec4d implements IVec4d
 	public double y;
 	public double z;
 	public double w;
-	
+
 	public Vec4d(double x, double y, double z, double w)
 	{
 		this.x = x;
@@ -15,7 +15,7 @@ public class Vec4d implements IVec4d
 		this.z = z;
 		this.w = w;
 	}
-	
+
 	public Vec4d(IVec4dRead other)
 	{
 		this.x = other.getX();
@@ -23,12 +23,12 @@ public class Vec4d implements IVec4d
 		this.z = other.getZ();
 		this.w = other.getW();
 	}
-	
+
 	public Vec4d()
 	{
 		this(0, 0, 0, 0);
 	}
-	
+
 	@Override
 	public double getX()
 	{
@@ -93,5 +93,5 @@ public class Vec4d implements IVec4d
 		this.z += z;
 		this.w += w;
 	}
-	
+
 }

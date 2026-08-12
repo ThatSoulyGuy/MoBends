@@ -6,10 +6,6 @@ import goblinbob.mobends.api.rendering.IVertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 
-/**
- * Forge 1.20.1 implementation of IBufferSource.
- * Wraps Minecraft's MultiBufferSource.
- */
 public class ForgeBufferSource implements IBufferSource
 {
     private final MultiBufferSource bufferSource;

@@ -11,14 +11,8 @@ import java.util.Map;
 public class SpiderPreviewer implements IPreviewer<SpiderData>
 {
 
-	// Store Y offset for jump animation preview
-	// This will be applied during rendering via PoseStack
 	protected double previewYOffset = 0;
 
-	/**
-	 * The Entity is generated specifically just for preview, so
-	 * it can be manipulated in any way.
-	 */
 	@Override
 	public void prePreview(SpiderData data, String animationToPreview)
 	{
@@ -40,7 +34,6 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 					{
 						data.overrideOnGroundState(false);
 
-						// Store offset for later application via PoseStack during rendering
 						previewYOffset = Math.sin(t/JUMP_DURATION * Math.PI) * 1.5;
 					} else {
 						data.overrideOnGroundState(true);
@@ -55,12 +48,9 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 				{
 					final float ticks = DataUpdateHandler.getTicks();
 
-					// In 1.20.1, position fields are accessed differently
 					Spider entity = data.getEntity();
 					if (entity != null)
 					{
-						// Position updates happen through setPos() in 1.20.1
-						// For preview, we override the animation state
 						entity.noPhysics = true;
 					}
 					data.limbSwing.override(ticks * 0.6F);
@@ -89,7 +79,6 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 	@Override
 	public void postPreview(SpiderData data, String animationToPreview)
 	{
-		// Clean up any overrides
 		if ("climb".equals(animationToPreview))
 		{
 			data.setClimbing(false);
@@ -102,10 +91,6 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 		return null;
 	}
 
-	/**
-	 * Get the Y offset for preview rendering.
-	 * Should be applied to PoseStack during rendering.
-	 */
 	public double getPreviewYOffset()
 	{
 		return previewYOffset;

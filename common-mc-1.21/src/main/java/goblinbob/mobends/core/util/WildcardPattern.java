@@ -9,16 +9,6 @@ public class WildcardPattern
         this.pattern = pattern;
     }
 
-    /**
-     * Returns true if the check matches the pattern. The pattern can either be:
-     * - text - The check has to match this pattern exactly.
-     * - *text - The check has to end with the pattern.
-     * - text* - The check has to start with the pattern.
-     * - *text* - The check has to contain the pattern.
-     * @param check
-     * @param pattern
-     * @return
-     */
     public boolean matches(String check)
     {
         final boolean startsWithWildcard =  pattern.startsWith("*");

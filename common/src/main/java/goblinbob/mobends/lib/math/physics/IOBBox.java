@@ -5,9 +5,9 @@ import goblinbob.mobends.lib.math.vector.IVec3fRead;
 
 public interface IOBBox
 {
-	
+
 	IVec3fRead getMin();
 	IVec3fRead getMax();
 	IMat4x4d getTransform();
-	
+
 }

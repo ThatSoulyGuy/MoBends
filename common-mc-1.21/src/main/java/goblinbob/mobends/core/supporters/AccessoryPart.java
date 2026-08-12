@@ -5,9 +5,6 @@ import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 
-/**
- * A part of an accessory.
- */
 public class AccessoryPart
 {
     private final AssetLocation modelPath;

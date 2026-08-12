@@ -12,37 +12,15 @@ import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.core.util.GlHelper;
 import net.minecraft.client.model.geom.ModelPart;
 
-/**
- * A container that wraps a vanilla ModelPart and provides animated transformations.
- * Updated for Minecraft 1.20.1 - no longer extends ModelRenderer (which doesn't exist).
- * Instead, it contains a reference to a vanilla ModelPart and applies transformations via PoseStack.
- *
- * @deprecated This class is part of the legacy armor rendering system.
- *             Use the three-tier rendering system (ArmorRenderingFacade) with
- *             TransformInjector and ModelPartTransformer instead.
- *             This class is kept for backward compatibility and will be removed in a future version.
- */
 @Deprecated
 public class PartContainer implements IModelPart
 {
     public Vec3f position;
-    /**
-     * A secondary position variable is used to offset
-     * the model relative to the first position, which may
-     * be overridden by animation.
-     */
     public Vec3f offset;
-    /**
-     * Used to offset the container item relative to
-     * the rotation point
-     */
     public Vec3f innerOffset;
     public Vec3f scale;
     public SmoothOrientation rotation;
     public float offsetScale = 1.0F;
-    /**
-     * Offset applied before the parent transformation.
-     */
     public Vec3f globalOffset = new Vec3f();
 
     private ModelPart innerModel;
@@ -84,9 +62,6 @@ public class PartContainer implements IModelPart
         return this;
     }
 
-    /**
-     * Renders the contained model with animated transformations applied.
-     */
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay)
     {
         if (!(this.isShowing())) return;
@@ -94,14 +69,12 @@ public class PartContainer implements IModelPart
         poseStack.pushPose();
         this.applyCharacterTransform(poseStack, 1.0F / 16.0F);
 
-        // Apply inner offset
         if (this.innerOffset.x != 0.0F || this.innerOffset.y != 0.0F || this.innerOffset.z != 0.0F)
         {
             float scale = 1.0F / 16.0F;
             poseStack.translate(this.innerOffset.x * scale, this.innerOffset.y * scale, this.innerOffset.z * scale);
         }
 
-        // Render the contained vanilla model
         if (this.innerModel != null)
         {
             this.innerModel.render(poseStack, vertexConsumer, packedLight, packedOverlay);
@@ -118,7 +91,6 @@ public class PartContainer implements IModelPart
         poseStack.pushPose();
         this.applyCharacterTransform(poseStack, scale);
 
-        // Apply inner offset
         if (this.innerOffset.x != 0.0F || this.innerOffset.y != 0.0F || this.innerOffset.z != 0.0F)
         {
             poseStack.translate(this.innerOffset.x * scale, this.innerOffset.y * scale, this.innerOffset.z * scale);
@@ -135,7 +107,6 @@ public class PartContainer implements IModelPart
         poseStack.pushPose();
         this.applyLocalTransform(poseStack, scale);
 
-        // Apply inner offset
         if (this.innerOffset.x != 0.0F || this.innerOffset.y != 0.0F || this.innerOffset.z != 0.0F)
         {
             poseStack.translate(this.innerOffset.x * scale, this.innerOffset.y * scale, this.innerOffset.z * scale);

@@ -6,21 +6,6 @@ import goblinbob.mobends.core.expression.functions.FunctionRegistry;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Recursive descent parser for mathematical expressions.
- *
- * Grammar (by precedence, lowest to highest):
- *   1. Ternary:        ?:
- *   2. Logical Or:     ||
- *   3. Logical And:    &&
- *   4. Equality:       ==, !=
- *   5. Comparison:     <, >, <=, >=
- *   6. Additive:       +, -
- *   7. Multiplicative: *, /, %
- *   8. Power:          ^
- *   9. Unary:          -, !
- *  10. Primary:        literals, variables, function calls, parentheses
- */
 public class ExpressionParser {
     private final String source;
     private final List<Token> tokens;
@@ -32,9 +17,6 @@ public class ExpressionParser {
         this.current = 0;
     }
 
-    /**
-     * Parses the expression and returns the root AST node.
-     */
     public ExpressionNode parse() {
         ExpressionNode result = parseTernary();
 
@@ -46,14 +28,10 @@ public class ExpressionParser {
         return result;
     }
 
-    /**
-     * Parses the expression with optimization (constant folding).
-     */
     public ExpressionNode parseAndOptimize() {
         return parse().optimize();
     }
 
-    // Level 1: Ternary (? :)
     private ExpressionNode parseTernary() {
         ExpressionNode condition = parseOr();
 
@@ -67,7 +45,6 @@ public class ExpressionParser {
         return condition;
     }
 
-    // Level 2: Logical Or (||)
     private ExpressionNode parseOr() {
         ExpressionNode left = parseAnd();
 
@@ -79,7 +56,6 @@ public class ExpressionParser {
         return left;
     }
 
-    // Level 3: Logical And (&&)
     private ExpressionNode parseAnd() {
         ExpressionNode left = parseEquality();
 
@@ -91,7 +67,6 @@ public class ExpressionParser {
         return left;
     }
 
-    // Level 4: Equality (==, !=)
     private ExpressionNode parseEquality() {
         ExpressionNode left = parseComparison();
 
@@ -110,7 +85,6 @@ public class ExpressionParser {
         return left;
     }
 
-    // Level 5: Comparison (<, >, <=, >=)
     private ExpressionNode parseComparison() {
         ExpressionNode left = parseAdditive();
 
@@ -135,7 +109,6 @@ public class ExpressionParser {
         return left;
     }
 
-    // Level 6: Additive (+, -)
     private ExpressionNode parseAdditive() {
         ExpressionNode left = parseMultiplicative();
 
@@ -154,7 +127,6 @@ public class ExpressionParser {
         return left;
     }
 
-    // Level 7: Multiplicative (*, /, %)
     private ExpressionNode parseMultiplicative() {
         ExpressionNode left = parsePower();
 
@@ -176,19 +148,17 @@ public class ExpressionParser {
         return left;
     }
 
-    // Level 8: Power (^) - right associative
     private ExpressionNode parsePower() {
         ExpressionNode left = parseUnary();
 
         if (match(TokenType.CARET)) {
-            ExpressionNode right = parsePower(); // Right associative
+            ExpressionNode right = parsePower();
             return new BinaryOpNode(left, BinaryOpNode.Operator.POWER, right);
         }
 
         return left;
     }
 
-    // Level 9: Unary (-, !)
     private ExpressionNode parseUnary() {
         if (match(TokenType.MINUS)) {
             ExpressionNode operand = parseUnary();
@@ -202,9 +172,7 @@ public class ExpressionParser {
         return parsePrimary();
     }
 
-    // Level 10: Primary (literals, variables, function calls, parentheses)
     private ExpressionNode parsePrimary() {
-        // Number literal
         if (check(TokenType.NUMBER)) {
             Token token = advance();
             try {
@@ -215,17 +183,14 @@ public class ExpressionParser {
             }
         }
 
-        // Identifier (variable or function call)
         if (check(TokenType.IDENTIFIER)) {
             Token token = advance();
             String name = token.value();
 
-            // Check for function call
             if (match(TokenType.LPAREN)) {
                 return parseFunctionCall(name, token.position());
             }
 
-            // Built-in constants
             if (name.equals("PI")) {
                 return new LiteralNode(Math.PI);
             }
@@ -239,11 +204,9 @@ public class ExpressionParser {
                 return new LiteralNode(0.0);
             }
 
-            // Variable reference
             return new VariableNode(name);
         }
 
-        // Parenthesized expression
         if (match(TokenType.LPAREN)) {
             ExpressionNode expr = parseTernary();
             consume(TokenType.RPAREN, "Expected ')' after expression");
@@ -257,7 +220,6 @@ public class ExpressionParser {
     private ExpressionNode parseFunctionCall(String name, int position) {
         List<ExpressionNode> arguments = new ArrayList<>();
 
-        // Empty argument list
         if (!check(TokenType.RPAREN)) {
             do {
                 arguments.add(parseTernary());
@@ -266,7 +228,6 @@ public class ExpressionParser {
 
         consume(TokenType.RPAREN, "Expected ')' after function arguments");
 
-        // Validate function exists and argument count
         if (!FunctionRegistry.hasFunction(name)) {
             throw new ExpressionException("Unknown function: " + name, source, position);
         }
@@ -288,7 +249,6 @@ public class ExpressionParser {
         return new FunctionCallNode(name, arguments);
     }
 
-    // Helper methods
     private boolean match(TokenType type) {
         if (check(type)) {
             advance();

@@ -1,6 +1,5 @@
 package goblinbob.mobends.core.client.gui.vanilla;
 
-
 public class VanillaLayoutParams
 {
     public static final int MATCH_PARENT = -1;

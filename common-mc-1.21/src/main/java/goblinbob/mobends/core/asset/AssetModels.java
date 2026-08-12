@@ -27,7 +27,6 @@ public class AssetModels
             JsonElement jsonElement = JsonParser.parseReader(reader);
             JsonObject jsonObject = jsonElement.getAsJsonObject();
 
-            // Parse the model manually for custom asset models
             BakedModel bakedModel = parseAndBakeModel(jsonObject, location);
             bakedModelMap.put(location, bakedModel);
 
@@ -73,8 +72,6 @@ public class AssetModels
 
     private BakedModel parseAndBakeModel(JsonObject modelJson, AssetLocation modelLocation) throws IOException
     {
-        // Custom model baking is platform-specific due to API differences
-        // For now, return null - platform implementations can override
         LOGGER.warn("Custom model baking not implemented for this platform: {}", modelLocation);
         return null;
     }

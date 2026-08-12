@@ -21,7 +21,7 @@ public class FallingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	public void perform(BipedEntityData<?> data)
 	{
 		data.centerRotation.setSmoothness(.3F).orientZero();
-		
+
 		data.head.rotation.orientX(data.headPitch.get())
 				.rotateY(data.headYaw.get());
 		data.body.rotation.orientY(0).setSmoothness(0.5F);

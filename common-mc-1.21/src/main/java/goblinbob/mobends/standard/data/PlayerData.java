@@ -61,7 +61,6 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
     @Override
     public void onTicksRestart()
     {
-        // No behaviour
     }
 
     @Override
@@ -76,11 +75,9 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
         nameToPartMap.put("cape", cape);
         cape.position.set(0F, 0F, 0F);
 
-        // Player-specific leg positions (different from generic biped)
         rightLeg.position.set(-1.9F, 12.0F, 0.0F);
         leftLeg.position.set(1.9F, 12.0F, 0.0F);
 
-        // Check if player has slim arms by checking the skin model name
         IPlayerSkinProvider skinProvider = IPlayerSkinProvider.Holder.getProvider();
         if (skinProvider != null && skinProvider.isSlimModel(this.entity))
         {
@@ -147,7 +144,6 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
             }
             else
             {
-                // For remote players, derive punch arm from tick count for deterministic sync
                 this.fistPunchArm = (this.entity.tickCount / 6) % 2 == 0;
             }
             this.ticksAfterAttack = 0;
@@ -156,13 +152,11 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
 
         if (this.ticksAfterAttack <= 6.0F)
         {
-            // Sword swing cooldown
             return;
         }
 
         if (isLocalPlayer)
         {
-            // Local player: sequential combo for satisfying feedback
             switch (this.currentAttack)
             {
                 case 1:
@@ -184,7 +178,6 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
         }
         else
         {
-            // Remote players: deterministic attack based on tick count for multiplayer sync
             int numAttacks = (ModConfig.performSpinAttack && !this.getEntity().isPassenger()) ? 5 : 4;
             this.currentAttack = ((this.entity.tickCount / 6) % numAttacks) + 1;
         }

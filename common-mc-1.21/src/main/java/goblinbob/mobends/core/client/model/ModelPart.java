@@ -18,34 +18,23 @@ import net.minecraft.client.renderer.RenderType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Custom ModelPart implementation for Mo' Bends animations.
- * Updated for Minecraft 1.20.1 to use PoseStack instead of GlStateManager.
- */
 public class ModelPart implements IModelPart
 {
     public Vec3f position = new Vec3f();
     public Vec3f scale = new Vec3f(1, 1, 1);
     public Vec3f offset = new Vec3f();
     public SmoothOrientation rotation = new SmoothOrientation();
-    /**
-     * The scale at which animation position offset is applied, used for child models.
-     */
     public float offsetScale = 1.0F;
-    /**
-     * Offset applied before the parent transformation.
-     */
     public Vec3f globalOffset = new Vec3f();
     protected List<MutatedBox> mutatedBoxes;
 
-    /**
-     * An optional parent.
-     */
     protected IModelPart parent;
     protected ICollider collider;
 
     protected int textureOffsetX;
     protected int textureOffsetY;
+    protected float textureWidth = 64.0F;
+    protected float textureHeight = 32.0F;
     protected boolean showModel = true;
     protected boolean isHidden = false;
     protected boolean mirror = false;
@@ -76,14 +65,11 @@ public class ModelPart implements IModelPart
         poseStack.pushPose();
 
         this.applyCharacterTransform(poseStack, scale);
-        // Render the cubes - in 1.20.1 this is done through VertexConsumer
-        // The actual rendering is handled by the parent renderer
 
         if (this.childModels != null)
         {
             for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
             {
-                // Child models render themselves
             }
         }
 
@@ -98,13 +84,11 @@ public class ModelPart implements IModelPart
         poseStack.pushPose();
 
         this.applyLocalTransform(poseStack, scale);
-        // Render the cubes
 
         if (this.childModels != null)
         {
             for (net.minecraft.client.model.geom.ModelPart childModel : this.childModels)
             {
-                // Child models render themselves
             }
         }
 
@@ -326,16 +310,29 @@ public class ModelPart implements IModelPart
         return this.textureOffsetY;
     }
 
+    public float getTextureWidth()
+    {
+        return this.textureWidth;
+    }
+
+    public float getTextureHeight()
+    {
+        return this.textureHeight;
+    }
+
+    public ModelPart setTextureSize(float width, float height)
+    {
+        this.textureWidth = width;
+        this.textureHeight = height;
+        return this;
+    }
+
     public void setTextureOffset(int x, int y)
     {
         this.textureOffsetX = x;
         this.textureOffsetY = y;
     }
 
-    /**
-     * Add a child ModelPart to this part.
-     * The child will be rendered relative to this part's transform.
-     */
     public ModelPart addChild(ModelPart child)
     {
         this.bendsChildren.add(child);
@@ -343,9 +340,6 @@ public class ModelPart implements IModelPart
         return this;
     }
 
-    /**
-     * Get the list of child ModelParts.
-     */
     public List<ModelPart> getChildren()
     {
         return this.bendsChildren;

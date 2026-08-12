@@ -10,11 +10,6 @@ import net.minecraft.util.Mth;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-/**
- * This is an animation controller for a squid instance. It's a part of the EntityData structure.
- *
- * @author Iwo Plaza
- */
 public class SquidController implements IAnimationController<SquidData>
 {
 
@@ -24,7 +19,6 @@ public class SquidController implements IAnimationController<SquidData>
     {
         Squid squid = data.getEntity();
 
-        // In 1.20.1, squidRotation/prevSquidRotation were renamed to xBodyRot/xBodyRotO
         float squidRotation = squid.xBodyRotO + (squid.xBodyRot - squid.xBodyRotO) * DataUpdateHandler.partialTicks + 1.1F;
         float f = squidRotation / GUtil.PI;
         f = Math.max(0.0F, f);

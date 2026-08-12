@@ -20,7 +20,7 @@ public class KeyframeAnimationBit<T extends EntityData<?>> extends AnimationBit<
 	private TriggerMode triggerMode = TriggerMode.RETRIGGER;
 	private float keyframeIndex = 0;
 	private float animationSpeed;
-	
+
 	public KeyframeAnimationBit(ResourceLocation animationResource, float animationSpeed)
 	{
 		this.animationSpeed = animationSpeed;
@@ -34,40 +34,40 @@ public class KeyframeAnimationBit<T extends EntityData<?>> extends AnimationBit<
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void setAnimation(KeyframeAnimation animation)
 	{
 		this.performedAnimation = animation;
 	}
-	
+
 	public void clearAnimation()
 	{
 		this.performedAnimation = null;
 	}
-	
+
 	public void setMask(ArmatureMask mask)
 	{
 		this.mask = mask;
 	}
-	
+
 	public void setAnimationSpeed(float animationSpeed)
 	{
 		this.animationSpeed = animationSpeed;
 	}
-	
+
 	public KeyframeAnimationBit<T> setTriggerMode(TriggerMode triggerMode)
 	{
 		this.triggerMode = triggerMode;
 		return this;
 	}
-	
+
 	@Override
 	public void onPlay(T entityData)
 	{
 		if (this.triggerMode == TriggerMode.RETRIGGER)
 			this.keyframeIndex = 0F;
 	}
-	
+
 	@Override
 	public void perform(T entityData)
 	{
@@ -159,7 +159,7 @@ public class KeyframeAnimationBit<T extends EntityData<?>> extends AnimationBit<
 	{
 		return null;
 	}
-	
+
 	public static enum TriggerMode
 	{
 		RETRIGGER,

@@ -18,13 +18,8 @@ public class ZombieVillagerMutator extends ZombieMutatorBase<ZombieVillagerData,
 	@Override
 	public void storeVanillaModel(ZombieVillagerModel<ZombieVillager> model)
 	{
-		// In 1.20.1, models are created from LayerDefinitions
-		// Store reference to indicate this is vanilla
 		this.vanillaModel = model;
 
-		// Calling the super method here, since it
-		// requires the vanillaModel property to be
-		// set.
 		super.storeVanillaModel(model);
 	}
 
@@ -33,14 +28,11 @@ public class ZombieVillagerMutator extends ZombieMutatorBase<ZombieVillagerData,
 	{
 		boolean success = super.createParts(original, scaleFactor);
 
-		// In 1.20.1, we create our own head model part using BendsModelPart
 		this.head = new BendsModelPart(0, 0);
 		this.head.setParent(body);
 		this.head.position.set(0.0F, -12.0F, 0.0F);
 
-		// Main head box
 		this.head.addCube(-4.0F, -10.0F, -4.0F, 8, 10, 8, scaleFactor);
-		// Nose
 		this.head.setTextureOffset(24, 0);
 		this.head.addCube(-1.0F, -3.0F, -6.0F, 2, 4, 2, scaleFactor);
 

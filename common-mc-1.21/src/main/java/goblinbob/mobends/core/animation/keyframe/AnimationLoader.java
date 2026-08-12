@@ -17,14 +17,8 @@ import java.util.Optional;
 public class AnimationLoader
 {
 
-    /**
-     * This could hold animations that are embedded in kumo animators.
-     */
     private static Map<String, KeyframeAnimation> internalRegistry = new HashMap<>();
 
-    /**
-     * This holds animations that are loaded from mod resources.
-     */
     private static Map<ResourceLocation, KeyframeAnimation> cachedAnimations = new HashMap<>();
 
     public static void clearCache()
@@ -84,17 +78,11 @@ public class AnimationLoader
         }
     }
 
-    /**
-     * Loads the animation from an ambiguous path, either from a resource (modid:path) or an internal registry (key).
-     * @param key
-     * @return
-     */
     public static KeyframeAnimation loadFromPath(String key) throws IOException
     {
         int colonIndex = key.indexOf(":");
         if (colonIndex != -1)
         {
-            // The passed path is a resource path.
             final String domain = key.substring(0, colonIndex);
             final String path = key.substring(colonIndex + 1);
 

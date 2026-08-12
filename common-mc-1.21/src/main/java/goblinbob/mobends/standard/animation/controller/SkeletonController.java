@@ -18,13 +18,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * This is an animation controller for a skeleton instance.
- * It's a part of the EntityData structure.
- * 
- * @author Iwo Plaza
- *
- */
 public class SkeletonController implements IAnimationController<SkeletonData>
 {
 	protected HardAnimationLayer<BipedEntityData<Skeleton>> layerBase;
@@ -55,7 +48,7 @@ public class SkeletonController implements IAnimationController<SkeletonData>
 	public Collection<String> perform(SkeletonData skeletonData)
 	{
 		Skeleton skeleton = skeletonData.getEntity();
-		
+
 		if (!skeletonData.isOnGround() || skeletonData.getTicksAfterTouchdown() < 1)
 		{
 			this.layerBase.playOrContinueBit(bitJump, skeletonData);
@@ -71,7 +64,6 @@ public class SkeletonController implements IAnimationController<SkeletonData>
 				this.layerBase.playOrContinueBit(bitWalk, skeletonData);
 			}
 		}
-
 
 		List<String> actions = new ArrayList<>();
 		this.layerBase.perform(skeletonData, actions);

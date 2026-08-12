@@ -26,7 +26,6 @@ public class GsonResources
     {
         if (cache.containsKey(location))
         {
-            //noinspection unchecked
             return (T) cache.get(location);
         }
 

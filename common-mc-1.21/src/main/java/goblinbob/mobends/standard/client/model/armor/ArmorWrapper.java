@@ -19,41 +19,17 @@ import net.minecraft.world.entity.LivingEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Wrapper for armor models that provides animated rendering.
- * Updated for Minecraft 1.20.1 - renders custom geometry with Mo' Bends animation.
- *
- * Instead of replacing vanilla model parts, this wrapper creates its own geometry
- * that can be rendered with proper transforms for bendable limbs.
- *
- * @deprecated This class is part of the legacy armor rendering system.
- *             Use {@link goblinbob.mobends.standard.client.model.armor.ArmorRenderingFacade}
- *             and the three-tier rendering system instead (Tier 1, 2, 3 renderers).
- *             This class is kept for backward compatibility and will be removed in a future version.
- */
 @Deprecated
 public class ArmorWrapper
 {
     protected HumanoidModel<?> original;
 
-    /**
-     * Keeps track of whether the model is mutated or not.
-     */
     protected boolean mutated = true;
 
-    /**
-     * True if this armor model should be shown in the mutated form.
-     */
     protected boolean applied = false;
 
-    /**
-     * All part wrappers for syncing and rendering.
-     */
     protected List<IPartWrapper> partWrappers = new ArrayList<>();
 
-    /**
-     * Individual part wrappers for direct access.
-     */
     protected HumanoidPartWrapper bodyParts;
     protected HumanoidPartWrapper headParts;
     protected HumanoidPartWrapper headwearParts;
@@ -62,14 +38,8 @@ public class ArmorWrapper
     protected HumanoidLimbWrapper leftLegParts;
     protected HumanoidLimbWrapper rightLegParts;
 
-    /**
-     * Body transform for parenting arm/head parts.
-     */
     protected ModelPartTransform bodyTransform;
 
-    /**
-     * The inflation value used for this armor (0.5F for inner layer, 1.0F for outer layer).
-     */
     protected float inflation;
 
     private ArmorWrapper(HumanoidModel<?> original, float inflation)
@@ -78,16 +48,11 @@ public class ArmorWrapper
         this.inflation = inflation;
         this.bodyTransform = new ModelPartTransform();
 
-        // Create all part wrappers
         createPartWrappers(original, inflation);
     }
 
-    /**
-     * Create all the part wrappers for this armor model.
-     */
     protected void createPartWrappers(HumanoidModel<?> model, float inflation)
     {
-        // Body - root of upper body hierarchy
         this.bodyParts = new HumanoidPartWrapper(
                 model, model.body, null,
                 data -> data.body,
@@ -97,7 +62,6 @@ public class ArmorWrapper
         bodyParts.offsetInner(0, -12.0F, 0);
         partWrappers.add(bodyParts);
 
-        // Head - child of body
         this.headParts = new HumanoidPartWrapper(
                 model, model.head, null,
                 data -> data.head,
@@ -107,7 +71,6 @@ public class ArmorWrapper
         headParts.setParent(bodyTransform);
         partWrappers.add(headParts);
 
-        // Headwear - child of body (follows head animation)
         this.headwearParts = new HumanoidPartWrapper(
                 model, model.hat, null,
                 data -> data.head,
@@ -117,59 +80,49 @@ public class ArmorWrapper
         headwearParts.setParent(bodyTransform);
         partWrappers.add(headwearParts);
 
-        // Left arm - child of body
         this.leftArmParts = new HumanoidLimbWrapper(
                 model, model.leftArm, null,
                 data -> data.leftArm,
                 data -> data.leftForeArm,
-                4.0F,  // Cut plane at elbow
+                4.0F,
                 inflation + 0.001F
         );
         leftArmParts.offsetLower(0, -4.0F, -2.0F);
         leftArmParts.setParent(bodyTransform);
         partWrappers.add(leftArmParts);
 
-        // Right arm - child of body
         this.rightArmParts = new HumanoidLimbWrapper(
                 model, model.rightArm, null,
                 data -> data.rightArm,
                 data -> data.rightForeArm,
-                4.0F,  // Cut plane at elbow
+                4.0F,
                 inflation + 0.001F
         );
         rightArmParts.offsetLower(0, -4.0F, -2.0F);
         rightArmParts.setParent(bodyTransform);
         partWrappers.add(rightArmParts);
 
-        // Left leg - NOT child of body (legs are independent)
-        // Note: leg X offset comes from animation data, not innerOffset
         this.leftLegParts = new HumanoidLimbWrapper(
                 model, model.leftLeg, null,
                 data -> data.leftLeg,
                 data -> data.leftForeLeg,
-                6.0F,  // Cut plane at knee
+                6.0F,
                 inflation
         );
-        leftLegParts.offsetLower(0, -6.0F, 2.0F);  // No X offset - comes from animation
-        // No innerOffset for legs - position comes from animation data
+        leftLegParts.offsetLower(0, -6.0F, 2.0F);
         partWrappers.add(leftLegParts);
 
-        // Right leg - NOT child of body
         this.rightLegParts = new HumanoidLimbWrapper(
                 model, model.rightLeg, null,
                 data -> data.rightLeg,
                 data -> data.rightForeLeg,
-                6.0F,  // Cut plane at knee
+                6.0F,
                 inflation
         );
-        rightLegParts.offsetLower(0, -6.0F, 2.0F);  // No X offset - comes from animation
-        // No innerOffset for legs - position comes from animation data
+        rightLegParts.offsetLower(0, -6.0F, 2.0F);
         partWrappers.add(rightLegParts);
     }
 
-    /**
-     * Render the armor for a specific equipment slot.
-     */
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer,
                        int packedLight, int packedOverlay,
                        LivingEntity entity, EquipmentSlot slot,
@@ -180,7 +133,6 @@ public class ArmorWrapper
             throw new MalformedArmorModelException("Operating on a demutated armor wrapper.");
         }
 
-        // Get animation data
         EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(entity);
         if (entityBender == null)
             return;
@@ -196,22 +148,16 @@ public class ArmorWrapper
 
         final BipedEntityData<?> dataBiped = (BipedEntityData<?>) entityData;
 
-        // Sync body transform
         bodyTransform.syncUp(dataBiped.body);
 
-        // Sync all parts with animation data
         for (IPartWrapper wrapper : partWrappers)
         {
             wrapper.syncUp(dataBiped);
         }
 
-        // Render the appropriate parts for this slot
         renderSlot(poseStack, vertexConsumer, packedLight, packedOverlay, slot, red, green, blue, alpha);
     }
 
-    /**
-     * Render parts for a specific equipment slot.
-     */
     protected void renderSlot(PoseStack poseStack, VertexConsumer vertexConsumer,
                               int packedLight, int packedOverlay,
                               EquipmentSlot slot,
@@ -245,8 +191,6 @@ public class ArmorWrapper
                 break;
 
             case FEET:
-                // For boots, render the full leg geometry - the texture determines what's visible
-                // Boots use layer_1 texture which has boot pattern on lower leg
                 if (original.leftLeg.visible)
                     leftLegParts.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
                 if (original.rightLeg.visible)
@@ -258,9 +202,6 @@ public class ArmorWrapper
         }
     }
 
-    /**
-     * Prepare the wrapper for rendering (syncs animation data).
-     */
     public void prepareForRendering(LivingEntity entity, float partialTicks)
     {
         EntityBender<LivingEntity> entityBender = EntityBenderRegistry.instance.getForEntity(entity);
@@ -278,10 +219,8 @@ public class ArmorWrapper
 
         final BipedEntityData<?> dataBiped = (BipedEntityData<?>) entityData;
 
-        // Sync the body transform
         this.bodyTransform.syncUp(dataBiped.body);
 
-        // Sync all part wrappers
         for (IPartWrapper wrapper : this.partWrappers)
         {
             wrapper.syncUp(dataBiped);
@@ -290,17 +229,11 @@ public class ArmorWrapper
         this.apply();
     }
 
-    /**
-     * Called after rendering to restore the model to its original state.
-     */
     public void finishRendering()
     {
         this.deapply();
     }
 
-    /**
-     * Brings the original model back to its vanilla state permanently.
-     */
     public void demutate()
     {
         this.deapply();
@@ -354,19 +287,11 @@ public class ArmorWrapper
         return bodyTransform;
     }
 
-    /**
-     * Create an armor wrapper for the given model.
-     * @param src The source HumanoidModel
-     * @param inflation The inflation amount (0.5F for leggings, 1.0F for armor)
-     */
     public static ArmorWrapper createFor(HumanoidModel<?> src, float inflation)
     {
         return new ArmorWrapper(src, inflation);
     }
 
-    /**
-     * Create an armor wrapper with default inflation.
-     */
     public static ArmorWrapper createFor(HumanoidModel<?> src)
     {
         return createFor(src, 1.0F);

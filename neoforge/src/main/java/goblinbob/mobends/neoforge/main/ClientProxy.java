@@ -7,19 +7,12 @@ import goblinbob.mobends.neoforge.client.event.RenderingEventHandler;
 import goblinbob.mobends.standard.main.ModStatics;
 import net.neoforged.neoforge.common.NeoForge;
 
-/**
- * Client-side proxy for Mo' Bends.
- * Updated for Minecraft 1.20.1 - entity rendering registration is now done
- * through the FMLClientSetupEvent in the main mod class.
- */
 public class ClientProxy extends CommonProxy
 {
 
 	@Override
 	public void preInit()
 	{
-		// Entity rendering registration is now done through EntityRenderers.register()
-		// in the main mod class during FMLClientSetupEvent
 	}
 
 	@Override
@@ -27,7 +20,6 @@ public class ClientProxy extends CommonProxy
 	{
 		NeoForge.EVENT_BUS.register(new RenderingEventHandler());
 
-		// Registering the standard set of animations.
 		AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());
 	}
 

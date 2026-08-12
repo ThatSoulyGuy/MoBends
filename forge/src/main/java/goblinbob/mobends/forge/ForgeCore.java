@@ -13,9 +13,6 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 
-/**
- * Client-side Core implementation for Mo' Bends Forge.
- */
 @OnlyIn(Dist.CLIENT)
 public class ForgeCore extends Core
 {
@@ -30,7 +27,6 @@ public class ForgeCore extends Core
         Core.instance = this;
         this.configuration = CoreClientConfig.getInstance();
 
-        // Initialize modules directly
         modules.add(new EnvironmentModule());
         modules.add(new AssetsModule());
     }
@@ -43,13 +39,10 @@ public class ForgeCore extends Core
     @Override
     public void onClientSetup()
     {
-        // Initialize configuration (requires Minecraft to be initialized)
         configuration.initialize();
 
-        // Initialize all registered modules
         initModules();
 
-        // Initialize pack manager
         PackManager.INSTANCE.initialize(configuration);
 
         LOGGER.info("Mo' Bends Forge core initialized");
@@ -68,9 +61,6 @@ public class ForgeCore extends Core
         return INSTANCE;
     }
 
-    /**
-     * Creates the client core instance.
-     */
     public static void createAsClient()
     {
         new ForgeCore();

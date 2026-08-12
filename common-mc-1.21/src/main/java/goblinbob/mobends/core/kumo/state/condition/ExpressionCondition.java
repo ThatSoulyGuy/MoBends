@@ -7,18 +7,6 @@ import goblinbob.mobends.core.kumo.KumoExpressionContext;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 
-/**
- * A trigger condition that evaluates a mathematical expression.
- * The expression can use any variables available in KumoExpressionContext.
- *
- * Example usage in JSON:
- * {
- *   "type": "core:expression",
- *   "expression": "ticksAfterPunch < 10 && onGround"
- * }
- *
- * @author MoBends
- */
 public class ExpressionCondition implements ITriggerCondition
 {
     private final Expression expression;
@@ -50,9 +38,6 @@ public class ExpressionCondition implements ITriggerCondition
         return expression.evaluateBoolean(expressionContext);
     }
 
-    /**
-     * Returns the source expression string.
-     */
     public String getExpressionSource()
     {
         return expressionSource;
@@ -60,27 +45,6 @@ public class ExpressionCondition implements ITriggerCondition
 
     public static class Template extends TriggerConditionTemplate
     {
-        /**
-         * The expression to evaluate. The condition is met when the expression
-         * evaluates to a non-zero value.
-         *
-         * Available variables:
-         * - Time: ticks, partialTicks
-         * - Constants: PI, E
-         * - Motion: motionX/Y/Z, motionMagnitude, xzMotionMagnitude
-         * - State: onGround, isStill, isStrafing, isUnderwater
-         * - Health: health, maxHealth, healthPercent
-         * - Timing: ticksInAir, ticksAfterTouchdown, ticksAfterPunch, ticksFalling
-         * - Animation: limbSwing, limbSwingAmount, swingProgress
-         * - Head: headYaw, headPitch
-         * - Climbing: isClimbing, climbingCycle
-         * - Node: nodeProgress, nodeAnimationProgress, nodeAnimationFinished
-         *
-         * Available operators: +, -, *, /, %, ^, <, >, <=, >=, ==, !=, &&, ||, !
-         * Available functions: sin, cos, tan, abs, min, max, clamp, lerp, etc.
-         *
-         * Example: "ticksAfterPunch < 10 && onGround"
-         */
         public String expression;
     }
 }

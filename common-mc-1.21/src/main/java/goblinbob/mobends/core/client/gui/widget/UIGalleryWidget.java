@@ -7,14 +7,6 @@ import goblinbob.mobends.core.util.ResourceLocationFactory;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Developer "kitchen-sink" gallery: instantiates every UI element with a few variations
- * and live interactions so each widget can be eyeballed for correctness. Items that are
- * known to be unimplemented stubs are labelled "(KNOWN: ...)" so expected-vs-actual is clear.
- *
- * Shown only on the dev-only "UI Test" tab (see MoBendsScreenBuilder). Self-contained and
- * safe to delete wholesale once the UI elements are verified/fixed.
- */
 public final class UIGalleryWidget
 {
     private static final String LOREM =
@@ -32,7 +24,6 @@ public final class UIGalleryWidget
         col.setLayoutParams(wrapColumn(factory));
         col.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        // ==================== TextView ====================
         header(factory, col, "TextView");
         row(factory, col, text(factory, "Plain text", MoBendsTheme.TEXT_PRIMARY, 14, false));
         row(factory, col, text(factory, "Bold text", MoBendsTheme.TEXT_PRIMARY, 14, true));
@@ -52,7 +43,6 @@ public final class UIGalleryWidget
         maxLines.setMaxLines(2);
         row(factory, col, maxLines);
 
-        // ==================== Button ====================
         header(factory, col, "Button");
         final VanillaTextView clickStatus = text(factory, "Clicked: 0", MoBendsTheme.TEXT_SECONDARY, 12, false);
         final int[] count = {0};
@@ -73,7 +63,6 @@ public final class UIGalleryWidget
         disabledBtn.setEnabled(false);
         rowH(factory, col, disabledBtn, MoBendsTheme.BUTTON_HEIGHT);
 
-        // ==================== Toggle ====================
         header(factory, col, "Toggle");
         final VanillaTextView toggleStatus = text(factory, "Toggle: OFF", MoBendsTheme.TEXT_SECONDARY, 12, false);
         VanillaToggle toggle = factory.createToggle(false);
@@ -82,7 +71,6 @@ public final class UIGalleryWidget
         rowH(factory, col, toggle, 20);
         row(factory, col, toggleStatus);
 
-        // ==================== TextField ====================
         header(factory, col, "TextField");
         final VanillaTextView echo = text(factory, "You typed: ", MoBendsTheme.TEXT_SECONDARY, 12, false);
         VanillaTextField field = factory.createTextField("Type here (max 20 chars)...");
@@ -91,7 +79,6 @@ public final class UIGalleryWidget
         rowH(factory, col, field, MoBendsTheme.BUTTON_HEIGHT);
         row(factory, col, echo);
 
-        // ==================== LinearLayout (weights) ====================
         header(factory, col, "LinearLayout — horizontal weights 1 : 2 : 1");
         VanillaLinearLayout hrow = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         hrow.setSpacing(MoBendsTheme.SPACING);
@@ -100,7 +87,6 @@ public final class UIGalleryWidget
         weighted(factory, hrow, 0xFF43D9AD, 1f);
         rowH(factory, col, hrow, 24);
 
-        // ==================== FrameLayout (overlap) ====================
         header(factory, col, "FrameLayout — overlapping children");
         VanillaFrameLayout frame = factory.createFrameLayout();
         VanillaView frameBg = factory.createView();
@@ -111,7 +97,6 @@ public final class UIGalleryWidget
                 VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.GRAVITY_CENTER));
         rowH(factory, col, frame, 36);
 
-        // ==================== ScrollView (nested) ====================
         header(factory, col, "ScrollView — mouse-wheel scrolls; bordered box");
         VanillaScrollView inner = factory.createScrollView();
         inner.setBackgroundColor(MoBendsTheme.BG_LIST);
@@ -132,7 +117,6 @@ public final class UIGalleryWidget
         smoothTop.setOnClickListener(() -> inner.smoothScrollTo(0));
         rowH(factory, col, smoothTop, MoBendsTheme.BUTTON_HEIGHT);
 
-        // ==================== ListView ====================
         header(factory, col, "ListView — simple adapter with dividers");
         final VanillaTextView listStatus = text(factory, "Selected: (none)", MoBendsTheme.TEXT_SECONDARY, 12, false);
         VanillaListView list = factory.createListView();
@@ -143,7 +127,6 @@ public final class UIGalleryWidget
         rowH(factory, col, list, 80);
         row(factory, col, listStatus);
 
-        // ==================== Alpha / animateAlpha ====================
         header(factory, col, "Alpha / animateAlpha (animated fade)");
         VanillaTextView alphaBox = text(factory, "I can fade", MoBendsTheme.TEXT_PRIMARY, 14, true);
         alphaBox.setBackgroundColor(0xFF505870);
@@ -158,7 +141,6 @@ public final class UIGalleryWidget
         alphaBtns.addView(unfade, factory.createLayoutParams(0, MoBendsTheme.BUTTON_HEIGHT, 1f));
         rowH(factory, col, alphaBtns, MoBendsTheme.BUTTON_HEIGHT);
 
-        // ==================== Visibility ====================
         header(factory, col, "Visibility — GONE / VISIBLE");
         VanillaTextView toggleMe = text(factory, "Now you see me", MoBendsTheme.TEXT_PRIMARY, 14, false);
         toggleMe.setBackgroundColor(0xFF425C42);
@@ -171,8 +153,6 @@ public final class UIGalleryWidget
         root.addView(col, wrapColumn(factory));
         return root;
     }
-
-    // ==================== Helpers ====================
 
     private static VanillaLayoutParams wrapColumn(VanillaViewFactory factory)
     {

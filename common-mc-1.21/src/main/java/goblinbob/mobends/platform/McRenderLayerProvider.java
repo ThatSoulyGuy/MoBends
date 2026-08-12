@@ -6,11 +6,6 @@ import goblinbob.mobends.api.resource.IResourcePath;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * Shared implementation of IRenderLayerProvider.
- * Provides access to Minecraft's RenderType factory methods.
- * Uses VersionAdapter for version-specific ResourceLocation creation.
- */
 public class McRenderLayerProvider implements IRenderLayerProvider
 {
     @Override

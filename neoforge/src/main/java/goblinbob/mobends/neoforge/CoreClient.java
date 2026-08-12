@@ -16,9 +16,6 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 
-/**
- * Client-side Core implementation for Mo' Bends NeoForge.
- */
 @OnlyIn(Dist.CLIENT)
 public class CoreClient extends Core
 {
@@ -33,7 +30,6 @@ public class CoreClient extends Core
         Core.instance = this;
         this.configuration = CoreClientConfig.getInstance();
 
-        // Initialize modules directly
         modules.add(new EnvironmentModule());
         modules.add(new AssetsModule());
     }
@@ -46,18 +42,11 @@ public class CoreClient extends Core
     @Override
     public void onClientSetup()
     {
-        // Initialize all registered modules
         initModules();
 
-        // Initialize configuration (requires Minecraft to be initialized)
         configuration.initialize();
 
-        // Initialize pack manager
         PackManager.INSTANCE.initialize(configuration);
-
-        // Note: Event handlers are stubs in common-mc and don't have @SubscribeEvent methods
-        // Platform-specific event handling would need to be implemented in neoforge module
-        // with proper NeoForge annotations
 
         LOGGER.info("Mo' Bends client core initialized");
     }
@@ -75,9 +64,6 @@ public class CoreClient extends Core
         return INSTANCE;
     }
 
-    /**
-     * Creates the client core instance.
-     */
     public static void createAsClient()
     {
         new CoreClient();

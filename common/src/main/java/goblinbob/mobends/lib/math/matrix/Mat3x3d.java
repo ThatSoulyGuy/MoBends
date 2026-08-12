@@ -9,14 +9,14 @@ public class Mat3x3d implements IMat3x3d
 		0, 1, 0,
 		0, 0, 1
 	});
-	
+
 	private final double[] fields;
-	
+
 	public Mat3x3d()
 	{
 		this.fields = new double[9];
 	}
-	
+
 	public Mat3x3d(int fillValue)
 	{
 		this();
@@ -25,7 +25,7 @@ public class Mat3x3d implements IMat3x3d
 			this.fields[i] = fillValue;
 		}
 	}
-	
+
 	public Mat3x3d(double[] fields)
 	{
 		this();
@@ -34,7 +34,7 @@ public class Mat3x3d implements IMat3x3d
 			this.fields[i] = fields[i];
 		}
 	}
-	
+
 	public Mat3x3d(IMat3x3d other)
 	{
 		this();
@@ -44,7 +44,7 @@ public class Mat3x3d implements IMat3x3d
 			this.fields[i] = otherFields[i];
 		}
 	}
-	
+
 	@Override
 	public double[] getFields()
 	{
@@ -56,13 +56,13 @@ public class Mat3x3d implements IMat3x3d
 	{
 		return this.fields[r + c * 3];
 	}
-	
+
 	@Override
 	public void set(int c, int r, double value)
 	{
 		this.fields[r + c * 3] = value;
 	}
-	
+
 	@Override
 	public void setFields(double... values)
 	{
@@ -91,5 +91,5 @@ public class Mat3x3d implements IMat3x3d
 			this.fields[i] *= scalar;
 		}
 	}
-	
+
 }

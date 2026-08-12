@@ -6,13 +6,6 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 
-/**
- * NeoForge 1.21.1 implementation of IArmorColorProvider.
- *
- * In MC 1.21.1 armor dye colors are stored via the DataComponents.DYED_COLOR
- * component, and dyeable items are identified by the {@code minecraft:dyeable}
- * item tag.
- */
 public class NeoForgeArmorColorProvider implements IArmorColorProvider
 {
     @Override

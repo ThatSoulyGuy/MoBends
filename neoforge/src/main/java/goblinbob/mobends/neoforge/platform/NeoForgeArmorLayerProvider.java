@@ -6,12 +6,6 @@ import net.minecraft.world.item.ArmorMaterial;
 
 import java.util.function.Consumer;
 
-/**
- * NeoForge 1.21.1 implementation of IArmorLayerProvider.
- *
- * MC 1.21.1 armor materials have multiple layers (for trims, dyes, etc).
- * This provider iterates through ArmorMaterial.layers().
- */
 public class NeoForgeArmorLayerProvider implements IArmorLayerProvider
 {
     @Override

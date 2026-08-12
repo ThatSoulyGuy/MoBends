@@ -9,7 +9,6 @@ public class VanillaScrollView extends VanillaViewGroup
     protected int maxScroll = 0;
     private boolean verticalScrollBarEnabled = true;
 
-    // Smooth-scroll animation state
     private int targetScroll = 0;
     private boolean animatingScroll = false;
 
@@ -43,7 +42,6 @@ public class VanillaScrollView extends VanillaViewGroup
 
     public void setOverScrollEnabled(boolean enabled)
     {
-        // No-op
     }
 
     public void measure(int availableWidth, int availableHeight)
@@ -92,7 +90,6 @@ public class VanillaScrollView extends VanillaViewGroup
         }
         else
         {
-            // Ease toward the target; the per-frame step is at least 1px so it always converges.
             scrollOffset += diff > 0 ? Math.max(1, (int) (diff * 0.30f)) : Math.min(-1, (int) (diff * 0.30f));
         }
     }

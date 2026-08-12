@@ -1,10 +1,5 @@
 package goblinbob.mobends.standard.client.model.armor;
 
-
-/**
- * Stores all data for a captured vertex from armor rendering.
- * Immutable - created once during capture.
- */
 public class CapturedVertex
 {
     public final float x, y, z;

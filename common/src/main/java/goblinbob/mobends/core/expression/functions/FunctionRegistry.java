@@ -7,14 +7,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-/**
- * Registry for built-in expression functions.
- */
 public final class FunctionRegistry {
     private static final Map<String, ExpressionFunction> FUNCTIONS = new HashMap<>();
     private static final Random RANDOM = new Random();
 
-    // Permutation table for Perlin noise
     private static final int[] PERM = new int[512];
     static {
         int[] p = {151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
@@ -33,7 +29,6 @@ public final class FunctionRegistry {
     }
 
     static {
-        // Trigonometric functions
         register("sin", ExpressionFunction.of(1, args -> Math.sin(args[0])));
         register("cos", ExpressionFunction.of(1, args -> Math.cos(args[0])));
         register("tan", ExpressionFunction.of(1, args -> Math.tan(args[0])));
@@ -42,7 +37,6 @@ public final class FunctionRegistry {
         register("atan", ExpressionFunction.of(1, args -> Math.atan(args[0])));
         register("atan2", ExpressionFunction.of(2, args -> Math.atan2(args[0], args[1])));
 
-        // Basic math
         register("abs", ExpressionFunction.of(1, args -> Math.abs(args[0])));
         register("floor", ExpressionFunction.of(1, args -> Math.floor(args[0])));
         register("ceil", ExpressionFunction.of(1, args -> Math.ceil(args[0])));
@@ -53,7 +47,6 @@ public final class FunctionRegistry {
         register("log", ExpressionFunction.of(1, args -> Math.log(args[0])));
         register("log10", ExpressionFunction.of(1, args -> Math.log10(args[0])));
 
-        // Utility functions
         register("min", ExpressionFunction.of(2, Integer.MAX_VALUE, args -> {
             double result = args[0];
             for (int i = 1; i < args.length; i++) {
@@ -81,7 +74,6 @@ public final class FunctionRegistry {
         register("frac", ExpressionFunction.of(1, args -> args[0] - Math.floor(args[0])));
         register("mod", ExpressionFunction.of(2, args -> args[1] != 0 ? args[0] % args[1] : 0.0));
 
-        // Random functions (non-pure)
         register("random", ExpressionFunction.impure(0, 2, args -> {
             if (args.length == 0) {
                 return RANDOM.nextDouble();
@@ -92,7 +84,6 @@ public final class FunctionRegistry {
             }
         }));
 
-        // Perlin noise (pure - deterministic based on input)
         register("noise", ExpressionFunction.of(1, 3, args -> {
             if (args.length == 1) {
                 return perlin1D(args[0]);
@@ -103,17 +94,13 @@ public final class FunctionRegistry {
             }
         }));
 
-        // Conversion functions
         register("degToRad", ExpressionFunction.of(1, args -> Math.toRadians(args[0])));
         register("radToDeg", ExpressionFunction.of(1, args -> Math.toDegrees(args[0])));
 
-        // Conditional (ternary) as function alternative
         register("if", ExpressionFunction.of(3, args -> args[0] != 0.0 ? args[1] : args[2]));
 
-        // Step function
         register("step", ExpressionFunction.of(2, args -> args[1] >= args[0] ? 1.0 : 0.0));
 
-        // Mix (same as lerp but different argument order for GLSL compatibility)
         register("mix", ExpressionFunction.of(3, args -> args[0] * (1 - args[2]) + args[1] * args[2]));
     }
 
@@ -139,7 +126,6 @@ public final class FunctionRegistry {
         return FUNCTIONS.keySet();
     }
 
-    // Perlin noise implementations
     private static double fade(double t) {
         return t * t * t * (t * (t * 6 - 15) + 10);
     }

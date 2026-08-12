@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.client.model.BendsCube;
 import goblinbob.mobends.core.client.model.BendsModelPart;
+import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.lib.math.Quaternion;
@@ -27,7 +28,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                                    M extends HumanoidModel<E>>
                                   extends Mutator<D, E, M>
 {
-    // Custom bendable parts
     protected BendsModelPart body;
     protected BendsModelPart head;
     protected BendsModelPart headwear;
@@ -40,8 +40,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected BendsModelPart leftForeLeg;
     protected BendsModelPart rightForeLeg;
 
-    // Outer parts: parallel hierarchy with inflated cubes for overlay textures
-    // (e.g. Drowned outer layer). Rendered separately via renderOuter().
     protected BendsModelPart outerBody;
     protected BendsModelPart outerHead;
     protected BendsModelPart outerLeftArm;
@@ -53,7 +51,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected BendsModelPart outerLeftForeLeg;
     protected BendsModelPart outerRightForeLeg;
 
-    // Store vanilla model parts for demutation
     protected ModelPart vanillaBody;
     protected ModelPart vanillaHead;
     protected ModelPart vanillaHat;
@@ -74,11 +71,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         super(dataFactory);
     }
 
-    /**
-     * Used to store the model parameter as the
-     * vanilla model, so then the mutation can be
-     * reversed.
-     */
     @Override
     public void storeVanillaModel(M model)
     {
@@ -91,23 +83,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         this.vanillaRightLeg = model.rightLeg;
     }
 
-    /**
-     * Sets the model parameter back to it's vanilla
-     * state. Used to demutate the model.
-     */
     @Override
     public void applyVanillaModel(M model)
     {
-        // In 1.20.1, model parts are final and cannot be directly replaced
-        // The demutation will need to handle this differently
-        // For now, we just track that we need to restore vanilla rendering
     }
 
-    /**
-     * Swaps out the vanilla layers for their custom counterparts,
-     * and if it's a vanilla model, it stores the vanilla layers
-     * for future mutation reversal.
-     */
     @Override
     @SuppressWarnings("unchecked")
     public void swapLayer(LivingEntityRenderer<E, M> renderer, int index, boolean isModelVanilla)
@@ -119,14 +99,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             if (isModelVanilla)
                 this.layerArmorVanilla = vanillaArmor;
 
-            // Create our custom armor layer
             this.layerArmor = new LayerCustomBipedArmor<>(renderer, this);
             this.layerArmor.setVanillaArmorLayer(vanillaArmor);
 
-            // Try to get armor models from the vanilla layer using reflection or standard models
             try
             {
-                // Use standard humanoid armor models
                 net.minecraft.client.model.geom.ModelLayerLocation innerLocation =
                     net.minecraft.client.model.geom.ModelLayers.PLAYER_INNER_ARMOR;
                 net.minecraft.client.model.geom.ModelLayerLocation outerLocation =
@@ -140,7 +117,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             }
             catch (Exception e)
             {
-                // Continue silently - vanilla fallback will be used
             }
 
             layerRenderers.set(index, this.layerArmor);
@@ -154,17 +130,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
         else if (layer instanceof CustomHeadLayer)
         {
-            // For custom head layer, we need special handling
             if (isModelVanilla)
                 this.layerCustomHeadVanilla = (CustomHeadLayer<E, M>) layer;
-            // Don't swap - let vanilla handle it for now
         }
     }
 
-    /**
-     * Swaps the custom layers back with the vanilla layers.
-     * Used to demutate the model.
-     */
     @Override
     public void deswapLayer(LivingEntityRenderer<E, M> renderer, int index)
     {
@@ -183,68 +153,66 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
     }
 
-    /**
-     * Creates all the custom parts you need! It creates custom
-     * BendsModelPart instances for bendable limbs.
-     */
     @Override
     public boolean createParts(M original, float scaleFactor)
     {
-        // Create custom bendable parts
-        // Body - the root of the upper body hierarchy
         body = new BendsModelPart(16, 16)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 12.0F, 0.0F);
         body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
 
-        // Head - child of body
         head = new BendsModelPart(0, 0)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, -12.0F, 0.0F);
         head.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor);
         body.addChild(head);
 
-        // Headwear - child of head
         headwear = new BendsModelPart(32, 0)
                 .setTextureSize(64, 64);
         headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
         head.addChild(headwear);
 
-        // Arms
         int armWidth = 4;
         float armY = -10F;
 
-        // Left arm - child of body
         leftArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
                 .setPosition(5.0F, armY, 0.0F)
                 .setMirror(true);
-        leftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
+        leftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(leftArm);
 
-        // Right arm - child of body
         rightArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
                 .setPosition(-5.0F, armY, 0.0F);
-        rightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor);
+        rightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         body.addChild(rightArm);
 
-        // Left forearm - child of left arm
         leftForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
-        leftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor);
+        leftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftArm.addChild(leftForeArm);
 
-        // Right forearm - child of right arm
         rightForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F);
-        rightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor);
+        rightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightArm.addChild(rightForeArm);
 
-        // Legs - independent roots (not children of body)
         rightLeg = new BendsModelPart(0, 16)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 12F, 0F);
@@ -256,19 +224,23 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setMirror(true);
         leftLeg.addCube(-0.1F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
 
-        // Left foreleg - child of left leg
         leftForeLeg = new BendsModelPart(0, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F)
                 .setMirror(true);
-        leftForeLeg.addCube(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor);
+        leftForeLeg.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         leftLeg.addChild(leftForeLeg);
 
-        // Right foreleg - child of right leg
         rightForeLeg = new BendsModelPart(0, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F);
-        rightForeLeg.addCube(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor);
+        rightForeLeg.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         rightLeg.addChild(rightForeLeg);
 
         createOuterParts(scaleFactor);
@@ -276,12 +248,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return true;
     }
 
-    /**
-     * Creates a parallel hierarchy of outer parts with inflated cubes, used for
-     * overlay textures (e.g. Drowned outer layer). UVs mirror base parts, which matches
-     * the standard 64x64 humanoid overlay texture layout used by Drowned/Stray/etc.
-     * Subclasses can override to change UVs or skip creation.
-     */
     protected void createOuterParts(float scaleFactor)
     {
         final float outerOffset = 0.25F;
@@ -303,26 +269,38 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64)
                 .setPosition(5.0F, armY, 0.0F)
                 .setMirror(true);
-        outerLeftArm.addCube(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerLeftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         outerBody.addChild(outerLeftArm);
 
         outerRightArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
                 .setPosition(-5.0F, armY, 0.0F);
-        outerRightArm.addCube(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerRightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .hideFace(BoxSide.BOTTOM)
+                .create();
         outerBody.addChild(outerRightArm);
 
         outerLeftForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
-        outerLeftForeArm.addCube(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerLeftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerLeftArm.addChild(outerLeftForeArm);
 
         outerRightForeArm = new BendsModelPart(40, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, 4.0F, 2.0F);
-        outerRightForeArm.addCube(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset);
+        outerRightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset)
+                .hideFace(BoxSide.TOP)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerRightArm.addChild(outerRightForeArm);
 
         outerRightLeg = new BendsModelPart(0, 16)
@@ -340,13 +318,19 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F)
                 .setMirror(true);
-        outerLeftForeLeg.addCube(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset);
+        outerLeftForeLeg.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerLeftLeg.addChild(outerLeftForeLeg);
 
         outerRightForeLeg = new BendsModelPart(0, 22)
                 .setTextureSize(64, 64)
                 .setPosition(0, 6.0F, -2.0F);
-        outerRightForeLeg.addCube(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset);
+        outerRightForeLeg.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset)
+                .inflate(0.01F, 0F, 0.01F)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
+                .create();
         outerRightLeg.addChild(outerRightForeLeg);
     }
 
@@ -365,13 +349,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         rightForeLeg.syncUp(data.rightForeLeg);
     }
 
-    /**
-     * True, if this renderer wasn't mutated before.
-     */
     @Override
     public boolean isModelVanilla(M model)
     {
-        // Check if we've already created custom parts
         return this.body == null;
     }
 
@@ -391,13 +371,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                               int packedLight, int packedOverlay, int color)
     {
-        // Render body and attached parts
         if (body != null)
         {
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
-        // Render legs (not attached to body)
         if (leftLeg != null)
         {
             leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
@@ -408,19 +386,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
     }
 
-    /**
-     * True if the mutator has outer parts built and ready to render an overlay pass.
-     */
     public boolean hasOuterParts()
     {
         return outerBody != null;
     }
 
-    /**
-     * Render the outer-parts hierarchy with the caller-supplied vertex consumer.
-     * Used by overlay layers (Drowned outer layer, etc.) so the overlay texture
-     * renders with MoBends joint bending instead of vanilla's rigid geometry.
-     */
     public void renderOuter(PoseStack poseStack, VertexConsumer vertexConsumer,
                             int packedLight, int packedOverlay, int color)
     {
@@ -462,7 +432,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         dst.hidden = src.hidden;
     }
 
-    // Getters for layers to access parts
     public BendsModelPart getBody() { return body; }
     public BendsModelPart getHead() { return head; }
     public BendsModelPart getLeftArm() { return leftArm; }
@@ -474,20 +443,14 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public BendsModelPart getLeftForeLeg() { return leftForeLeg; }
     public BendsModelPart getRightForeLeg() { return rightForeLeg; }
 
-    // Store the vanilla default positions so we can restore + offset
     private float[] vanillaBodyPos, vanillaHeadPos, vanillaLeftArmPos, vanillaRightArmPos,
                     vanillaLeftLegPos, vanillaRightLegPos;
     private boolean vanillaPositionsStored = false;
 
-    /**
-     * Sync animated poses from BendsModelParts to vanilla HumanoidModel ModelParts.
-     * This allows vanilla layers (armor, held items) to use our animated poses.
-     */
     public void syncPosesToVanillaModel(HumanoidModel<?> model)
     {
         if (model == null) return;
 
-        // Store vanilla default positions on first call
         if (!vanillaPositionsStored)
         {
             vanillaBodyPos = new float[]{model.body.x, model.body.y, model.body.z};
@@ -521,11 +484,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         syncPartToModelPart(leftLeg, model.leftLeg, vanillaLeftLegPos);
         syncPartToModelPart(rightLeg, model.rightLeg, vanillaRightLegPos);
 
-        // Sync hat visibility with head
         if (model.hat != null && head != null)
         {
             model.hat.visible = head.isShowing();
-            // Sync hat position/rotation with head
             model.hat.x = model.head.x;
             model.hat.y = model.head.y;
             model.hat.z = model.head.z;
@@ -535,16 +496,10 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
     }
 
-    /**
-     * Sync a single BendsModelPart's transform to a vanilla ModelPart.
-     * Syncs rotation, visibility, and animation position offsets.
-     */
     private void syncPartToModelPart(BendsModelPart bendsPart, ModelPart modelPart, float[] vanillaPos)
     {
         if (bendsPart == null || modelPart == null) return;
 
-        // Sync animation offset to vanilla model position
-        // Add the animation offset to the stored vanilla base position
         if (vanillaPos != null)
         {
             modelPart.x = vanillaPos[0] + bendsPart.offset.x;
@@ -552,14 +507,12 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             modelPart.z = vanillaPos[2] + bendsPart.offset.z;
         }
 
-        // Convert quaternion rotation to Euler angles (XYZ order)
         Quaternion q = bendsPart.rotation.getSmooth();
         float[] euler = quaternionToEulerXYZ(q);
         modelPart.xRot = euler[0];
         modelPart.yRot = euler[1];
         modelPart.zRot = euler[2];
 
-        // Sync visibility
         modelPart.visible = bendsPart.isShowing();
     }
 
@@ -612,10 +565,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     private static final float[] ZERO_EULER = {0, 0, 0};
 
-    /**
-     * Get the forearm/foreleg euler angles for the given part.
-     * Used by CuriosCompat to provide split-joint transforms for curio rendering.
-     */
     private float[] getForePartEulerAngles(BendsModelPart forePart)
     {
         if (forePart == null) return ZERO_EULER;
@@ -627,20 +576,14 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public float[] getLeftForeLegEulerAngles() { return getForePartEulerAngles(leftForeLeg); }
     public float[] getRightForeLegEulerAngles() { return getForePartEulerAngles(rightForeLeg); }
 
-    /**
-     * Convert quaternion to Euler angles in XYZ rotation order (radians).
-     * Returns [xRot, yRot, zRot].
-     */
     private static float[] quaternionToEulerXYZ(Quaternion q)
     {
         float[] euler = new float[3];
 
-        // X rotation (pitch)
         float sinX = 2.0f * (q.w * q.x + q.y * q.z);
         float cosX = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
         euler[0] = (float) Math.atan2(sinX, cosX);
 
-        // Y rotation (yaw)
         float sinY = 2.0f * (q.w * q.y - q.z * q.x);
         if (Math.abs(sinY) >= 1.0f)
         {
@@ -651,7 +594,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             euler[1] = (float) Math.asin(sinY);
         }
 
-        // Z rotation (roll)
         float sinZ = 2.0f * (q.w * q.z + q.x * q.y);
         float cosZ = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
         euler[2] = (float) Math.atan2(sinZ, cosZ);

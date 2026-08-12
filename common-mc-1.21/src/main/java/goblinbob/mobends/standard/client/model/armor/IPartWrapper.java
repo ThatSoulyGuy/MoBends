@@ -6,14 +6,6 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 
-/**
- * Interface for wrapping model parts for armor animation.
- * Updated for Minecraft 1.20.1 - uses HumanoidModel and modern ModelPart.
- *
- * @deprecated This interface is part of the legacy armor rendering system.
- *             Use the three-tier rendering system (ArmorRenderingFacade) instead.
- *             This interface is kept for backward compatibility and will be removed in a future version.
- */
 @Deprecated
 public interface IPartWrapper
 {

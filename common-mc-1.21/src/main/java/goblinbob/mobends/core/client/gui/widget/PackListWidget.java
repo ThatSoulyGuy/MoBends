@@ -16,10 +16,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-/**
- * Pack list widget.
- * Displays a scrollable list of bends packs with toggle switches for activation.
- */
 public class PackListWidget
 {
     private static final Logger LOG = LogUtils.getLogger();
@@ -143,34 +139,27 @@ public class PackListWidget
         return scrollView;
     }
 
-    // ==================== Private Methods ====================
-
     private PackItemInfo createPackItem(IBendsPack pack, boolean applied)
     {
-        // Root layout (horizontal: accent | info | toggle)
         VanillaLinearLayout rootLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         rootLayout.setBackgroundColor(MoBendsTheme.BG_LIST_ITEM);
         rootLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
         rootLayout.setPadding(0, 0, MoBendsTheme.PADDING, 0);
 
-        // Accent bar (left edge, shows applied status)
         VanillaView accentBar = factory.createView();
         accentBar.setBackgroundColor(applied ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
         accentBar.setLayoutParams(factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
 
-        // Info container (vertical: name, author/description)
         VanillaLinearLayout infoLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         infoLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
         VanillaLayoutParams infoParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
         infoParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
-        // Pack name
         VanillaTextView nameView = factory.createTextView(pack.getDisplayName());
         nameView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         nameView.setTextSize(13);
         nameView.setBold(true);
 
-        // Pack author
         VanillaTextView authorView = factory.createTextView("by " + pack.getAuthor());
         authorView.setTextColor(MoBendsTheme.TEXT_SECONDARY);
         authorView.setTextSize(10);
@@ -180,11 +169,9 @@ public class PackListWidget
         infoLayout.addView(authorView, factory.createLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT));
 
-        // Toggle switch for apply/remove
         VanillaToggle toggle = factory.createToggle(applied);
         toggle.setOnCheckedChangeListener(checked -> onPackToggled(pack, checked, accentBar));
 
-        // Assemble
         rootLayout.addView(accentBar, factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
         rootLayout.addView(infoLayout, infoParams);
         rootLayout.addView(toggle, factory.createLayoutParams(
@@ -192,7 +179,6 @@ public class PackListWidget
 
         PackItemInfo itemInfo = new PackItemInfo(pack, rootLayout, accentBar, nameView, authorView, toggle, applied);
 
-        // Click to select (show details), toggle to activate/deactivate
         rootLayout.setOnClickListener(() -> onItemClicked(itemInfo));
 
         return itemInfo;
@@ -200,10 +186,8 @@ public class PackListWidget
 
     private void onPackToggled(IBendsPack pack, boolean apply, VanillaView accentBar)
     {
-        // Update the accent bar color
         accentBar.setBackgroundColor(apply ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
 
-        // Update the item's applied state
         for (PackItemInfo item : items)
         {
             if (item.pack.getKey().equals(pack.getKey()))
@@ -213,13 +197,11 @@ public class PackListWidget
             }
         }
 
-        // Collect all currently applied pack keys
         List<String> appliedKeys = items.stream()
                 .filter(item -> item.applied)
                 .map(item -> item.pack.getKey())
                 .collect(Collectors.toList());
 
-        // Apply to PackManager
         try
         {
             PackManager.INSTANCE.setAppliedPacks(appliedKeys, true);
@@ -228,7 +210,6 @@ public class PackListWidget
         catch (InvalidPackFormatException e)
         {
             LOG.error("Failed to apply pack '{}': {}", pack.getDisplayName(), e.getMessage());
-            // Revert the toggle state on failure
             for (PackItemInfo item : items)
             {
                 if (item.pack.getKey().equals(pack.getKey()))
@@ -266,8 +247,6 @@ public class PackListWidget
                 selected ? MoBendsTheme.BG_LIST_ITEM_SELECTED : MoBendsTheme.BG_LIST_ITEM
         );
     }
-
-    // ==================== Inner Classes ====================
 
     private static class PackItemInfo
     {

@@ -7,40 +7,18 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 
-/**
- * Wrapper for a single body part in humanoid armor models (head, body, headwear).
- * Creates armor geometry that follows Mo' Bends animation.
- *
- * Updated for Minecraft 1.20.1 - creates its own renderable geometry.
- *
- * @deprecated This class is part of the legacy armor rendering system.
- *             Use the three-tier rendering system (ArmorRenderingFacade) instead.
- *             This class is kept for backward compatibility and will be removed in a future version.
- */
 @Deprecated
 public class HumanoidPartWrapper implements IPartWrapper
 {
     protected IPartWrapper.DataPartSelector dataPartSelector;
     protected IPartWrapper.ModelPartSetter modelPartSetter;
 
-    /**
-     * The armor part containing our geometry.
-     */
     protected ArmorPart armorPart;
 
-    /**
-     * Parent transform.
-     */
     protected IModelPart parentTransform;
 
-    /**
-     * Inner offset.
-     */
     protected float innerOffsetX, innerOffsetY, innerOffsetZ;
 
-    /**
-     * The type of part (for determining geometry).
-     */
     public enum PartType
     {
         HEAD,
@@ -64,17 +42,10 @@ public class HumanoidPartWrapper implements IPartWrapper
         this.partType = partType;
         this.inflation = inflation;
 
-        // Create the armor part with appropriate geometry
         this.armorPart = new ArmorPart();
         createGeometry(vanillaPart, partType, inflation);
     }
 
-    /**
-     * Create geometry appropriate for this part type.
-     * @param vanillaPart The vanilla model part for reference
-     * @param partType The type of part (HEAD, BODY, HEADWEAR)
-     * @param inflation The inflation amount from the armor layer
-     */
     protected void createGeometry(ModelPart vanillaPart, PartType partType, float inflation)
     {
         float textureWidth = 64.0F;
@@ -83,7 +54,6 @@ public class HumanoidPartWrapper implements IPartWrapper
         switch (partType)
         {
             case HEAD:
-                // Head: 8x8x8, positioned at (-4, -8, -4), texture at (0, 0)
                 ArmorCube headCube = new ArmorCube(
                         -4.0F, -8.0F, -4.0F,
                         4.0F, 0.0F, 4.0F,
@@ -96,12 +66,10 @@ public class HumanoidPartWrapper implements IPartWrapper
                 break;
 
             case HEADWEAR:
-                // Headwear (hat layer): 8x8x8, positioned at (-4, -8, -4), texture at (32, 0)
-                // Headwear is slightly larger than base head
                 ArmorCube hatCube = new ArmorCube(
                         -4.0F, -8.0F, -4.0F,
                         4.0F, 0.0F, 4.0F,
-                        inflation + 0.5F,  // Extra 0.5 on top of base inflation for outer layer
+                        inflation + 0.5F,
                         32, 0,
                         textureWidth, textureHeight,
                         false
@@ -111,7 +79,6 @@ public class HumanoidPartWrapper implements IPartWrapper
 
             case BODY:
             default:
-                // Body: 8x12x4, positioned at (-4, 0, -2), texture at (16, 16)
                 ArmorCube bodyCube = new ArmorCube(
                         -4.0F, 0.0F, -2.0F,
                         4.0F, 12.0F, 2.0F,
@@ -141,7 +108,6 @@ public class HumanoidPartWrapper implements IPartWrapper
     @Override
     public void deapply(ArmorWrapper armorWrapper)
     {
-        // No action needed
     }
 
     @Override
@@ -161,9 +127,6 @@ public class HumanoidPartWrapper implements IPartWrapper
         return this;
     }
 
-    /**
-     * Render this part's geometry.
-     */
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer,
                        int packedLight, int packedOverlay,
                        float red, float green, float blue, float alpha)
@@ -172,13 +135,11 @@ public class HumanoidPartWrapper implements IPartWrapper
 
         poseStack.pushPose();
 
-        // Apply parent transform (typically body for head)
         if (parentTransform != null)
         {
             parentTransform.applyCharacterTransform(poseStack, 1.0F / 16.0F);
         }
 
-        // Render the part
         armorPart.renderLocal(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
 
         poseStack.popPose();
@@ -189,9 +150,6 @@ public class HumanoidPartWrapper implements IPartWrapper
         return armorPart;
     }
 
-    /**
-     * Update rotation interpolation.
-     */
     public void update(float ticksPerFrame)
     {
         armorPart.update(ticksPerFrame);

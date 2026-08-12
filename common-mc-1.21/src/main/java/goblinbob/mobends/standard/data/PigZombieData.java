@@ -22,7 +22,6 @@ public class PigZombieData extends BipedEntityData<ZombifiedPiglin>
 	@Override
 	public void onTicksRestart()
 	{
-		// No behaviour
 	}
 
 }

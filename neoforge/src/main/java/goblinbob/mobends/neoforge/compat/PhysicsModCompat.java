@@ -9,15 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
-/**
- * Compatibility helper for Physics Mod.
- * When Physics Mod has active ragdoll/physics on an entity,
- * Mo'Bends defers entirely and does not apply animations.
- *
- * Detection uses a two-tier approach:
- * - Tier 1: entity.isDeadOrDying() when Physics Mod is loaded (ragdoll on death)
- * - Tier 2: Reflection into Physics Mod API for precise ragdoll state check
- */
 @OnlyIn(Dist.CLIENT)
 public class PhysicsModCompat
 {
@@ -28,7 +19,6 @@ public class PhysicsModCompat
     private static boolean isLoaded = false;
     private static boolean reflectionAvailable = false;
 
-    // Reflection cache for Physics Mod ragdoll API
     private static Method isRagdollActiveMethod;
 
     public static void init()
@@ -56,7 +46,6 @@ public class PhysicsModCompat
 
     private static void initReflection() throws Exception
     {
-        // Try known Physics Mod API classes across versions
         String[] possibleClasses = {
             "net.diebuddies.physics.ragdoll.RagdollManager",
             "net.diebuddies.physics.ragdoll.RagdollHook",
@@ -81,7 +70,6 @@ public class PhysicsModCompat
             throw new ClassNotFoundException("No known Physics Mod API class found");
         }
 
-        // Try to find a method to check ragdoll state per entity
         String[] possibleMethods = { "isRagdollActive", "hasActiveRagdoll", "isEntityPhysicsActive" };
 
         for (String methodName : possibleMethods)
@@ -112,15 +100,10 @@ public class PhysicsModCompat
         return isLoaded;
     }
 
-    /**
-     * Check if Physics Mod has active physics/ragdoll on the entity.
-     * Tier 2 (reflection) is tried first, falls back to Tier 1 (death state).
-     */
     public static boolean hasActivePhysics(LivingEntity entity)
     {
         if (!isModLoaded()) return false;
 
-        // Tier 2: Reflection API for precise state check
         if (reflectionAvailable && isRagdollActiveMethod != null)
         {
             try
@@ -137,7 +120,6 @@ public class PhysicsModCompat
             }
         }
 
-        // Tier 1: Physics Mod activates ragdoll on entity death
         return entity.isDeadOrDying();
     }
 

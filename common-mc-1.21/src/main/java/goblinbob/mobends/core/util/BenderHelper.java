@@ -10,11 +10,6 @@ import net.minecraft.world.entity.LivingEntity;
 public class BenderHelper
 {
 
-    /**
-     * Returns true of the passed entity has been both registered and is currently enabled.
-     * @param entity
-     * @return
-     */
     public static boolean isEntityAnimated(LivingEntity entity)
     {
         final EntityBender<?> bender = EntityBenderRegistry.instance.getForEntity(entity);

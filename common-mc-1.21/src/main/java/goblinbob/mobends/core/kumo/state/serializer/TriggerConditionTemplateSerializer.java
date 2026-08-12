@@ -38,7 +38,6 @@ public class TriggerConditionTemplateSerializer implements JsonSerializer<Trigge
 
         if (templateType.equals(typeOfT))
         {
-            // If the template type of this condition is the base class.
             return abstractTriggerCondition;
         }
 

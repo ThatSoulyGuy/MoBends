@@ -8,7 +8,7 @@ import net.minecraft.world.entity.HumanoidArm;
 public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	private static final String[] ACTIONS = new String[] { "fist_guard" };
-	
+
 	@Override
 	public String[] getActions(BipedEntityData<?> entityData)
 	{
@@ -22,13 +22,10 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 		HumanoidArm primaryHand = living.getMainArm();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 
 		if (!data.isStillHorizontally())
 		{
-			// Skipping the fist guard if the entity is moving around.
 			return;
 		}
 
@@ -37,7 +34,7 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 		if (!crouching)
 			data.globalOffset.slideY(-2.0F);
 		data.renderRotation.setSmoothness(.3F).orientY(-20 * handDirMtp);
-		
+
 		data.rightArm.rotation.setSmoothness(.3F).orientX(-90F)
 				.rotateZ(20F);
 		data.rightForeArm.rotation.setSmoothness(.3F).orientX(-80F);
@@ -45,7 +42,7 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.leftArm.rotation.setSmoothness(.3F).orientX(-90F)
 				.rotateZ(-20F);
 		data.leftForeArm.rotation.setSmoothness(.3F).orientX(-80F);
-		
+
 		data.body.rotation.rotateX(10);
 
 		if (!crouching)

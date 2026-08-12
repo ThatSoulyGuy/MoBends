@@ -10,12 +10,6 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
-/**
- * NeoForge 1.21.1 implementation of IArmorTextureProvider.
- *
- * Uses NeoForge's IItemExtension.getArmorTexture() hook to allow mods
- * to override the armor texture location.
- */
 public class NeoForgeArmorTextureProvider implements IArmorTextureProvider
 {
     @Override
@@ -24,7 +18,6 @@ public class NeoForgeArmorTextureProvider implements IArmorTextureProvider
             ArmorItem armorItem, ItemStack itemStack, E entity,
             EquipmentSlot slot, @Nullable Object layer, boolean isInnerModel)
     {
-        // NeoForge 1.21.1: ArmorItem.getArmorTexture(ItemStack, Entity, EquipmentSlot, ArmorMaterial.Layer, boolean)
         ArmorMaterial.Layer materialLayer = (layer instanceof ArmorMaterial.Layer) ? (ArmorMaterial.Layer) layer : null;
         return armorItem.getArmorTexture(itemStack, entity, slot, materialLayer, isInnerModel);
     }

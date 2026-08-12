@@ -5,7 +5,7 @@ import goblinbob.mobends.api.rendering.IArmorColorProvider;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.standard.client.model.armor.tier.RenderTier;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,11 +13,6 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
-/**
- * Context object passed through the armor render pipeline.
- * Contains all information needed to render armor with Mo'Bends transforms.
- * Immutable - created once per render call.
- */
 public class ArmorRenderContext<E extends LivingEntity>
 {
     private final E entity;
@@ -30,11 +25,10 @@ public class ArmorRenderContext<E extends LivingEntity>
     private final int packedOverlay;
     private final float partialTicks;
     @Nullable
-    private final HumanoidModel<?> armorModel;
+    private final Model armorModel;
     @Nullable
     private RenderTier determinedTier;
 
-    // Cached entity properties
     private final boolean isBaby;
     private final boolean isSlimArms;
 
@@ -52,15 +46,10 @@ public class ArmorRenderContext<E extends LivingEntity>
         this.armorModel = builder.armorModel;
         this.determinedTier = builder.determinedTier;
 
-        // Cache entity properties for efficient access
         this.isBaby = builder.entity != null && builder.entity.isBaby();
         this.isSlimArms = detectSlimArms(builder.entity);
     }
 
-    /**
-     * Detect if the entity uses slim arm model.
-     * For players, this is determined by the skin model name.
-     */
     private static <E extends LivingEntity> boolean detectSlimArms(E entity)
     {
         if (entity instanceof net.minecraft.client.player.AbstractClientPlayer player)
@@ -117,7 +106,7 @@ public class ArmorRenderContext<E extends LivingEntity>
     }
 
     @Nullable
-    public HumanoidModel<?> getArmorModel()
+    public Model getArmorModel()
     {
         return armorModel;
     }
@@ -128,61 +117,28 @@ public class ArmorRenderContext<E extends LivingEntity>
         return determinedTier;
     }
 
-    /**
-     * Returns true if the entity is a baby (uses 0.5 scale).
-     */
     public boolean isBaby()
     {
         return isBaby;
     }
 
-    /**
-     * Returns true if the entity uses slim arm model.
-     */
     public boolean isSlimArms()
     {
         return isSlimArms;
     }
 
-    /**
-     * Returns the scale factor for baby entities.
-     * @return 0.5 for babies, 1.0 for adults
-     */
-    public float getEntityScale()
-    {
-        return isBaby ? 0.5f : 1.0f;
-    }
-
-    /**
-     * Returns true if this is rendering a limb slot (arms or legs).
-     * Limb slots require special handling for joint splitting.
-     */
     public boolean isLimbSlot()
     {
         return slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET;
     }
 
-    /**
-     * Returns true if this is rendering an arm slot.
-     * Arms need elbow joint handling.
-     */
     public boolean isArmSlot()
     {
-        return slot == EquipmentSlot.CHEST; // Chest slot includes arms
+        return slot == EquipmentSlot.CHEST;
     }
 
-    /**
-     * Default leather armor color (brownish/tan) - used when no dye is applied.
-     * RGB: (160, 101, 64) = 0xA06540 = 10511680
-     */
     private static final int DEFAULT_LEATHER_COLOR = 0xFFA06540;
 
-    /**
-     * Get the armor color as an ARGB int for rendering.
-     * Returns the dyed color for leather armor, the default leather color for undyed leather,
-     * or 0xFFFFFFFF (white) for other armor types.
-     * The returned value has alpha in the high byte (ARGB format).
-     */
     public int getArmorColor()
     {
         if (armorStack == null || armorStack.isEmpty())
@@ -196,12 +152,9 @@ public class ArmorRenderContext<E extends LivingEntity>
             int dyedColor = colorProvider.getDyedColor(armorStack);
             if (dyedColor != -1)
             {
-                // getDyedColor returns RGB, we need to add full alpha
                 return 0xFF000000 | dyedColor;
             }
 
-            // Check if this is a dyeable item (leather armor) without a dye applied
-            // Return the default leather color instead of white
             if (colorProvider.isDyeable(armorStack))
             {
                 return DEFAULT_LEATHER_COLOR;
@@ -211,9 +164,6 @@ public class ArmorRenderContext<E extends LivingEntity>
         return 0xFFFFFFFF;
     }
 
-    /**
-     * Returns true if this armor has a custom dye color (leather armor).
-     */
     public boolean hasDyedColor()
     {
         if (armorStack == null)
@@ -240,7 +190,7 @@ public class ArmorRenderContext<E extends LivingEntity>
         private int packedLight;
         private int packedOverlay;
         private float partialTicks;
-        private HumanoidModel<?> armorModel;
+        private Model armorModel;
         private RenderTier determinedTier;
 
         public Builder<E> entity(E entity)
@@ -297,7 +247,7 @@ public class ArmorRenderContext<E extends LivingEntity>
             return this;
         }
 
-        public Builder<E> armorModel(HumanoidModel<?> armorModel)
+        public Builder<E> armorModel(Model armorModel)
         {
             this.armorModel = armorModel;
             return this;

@@ -16,19 +16,12 @@ public class KumoSerializer
 
     public final Gson gson;
 
-    /**
-     * This is the gson to use when deserializing templates on the LayerTemplate level and downwards.
-     */
     public final Gson layerGson;
 
-    /**
-     * This is the gson to use when deserializing templates on the KeyframeNode level and downwards.
-     */
     public final Gson keyframeNodeGson;
 
     private KumoSerializer()
     {
-        // Creating the general multi-purpose gson instance.
         {
             final GsonBuilder gsonBuilder = new GsonBuilder();
             gsonBuilder.registerTypeAdapter(LayerTemplate.class, new LayerTemplateSerializer());
@@ -37,7 +30,6 @@ public class KumoSerializer
             gson = gsonBuilder.create();
         }
 
-        // Creating the LayerTemplate level gson instance.
         {
             final GsonBuilder gsonBuilder = new GsonBuilder();
             gsonBuilder.registerTypeAdapter(KeyframeNodeTemplate.class, new KeyframeNodeSerializer());
@@ -45,7 +37,6 @@ public class KumoSerializer
             layerGson = gsonBuilder.create();
         }
 
-        // Creating the KeyframeNode level gson instance.
         {
             final GsonBuilder gsonBuilder = new GsonBuilder();
             gsonBuilder.registerTypeAdapter(TriggerConditionTemplate.class, new TriggerConditionTemplateSerializer());

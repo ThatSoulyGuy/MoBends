@@ -14,19 +14,19 @@ public class AttackSlashInwardAnimationBit extends AnimationBit<BipedEntityData<
 {
 
 	private static final String[] ACTIONS = new String[] { "attack", "attack_slash_inward" };
-	
+
 	@Override
 	public String[] getActions(BipedEntityData<?> entityData)
 	{
 		return ACTIONS;
 	}
-	
+
 	@Override
 	public void onPlay(BipedEntityData<?> data)
 	{
 		data.swordTrail.reset();
 	}
-	
+
 	@Override
 	public void perform(BipedEntityData<?> data)
 	{
@@ -36,15 +36,13 @@ public class AttackSlashInwardAnimationBit extends AnimationBit<BipedEntityData<
 		final HumanoidArm primaryHand = living.getMainArm();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 		IModelPart mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		IModelPart offArm = mainHandSwitch ? data.leftArm : data.rightArm;
 		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 		SmoothOrientation mainItemRotation = mainHandSwitch ? data.renderRightItemRotation : data.renderLeftItemRotation;
-		
+
 		if (data.getTicksAfterAttack() < 4F
 				&& living.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SwordItem)
 		{
@@ -66,7 +64,7 @@ public class AttackSlashInwardAnimationBit extends AnimationBit<BipedEntityData<
 
 		mainArm.getRotation().setSmoothness(.9F).orientZ(90F * handDirMtp)
 				.rotateY((60F - armSwing * 180F) * handDirMtp);
-		
+
 		offArm.getRotation().setSmoothness(.3F).orientZ(-20 * handDirMtp);
 
 		mainForeArm.getRotation().setSmoothness(.3F).orientX(-10);
@@ -81,7 +79,7 @@ public class AttackSlashInwardAnimationBit extends AnimationBit<BipedEntityData<
 					.rotateY(-15F)
 					.rotateX(-20F);
 			data.rightForeLeg.rotation.orientX(25F);
-			
+
 			data.renderRotation.setSmoothness(.3F).orientY(0 * handDirMtp);
 			data.globalOffset.slideY(-1.0F);
 		}

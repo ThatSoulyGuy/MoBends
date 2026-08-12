@@ -23,15 +23,13 @@ public class EatingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	{
 		bringUpAnimation = 0F;
 	}
-	
+
 	@Override
 	public void perform(BipedEntityData<?> data)
 	{
 		final float ticks = DataUpdateHandler.getTicks();
 
 		final boolean mainHandSwitch = this.actionHand == HumanoidArm.RIGHT;
-		// Main Hand Direction Multiplier - it helps switch animation sides depending on
-		// what is your main hand.
 		final float handDirMtp = mainHandSwitch ? 1 : -1;
 		final ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		final ModelPartTransform mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
@@ -47,7 +45,7 @@ public class EatingAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.head.rotation.orientX(wiggle * 5.0F)
 					.rotateY(15.0F * handDirMtp);
 		}
-		
+
 		mainArm.rotation.orientX(bringUpAnimation * -80.0F)
 						.rotateZ(45.0F * bringUpAnimation * handDirMtp);
 		mainForeArm.rotation.orientX(bringUpAnimation * -45.0F);

@@ -6,6 +6,7 @@ import goblinbob.mobends.standard.client.model.armor.ArmorModelFactory;
 import goblinbob.mobends.standard.client.renderer.entity.ArrowTrailManager;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.*;
 import goblinbob.mobends.standard.data.*;
+import goblinbob.mobends.standard.kumo.WolfStateCondition;
 import goblinbob.mobends.standard.main.ModConfig;
 import goblinbob.mobends.standard.mutators.*;
 import goblinbob.mobends.standard.previewer.BipedPreviewer;
@@ -17,14 +18,14 @@ import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.animal.Squid;
+import net.minecraft.world.entity.animal.Wolf;
 
 public class DefaultAddon implements IAddon
 {
-	// Animation type arrays for different entity categories
 	private static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall"};
 	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump", "climb"};
 	private static final String[] SQUID_ANIMATIONS = {"swim"};
-
+	private static final String[] WOLF_ANIMATIONS = {"walk", "sit"};
 
 	@Override
 	public void registerContent(AddonAnimationRegistry registry)
@@ -41,11 +42,6 @@ public class DefaultAddon implements IAddon
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
 						"rightLeg", "leftForeLeg", "rightForeLeg");
 
-//		registry.registerNewEntity(ZombieVillager.class, ZombieVillagerData::new, ZombieVillagerMutator::new, new ZombieRenderer<>(),
-//				new BipedPreviewer<>(),
-//				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
-//				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
-//
 		registry.registerNewEntity(ZombifiedPiglin.class, PigZombieData::new, PigZombieMutator::new, new ZombieRenderer<>(),
 				new BipedPreviewer<>(), BIPED_ANIMATIONS,
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
@@ -60,27 +56,13 @@ public class DefaultAddon implements IAddon
 				null, SQUID_ANIMATIONS,
 				"body", "tentacle1", "tentacle2", "tentacle3", "tentacle4", "tentacle5", "tentacle6", "tentacle7", "tentacle8");
 
+		registry.registerNewEntity(Wolf.class, WolfData::new, WolfMutator::new, new WolfRenderer<>(),
+				null, WOLF_ANIMATIONS,
+				"head", "body", "mane", "tail", "leg1", "leg2", "leg3", "leg4",
+				"foreLeg1", "foreLeg2", "foreLeg3", "foreLeg4",
+				"nose", "mouth", "tongue", "leftEar", "rightEar");
 
-//		registry.registerEntity(new AnimatedEntity(EntityHusk.class,
-//						new RenderBendsHusk(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
-
-//		registry.registerEntity(new AnimatedEntity(Skeleton.class,
-//						new RenderBendsSkeleton(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
-
-//		registry.registerEntity(new AnimatedEntity(WitherSkeleton.class,
-//						new RenderBendsWitherSkeleton(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
-
-//		registry.registerEntity(new AnimatedEntity(Stray.class,
-//						new RenderBendsStray(Minecraft.getMinecraft().getRenderManager()),
-//						new String[] { "head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm", "leftLeg",
-//								"rightLeg", "leftForeLeg", "rightForeLeg" }));
-
+		registry.registerTriggerCondition("wolf_state", WolfStateCondition::new, WolfStateCondition.Template.class);
 	}
 
 	@Override

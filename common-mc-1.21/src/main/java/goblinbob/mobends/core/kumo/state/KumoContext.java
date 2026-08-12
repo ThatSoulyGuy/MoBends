@@ -2,11 +2,6 @@ package goblinbob.mobends.core.kumo.state;
 
 import goblinbob.mobends.core.data.EntityData;
 
-/**
- * A simple implementation of the KUMO context.
- *
- * @author Iwo Plaza
- */
 public class KumoContext implements IKumoContext
 {
 

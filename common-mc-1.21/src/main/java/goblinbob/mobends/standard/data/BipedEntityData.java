@@ -9,11 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 public abstract class BipedEntityData<E extends LivingEntity> extends LivingEntityData<E>
 {
-    /*
-     * These models need to be represented only
-     * as transforms, because that's the only thing
-     * that needs to persist between frames.
-     */
 
     public ModelPartTransform head;
     public ModelPartTransform body;

@@ -31,12 +31,10 @@ public class KumoAnimatorState<D extends EntityData<?>>
 
     public void update(D entityData, float deltaTime) throws MalformedKumoTemplateException
     {
-        // Populating the context.
         context.entityData = entityData;
 
         for (ILayerState layer : layerStates)
         {
-            // Populating the context.
             context.layerState = layer;
 
             if (!started)
@@ -44,7 +42,6 @@ public class KumoAnimatorState<D extends EntityData<?>>
                 layer.start(context);
             }
 
-            // Updating the layer.
             layer.update(context, deltaTime);
         }
 

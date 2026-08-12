@@ -7,17 +7,14 @@ public class CommonProxy
 
     public void preInit()
     {
-        // No behaviour.
     }
 
     public void init()
     {
-        // No behaviour.
     }
 
     public void postInit()
     {
-        // No behaviour.
     }
 
     public void createCore()

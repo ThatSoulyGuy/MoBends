@@ -18,6 +18,7 @@ import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
 import goblinbob.mobends.standard.data.PlayerData;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -34,34 +35,18 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
-/**
- * Custom armor layer that renders armor with Mo' Bends animation.
- * Uses the rigid body approach: capture vertices, assign to bones by spatial position,
- * and render with Mo' Bends transforms.
- *
- * This approach works with ANY armor - vanilla, modded, custom models, etc.
- */
 public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidModel<E>> extends RenderLayer<E, M>
 {
+    private static final java.util.Map<Class<?>, Boolean> SELF_RENDERING_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
     private final BipedMutator<?, E, M> mutator;
     private HumanoidArmorLayer<E, M, ?> vanillaArmorLayer;
 
-    /**
-     * Standard armor models for rendering.
-     */
     private HumanoidModel<E> innerModel;
     private HumanoidModel<E> outerModel;
 
-    /**
-     * The three-tier armor rendering facade.
-     * Handles tier selection and delegates to appropriate renderer.
-     */
     private final ArmorRenderingFacade armorFacade = new ArmorRenderingFacade();
 
-    /**
-     * The rigid armor renderer for capture-assign-render approach.
-     * @deprecated Use armorFacade instead. Kept for backward compatibility.
-     */
     @Deprecated
     private final RigidArmorRenderer rigidRenderer = new RigidArmorRenderer();
 
@@ -71,17 +56,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         this.mutator = mutator;
     }
 
-    /**
-     * Set the vanilla armor layer reference for texture access.
-     */
     public void setVanillaArmorLayer(HumanoidArmorLayer<E, M, ?> vanillaLayer)
     {
         this.vanillaArmorLayer = vanillaLayer;
     }
 
-    /**
-     * Set the armor models to use for rendering.
-     */
     @SuppressWarnings("unchecked")
     public void setArmorModels(HumanoidModel<?> innerModel, HumanoidModel<?> outerModel)
     {
@@ -89,12 +68,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         this.outerModel = (HumanoidModel<E>) outerModel;
     }
 
-    /**
-     * For backward compatibility - creates armor models if not set.
-     */
     public void initArmor()
     {
-        // Armor models will be set from the vanilla layer or created on demand
     }
 
     @Override
@@ -102,20 +77,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                        E entity, float limbSwing, float limbSwingAmount,
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
-        // Check if entity has Mo' Bends animation data
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         boolean hasBendsAnimation = entityData instanceof BipedEntityData;
 
-        // Render each armor slot
         renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.CHEST, packedLight, hasBendsAnimation, entityData);
         renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.LEGS, packedLight, hasBendsAnimation, entityData);
         renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.FEET, packedLight, hasBendsAnimation, entityData);
         renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.HEAD, packedLight, hasBendsAnimation, entityData);
     }
 
-    /**
-     * Render a single armor piece.
-     */
+    @SuppressWarnings("unchecked")
     private void renderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource,
                                   E entity, EquipmentSlot slot, int packedLight,
                                   boolean hasBendsAnimation, EntityData<?> entityData)
@@ -126,7 +97,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         if (!(itemStack.getItem() instanceof ArmorItem armorItem)) return;
         if (armorItem.getEquipmentSlot() != slot) return;
 
-        // Get the default armor model (inner or outer based on slot)
         boolean usesInnerModel = usesInnerModel(slot);
         HumanoidModel<E> defaultModel = usesInnerModel ? getInnerModel() : getOuterModel();
         if (defaultModel == null)
@@ -134,58 +104,58 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             return;
         }
 
-        // Set up model visibility for this slot
         M parentModel = getParentModel();
         parentModel.copyPropertiesTo(defaultModel);
+        defaultModel.young = false;
         setPartVisibility(defaultModel, slot);
 
-        // Query platform-specific provider for custom armor models
-        // This is abstracted to support both NeoForge and Forge APIs
-        HumanoidModel<E> customModel = ArmorModelProviderHolder.getProvider()
+        Model customModel = ArmorModelProviderHolder.getProvider()
                 .getCustomArmorModel(entity, itemStack, slot, defaultModel);
 
-        // Determine if this is a custom model or the default vanilla model
-        // If the returned model is the same as the default, use vanilla Tier 1 rendering
-        // If it's a different model (custom), use that model instead
-        boolean isCustomModel = (customModel != defaultModel);
-        HumanoidModel<E> armorModel = isCustomModel ? customModel : defaultModel;
+        boolean isCustomModel = (customModel != null && customModel != defaultModel);
+        Model armorModel = isCustomModel ? customModel : defaultModel;
 
-        // Check if we should use Mo' Bends rendering
+        if (isCustomModel && armorModel instanceof HumanoidModel<?>)
+        {
+            HumanoidModel<E> humanoidCustom = (HumanoidModel<E>) armorModel;
+            parentModel.copyPropertiesTo(humanoidCustom);
+            humanoidCustom.young = false;
+            setPartVisibility(humanoidCustom, slot);
+        }
+
         boolean shouldUseBends = hasBendsAnimation && !ModConfig.shouldKeepArmorAsVanilla(armorItem);
+
+        if (isCustomModel && isSelfRenderingModel(armorModel))
+        {
+            if (mutator != null)
+            {
+                mutator.syncPosesToVanillaModel(defaultModel);
+            }
+
+            renderSelfDrawnArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
+            return;
+        }
 
         if (shouldUseBends && entityData instanceof BipedEntityData<?>)
         {
             BipedEntityData<?> bipedData = (BipedEntityData<?>) entityData;
 
-            // Handle previewer
             if (bipedData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
             {
                 bipedData = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
             }
 
-            // Render with rigid body approach
-            // Pass isCustomModel flag to determine rendering strategy
             renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, bipedData, isCustomModel);
         }
         else
         {
-            // Fall back to vanilla rendering
             renderVanillaArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
         }
     }
 
-    /**
-     * Render armor using the three-tier armor rendering system.
-     *
-     * Tier selection:
-     * - Tier 1 (Transform Injection): vanilla/standard HumanoidModel (uses default texture paths)
-     * - Tier 2 (Model Interception): modded custom models (uses custom texture paths from mod)
-     *
-     * @param isCustomModel true if the armor uses a custom model from IClientItemExtensions
-     */
     private void renderRigidArmor(PoseStack poseStack, MultiBufferSource bufferSource,
                                   int packedLight, E entity, ArmorItem armorItem,
-                                  HumanoidModel<E> armorModel, EquipmentSlot slot,
+                                  Model armorModel, EquipmentSlot slot,
                                   ItemStack itemStack, BipedEntityData<?> bipedData,
                                   boolean isCustomModel)
     {
@@ -193,13 +163,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         if (isCustomModel)
         {
-            // Custom armor model - use platform-specific layer provider for cross-version compatibility
             IArmorLayerProvider layerProvider = IArmorLayerProvider.Holder.getProvider();
             final boolean[] anyRendered = {false};
 
             if (layerProvider != null)
             {
-                // Use platform-specific layer iteration (handles 1.20.1 vs 1.21.1 differences)
                 layerProvider.forEachLayer(armorItem, layer -> {
                     ResourceLocation texture = IArmorTextureProvider.Holder.getProvider()
                             .getArmorTexture(armorItem, itemStack, entity, slot, layer, isInnerModel);
@@ -228,7 +196,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 });
             }
 
-            // Fallback for custom models if nothing rendered
             if (!anyRendered[0])
             {
                 ResourceLocation fallbackTexture = getArmorTexture(armorItem, itemStack, entity, slot, null);
@@ -240,14 +207,12 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
         else
         {
-            // Vanilla armor model - use standard vanilla texture path
             ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
             if (texture == null)
             {
                 return;
             }
 
-            // Use Tier 1 rendering for vanilla armor
             armorFacade.renderArmor(
                     poseStack,
                     bufferSource,
@@ -263,42 +228,33 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
     }
 
-    /**
-     * Legacy rigid armor rendering using vertex capture.
-     * Used as fallback if the new three-tier system fails.
-     */
     private void renderLegacyRigidArmor(PoseStack poseStack, MultiBufferSource bufferSource,
-                                        int packedLight, HumanoidModel<E> armorModel, EquipmentSlot slot,
+                                        int packedLight, Model armorModel, EquipmentSlot slot,
                                         ItemStack itemStack, BipedEntityData<?> bipedData, ResourceLocation texture)
     {
-        // Save current model poses
-        ModelPoseSnapshot snapshot = saveModelPoses(armorModel);
+        if (!(armorModel instanceof HumanoidModel<?> humanoidModel))
+        {
+            return;
+        }
 
-        // Reset model to rest pose for capture
-        resetToRestPose(armorModel);
+        ModelPoseSnapshot snapshot = saveModelPoses(humanoidModel);
 
-        // Capture vertices by rendering to our capturing consumer
+        resetToRestPose(humanoidModel);
+
         CapturingVertexConsumer captureConsumer = rigidRenderer.getCaptureConsumer();
 
-        // Render the armor model to capture its vertices
-        // We use an identity pose stack since we want rest-pose vertices
         PoseStack capturePoseStack = new PoseStack();
         IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, capturePoseStack, captureConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 
-        // Restore original poses
-        restoreModelPoses(armorModel, snapshot);
+        restoreModelPoses(humanoidModel, snapshot);
 
-        // Now render the captured vertices with Mo' Bends transforms
         VertexConsumer outputConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
                 bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
 
         rigidRenderer.renderCapturedVertices(poseStack, outputConsumer, packedLight, OverlayTexture.NO_OVERLAY, bipedData);
     }
 
-    /**
-     * Reset the armor model to rest pose (no rotations/translations).
-     */
-    private void resetToRestPose(HumanoidModel<E> model)
+    private void resetToRestPose(HumanoidModel<?> model)
     {
         resetPart(model.head);
         resetPart(model.hat);
@@ -314,60 +270,92 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         part.xRot = 0;
         part.yRot = 0;
         part.zRot = 0;
-        // Keep the default positions (x, y, z) as they define the part's origin
     }
 
-    /**
-     * Save the current model poses.
-     */
-    private ModelPoseSnapshot saveModelPoses(HumanoidModel<E> model)
+    private ModelPoseSnapshot saveModelPoses(HumanoidModel<?> model)
     {
         return new ModelPoseSnapshot(model);
     }
 
-    /**
-     * Restore saved model poses.
-     */
-    private void restoreModelPoses(HumanoidModel<E> model, ModelPoseSnapshot snapshot)
+    private void restoreModelPoses(HumanoidModel<?> model, ModelPoseSnapshot snapshot)
     {
         snapshot.restore(model);
     }
 
-    /**
-     * Render armor using vanilla method.
-     */
     private void renderVanillaArmor(PoseStack poseStack, MultiBufferSource bufferSource,
                                     int packedLight, E entity, ArmorItem armorItem,
-                                    HumanoidModel<E> armorModel, EquipmentSlot slot, ItemStack itemStack)
+                                    Model armorModel, EquipmentSlot slot, ItemStack itemStack)
     {
-        // Get the armor texture
         ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
         if (texture == null) return;
 
-        // Get the render type
         VertexConsumer vertexConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
                 bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
 
-        // Sync poses to vanilla model from our mutator
-        if (mutator != null)
+        if (mutator != null && armorModel instanceof HumanoidModel<?> humanoidModel)
         {
-            mutator.syncPosesToVanillaModel(armorModel);
+            mutator.syncPosesToVanillaModel(humanoidModel);
         }
 
-        // Render using vanilla model
         IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
     }
 
-    /**
-     * Get the armor texture for the given item and slot.
-     * Checks the platform-specific texture provider first (for modded armor with custom textures),
-     * then falls back to manual construction from material name.
-     */
+    private void renderSelfDrawnArmor(PoseStack poseStack, MultiBufferSource bufferSource,
+                                      int packedLight, E entity, ArmorItem armorItem,
+                                      Model armorModel, EquipmentSlot slot, ItemStack itemStack)
+    {
+        ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
+        if (texture == null)
+        {
+            return;
+        }
+
+        VertexConsumer vertexConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
+                bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
+
+        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+    }
+
+    private static boolean isSelfRenderingModel(Model model)
+    {
+        Class<?> modelClass = model.getClass();
+
+        Boolean cached = SELF_RENDERING_CACHE.get(modelClass);
+        if (cached != null)
+        {
+            return cached;
+        }
+
+        boolean selfRendering = false;
+
+        for (Class<?> current = modelClass;
+             current != null && current != HumanoidModel.class && current != Model.class && Model.class.isAssignableFrom(current);
+             current = current.getSuperclass())
+        {
+            for (java.lang.reflect.Method method : current.getDeclaredMethods())
+            {
+                String name = method.getName();
+                if (("renderToBuffer".equals(name) || "m_7695_".equals(name)) && method.getParameterCount() >= 5)
+                {
+                    selfRendering = true;
+                    break;
+                }
+            }
+
+            if (selfRendering)
+            {
+                break;
+            }
+        }
+
+        SELF_RENDERING_CACHE.put(modelClass, selfRendering);
+        return selfRendering;
+    }
+
     private ResourceLocation getArmorTexture(ArmorItem armorItem, ItemStack itemStack, E entity, EquipmentSlot slot, @Nullable String overlay)
     {
         boolean isInnerModel = usesInnerModel(slot);
 
-        // Check platform-specific provider first (handles Forge/NeoForge mod hooks)
         IArmorTextureProvider textureProvider = IArmorTextureProvider.Holder.getProvider();
         ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, null, isInnerModel);
         if (customTexture != null)
@@ -375,11 +363,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             return customTexture;
         }
 
-        // Fall back to manual construction from material name
         IArmorHelper helper = IArmorHelper.Holder.getHelper();
         String materialName = helper != null ? helper.getArmorMaterialName(armorItem) : "leather";
 
-        // Parse domain and path from material name
         String domain = "minecraft";
         String path = materialName;
         int colonIndex = materialName.indexOf(':');
@@ -395,33 +381,21 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         return goblinbob.mobends.core.util.ResourceLocationFactory.create(domain, "textures/models/armor/" + path + "_layer_" + layer + suffix + ".png");
     }
 
-    /**
-     * Check if the slot uses the inner armor model.
-     */
     private boolean usesInnerModel(EquipmentSlot slot)
     {
         return slot == EquipmentSlot.LEGS;
     }
 
-    /**
-     * Get the inner armor model.
-     */
     private HumanoidModel<E> getInnerModel()
     {
         return innerModel;
     }
 
-    /**
-     * Get the outer armor model.
-     */
     private HumanoidModel<E> getOuterModel()
     {
         return outerModel;
     }
 
-    /**
-     * Set part visibility for the given slot.
-     */
     private void setPartVisibility(HumanoidModel<E> model, EquipmentSlot slot)
     {
         model.setAllVisible(false);
@@ -451,17 +425,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
     }
 
-    /**
-     * Get the armor rendering facade for statistics and debugging.
-     */
     public ArmorRenderingFacade getArmorFacade()
     {
         return armorFacade;
     }
 
-    /**
-     * Snapshot of model part poses for save/restore.
-     */
     private static class ModelPoseSnapshot
     {
         private final float headXRot, headYRot, headZRot;

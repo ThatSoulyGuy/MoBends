@@ -1,7 +1,6 @@
-package goblinbob.mobends.neoforge.network;
+package goblinbob.mobends.core.network;
 
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class SharedBooleanProp extends SharedProperty<Boolean>
 {
@@ -9,12 +8,6 @@ public class SharedBooleanProp extends SharedProperty<Boolean>
     public SharedBooleanProp(String key, Boolean value, String description)
     {
         super(key, value, description);
-    }
-
-    @Override
-    public Boolean getValue()
-    {
-        return super.getValue();
     }
 
     @Override
@@ -26,13 +19,14 @@ public class SharedBooleanProp extends SharedProperty<Boolean>
     @Override
     public void readFromNBT(CompoundTag tag)
     {
-        value = tag.getBoolean(key);
-    }
-
-    @Override
-    public void updateWithConfigValue(ModConfigSpec.ConfigValue<Boolean> configValue)
-    {
-        value = configValue.get();
+        if (tag.contains(key))
+        {
+            value = tag.getBoolean(key);
+        }
+        else
+        {
+            value = defaultValue;
+        }
     }
 
 }

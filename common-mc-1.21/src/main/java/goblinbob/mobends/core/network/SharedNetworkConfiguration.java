@@ -1,19 +1,14 @@
-package goblinbob.mobends.neoforge.network;
+package goblinbob.mobends.core.network;
 
-import goblinbob.mobends.core.network.NetworkConfiguration;
-
-/**
- * NeoForge-specific NetworkConfiguration that provides SharedConfig for network sync.
- */
-public class NeoForgeNetworkConfiguration extends NetworkConfiguration
+public class SharedNetworkConfiguration extends NetworkConfiguration
 {
-    public static final NeoForgeNetworkConfiguration INSTANCE = new NeoForgeNetworkConfiguration();
+    public static final SharedNetworkConfiguration INSTANCE = new SharedNetworkConfiguration();
 
     private final SharedConfig sharedConfig;
     private final SharedBooleanProp allowBendspacks;
     private final SharedBooleanProp limitMovement;
 
-    private NeoForgeNetworkConfiguration()
+    private SharedNetworkConfiguration()
     {
         this.sharedConfig = new SharedConfig();
         this.allowBendspacks = new SharedBooleanProp("allow_bendspacks", true, "Whether bendspacks are allowed");
@@ -40,13 +35,13 @@ public class NeoForgeNetworkConfiguration extends NetworkConfiguration
         return limitMovement.getValue();
     }
 
-    /**
-     * Initialize the NeoForge network configuration.
-     * Should be called during mod initialization.
-     */
+    public void resetToDefaults()
+    {
+        sharedConfig.resetToDefaults();
+    }
+
     public static void init()
     {
-        // Replace the common-mc stub with our implementation
         NetworkConfiguration.instance = INSTANCE;
     }
 }

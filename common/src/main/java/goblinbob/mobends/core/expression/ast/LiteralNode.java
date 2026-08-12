@@ -2,9 +2,6 @@ package goblinbob.mobends.core.expression.ast;
 
 import goblinbob.mobends.core.expression.ExpressionContext;
 
-/**
- * AST node representing a numeric literal (e.g., 3.14, -5, 0).
- */
 public class LiteralNode implements ExpressionNode {
     private final double value;
 

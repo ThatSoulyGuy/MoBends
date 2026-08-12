@@ -2,9 +2,6 @@ package goblinbob.mobends.core.expression.ast;
 
 import goblinbob.mobends.core.expression.ExpressionContext;
 
-/**
- * AST node representing a unary operation (e.g., -x, !x).
- */
 public class UnaryOpNode implements ExpressionNode {
     private final ExpressionNode operand;
     private final Operator operator;

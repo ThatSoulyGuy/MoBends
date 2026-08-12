@@ -22,7 +22,6 @@ public class SkeletonData extends BipedEntityData<Skeleton>
     @Override
     public void onTicksRestart()
     {
-        // No behaviour
     }
 
     @Override

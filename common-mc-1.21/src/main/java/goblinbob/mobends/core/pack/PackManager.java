@@ -49,7 +49,6 @@ public class PackManager
         }
         catch (InvalidPackFormatException e)
         {
-            // Some of the packs were in an invalid format.
             e.printStackTrace();
             ErrorReporter.showErrorToPlayer(e);
         }
@@ -82,7 +81,6 @@ public class PackManager
             }
         }
 
-        // Re-adding the applied packs.
         for (String key : config.getAppliedPacks())
         {
             IBendsPack pack = localPacks.get(key);
@@ -142,7 +140,6 @@ public class PackManager
         }
         catch(InvalidPackFormatException ignored)
         {
-            // Never should happen.
         }
     }
 

@@ -40,7 +40,7 @@ public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit
 				.rotateZ(2);
 		data.leftLeg.rotation.setSmoothness(1.0F).orientX(-5F + Mth.cos(limbSwing + PI) * legSwingAmount)
 				.rotateZ(-2);
-		
+
 		float var = (limbSwing / PI) % 2;
 		data.leftForeLeg.rotation.setSmoothness(0.5F).orientX(var > 1 ? 45F : 0F);
 		data.rightForeLeg.rotation.setSmoothness(0.5F).orientX(var > 1 ? 0F : 45F);
@@ -54,12 +54,12 @@ public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit
 		data.body.rotation.setSmoothness(0.5F).orientY(bodyRotationY)
 				.rotateX(bodyRotationX)
 				.rotateZ(-var10);
-		
+
 		data.head.rotation.setSmoothness(0.5F).orientX(data.headPitch.get() - bodyRotationX)
 										  	  .rotateY(data.headYaw.get() - bodyRotationY);
 
 		data.globalOffset.slideY(Mth.cos(limbSwing * 2) * 0.6F);
-		
+
 		float touchdown = Math.min(data.getTicksAfterTouchdown() * KNEEL_DURATION, 1.0F);
 		if (touchdown < 1.0F)
 		{

@@ -11,16 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Caches analyzed armor model structures.
- * Maps model classes to their structural analysis results.
- * Thread-safe for concurrent access during rendering.
- */
 public class ArmorStructureCache
 {
-    /**
-     * Holds the cached structure analysis for an armor model.
-     */
     public static class StructureEntry
     {
         private final Class<?> modelClass;
@@ -95,19 +87,11 @@ public class ArmorStructureCache
         }
     }
 
-    // Cache keyed by model class
     private final ConcurrentHashMap<Class<?>, StructureEntry> cache = new ConcurrentHashMap<>();
 
-    // Statistics
     private long hits = 0;
     private long misses = 0;
 
-    /**
-     * Get cached structure analysis for a model class.
-     *
-     * @param modelClass The model class to look up
-     * @return Cached entry, or null if not cached
-     */
     @Nullable
     public StructureEntry get(Class<?> modelClass)
     {
@@ -123,24 +107,11 @@ public class ArmorStructureCache
         return entry;
     }
 
-    /**
-     * Cache structure analysis for a model class.
-     *
-     * @param modelClass The model class
-     * @param entry The structure entry to cache
-     */
     public void put(Class<?> modelClass, StructureEntry entry)
     {
         cache.put(modelClass, entry);
     }
 
-    /**
-     * Create and cache a structure entry for a HumanoidModel.
-     * This is the fast path for Tier 1 models.
-     *
-     * @param modelClass The HumanoidModel class
-     * @return The created structure entry
-     */
     public StructureEntry cacheHumanoidModel(Class<? extends HumanoidModel<?>> modelClass)
     {
         Map<String, BoneRegion> partToBone = new HashMap<>();
@@ -155,7 +126,7 @@ public class ArmorStructureCache
         StructureEntry entry = new StructureEntry(
             modelClass,
             RenderTier.TIER_1_TRANSFORM_INJECTION,
-            Map.of(), // No detailed classifications needed for Tier 1
+            Map.of(),
             partToBone,
             true,
             true
@@ -165,25 +136,16 @@ public class ArmorStructureCache
         return entry;
     }
 
-    /**
-     * Check if a model class is cached.
-     */
     public boolean contains(Class<?> modelClass)
     {
         return cache.containsKey(modelClass);
     }
 
-    /**
-     * Remove a model class from the cache.
-     */
     public void remove(Class<?> modelClass)
     {
         cache.remove(modelClass);
     }
 
-    /**
-     * Clear all cached entries.
-     */
     public void clear()
     {
         cache.clear();
@@ -191,42 +153,27 @@ public class ArmorStructureCache
         misses = 0;
     }
 
-    /**
-     * Get the number of cached entries.
-     */
     public int size()
     {
         return cache.size();
     }
 
-    /**
-     * Get cache hit count.
-     */
     public long getHits()
     {
         return hits;
     }
 
-    /**
-     * Get cache miss count.
-     */
     public long getMisses()
     {
         return misses;
     }
 
-    /**
-     * Get cache hit rate.
-     */
     public float getHitRate()
     {
         long total = hits + misses;
         return total > 0 ? (float) hits / total : 0.0f;
     }
 
-    /**
-     * Get debug statistics.
-     */
     public String getStats()
     {
         return String.format("ArmorStructureCache: %d entries, %d hits, %d misses (%.1f%% hit rate)",

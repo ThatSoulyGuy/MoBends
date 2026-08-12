@@ -24,10 +24,6 @@ import org.joml.Vector3f;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Layer for rendering player accessories (supporter content).
- * Updated for 1.20.1 to use PoseStack and RenderSystem instead of GlStateManager.
- */
 public class LayerPlayerAccessories extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
     private final TextureManager textureManager;
@@ -89,7 +85,6 @@ public class LayerPlayerAccessories extends RenderLayer<AbstractClientPlayer, Pl
 
         poseStack.pushPose();
 
-        // Reverting the sneak transform
         if (player.isCrouching())
         {
             if (player.getAbilities().flying)
@@ -104,8 +99,6 @@ public class LayerPlayerAccessories extends RenderLayer<AbstractClientPlayer, Pl
 
         applyBindPointTransform(poseStack, data, part.getBindPoint(), scale);
 
-        // Apply item camera transforms - in 1.20.1 this is done differently
-        // The model's transforms are applied through the rendering pipeline
         Vector3f translation = part.getTranslation();
         Vector3f rotation = part.getRotation();
         Vector3f scaleVec = part.getScale();
@@ -125,27 +118,18 @@ public class LayerPlayerAccessories extends RenderLayer<AbstractClientPlayer, Pl
             poseStack.scale(scaleVec.x, scaleVec.y, scaleVec.z);
         }
 
-        // Render the model - in 1.20.1 this uses the buffer source
-        // The actual rendering implementation depends on the Mesh/Model classes
-        // being updated to support the new rendering system
-
-        // Diffuse pass
         textureManager.bindForSetup(part.getDiffuseTexturePath().getResourceLocation());
-        // Model rendering is handled through the new render pipeline
 
-        // Inked pass
         AssetLocation inkedLocation = part.getInkedTexturePath();
         if (inkedLocation != null)
         {
             textureManager.bindForSetup(inkedLocation.getResourceLocation());
             RenderSystem.setShaderColor(1, 0, 0, 1);
-            // Render with color from settings
             int color = Color.asHex(settings.getColor());
             float r = ((color >> 16) & 0xFF) / 255.0F;
             float g = ((color >> 8) & 0xFF) / 255.0F;
             float b = (color & 0xFF) / 255.0F;
             RenderSystem.setShaderColor(r, g, b, 1.0F);
-            // Render the model with the inked texture
             RenderSystem.setShaderColor(1, 1, 0, 1);
         }
 

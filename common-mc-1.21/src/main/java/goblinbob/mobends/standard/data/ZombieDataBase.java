@@ -9,9 +9,6 @@ public abstract class ZombieDataBase<E extends Zombie> extends BipedEntityData<E
 {
     public static final int ANIMATION_SETS_AMOUNT = 2;
 
-    /*
-     * This determines what set of animations this zombie should get.
-     */
     protected int animationSet = 0;
     protected int currentWalkingState = 0;
     protected float ticksBeforeStateChange = 0;
@@ -20,9 +17,6 @@ public abstract class ZombieDataBase<E extends Zombie> extends BipedEntityData<E
     public ZombieDataBase(E entity)
     {
         super(entity);
-        // Getting a pseudo-random animationType based on something
-        // that is shared across clients, so that every player
-        // sees the same variation
         this.animationSet = ((int) (entity.getId() * 3.61352F)) % ANIMATION_SETS_AMOUNT;
     }
 

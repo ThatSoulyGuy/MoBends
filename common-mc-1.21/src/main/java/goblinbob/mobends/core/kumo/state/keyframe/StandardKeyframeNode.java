@@ -24,9 +24,6 @@ public class StandardKeyframeNode implements INodeState
     private final boolean looping;
     List<ConnectionState> connections = new ArrayList<>();
 
-    /**
-     * Progress counted in keyframes.
-     */
     private float progress;
 
     public StandardKeyframeNode(IKumoInstancingContext context, StandardKeyframeNodeTemplate nodeTemplate)
@@ -46,7 +43,6 @@ public class StandardKeyframeNode implements INodeState
 
         if (animation != null)
         {
-            // Evaluating the animation duration.
             this.animationDuration = 0;
             for (Bone bone : animation.bones.values())
             {
@@ -115,9 +111,6 @@ public class StandardKeyframeNode implements INodeState
         return this.animation == null || !this.looping && this.progress >= animationDuration - 2;
     }
 
-    /**
-     * Returns progress counted in keyframes including the in-betweens (not just whole number indices).
-     */
     public float getProgress()
     {
         return progress;
@@ -128,7 +121,5 @@ public class StandardKeyframeNode implements INodeState
     {
         return connections;
     }
-
-
 
 }

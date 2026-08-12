@@ -8,13 +8,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 
-/**
- * NeoForge 1.21.1 implementation of IModelRenderHelper.
- *
- * MC 1.21.1:
- * - renderToBuffer(PoseStack, VertexConsumer, int light, int overlay, int color)
- * - ItemRenderer.getArmorFoilBuffer(MultiBufferSource, RenderType, boolean hasFoil)
- */
 public class NeoForgeModelRenderHelper implements IModelRenderHelper
 {
     @Override

@@ -3,11 +3,6 @@ package goblinbob.mobends.neoforge.platform;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 
-/**
- * NeoForge 1.21.1 implementation of IEntityVertexHelper.
- *
- * MC 1.21.1: addVertex(x,y,z).setColor(int).setUv(u,v).setOverlay(int).setLight(int).setNormal(x,y,z)
- */
 public class NeoForgeEntityVertexHelper implements IEntityVertexHelper
 {
     @Override

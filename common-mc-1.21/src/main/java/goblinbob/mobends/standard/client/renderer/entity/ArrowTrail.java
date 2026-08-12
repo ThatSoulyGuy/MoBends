@@ -176,7 +176,6 @@ public class ArrowTrail
 
             final Vec3 forward = arrow.getForward();
 
-            // Calculate up vector from pitch and yaw
             float pitch = arrow.getXRot();
             float yaw = arrow.getYRot();
             float upPitch = pitch + 90F;

@@ -10,10 +10,6 @@ import goblinbob.mobends.api.rendering.IBufferBuilder;
 import goblinbob.mobends.api.rendering.ITesselator;
 import goblinbob.mobends.api.rendering.VertexFormatType;
 
-/**
- * NeoForge implementation of ITesselator.
- * Direct passthrough to MC 1.21.1's Tesselator API.
- */
 public class NeoForgeTesselator implements ITesselator
 {
     private final Tesselator tesselator;

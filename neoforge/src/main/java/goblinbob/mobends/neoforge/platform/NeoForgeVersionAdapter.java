@@ -10,30 +10,23 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import org.joml.Matrix4f;
 
-/**
- * NeoForge 1.21.1 implementation of VersionAdapter.
- * Provides MC 1.21.1 specific API implementations.
- */
 public class NeoForgeVersionAdapter implements VersionAdapter
 {
     @Override
     public String getPlayerModelName(AbstractClientPlayer player)
     {
-        // MC 1.21.1 uses getSkin().model().id()
         return player.getSkin().model().id();
     }
 
     @Override
     public ResourceLocation parseResourceLocation(String location)
     {
-        // MC 1.21.1 uses ResourceLocation.parse()
         return ResourceLocation.parse(location);
     }
 
     @Override
     public ResourceLocation createResourceLocation(String namespace, String path)
     {
-        // MC 1.21.1 uses ResourceLocation.fromNamespaceAndPath()
         return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }
 
@@ -64,14 +57,12 @@ public class NeoForgeVersionAdapter implements VersionAdapter
     @Override
     public void mulPoseMatrix(PoseStack poseStack, Matrix4f matrix)
     {
-        // MC 1.21.1 uses mulPose(Matrix4f)
         poseStack.mulPose(matrix);
     }
 
     @Override
     public boolean isItemEdible(ItemStack itemStack)
     {
-        // MC 1.21.1 uses DataComponents
         return itemStack.has(DataComponents.FOOD);
     }
 }

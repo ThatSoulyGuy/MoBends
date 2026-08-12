@@ -23,14 +23,9 @@ public class Mesh
 	public Mesh(VertexFormatType vertexFormat, int maxVertices)
 	{
 		this.vertexFormat = vertexFormat;
-		// BufferBuilder is now created in beginDrawing()
 		this.bufferBuilder = null;
 	}
 
-	/**
-	 * Legacy constructor for backward compatibility.
-	 * Uses POSITION_TEX_COLOR_NORMAL format.
-	 */
 	public Mesh(int maxVertices)
 	{
 		this(VertexFormatType.POSITION_TEX_COLOR_NORMAL, maxVertices);
@@ -43,10 +38,6 @@ public class Mesh
 		this.bufferBuilder = tesselator.begin(mode, this.vertexFormat);
 	}
 
-	/**
-	 * Legacy beginDrawing for backward compatibility.
-	 * Uses QUADS mode by default.
-	 */
 	public void beginDrawing()
 	{
 		this.beginDrawing(DrawMode.QUADS);
@@ -58,7 +49,6 @@ public class Mesh
 		tesselator.endAndDraw(this.bufferBuilder);
 	}
 
-	// Temporary vertex data for building
 	private float pendingX, pendingY, pendingZ;
 	private float pendingU, pendingV;
 	private float pendingR = 1.0f, pendingG = 1.0f, pendingB = 1.0f, pendingA = 1.0f;
@@ -102,7 +92,6 @@ public class Mesh
 				.setUv(pendingU, pendingV)
 				.setColor(pendingR, pendingG, pendingB, pendingA)
 				.setNormal(pendingNX, pendingNY, pendingNZ);
-		// Reset to defaults
 		pendingR = pendingG = pendingB = 1.0f;
 		pendingA = 1.0f;
 		pendingNX = pendingNY = pendingNZ = 0.0f;
@@ -110,20 +99,10 @@ public class Mesh
 
 	public void display()
 	{
-		// In 1.20.1, drawing is done automatically via finishDrawing()
-		// This method is kept for compatibility but mesh should use finishDrawing() instead
 	}
 
-	/**
-	 * Render the mesh using MultiBufferSource.
-	 * TODO: This needs proper implementation with stored vertex data.
-	 * Currently a stub that does nothing since mesh data isn't stored after finishDrawing().
-	 */
 	public void render(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, int packedLight)
 	{
-		// TODO: Implement proper mesh rendering with stored vertex data
-		// For now, this is a no-op as the mesh rendering system needs redesign for 1.20.1
-		// The mesh data is consumed by finishDrawing() and not stored for later rendering.
 	}
 
 	public IBufferBuilder getBufferBuilder()

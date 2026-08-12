@@ -42,19 +42,15 @@ public class SpiderMoveAnimationBit extends SpiderAnimationBitBase
         final float bodyX = Mth.sin(ticks * 0.2F) * 0.4F;
         final float bodyZ = Mth.cos(ticks * 0.2F) * 0.4F;
 
-        // Back limbs
         animateMovingLimb(data, groundLevel, limbSwing + .0F, 0, 20.0F, 10F, -80, -50);
         animateMovingLimb(data, groundLevel, limbSwing + .3F, 1, 20.0F, 10F, -80, -50);
 
-        // Back-middle limbs
         animateMovingLimb(data, groundLevel, limbSwing + .3F, 2, 15F, 15.0F, -30F, 10.0F);
         animateMovingLimb(data, groundLevel, limbSwing + .0F, 3, 15F, 15.0F, -30F, 10.0F);
 
-        // Front-middle limbs
         animateMovingLimb(data, groundLevel, limbSwing + .4F, 4, 7F, 15.0F, 20, 50.0F);
         animateMovingLimb(data, groundLevel, limbSwing + .7F, 5, 7F, 15.0F, 20, 50.0F);
 
-        // Front limbs
         animateMovingLimb(data, groundLevel, limbSwing + .7F, 6, 10F, 20.0F, 60, 80.0F);
         animateMovingLimb(data, groundLevel, limbSwing + .4F, 7, 10F, 20.0F, 60, 80.0F);
 

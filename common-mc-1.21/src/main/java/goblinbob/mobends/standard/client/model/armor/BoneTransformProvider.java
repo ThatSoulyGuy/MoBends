@@ -10,10 +10,6 @@ import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 
-/**
- * Provides bone transforms from entity animation data.
- * Acts as a bridge between BipedEntityData and the armor rendering system.
- */
 public class BoneTransformProvider
 {
     private static final float MODEL_SCALE = 1.0f / 16.0f;
@@ -30,13 +26,6 @@ public class BoneTransformProvider
         this.coordinateSpaceManager = coordinateSpaceManager;
     }
 
-    /**
-     * Get the ModelPartTransform for a specific bone region.
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     * @return The transform, or null if not found
-     */
     @Nullable
     public ModelPartTransform getTransform(BoneRegion region, BipedEntityData<?> entityData)
     {
@@ -58,12 +47,6 @@ public class BoneTransformProvider
         };
     }
 
-    /**
-     * Get the parent bone region for a given region.
-     *
-     * @param region The bone region
-     * @return The parent region, or ROOT if this is a root-level bone
-     */
     public BoneRegion getParentRegion(BoneRegion region)
     {
         return switch (region)
@@ -78,13 +61,6 @@ public class BoneTransformProvider
         };
     }
 
-    /**
-     * Check if a bone region is a child of another region.
-     *
-     * @param child Potential child region
-     * @param parent Potential parent region
-     * @return true if child is a descendant of parent
-     */
     public boolean isChildOf(BoneRegion child, BoneRegion parent)
     {
         if (child == parent) return false;
@@ -98,19 +74,12 @@ public class BoneTransformProvider
         return false;
     }
 
-    /**
-     * Get the rotation for a bone as a Quaternion.
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     * @return The rotation quaternion, or identity if not found
-     */
     public Quaternionf getRotation(BoneRegion region, BipedEntityData<?> entityData)
     {
         ModelPartTransform transform = getTransform(region, entityData);
         if (transform == null || transform.rotation == null)
         {
-            return new Quaternionf(); // Identity
+            return new Quaternionf();
         }
 
         var smoothRot = transform.rotation.getSmooth();
@@ -127,13 +96,6 @@ public class BoneTransformProvider
         );
     }
 
-    /**
-     * Get the position offset for a bone.
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     * @return The position offset in model space
-     */
     public Vector3f getPosition(BoneRegion region, BipedEntityData<?> entityData)
     {
         ModelPartTransform transform = getTransform(region, entityData);
@@ -149,25 +111,11 @@ public class BoneTransformProvider
         );
     }
 
-    /**
-     * Get the full world-space transform matrix for a bone.
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     * @return Full transform matrix including parent chain
-     */
     public Matrix4f getFullTransform(BoneRegion region, BipedEntityData<?> entityData)
     {
         return coordinateSpaceManager.getFullBoneTransform(region, entityData);
     }
 
-    /**
-     * Apply a bone's transform to a PoseStack.
-     *
-     * @param poseStack The pose stack to modify
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     */
     public void applyBoneTransform(PoseStack poseStack, BoneRegion region, BipedEntityData<?> entityData)
     {
         ModelPartTransform transform = getTransform(region, entityData);
@@ -177,39 +125,22 @@ public class BoneTransformProvider
         }
     }
 
-    /**
-     * Apply the full transform chain for a bone to a PoseStack.
-     * This applies all parent transforms in order.
-     *
-     * @param poseStack The pose stack to modify
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     */
     public void applyFullBoneTransform(PoseStack poseStack, BoneRegion region, BipedEntityData<?> entityData)
     {
-        // Build parent chain
         java.util.List<BoneRegion> chain = new java.util.ArrayList<>();
         BoneRegion current = region;
         while (current != BoneRegion.ROOT)
         {
-            chain.add(0, current); // Add to front
+            chain.add(0, current);
             current = getParentRegion(current);
         }
 
-        // Apply transforms in order
         for (BoneRegion boneRegion : chain)
         {
             applyBoneTransform(poseStack, boneRegion, entityData);
         }
     }
 
-    /**
-     * Check if a bone has any significant animation applied.
-     *
-     * @param region The bone region
-     * @param entityData The entity's animation data
-     * @return true if the bone has non-identity rotation or non-zero position offset
-     */
     public boolean hasAnimation(BoneRegion region, BipedEntityData<?> entityData)
     {
         ModelPartTransform transform = getTransform(region, entityData);
@@ -218,11 +149,9 @@ public class BoneTransformProvider
             return false;
         }
 
-        // Check for rotation
         var smoothRot = transform.rotation.getSmooth();
         if (smoothRot != null)
         {
-            // Check if rotation is non-identity (w != 1 or any xyz != 0)
             if (Math.abs(smoothRot.w - 1.0) > 0.001 ||
                 Math.abs(smoothRot.x) > 0.001 ||
                 Math.abs(smoothRot.y) > 0.001 ||
@@ -232,7 +161,6 @@ public class BoneTransformProvider
             }
         }
 
-        // Check for position offset
         if (Math.abs(transform.offset.x) > 0.001 ||
             Math.abs(transform.offset.y) > 0.001 ||
             Math.abs(transform.offset.z) > 0.001)
@@ -243,12 +171,6 @@ public class BoneTransformProvider
         return false;
     }
 
-    /**
-     * Get the corresponding upper limb region for a lower limb region.
-     *
-     * @param lowerRegion A lower limb region (forearm or lower leg)
-     * @return The corresponding upper limb region, or the input if not a lower limb
-     */
     public BoneRegion getUpperLimbRegion(BoneRegion lowerRegion)
     {
         return switch (lowerRegion)
@@ -261,12 +183,6 @@ public class BoneTransformProvider
         };
     }
 
-    /**
-     * Get the corresponding lower limb region for an upper limb region.
-     *
-     * @param upperRegion An upper limb region (upper arm or upper leg)
-     * @return The corresponding lower limb region, or the input if not an upper limb
-     */
     public BoneRegion getLowerLimbRegion(BoneRegion upperRegion)
     {
         return switch (upperRegion)
@@ -279,9 +195,6 @@ public class BoneTransformProvider
         };
     }
 
-    /**
-     * Check if a region is part of a limb (arm or leg).
-     */
     public boolean isLimbRegion(BoneRegion region)
     {
         return switch (region)
@@ -294,9 +207,6 @@ public class BoneTransformProvider
         };
     }
 
-    /**
-     * Check if a region is an arm.
-     */
     public boolean isArmRegion(BoneRegion region)
     {
         return switch (region)
@@ -307,9 +217,6 @@ public class BoneTransformProvider
         };
     }
 
-    /**
-     * Check if a region is a leg.
-     */
     public boolean isLegRegion(BoneRegion region)
     {
         return switch (region)

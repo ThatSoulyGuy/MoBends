@@ -28,7 +28,6 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
     @Override
     public void perform(BipedEntityData<?> entityData)
     {
-        // Switching punching hand
         float ticksAfterAttack = entityData.getTicksAfterAttack();
         if (ticksAfterAttack < lastTicksAfterAttack)
         {
@@ -39,13 +38,11 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
             }
             else
             {
-                // For remote players, derive from tick count for deterministic multiplayer sync
                 punchingFist = (entity.tickCount / 6) % 2 == 0 ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
             }
         }
         lastTicksAfterAttack = ticksAfterAttack;
 
-        // Playing appropriate bits
         if (ticksAfterAttack < 10)
         {
             this.layerBase.playOrContinueBit(punchingFist == HumanoidArm.LEFT ? bitPunchLeft : bitPunchRight, entityData);

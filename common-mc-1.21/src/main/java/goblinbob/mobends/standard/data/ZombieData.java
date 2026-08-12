@@ -22,7 +22,6 @@ public class ZombieData extends ZombieDataBase<Zombie>
     @Override
     public void onTicksRestart()
     {
-        // No behaviour
     }
 
 }

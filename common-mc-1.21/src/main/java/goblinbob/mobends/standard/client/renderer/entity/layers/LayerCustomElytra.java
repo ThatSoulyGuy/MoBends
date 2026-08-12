@@ -25,15 +25,9 @@ import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-/**
- * Custom elytra layer for Mo' Bends animated elytra rendering.
- * Updated for 1.20.1 to use PoseStack and RenderSystem instead of GlStateManager.
- */
 public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
-    /** The basic Elytra texture. */
     private static final ResourceLocation TEXTURE_ELYTRA = goblinbob.mobends.core.util.ResourceLocationFactory.parse("textures/entity/elytra.png");
-    /** The model used by the Elytra. */
     private final ElytraModel<AbstractClientPlayer> elytraModel;
 
     public LayerCustomElytra(RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer, EntityModelSet modelSet)
