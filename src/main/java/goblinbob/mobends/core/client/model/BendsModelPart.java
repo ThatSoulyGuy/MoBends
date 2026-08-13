@@ -104,6 +104,7 @@ public class BendsModelPart implements IModelPart
 
         poseStack.pushPose();
 
+        applyPreTransformPoseStack(poseStack);
         applyLocalTransformPoseStack(poseStack);
 
         for (BendsCube cube : cubes)

@@ -481,6 +481,8 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                               int packedLight, int packedOverlay,
                               int packedColor)
     {
+        applyBabyHeadScale();
+
         if (body != null)
         {
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);

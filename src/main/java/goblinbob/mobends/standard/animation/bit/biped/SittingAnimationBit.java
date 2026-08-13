@@ -3,18 +3,18 @@ package goblinbob.mobends.standard.animation.bit.biped;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 
-public class SittingAnimationBit extends AnimationBit<BipedEntityData<?>>
+public class SittingAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
 	private static final String[] ACTIONS = new String[] { "sitting" };
 
 	@Override
-	public String[] getActions(BipedEntityData<?> entityData)
+	public String[] getActions(T entityData)
 	{
 		return ACTIONS;
 	}
 
 	@Override
-	public void perform(BipedEntityData<?> data)
+	public void perform(T data)
 	{
 		data.centerRotation.setSmoothness(.3F).orientZero();
 

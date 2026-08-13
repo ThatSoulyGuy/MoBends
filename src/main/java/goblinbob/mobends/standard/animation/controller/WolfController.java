@@ -74,16 +74,8 @@ public class WolfController implements IAnimationController<WolfData>
             }
         }
 
-        if (wolf.isBaby())
-        {
-            data.head.offsetScale = 0.5F;
-            data.head.globalOffset.set(0.0F, 5.0F, -2.0F);
-        }
-        else
-        {
-            data.head.offsetScale = 1.0F;
-            data.head.globalOffset.set(0.0F, 0.0F, 0.0F);
-        }
+        data.head.offsetScale = 1.0F;
+        data.head.globalOffset.set(0.0F, 0.0F, 0.0F);
         data.head.position.set(0.0F, -0.5F, -13.0F);
 
         data.head.rotation.localRotateY(data.headYaw.get()).finish();

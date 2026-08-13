@@ -7,22 +7,23 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
+public class RidingAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
 	private static final String[] ACTIONS = new String[] { "riding" };
 
 	private static final float PI = (float) Math.PI;
 
 	@Override
-	public String[] getActions(BipedEntityData<?> entityData)
+	public String[] getActions(T entityData)
 	{
 		return ACTIONS;
 	}
 
 	@Override
-	public void perform(BipedEntityData<?> data)
+	public void perform(T data)
 	{
 		final LivingEntity living = data.getEntity();
+		final float squareUp = data.getRidingBodyYaw();
 
 		data.localOffset.slideToZero(0.3F);
 		data.renderRotation.orientZero();
@@ -31,7 +32,7 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.renderRightItemRotation.orientZero();
 
 		data.head.rotation.orientX(data.headPitch.get())
-		  				  .rotateY(data.headYaw.get());
+		  				  .rotateY(Mth.clamp(Mth.wrapDegrees(data.headYaw.get() + squareUp), -85.0F, 85.0F));
 		data.body.rotation.orientY(0).setSmoothness(0.5F);
 
 		data.leftLeg.rotation.orientX(-90.0F).rotateZ(-10.0F).rotateY(-25.0F);
@@ -47,12 +48,13 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		Entity ridden = living.getVehicle();
 		if (ridden instanceof LivingEntity riddenLiving)
 		{
-			float relativeHeadYaw = Mth.wrapDegrees(living.getYRot() - riddenLiving.yBodyRot);
-			float relativeYaw = Mth.wrapDegrees(living.getYRot() - data.headYaw.get() - riddenLiving.yBodyRot);
+			float turnRate = Mth.wrapDegrees(riddenLiving.yBodyRot - riddenLiving.yBodyRotO);
 
-			data.body.rotation.orientZ(Mth.clamp(-relativeHeadYaw * 0.25F, -20.0F, 20.0F));
-			data.leftLeg.rotation.rotateX(-Mth.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
-			data.rightLeg.rotation.rotateX(Mth.sin(relativeYaw / 180.0F * PI * 1.5F) * 45.0F);
+			data.body.rotation.orientZ(Mth.clamp(-turnRate * 2.0F, -20.0F, 20.0F));
+
+			float legSwing = Mth.clamp(turnRate * 3.0F, -30.0F, 30.0F);
+			data.leftLeg.rotation.rotateX(-legSwing);
+			data.rightLeg.rotation.rotateX(legSwing);
 		}
 
 		if (!data.isStillHorizontally())
@@ -78,6 +80,11 @@ public class RidingAnimationBit extends AnimationBit<BipedEntityData<?>>
 			{
 				data.head.rotation.rotateX(-25.0F);
 			}
+		}
+
+		if (squareUp != 0.0F)
+		{
+			data.body.rotation.rotateY(-squareUp);
 		}
 	}
 }

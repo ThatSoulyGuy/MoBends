@@ -51,6 +51,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     protected ModelPart extraHeadPart;
 
+    protected float babyHeadScale = 1.0F;
+
     protected ModelPart vanillaBody;
     protected ModelPart vanillaHead;
     protected ModelPart vanillaHat;
@@ -58,6 +60,14 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected ModelPart vanillaRightArm;
     protected ModelPart vanillaLeftLeg;
     protected ModelPart vanillaRightLeg;
+
+    private VanillaPartState vanillaBodyState;
+    private VanillaPartState vanillaHeadState;
+    private VanillaPartState vanillaHatState;
+    private VanillaPartState vanillaLeftArmState;
+    private VanillaPartState vanillaRightArmState;
+    private VanillaPartState vanillaLeftLegState;
+    private VanillaPartState vanillaRightLegState;
 
     protected LayerCustomBipedArmor<E, M> layerArmor;
     protected HumanoidArmorLayer<E, M, ?> layerArmorVanilla;
@@ -81,11 +91,31 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         this.vanillaRightArm = model.rightArm;
         this.vanillaLeftLeg = model.leftLeg;
         this.vanillaRightLeg = model.rightLeg;
+
+        this.vanillaBodyState = VanillaPartState.capture(model.body);
+        this.vanillaHeadState = VanillaPartState.capture(model.head);
+        this.vanillaHatState = VanillaPartState.capture(model.hat);
+        this.vanillaLeftArmState = VanillaPartState.capture(model.leftArm);
+        this.vanillaRightArmState = VanillaPartState.capture(model.rightArm);
+        this.vanillaLeftLegState = VanillaPartState.capture(model.leftLeg);
+        this.vanillaRightLegState = VanillaPartState.capture(model.rightLeg);
     }
 
     @Override
     public void applyVanillaModel(M model)
     {
+        if (model == null)
+            return;
+
+        VanillaPartState.restore(this.vanillaBodyState, model.body);
+        VanillaPartState.restore(this.vanillaHeadState, model.head);
+        VanillaPartState.restore(this.vanillaHatState, model.hat);
+        VanillaPartState.restore(this.vanillaLeftArmState, model.leftArm);
+        VanillaPartState.restore(this.vanillaRightArmState, model.rightArm);
+        VanillaPartState.restore(this.vanillaLeftLegState, model.leftLeg);
+        VanillaPartState.restore(this.vanillaRightLegState, model.rightLeg);
+
+        this.vanillaPositionsStored = false;
     }
 
     @Override
@@ -153,14 +183,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
     }
 
-    @Override
-    public boolean createParts(M original, float scaleFactor)
+    protected void createHeadParts(float scaleFactor)
     {
-        body = new BendsModelPart(16, 16)
-                .setTextureSize(64, 64)
-                .setPosition(0.0F, 12.0F, 0.0F);
-        body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
-
         head = new BendsModelPart(0, 0)
                 .setTextureSize(64, 64)
                 .setPosition(0.0F, -12.0F, 0.0F);
@@ -171,6 +195,26 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64);
         headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
         head.addChild(headwear);
+    }
+
+    protected void createOuterHeadParts(float scaleFactor, float outerOffset)
+    {
+        outerHead = new BendsModelPart(0, 0)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, -12.0F, 0.0F);
+        outerHead.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + outerOffset);
+        outerBody.addChild(outerHead);
+    }
+
+    @Override
+    public boolean createParts(M original, float scaleFactor)
+    {
+        body = new BendsModelPart(16, 16)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, 12.0F, 0.0F);
+        body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
+
+        createHeadParts(scaleFactor);
 
         int armWidth = 4;
         float armY = -10F;
@@ -260,11 +304,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setPosition(0.0F, 12.0F, 0.0F);
         outerBody.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor + outerOffset);
 
-        outerHead = new BendsModelPart(0, 0)
-                .setTextureSize(64, 64)
-                .setPosition(0.0F, -12.0F, 0.0F);
-        outerHead.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + outerOffset);
-        outerBody.addChild(outerHead);
+        createOuterHeadParts(scaleFactor, outerOffset);
 
         outerLeftArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
@@ -392,6 +432,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                               int packedLight, int packedOverlay, int color)
     {
+        applyBabyHeadScale();
+
         if (body != null)
         {
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
@@ -412,6 +454,19 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (rightLeg != null)
         {
             rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        }
+    }
+
+    public void setBabyHeadScale(float scale)
+    {
+        this.babyHeadScale = scale;
+    }
+
+    protected void applyBabyHeadScale()
+    {
+        if (head != null)
+        {
+            head.scale.set(babyHeadScale, babyHeadScale, babyHeadScale);
         }
     }
 
@@ -513,8 +568,15 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         syncPartToModelPart(leftLeg, model.leftLeg, vanillaLeftLegPos);
         syncPartToModelPart(rightLeg, model.rightLeg, vanillaRightLegPos);
 
+        model.head.xScale = babyHeadScale;
+        model.head.yScale = babyHeadScale;
+        model.head.zScale = babyHeadScale;
+
         if (model.hat != null && head != null)
         {
+            model.hat.xScale = babyHeadScale;
+            model.hat.yScale = babyHeadScale;
+            model.hat.zScale = babyHeadScale;
             model.hat.visible = head.isShowing();
             model.hat.x = model.head.x;
             model.hat.y = model.head.y;
@@ -628,6 +690,52 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         euler[2] = (float) Math.atan2(sinZ, cosZ);
 
         return euler;
+    }
+
+    private static final class VanillaPartState
+    {
+        private final float x, y, z;
+        private final float xRot, yRot, zRot;
+        private final float xScale, yScale, zScale;
+        private final boolean visible, skipDraw;
+
+        private VanillaPartState(ModelPart part)
+        {
+            this.x = part.x;
+            this.y = part.y;
+            this.z = part.z;
+            this.xRot = part.xRot;
+            this.yRot = part.yRot;
+            this.zRot = part.zRot;
+            this.xScale = part.xScale;
+            this.yScale = part.yScale;
+            this.zScale = part.zScale;
+            this.visible = part.visible;
+            this.skipDraw = part.skipDraw;
+        }
+
+        private static VanillaPartState capture(ModelPart part)
+        {
+            return part != null ? new VanillaPartState(part) : null;
+        }
+
+        private static void restore(VanillaPartState state, ModelPart part)
+        {
+            if (state == null || part == null)
+                return;
+
+            part.x = state.x;
+            part.y = state.y;
+            part.z = state.z;
+            part.xRot = state.xRot;
+            part.yRot = state.yRot;
+            part.zRot = state.zRot;
+            part.xScale = state.xScale;
+            part.yScale = state.yScale;
+            part.zScale = state.zScale;
+            part.visible = state.visible;
+            part.skipDraw = state.skipDraw;
+        }
     }
 
 }

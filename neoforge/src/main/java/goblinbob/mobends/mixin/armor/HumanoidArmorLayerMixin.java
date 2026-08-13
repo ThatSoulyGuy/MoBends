@@ -1,7 +1,9 @@
 package goblinbob.mobends.mixin.armor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import goblinbob.mobends.compat.ModCompatManager;
 import goblinbob.mobends.core.data.EntityDatabase;
+import goblinbob.mobends.core.util.BenderHelper;
 import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.standard.client.model.armor.ArmorRenderingFacade;
 import goblinbob.mobends.standard.data.BipedEntityData;
@@ -150,7 +152,9 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
     @Unique
     private boolean mobends$shouldUseMoBendsRendering(T entity)
     {
-        return EntityDatabase.instance.get(entity) != null;
+        return BenderHelper.isEntityAnimated(entity)
+                && !ModCompatManager.shouldDeferAnimation(entity)
+                && EntityDatabase.instance.get(entity) != null;
     }
 
     @Unique

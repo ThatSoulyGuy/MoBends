@@ -4,6 +4,8 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.WalkAnimationBit;
 import goblinbob.mobends.standard.animation.bit.zombie_base.ZombieLeanAnimationBit;
@@ -19,7 +21,7 @@ public class ZombieVillagerController implements IAnimationController<ZombieVill
 
 	protected HardAnimationLayer<ZombieVillagerData> layerBase;
 	protected HardAnimationLayer<ZombieVillagerData> layerSet;
-	protected AnimationBit<ZombieVillagerData> bitStand, bitWalk, bitJump;
+	protected AnimationBit<ZombieVillagerData> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
 	protected AnimationBit<ZombieVillagerData>[] bitAnimationSet;
 
 	public ZombieVillagerController()
@@ -29,6 +31,8 @@ public class ZombieVillagerController implements IAnimationController<ZombieVill
 		this.bitStand = new StandAnimationBit<>();
 		this.bitWalk = new WalkAnimationBit<>();
 		this.bitJump = new JumpAnimationBit<>();
+		this.bitRiding = new RidingAnimationBit<>();
+		this.bitSitting = new SittingAnimationBit<>();
 		this.bitAnimationSet = new AnimationBit[] {
 			new ZombieLeanAnimationBit(),
 			new ZombieStumblingAnimationBit()
@@ -38,23 +42,32 @@ public class ZombieVillagerController implements IAnimationController<ZombieVill
 	@Override
 	public Collection<String> perform(ZombieVillagerData zombieData)
 	{
-		if (!zombieData.isOnGround() || zombieData.getTicksAfterTouchdown() < 1)
+		if (zombieData.isRiding())
 		{
-			this.layerBase.playOrContinueBit(bitJump, zombieData);
+			this.layerBase.playOrContinueBit(
+					zombieData.isRidingLivingEntity() ? bitRiding : bitSitting, zombieData);
+			this.layerSet.clearAnimation();
 		}
 		else
 		{
-			if (zombieData.isStillHorizontally())
+			if (!zombieData.isOnGround() || zombieData.getTicksAfterTouchdown() < 1)
 			{
-				this.layerBase.playOrContinueBit(bitStand, zombieData);
+				this.layerBase.playOrContinueBit(bitJump, zombieData);
 			}
 			else
 			{
-				this.layerBase.playOrContinueBit(bitWalk, zombieData);
+				if (zombieData.isStillHorizontally())
+				{
+					this.layerBase.playOrContinueBit(bitStand, zombieData);
+				}
+				else
+				{
+					this.layerBase.playOrContinueBit(bitWalk, zombieData);
+				}
 			}
-		}
 
-		this.layerSet.playOrContinueBit(bitAnimationSet[zombieData.getAnimationSet()], zombieData);
+			this.layerSet.playOrContinueBit(bitAnimationSet[zombieData.getAnimationSet()], zombieData);
+		}
 
 		List<String> actions = new ArrayList<String>();
 		this.layerBase.perform(zombieData, actions);

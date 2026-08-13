@@ -6,6 +6,8 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.animation.bit.biped.AttackSlashInwardAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.pigzombie.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.pigzombie.WalkAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
@@ -21,7 +23,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 
 	protected HardAnimationLayer<BipedEntityData<ZombifiedPiglin>> layerBase;
 	protected HardAnimationLayer<BipedEntityData<?>> layerAction;
-	protected AnimationBit<? extends BipedEntityData<ZombifiedPiglin>> bitStand, bitWalk, bitJump;
+	protected AnimationBit<? extends BipedEntityData<ZombifiedPiglin>> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
 	protected AttackSlashInwardAnimationBit bitAttack;
 
 	public PigZombieController()
@@ -31,6 +33,8 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 		this.bitStand = new StandAnimationBit();
 		this.bitWalk = new WalkAnimationBit();
 		this.bitJump = new JumpAnimationBit<>();
+		this.bitRiding = new RidingAnimationBit<BipedEntityData<ZombifiedPiglin>>();
+		this.bitSitting = new SittingAnimationBit<BipedEntityData<ZombifiedPiglin>>();
 		this.bitAttack = new AttackSlashInwardAnimationBit();
 	}
 
@@ -39,7 +43,12 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 	{
 		ZombifiedPiglin pigZombie =  pigZombieData.getEntity();
 
-		if (!pigZombieData.isOnGround() || pigZombieData.getTicksAfterTouchdown() < 1)
+		if (pigZombieData.isRiding())
+		{
+			this.layerBase.playOrContinueBit(
+					pigZombieData.isRidingLivingEntity() ? bitRiding : bitSitting, pigZombieData);
+		}
+		else if (!pigZombieData.isOnGround() || pigZombieData.getTicksAfterTouchdown() < 1)
 		{
 			this.layerBase.playOrContinueBit(bitJump, pigZombieData);
 		}

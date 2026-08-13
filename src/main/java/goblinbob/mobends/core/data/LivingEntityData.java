@@ -35,6 +35,8 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     public OverridableProperty<Float> headYaw = new OverridableProperty<>(0F);
     public OverridableProperty<Float> headPitch = new OverridableProperty<>(0F);
 
+    protected float ridingBodyYaw = 0F;
+
     public LivingEntityData(E entity)
     {
         super(entity);
@@ -48,6 +50,16 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     public void setClimbing(boolean flag)
     {
         this.climbing = flag;
+    }
+
+    public void setRidingBodyYaw(float yaw)
+    {
+        this.ridingBodyYaw = yaw;
+    }
+
+    public float getRidingBodyYaw()
+    {
+        return this.ridingBodyYaw;
     }
 
     public void setClimbingCycle(float cycle)

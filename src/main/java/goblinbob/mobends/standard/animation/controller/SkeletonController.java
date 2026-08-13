@@ -5,6 +5,8 @@ import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.skeleton.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.skeleton.WalkAnimationBit;
 import goblinbob.mobends.standard.data.SkeletonData;
@@ -20,7 +22,7 @@ import java.util.List;
 public class SkeletonController implements IAnimationController<SkeletonData<?>>
 {
 	protected HardAnimationLayer<SkeletonData<?>> layerBase;
-	protected AnimationBit<? extends SkeletonData<?>> bitStand, bitWalk, bitJump;
+	protected AnimationBit<? extends SkeletonData<?>> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
 
 	protected final BipedActionController actionController = new BipedActionController();
 
@@ -31,6 +33,8 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 		this.bitStand = new StandAnimationBit();
 		this.bitWalk = new WalkAnimationBit();
 		this.bitJump = new JumpAnimationBit<SkeletonData<?>>();
+		this.bitRiding = new RidingAnimationBit<SkeletonData<?>>();
+		this.bitSitting = new SittingAnimationBit<SkeletonData<?>>();
 	}
 
 	public void performActionAnimations(SkeletonData<?> data, AbstractSkeleton skeleton)
@@ -48,7 +52,12 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 	{
 		AbstractSkeleton skeleton = skeletonData.getEntity();
 
-		if (!skeletonData.isOnGround() || skeletonData.getTicksAfterTouchdown() < 1)
+		if (skeletonData.isRiding())
+		{
+			this.layerBase.playOrContinueBit(
+					skeletonData.isRidingLivingEntity() ? bitRiding : bitSitting, skeletonData);
+		}
+		else if (!skeletonData.isOnGround() || skeletonData.getTicksAfterTouchdown() < 1)
 		{
 			this.layerBase.playOrContinueBit(bitJump, skeletonData);
 		}

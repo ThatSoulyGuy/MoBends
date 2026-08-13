@@ -23,6 +23,13 @@ public final class MixinBridge {
         return mutator != null && mutator.shouldRenderCustom();
     }
 
+    public static void setBabyHeadScale(float scale) {
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        if (mutator != null) {
+            mutator.setBabyHeadScale(scale);
+        }
+    }
+
     public static void renderBipedMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                                           int packedLight, int packedOverlay,
                                           float red, float green, float blue, float alpha) {
@@ -76,6 +83,13 @@ public final class MixinBridge {
                         (int)(blue * 255.0F);
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             MoBendsRenderContext.endMainModelRender();
+        }
+    }
+
+    public static void setWolfBabyHeadScale(float scale) {
+        WolfMutator mutator = MoBendsRenderContext.getCurrentWolfMutator();
+        if (mutator != null) {
+            mutator.setBabyHeadScale(scale);
         }
     }
 

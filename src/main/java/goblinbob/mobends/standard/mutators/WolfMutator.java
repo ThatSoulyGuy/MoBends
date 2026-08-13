@@ -34,6 +34,8 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
     public BendsModelPart foreLeg3;
     public BendsModelPart foreLeg4;
 
+    protected float babyHeadScale = 1.0F;
+
     public WolfMutator(IEntityDataFactory<Wolf> dataFactory)
     {
         super(dataFactory);
@@ -225,10 +227,28 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
         return this.wolfBody != null;
     }
 
+    private static final float HEAD_HALF_HEIGHT = 3.0F;
+
+    public void setBabyHeadScale(float scale)
+    {
+        this.babyHeadScale = scale;
+    }
+
+    private void applyBabyHeadScale()
+    {
+        if (wolfHeadMain != null)
+        {
+            wolfHeadMain.scale.set(babyHeadScale, babyHeadScale, babyHeadScale);
+            wolfHeadMain.globalOffset.set(0.0F, -(babyHeadScale - 1.0F) * HEAD_HALF_HEIGHT, 0.0F);
+        }
+    }
+
     @Override
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                               int packedLight, int packedOverlay, int color)
     {
+        applyBabyHeadScale();
+
         if (wolfBody != null)
         {
             wolfBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);

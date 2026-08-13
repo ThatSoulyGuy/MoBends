@@ -36,6 +36,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
     protected float limbSwing;
     protected float limbSwingAmount;
     protected float swingProgress;
+    protected float ridingBodyYaw;
 
     private final IEntityDataFactory<E> dataFactory;
     protected List<RenderLayer<E, M>> layerRenderers;
@@ -167,10 +168,13 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         float f1 = Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot);
         float yaw = f1 - f;
 
+        this.ridingBodyYaw = 0.0F;
+
         if (shouldSit && entity.getVehicle() instanceof LivingEntity)
         {
             LivingEntity vehicle = (LivingEntity) entity.getVehicle();
-            f = Mth.rotLerp(partialTicks, vehicle.yBodyRotO, vehicle.yBodyRot);
+            float vehicleYaw = Mth.rotLerp(partialTicks, vehicle.yBodyRotO, vehicle.yBodyRot);
+            f = vehicleYaw;
             yaw = f1 - f;
             float f3 = Mth.wrapDegrees(yaw);
 
@@ -185,6 +189,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
                 f += f3 * 0.2F;
 
             yaw = f1 - f;
+            this.ridingBodyYaw = Mth.wrapDegrees(f - vehicleYaw);
         }
 
         float pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
@@ -223,6 +228,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         data.limbSwing.set(this.limbSwing);
         data.limbSwingAmount.set(this.limbSwingAmount);
         data.swingProgress.set(this.swingProgress);
+        data.setRidingBodyYaw(this.ridingBodyYaw);
 
         KumoVariableRegistry.instance.provideTemporaryData(data);
 
