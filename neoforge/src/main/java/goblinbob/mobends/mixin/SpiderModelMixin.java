@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.neoforge.mixin.MixinBridge;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.SpiderModel;
+import net.minecraft.client.model.SquidModel;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,13 +19,19 @@ public abstract class SpiderModelMixin<T extends Entity> {
     private void mobends$interceptRender(PoseStack poseStack, VertexConsumer vertexConsumer,
                                          int packedLight, int packedOverlay, int color,
                                          CallbackInfo ci) {
-        if (!((Object) this instanceof SpiderModel)) {
+        if ((Object) this instanceof SpiderModel) {
+            if (MixinBridge.shouldRenderSpiderCustom()) {
+                MixinBridge.renderSpiderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+                ci.cancel();
+            }
             return;
         }
 
-        if (MixinBridge.shouldRenderSpiderCustom()) {
-            MixinBridge.renderSpiderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
-            ci.cancel();
+        if ((Object) this instanceof SquidModel) {
+            if (MixinBridge.shouldRenderSquidCustom()) {
+                MixinBridge.renderSquidMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+                ci.cancel();
+            }
         }
     }
 }

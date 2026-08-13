@@ -2,7 +2,7 @@ package goblinbob.mobends.mixin;
 
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
-import goblinbob.mobends.neoforge.compat.ModCompatManager;
+import goblinbob.mobends.compat.ModCompatManager;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import org.spongepowered.asm.mixin.Mixin;

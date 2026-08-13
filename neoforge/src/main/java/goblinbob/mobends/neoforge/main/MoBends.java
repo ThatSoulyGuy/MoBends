@@ -9,7 +9,7 @@ import goblinbob.mobends.core.addon.AddonHelper;
 import goblinbob.mobends.core.addon.Addons;
 import goblinbob.mobends.core.animation.keyframe.AnimationLoader;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
-import goblinbob.mobends.neoforge.compat.ModCompatManager;
+import goblinbob.mobends.compat.ModCompatManager;
 import goblinbob.mobends.neoforge.player.NeoForgePlayerSkinProvider;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.neoforge.client.event.KeyboardEventHandler;
@@ -47,6 +47,7 @@ public class MoBends
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(KeyboardEventHandler::registerKeyMappings);
+            modEventBus.addListener(goblinbob.mobends.neoforge.client.event.EntityRendererRegistrar::registerRenderers);
         }
 
         modEventBus.addListener(this::commonSetup);

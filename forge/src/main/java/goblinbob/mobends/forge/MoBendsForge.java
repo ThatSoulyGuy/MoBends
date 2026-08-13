@@ -13,7 +13,7 @@ import goblinbob.mobends.core.pack.PackDataProvider;
 import goblinbob.mobends.core.util.GsonResources;
 import goblinbob.mobends.forge.client.event.KeyboardEventHandler;
 import goblinbob.mobends.forge.client.event.RenderingEventHandler;
-import goblinbob.mobends.forge.compat.ModCompatManager;
+import goblinbob.mobends.compat.ModCompatManager;
 import goblinbob.mobends.forge.network.ForgeNetworkHandler;
 import goblinbob.mobends.forge.player.ForgePlayerSkinProvider;
 import goblinbob.mobends.forge.platform.ForgePlatformServices;
@@ -58,6 +58,7 @@ public class MoBendsForge
         {
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(KeyboardEventHandler::registerKeyMappings);
+            modEventBus.addListener(goblinbob.mobends.forge.client.event.EntityRendererRegistrar::registerRenderers);
         }
 
         MinecraftForge.EVENT_BUS.register(this);

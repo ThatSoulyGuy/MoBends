@@ -7,6 +7,7 @@ import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
+import goblinbob.mobends.standard.mutators.SquidMutator;
 import goblinbob.mobends.standard.mutators.WolfMutator;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -43,6 +44,20 @@ public final class MixinBridge {
     public static void renderSpiderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                                            int packedLight, int packedOverlay, int color) {
         SpiderMutator mutator = MoBendsRenderContext.getCurrentSpiderMutator();
+        if (mutator != null) {
+            mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            MoBendsRenderContext.endMainModelRender();
+        }
+    }
+
+    public static boolean shouldRenderSquidCustom() {
+        SquidMutator mutator = MoBendsRenderContext.getCurrentSquidMutator();
+        return mutator != null && mutator.shouldRenderCustom();
+    }
+
+    public static void renderSquidMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
+                                          int packedLight, int packedOverlay, int color) {
+        SquidMutator mutator = MoBendsRenderContext.getCurrentSquidMutator();
         if (mutator != null) {
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             MoBendsRenderContext.endMainModelRender();

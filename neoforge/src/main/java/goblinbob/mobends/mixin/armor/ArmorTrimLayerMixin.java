@@ -1,6 +1,5 @@
 package goblinbob.mobends.mixin.armor;
 
-import goblinbob.mobends.neoforge.mixin.MixinBridge;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.world.entity.LivingEntity;

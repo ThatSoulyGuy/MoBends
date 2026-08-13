@@ -8,10 +8,8 @@ import goblinbob.mobends.core.client.event.*;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import goblinbob.mobends.core.env.EnvironmentModule;
 import goblinbob.mobends.core.pack.PackManager;
-import goblinbob.mobends.neoforge.configuration.NeoForgeClientConfig;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;

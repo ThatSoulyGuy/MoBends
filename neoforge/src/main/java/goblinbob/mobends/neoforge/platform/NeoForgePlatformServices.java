@@ -31,7 +31,7 @@ import goblinbob.mobends.platform.McPoseStack;
 import goblinbob.mobends.platform.McResourceManager;
 import goblinbob.mobends.platform.McRenderLayerProvider;
 import goblinbob.mobends.platform.McResourcePath;
-import goblinbob.mobends.platform.VersionAdapter;
+import goblinbob.mobends.core.util.ResourceLocationFactory;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -51,8 +51,6 @@ public class NeoForgePlatformServices implements IPlatformServices
 
     public NeoForgePlatformServices()
     {
-        VersionAdapter.Holder.set(new NeoForgeVersionAdapter());
-
         IEntityVertexHelper.Holder.setHelper(new NeoForgeEntityVertexHelper());
         IArmorHelper.Holder.setHelper(new NeoForgeArmorHelper());
         IModelRenderHelper.Holder.setHelper(new NeoForgeModelRenderHelper());
@@ -196,7 +194,7 @@ public class NeoForgePlatformServices implements IPlatformServices
     {
         try
         {
-            ResourceLocation loc = VersionAdapter.Holder.get().parseResourceLocation(location);
+            ResourceLocation loc = ResourceLocationFactory.parse(location);
             return new McResourcePath(loc);
         }
         catch (Exception e)
