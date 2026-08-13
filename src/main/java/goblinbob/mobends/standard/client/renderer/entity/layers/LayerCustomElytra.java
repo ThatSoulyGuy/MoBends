@@ -76,6 +76,9 @@ public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerM
             data.body.applyCharacterTransform(poseStack, 0.0625F);
             poseStack.translate(0.0F, -12.0F * scale, 0.0F);
 
+            this.elytraModel.young = player.isBaby();
+            this.elytraModel.riding = false;
+            this.elytraModel.attackTime = 0.0F;
             this.elytraModel.setupAnim(player, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
             IModelRenderHelper renderHelper = IModelRenderHelper.Holder.getHelper();

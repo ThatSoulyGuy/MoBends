@@ -7,15 +7,18 @@ import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomCape;
+import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomElytra;
 import goblinbob.mobends.standard.data.PlayerData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
+import net.minecraft.client.renderer.entity.layers.ElytraLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 
@@ -37,6 +40,9 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
 
     protected LayerCustomCape layerCape;
     protected CapeLayer layerCapeVanilla;
+
+    protected LayerCustomElytra layerElytra;
+    protected RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> layerElytraVanilla;
 
     public PlayerMutator(IEntityDataFactory<AbstractClientPlayer> dataFactory)
     {
@@ -190,6 +196,14 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             layerRenderers.set(index, this.layerCape);
         }
 
+        if (layer instanceof ElytraLayer)
+        {
+            this.layerElytra = new LayerCustomElytra(renderer, Minecraft.getInstance().getEntityModels());
+            if (isModelVanilla)
+                this.layerElytraVanilla = layer;
+            layerRenderers.set(index, this.layerElytra);
+        }
+
     }
 
     @Override
@@ -201,6 +215,11 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         if (layer instanceof LayerCustomCape)
         {
             layerRenderers.set(index, this.layerCapeVanilla);
+        }
+
+        if (layer instanceof LayerCustomElytra && this.layerElytraVanilla != null)
+        {
+            layerRenderers.set(index, this.layerElytraVanilla);
         }
 
     }

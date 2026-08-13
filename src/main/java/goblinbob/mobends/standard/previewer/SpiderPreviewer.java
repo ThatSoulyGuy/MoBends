@@ -59,17 +59,6 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 					data.overrideStillness(false);
 				}
 				break;
-			case "climb":
-				{
-					final float ticks = DataUpdateHandler.getTicks();
-
-					data.setClimbing(true);
-					data.overrideOnGroundState(false);
-					data.limbSwing.override(ticks * 0.5F);
-					data.limbSwingAmount.override(0.7F);
-					data.overrideStillness(false);
-				}
-				break;
 			default:
 				data.overrideOnGroundState(true);
 				data.overrideStillness(true);
@@ -79,10 +68,6 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 	@Override
 	public void postPreview(SpiderData data, String animationToPreview)
 	{
-		if ("climb".equals(animationToPreview))
-		{
-			data.setClimbing(false);
-		}
 	}
 
 	@Override

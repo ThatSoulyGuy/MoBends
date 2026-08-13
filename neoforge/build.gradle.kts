@@ -95,6 +95,15 @@ tasks.jar {
     archiveClassifier = "dev"
 }
 
+tasks.named<Jar>("sourcesJar") {
+    val commonSources = common.tasks.named<Jar>("sourcesJar")
+    val coreSources = project(":core").tasks.named<Jar>("sourcesJar")
+    dependsOn(commonSources, coreSources)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(commonSources.map { zipTree(it.archiveFile) })
+    from(coreSources.map { zipTree(it.archiveFile) })
+}
+
 tasks.shadowJar {
     configurations = listOf(shadowBundle)
     archiveClassifier = "dev-shadow"

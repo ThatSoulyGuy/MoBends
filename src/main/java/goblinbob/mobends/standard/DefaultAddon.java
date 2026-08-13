@@ -26,7 +26,7 @@ import net.minecraft.world.entity.animal.Wolf;
 public class DefaultAddon implements IAddon
 {
 	protected static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall"};
-	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump", "climb"};
+	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump"};
 	private static final String[] SQUID_ANIMATIONS = {"swim"};
 	private static final String[] WOLF_ANIMATIONS = {"walk", "sit"};
 
