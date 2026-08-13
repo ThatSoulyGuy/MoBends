@@ -46,6 +46,9 @@ public class EntityPreviewWidget
     private int lastMouseX;
     private int lastMouseY;
 
+    private boolean chromeVisible = true;
+    private float scaleMultiplier = 1.0F;
+
     public EntityPreviewWidget(VanillaViewFactory factory, int width, int height)
     {
         this.factory = factory;
@@ -95,6 +98,10 @@ public class EntityPreviewWidget
         ));
 
         rootLayout.addView(contentLayout, factory.createMatchParent());
+
+        titleView.setVisibility(VanillaView.GONE);
+        statusView.setVisibility(VanillaView.GONE);
+        hintView.setVisibility(VanillaView.GONE);
     }
 
     public void setBender(@Nullable EntityBender<?> bender)
@@ -105,6 +112,7 @@ public class EntityPreviewWidget
         if (bender != null)
         {
             titleView.setText(bender.getLocalizedName());
+            titleView.setVisibility(VanillaView.VISIBLE);
             if (renderer.hasEntity())
             {
                 entityPreviewView.setVisibility(VanillaView.VISIBLE);
@@ -121,15 +129,51 @@ public class EntityPreviewWidget
         }
         else
         {
-            titleView.setText(I18n.get("mobends.gui.preview"));
             entityPreviewView.setVisibility(VanillaView.GONE);
-            statusView.setText(I18n.get("mobends.gui.preview.select"));
-            statusView.setTextColor(MoBendsTheme.TEXT_HINT);
-            statusView.setVisibility(VanillaView.VISIBLE);
+            titleView.setVisibility(VanillaView.GONE);
+            statusView.setVisibility(VanillaView.GONE);
             hintView.setVisibility(VanillaView.GONE);
         }
 
+        applyChrome();
         resetView();
+        applyScaleMultiplier();
+    }
+
+    public void setScaleMultiplier(float scaleMultiplier)
+    {
+        this.scaleMultiplier = scaleMultiplier;
+        applyScaleMultiplier();
+    }
+
+    private void applyScaleMultiplier()
+    {
+        if (scaleMultiplier == 1.0F) return;
+
+        renderer.setScale(renderer.getScale() * scaleMultiplier);
+    }
+
+    public void setChromeVisible(boolean chromeVisible)
+    {
+        this.chromeVisible = chromeVisible;
+        applyChrome();
+    }
+
+    public void setInteractive(boolean interactive)
+    {
+        if (entityPreviewView instanceof goblinbob.mobends.core.client.gui.vanilla.VanillaEntityPreviewView preview)
+        {
+            preview.setInteractive(interactive);
+        }
+    }
+
+    private void applyChrome()
+    {
+        if (chromeVisible) return;
+
+        titleView.setVisibility(VanillaView.GONE);
+        statusView.setVisibility(VanillaView.GONE);
+        hintView.setVisibility(VanillaView.GONE);
     }
 
     @Nullable

@@ -32,6 +32,8 @@ public final class MoBendsTheme
 
     public static final int BG_LIST_ITEM_HOVER = 0x18FFFFFF;
 
+    public static final int BG_TILE_HOVER = 0x452A6FFF;
+
     public static final int COLOR_SETTINGS = 0xFFFF8C42;
 
     public static final int COLOR_PACKS = 0xFF5B9BFF;

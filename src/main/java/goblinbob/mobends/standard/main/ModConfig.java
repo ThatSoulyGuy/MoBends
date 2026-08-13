@@ -14,6 +14,8 @@ public class ModConfig
 
     public static boolean showArrowTrails = true;
 
+    public static boolean arrowTrailFullBright = false;
+
     public static boolean performSpinAttack = true;
 
     public static boolean disableMovementInGui = false;

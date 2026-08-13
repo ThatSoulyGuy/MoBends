@@ -48,6 +48,10 @@ public class MoBends
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(KeyboardEventHandler::registerKeyMappings);
             modEventBus.addListener(goblinbob.mobends.neoforge.client.event.EntityRendererRegistrar::registerRenderers);
+
+            container.registerExtensionPoint(
+                    net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
+                    (modContainer, parent) -> goblinbob.mobends.core.client.gui.UIBridge.createConfigScreen());
         }
 
         modEventBus.addListener(this::commonSetup);

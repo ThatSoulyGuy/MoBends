@@ -174,6 +174,7 @@ public class VanillaView
         if (!isInBounds(mouseX, mouseY)) return false;
         if (clickListener != null && button == 0)
         {
+            GuiSound.playClick();
             clickListener.run();
             return true;
         }

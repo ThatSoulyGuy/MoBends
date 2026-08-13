@@ -232,4 +232,10 @@ public class ForgePlatformServices implements IPlatformServices
     {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
     }
+
+    @Override
+    public void setConfigBoolean(String key, boolean value)
+    {
+        goblinbob.mobends.forge.ForgeConfig.set(key, value);
+    }
 }

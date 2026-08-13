@@ -13,6 +13,8 @@ import goblinbob.mobends.core.client.gui.widget.UIGalleryWidget;
 import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.core.pack.IBendsPack;
 import goblinbob.mobends.core.network.NetworkConfiguration;
+import goblinbob.mobends.core.util.ResourceLocationFactory;
+import goblinbob.mobends.standard.main.ConfigOptions;
 import net.minecraft.client.resources.language.I18n;
 
 public class MoBendsScreenBuilder
@@ -20,6 +22,18 @@ public class MoBendsScreenBuilder
     private static final int TAB_SETTINGS = 0;
     private static final int TAB_PACKS = 1;
     private static final int TAB_CUSTOMIZE = 2;
+
+    private static final int SUB_CHOOSER = 0;
+    private static final int SUB_ANIMATIONS = 1;
+    private static final int SUB_CONFIG = 2;
+
+    private static final int COGWHEEL_TEXTURE_SIZE = 512;
+    private static final long CHOOSER_CYCLE_MS = 2500L;
+    private static final float CHOOSER_PREVIEW_SCALE = 3.0F;
+
+    private static final int CONFIG_ROW_HEIGHT = 46;
+    private static final int CONFIG_TOGGLE_WIDTH = 40;
+    private static final int CONFIG_TOGGLE_HEIGHT = 20;
 
     private static final int COLOR_SETTINGS = MoBendsTheme.COLOR_SETTINGS;
     private static final int COLOR_PACKS = MoBendsTheme.COLOR_PACKS;
@@ -37,6 +51,15 @@ public class MoBendsScreenBuilder
     private int galleryTabIndex = -1;
     private VanillaTextField searchField;
     private VanillaTextField packSearchField;
+    private VanillaFrameLayout settingsFrame;
+    private VanillaView settingsChooser;
+    private VanillaView animationsContent;
+    private VanillaView configContent;
+    private EntityPreviewWidget chooserPreview;
+    private int chooserBenderIndex;
+    private boolean chooserStarted;
+    private long chooserLastCycle;
+    private boolean openConfigOnBuild;
     private final EntityBenderRegistry.Filter filter = new EntityBenderRegistry.Filter();
 
     public String getTitle()
@@ -54,6 +77,10 @@ public class MoBendsScreenBuilder
         if (entityPreview != null)
         {
             entityPreview.getRenderer().dispose();
+        }
+        if (chooserPreview != null)
+        {
+            chooserPreview.getRenderer().dispose();
         }
     }
 
@@ -116,7 +143,7 @@ public class MoBendsScreenBuilder
         contentFrame.setLayoutParams(factory.createMatchParent());
         contentFrame.setBackgroundColor(MoBendsTheme.BG_CONTENT);
 
-        settingsContent = buildSettingsContent(factory);
+        settingsContent = buildSettingsTab(factory);
         packsContent = buildPacksContent(factory);
         customizeContent = buildCustomizeContent(factory);
 
@@ -131,12 +158,22 @@ public class MoBendsScreenBuilder
 
         showTab(TAB_SETTINGS);
 
+        if (openConfigOnBuild)
+        {
+            showSettingsSubView(SUB_CONFIG);
+        }
+
         root.addView(contentFrame, factory.createMatchParent());
 
         return root;
     }
 
-    private VanillaView buildSettingsContent(VanillaViewFactory factory)
+    public void setOpenConfigOnBuild(boolean openConfigOnBuild)
+    {
+        this.openConfigOnBuild = openConfigOnBuild;
+    }
+
+    private VanillaView buildAnimationsContent(VanillaViewFactory factory)
     {
         VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
         layout.setLayoutParams(factory.createMatchParent());
@@ -177,6 +214,187 @@ public class MoBendsScreenBuilder
         layout.addView(entityPreview.getView(), previewParams);
 
         return layout;
+    }
+
+    private VanillaView buildSettingsTab(VanillaViewFactory factory)
+    {
+        settingsFrame = factory.createFrameLayout();
+        settingsFrame.setLayoutParams(factory.createMatchParent());
+
+        settingsChooser = buildSettingsChooser(factory);
+        animationsContent = withBackHeader(factory, buildAnimationsContent(factory));
+        configContent = withBackHeader(factory, buildConfigContent(factory));
+
+        settingsFrame.addView(settingsChooser, factory.createMatchParent());
+        settingsFrame.addView(animationsContent, factory.createMatchParent());
+        settingsFrame.addView(configContent, factory.createMatchParent());
+
+        showSettingsSubView(SUB_CHOOSER);
+
+        return settingsFrame;
+    }
+
+    private VanillaView buildSettingsChooser(VanillaViewFactory factory)
+    {
+        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        layout.setLayoutParams(factory.createMatchParent());
+        layout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
+                         MoBendsTheme.PADDING, MoBendsTheme.PADDING);
+
+        chooserPreview = new EntityPreviewWidget(factory, 0, 0);
+        chooserPreview.setChromeVisible(false);
+        chooserPreview.setInteractive(false);
+        chooserPreview.getView().setBackgroundColor(0);
+        chooserPreview.setScaleMultiplier(CHOOSER_PREVIEW_SCALE);
+        applyChooserBender();
+
+        VanillaTileView animationsTile = buildTile(factory, chooserPreview.getView(),
+                I18n.get("mobends.gui.settings.animations"),
+                () -> showSettingsSubView(SUB_ANIMATIONS));
+        animationsTile.setTicker(this::tickChooserPreview);
+
+        VanillaIconView cogwheel = new VanillaIconView(
+                ResourceLocationFactory.create("mobends", "textures/gui/cogwheel.png"),
+                COGWHEEL_TEXTURE_SIZE);
+        cogwheel.setIconSize(96);
+        cogwheel.setSpinning(true);
+
+        VanillaTileView configTile = buildTile(factory, cogwheel,
+                I18n.get("mobends.gui.settings.config"),
+                () -> showSettingsSubView(SUB_CONFIG));
+        cogwheel.setHoverSupplier(configTile::isHovered);
+
+        VanillaLayoutParams leftParams = factory.createLayoutParams(
+                0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
+        leftParams.setMargins(0, 0, MoBendsTheme.PADDING_LARGE * 2, 0);
+        layout.addView(animationsTile, leftParams);
+        layout.addView(configTile, factory.createLayoutParams(
+                0, VanillaLayoutParams.MATCH_PARENT, 1.0f));
+
+        return layout;
+    }
+
+    private VanillaTileView buildTile(VanillaViewFactory factory, VanillaView content, String label, Runnable onClick)
+    {
+        VanillaTileView tile = new VanillaTileView();
+        tile.setOrientation(VanillaViewFactory.VERTICAL);
+        tile.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        tile.setPadding(MoBendsTheme.SPACING, MoBendsTheme.SPACING,
+                       MoBendsTheme.SPACING, MoBendsTheme.SPACING);
+        tile.setOnClickListener(onClick);
+
+        tile.addView(content, factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT, 0, 1.0f));
+
+        VanillaTextView labelView = factory.createTextView(label);
+        labelView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
+        labelView.setTextSize(12);
+        labelView.setBold(true);
+        labelView.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        tile.addView(labelView, factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
+
+        return tile;
+    }
+
+    private void tickChooserPreview()
+    {
+        long now = System.currentTimeMillis();
+
+        if (chooserLastCycle == 0L)
+        {
+            chooserLastCycle = now;
+            return;
+        }
+
+        if (now - chooserLastCycle < CHOOSER_CYCLE_MS) return;
+
+        chooserLastCycle = now;
+        chooserBenderIndex++;
+        applyChooserBender();
+    }
+
+    private void applyChooserBender()
+    {
+        if (chooserPreview == null) return;
+
+        java.util.List<EntityBender<?>> benders =
+                new java.util.ArrayList<>(EntityBenderRegistry.instance.getRegistered());
+        if (benders.isEmpty()) return;
+
+        if (!chooserStarted)
+        {
+            chooserStarted = true;
+            chooserBenderIndex = (int) (Math.random() * benders.size());
+        }
+
+        chooserPreview.setBender(benders.get(Math.floorMod(chooserBenderIndex, benders.size())));
+    }
+
+    private VanillaView buildConfigContent(VanillaViewFactory factory)
+    {
+        VanillaScrollView scrollView = factory.createScrollView();
+        scrollView.setLayoutParams(factory.createMatchParent());
+
+        VanillaLinearLayout list = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        list.setLayoutParams(factory.createMatchParent());
+        list.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
+
+        for (ConfigOptions.Option option : ConfigOptions.all())
+        {
+            VanillaToggle toggle = factory.createToggle(option.get());
+            toggle.setText(I18n.get(option.getTranslationKey()));
+            toggle.setBackgroundColor(MoBendsTheme.BG_LIST);
+            toggle.setPadding(MoBendsTheme.PADDING_LARGE, 0, MoBendsTheme.PADDING_LARGE, 0);
+            toggle.setToggleSize(CONFIG_TOGGLE_WIDTH, CONFIG_TOGGLE_HEIGHT);
+            toggle.setTooltip(I18n.get(option.getDescriptionKey()));
+            toggle.setOnCheckedChangeListener(option::set);
+
+            VanillaLayoutParams params = factory.createLayoutParams(
+                    VanillaLayoutParams.MATCH_PARENT,
+                    CONFIG_ROW_HEIGHT);
+            params.setMargins(0, 0, 0, MoBendsTheme.SPACING);
+            list.addView(toggle, params);
+        }
+
+        scrollView.addView(list, factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
+
+        return scrollView;
+    }
+
+    private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content)
+    {
+        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        layout.setLayoutParams(factory.createMatchParent());
+
+        VanillaButton backButton = factory.createButton(I18n.get("mobends.gui.back"));
+        backButton.setOnClickListener(() -> showSettingsSubView(SUB_CHOOSER));
+
+        VanillaLayoutParams backParams = factory.createLayoutParams(60, MoBendsTheme.BUTTON_HEIGHT);
+        backParams.setMargins(MoBendsTheme.PADDING, MoBendsTheme.PADDING, 0, MoBendsTheme.SPACING);
+        layout.addView(backButton, backParams);
+
+        layout.addView(content, factory.createMatchParent());
+
+        return layout;
+    }
+
+    private void showSettingsSubView(int subView)
+    {
+        showOrHideTab(settingsChooser, subView == SUB_CHOOSER);
+        showOrHideTab(animationsContent, subView == SUB_ANIMATIONS);
+        showOrHideTab(configContent, subView == SUB_CONFIG);
+    }
+
+    public void openConfig()
+    {
+        if (tabBar != null)
+        {
+            tabBar.selectTab(TAB_SETTINGS);
+        }
+        showTab(TAB_SETTINGS);
+        showSettingsSubView(SUB_CONFIG);
     }
 
     private VanillaView buildPacksContent(VanillaViewFactory factory)
@@ -281,6 +499,11 @@ public class MoBendsScreenBuilder
     private void onTabChanged(int tabIndex)
     {
         showTab(tabIndex);
+
+        if (tabIndex == TAB_SETTINGS)
+        {
+            showSettingsSubView(SUB_CHOOSER);
+        }
 
         if (searchField != null)
         {

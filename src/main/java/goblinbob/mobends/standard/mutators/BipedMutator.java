@@ -439,10 +439,10 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
-        if (extraHeadPart != null && extraHeadPart.visible && vanillaHead != null)
+        if (extraHeadPart != null && extraHeadPart.visible && head != null && head.isShowing())
         {
             poseStack.pushPose();
-            vanillaHead.translateAndRotate(poseStack);
+            head.applyCharacterTransformPoseStack(poseStack);
             extraHeadPart.render(poseStack, vertexConsumer, packedLight, packedOverlay);
             poseStack.popPose();
         }

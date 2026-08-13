@@ -14,12 +14,26 @@ public class VanillaToggle extends VanillaView
     @Nullable
     private Consumer<Boolean> checkedChangeListener;
 
-    private static final int TOGGLE_WIDTH = 20;
-    private static final int TOGGLE_HEIGHT = 10;
+    private int toggleWidth = 20;
+    private int toggleHeight = 10;
+
+    @Nullable
+    private String tooltip;
 
     public VanillaToggle(boolean initialState)
     {
         this.checked = initialState;
+    }
+
+    public void setToggleSize(int toggleWidth, int toggleHeight)
+    {
+        this.toggleWidth = toggleWidth;
+        this.toggleHeight = toggleHeight;
+    }
+
+    public void setTooltip(@Nullable String tooltip)
+    {
+        this.tooltip = tooltip;
     }
 
     public void setChecked(boolean checked) { this.checked = checked; }
@@ -50,6 +64,7 @@ public class VanillaToggle extends VanillaView
         if (!isInBounds(mouseX, mouseY)) return false;
         if (button == 0)
         {
+            GuiSound.playClick();
             toggle();
             return true;
         }
@@ -60,18 +75,38 @@ public class VanillaToggle extends VanillaView
     {
         if (visibility != VISIBLE) return;
 
-        if (backgroundColor != 0)
+        boolean hovered = enabled && isInBounds(mouseX, mouseY);
+
+        guiGraphics.pose().pushPose();
+
+        if (hovered)
         {
-            guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, backgroundColor);
+            float centerX = x + measuredWidth / 2.0F;
+            float centerY = y + measuredHeight / 2.0F;
+
+            guiGraphics.pose().translate(centerX, centerY, 0.0F);
+            guiGraphics.pose().scale(1.03F, 1.03F, 1.0F);
+            guiGraphics.pose().translate(-centerX, -centerY, 0.0F);
         }
 
-        int toggleX = x + measuredWidth - TOGGLE_WIDTH - 2;
-        int toggleY = y + (measuredHeight - TOGGLE_HEIGHT) / 2;
-        int trackColor = checked ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF;
-        guiGraphics.fill(toggleX, toggleY, toggleX + TOGGLE_WIDTH, toggleY + TOGGLE_HEIGHT, trackColor);
+        if (backgroundColor != 0)
+        {
+            guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight,
+                    hovered ? MoBendsTheme.BG_LIST_ITEM_SELECTED : backgroundColor);
+        }
 
-        int thumbSize = TOGGLE_HEIGHT - 2;
-        int thumbX = checked ? toggleX + TOGGLE_WIDTH - thumbSize - 1 : toggleX + 1;
+        if (hovered && tooltip != null)
+        {
+            GuiTooltip.request(tooltip);
+        }
+
+        int toggleX = x + measuredWidth - toggleWidth - paddingRight - 2;
+        int toggleY = y + (measuredHeight - toggleHeight) / 2;
+        int trackColor = checked ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF;
+        guiGraphics.fill(toggleX, toggleY, toggleX + toggleWidth, toggleY + toggleHeight, trackColor);
+
+        int thumbSize = toggleHeight - 2;
+        int thumbX = checked ? toggleX + toggleWidth - thumbSize - 1 : toggleX + 1;
         int thumbY = toggleY + 1;
         guiGraphics.fill(thumbX, thumbY, thumbX + thumbSize, thumbY + thumbSize, 0xFFFFFFFF);
 
@@ -83,6 +118,8 @@ public class VanillaToggle extends VanillaView
             int color = enabled ? MoBendsTheme.TEXT_PRIMARY : MoBendsTheme.TEXT_DISABLED;
             guiGraphics.drawString(font, text, textX, textY, color, true);
         }
+
+        guiGraphics.pose().popPose();
     }
 
     public void measure(int availableWidth, int availableHeight)
@@ -91,12 +128,12 @@ public class VanillaToggle extends VanillaView
         int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
 
         var font = Minecraft.getInstance().font;
-        int contentW = TOGGLE_WIDTH + paddingLeft + paddingRight + 4;
+        int contentW = toggleWidth + paddingLeft + paddingRight + 4;
         if (text != null && !text.isEmpty())
         {
             contentW += font.width(text) + 4;
         }
-        int contentH = Math.max(TOGGLE_HEIGHT, font.lineHeight) + paddingTop + paddingBottom + 4;
+        int contentH = Math.max(toggleHeight, font.lineHeight) + paddingTop + paddingBottom + 4;
 
         measuredWidth = resolveSize(lpW, availableWidth, Math.max(contentW, minWidth));
         measuredHeight = resolveSize(lpH, availableHeight, Math.max(contentH, minHeight));

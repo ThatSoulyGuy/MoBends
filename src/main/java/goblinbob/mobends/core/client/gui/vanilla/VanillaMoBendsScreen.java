@@ -44,6 +44,8 @@ public class VanillaMoBendsScreen extends Screen
     {
         ScreenHelper.renderBackground(this, guiGraphics, mouseX, mouseY, partialTick);
 
+        GuiTooltip.clear();
+
         if (rootView != null)
         {
             rootView.measure(this.width, this.height);
@@ -51,6 +53,8 @@ public class VanillaMoBendsScreen extends Screen
 
             rootView.render(guiGraphics, mouseX, mouseY, partialTick);
         }
+
+        GuiTooltip.renderPending(guiGraphics, mouseX, mouseY);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button)

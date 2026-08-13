@@ -56,6 +56,11 @@ public class MoBendsForge
 
         if (FMLEnvironment.dist == Dist.CLIENT)
         {
+            ModLoadingContext.get().registerExtensionPoint(
+                    net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
+                    () -> new net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory(
+                            (minecraft, parent) -> goblinbob.mobends.core.client.gui.UIBridge.createConfigScreen()));
+
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(KeyboardEventHandler::registerKeyMappings);
             modEventBus.addListener(goblinbob.mobends.forge.client.event.EntityRendererRegistrar::registerRenderers);

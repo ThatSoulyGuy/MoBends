@@ -232,4 +232,10 @@ public class NeoForgePlatformServices implements IPlatformServices
     {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
     }
+
+    @Override
+    public void setConfigBoolean(String key, boolean value)
+    {
+        goblinbob.mobends.neoforge.main.NeoForgeConfig.set(key, value);
+    }
 }

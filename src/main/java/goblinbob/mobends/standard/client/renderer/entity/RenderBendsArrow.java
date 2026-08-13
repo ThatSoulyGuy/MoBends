@@ -20,7 +20,7 @@ public abstract class RenderBendsArrow<T extends AbstractArrow> extends ArrowRen
     {
         if (ModConfig.showArrowTrails)
         {
-            ArrowTrailManager.renderTrail(entity, entity.getX(), entity.getY(), entity.getZ(), partialTicks);
+            ArrowTrailManager.renderTrail(entity, poseStack, partialTicks);
         }
 
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);

@@ -17,6 +17,7 @@ import goblinbob.mobends.standard.previewer.WolfPreviewer;
 import goblinbob.mobends.standard.previewer.ZombiePreviewer;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.Stray;
+import net.minecraft.world.entity.monster.WitherSkeleton;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
@@ -48,6 +49,9 @@ public class DefaultAddon implements IAddon
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
 		registry.registerNewEntity(Skeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
+				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(WitherSkeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
 				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Stray.class, SkeletonData::new,

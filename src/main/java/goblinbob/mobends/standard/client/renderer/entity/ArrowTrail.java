@@ -1,6 +1,7 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.api.rendering.DrawMode;
 import goblinbob.mobends.api.rendering.IBufferBuilder;
@@ -9,11 +10,17 @@ import goblinbob.mobends.api.rendering.VertexFormatType;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.lib.math.vector.VectorUtils;
+import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 public class ArrowTrail
 {
@@ -40,7 +47,7 @@ public class ArrowTrail
         spawnCooldown += DataUpdateHandler.ticksPerFrame;
     }
 
-    public void render(double x, double y, double z, float partialTicks)
+    public void render(PoseStack poseStack, float partialTicks)
     {
         if (this.spawnCooldown > 40)
         {
@@ -58,7 +65,7 @@ public class ArrowTrail
             this.spawnCooldown -= SPAWN_INTERVAL;
         }
 
-        renderNodes(partialTicks);
+        renderNodes(poseStack, partialTicks);
     }
 
     public void resetNodes()
@@ -67,39 +74,31 @@ public class ArrowTrail
             this.nodes[i] = new TrailNode(trackedArrow);
     }
 
-    public void renderNodes(float partialTicks)
+    public void renderNodes(PoseStack poseStack, float partialTicks)
     {
-        final Entity viewEntity = Minecraft.getInstance().getCameraEntity();
+        final double originX = Mth.lerp(partialTicks, trackedArrow.xOld, trackedArrow.getX());
+        final double originY = Mth.lerp(partialTicks, trackedArrow.yOld, trackedArrow.getY());
+        final double originZ = Mth.lerp(partialTicks, trackedArrow.zOld, trackedArrow.getZ());
 
-        if (viewEntity == null)
-            return;
+        final Matrix4f matrix = poseStack.last().pose();
+        final Level level = trackedArrow.level();
 
-        Vec3 viewPos = new Vec3(
-                Mth.lerp(partialTicks, viewEntity.xo, viewEntity.getX()),
-                Mth.lerp(partialTicks, viewEntity.yo, viewEntity.getY()),
-                Mth.lerp(partialTicks, viewEntity.zo, viewEntity.getZ()));
-
-        float r = 1;
-        float g = 1;
-        float b = 1;
-        float a = 0.5F;
-
-        PlatformServices.get().setPositionTexShader();
-        RenderSystem.setShaderColor(r, g, b, a);
-        RenderSystem.disableCull();
+        PlatformServices.get().setPositionColorShader();
+        RenderSystem.depthFunc(515);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
 
         ITesselator tesselator = ITesselator.getInstance();
-        IBufferBuilder vertexbuffer = tesselator.begin(DrawMode.QUADS, VertexFormatType.POSITION_TEX);
+        IBufferBuilder vertexbuffer = tesselator.begin(DrawMode.QUADS, VertexFormatType.POSITION_COLOR);
 
         for (int i = 1; i < MAX_LENGTH; i++)
         {
             TrailNode node0 = nodes[i - 1];
             TrailNode node1 = nodes[i];
 
-            Vec3 pos0 = new Vec3(node0.x - viewPos.x, node0.y - viewPos.y, node0.z - viewPos.z);
-            Vec3 pos1 = new Vec3(node1.x - viewPos.x, node1.y - viewPos.y, node1.z - viewPos.z);
+            Vec3 pos0 = new Vec3(node0.x - originX, node0.y - originY, node0.z - originZ);
+            Vec3 pos1 = new Vec3(node1.x - originX, node1.y - originY, node1.z - originZ);
             float scale0 = ((float) (MAX_LENGTH - i)) / MAX_LENGTH * .1F;
             float scale1 = ((float) MAX_LENGTH - i - 1.0f) / MAX_LENGTH * .1F;
             if (i == 1)
@@ -111,30 +110,45 @@ public class ArrowTrail
             final Vec3f up1 = node1.up;
             final Vec3f right1 = node1.right;
 
-            vertexbuffer
-                    .addVertex((float)(pos0.x + (-right0.x) * scale0), (float)(pos0.y + (-right0.y) * scale0), (float)(pos0.z + (-right0.z) * scale0))
-                    .setUv(0.0F, 0.15625F);
-            vertexbuffer.addVertex((float)(pos0.x + (right0.x) * scale0), (float)(pos0.y + (right0.y) * scale0), (float)(pos0.z + (right0.z) * scale0))
-                    .setUv(0.0F, 0.15625F);
-            vertexbuffer.addVertex((float)(pos1.x + (right1.x) * scale1), (float)(pos1.y + (right1.y) * scale1), (float)(pos1.z + (right1.z) * scale1))
-                    .setUv(0.0F, 0.15625F);
-            vertexbuffer
-                    .addVertex((float)(pos1.x + (-right1.x) * scale1), (float)(pos1.y + (-right1.y) * scale1), (float)(pos1.z + (-right1.z) * scale1))
-                    .setUv(0.0F, 0.15625F);
+            final int color0 = trailColor(level, node0);
+            final int color1 = trailColor(level, node1);
 
-            vertexbuffer.addVertex((float)(pos0.x + (-up0.x) * scale0), (float)(pos0.y + (-up0.y) * scale0), (float)(pos0.z + (-up0.z) * scale0))
-                    .setUv(0.0F, 0.15625F);
-            vertexbuffer.addVertex((float)(pos0.x + (up0.x) * scale0), (float)(pos0.y + (up0.y) * scale0), (float)(pos0.z + (up0.z) * scale0))
-                    .setUv(0.0F, 0.15625F);
-            vertexbuffer.addVertex((float)(pos1.x + (up1.x) * scale1), (float)(pos1.y + (up1.y) * scale1), (float)(pos1.z + (up1.z) * scale1))
-                    .setUv(0.0F, 0.15625F);
-            vertexbuffer.addVertex((float)(pos1.x + (-up1.x) * scale1), (float)(pos1.y + (-up1.y) * scale1), (float)(pos1.z + (-up1.z) * scale1))
-                    .setUv(0.0F, 0.15625F);
+            addVertex(vertexbuffer, matrix, pos0.x + (-right0.x) * scale0, pos0.y + (-right0.y) * scale0, pos0.z + (-right0.z) * scale0, color0);
+            addVertex(vertexbuffer, matrix, pos0.x + (right0.x) * scale0, pos0.y + (right0.y) * scale0, pos0.z + (right0.z) * scale0, color0);
+            addVertex(vertexbuffer, matrix, pos1.x + (right1.x) * scale1, pos1.y + (right1.y) * scale1, pos1.z + (right1.z) * scale1, color1);
+            addVertex(vertexbuffer, matrix, pos1.x + (-right1.x) * scale1, pos1.y + (-right1.y) * scale1, pos1.z + (-right1.z) * scale1, color1);
+
+            addVertex(vertexbuffer, matrix, pos0.x + (-up0.x) * scale0, pos0.y + (-up0.y) * scale0, pos0.z + (-up0.z) * scale0, color0);
+            addVertex(vertexbuffer, matrix, pos0.x + (up0.x) * scale0, pos0.y + (up0.y) * scale0, pos0.z + (up0.z) * scale0, color0);
+            addVertex(vertexbuffer, matrix, pos1.x + (up1.x) * scale1, pos1.y + (up1.y) * scale1, pos1.z + (up1.z) * scale1, color1);
+            addVertex(vertexbuffer, matrix, pos1.x + (-up1.x) * scale1, pos1.y + (-up1.y) * scale1, pos1.z + (-up1.z) * scale1, color1);
         }
         tesselator.endAndDraw(vertexbuffer);
 
         RenderSystem.enableCull();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static int trailColor(Level level, TrailNode node)
+    {
+        if (ModConfig.arrowTrailFullBright)
+        {
+            return 0x80FFFFFF;
+        }
+
+        final int packedLight = LevelRenderer.getLightColor(level, BlockPos.containing(node.x, node.y, node.z));
+        final int blockLight = LightTexture.block(packedLight);
+        final int skyLight = Math.max(0, LightTexture.sky(packedLight) - level.getSkyDarken());
+        final float brightness = 0.15F + 0.85F * (Math.max(blockLight, skyLight) / 15.0F);
+        final int channel = (int) (brightness * 255.0F);
+
+        return 0x80000000 | (channel << 16) | (channel << 8) | channel;
+    }
+
+    private static void addVertex(IBufferBuilder buffer, Matrix4f matrix, double x, double y, double z, int color)
+    {
+        Vector4f vec = new Vector4f((float) x, (float) y, (float) z, 1.0F);
+        vec.mul(matrix);
+        buffer.addVertex(vec.x(), vec.y(), vec.z()).setColorPacked(color);
     }
 
     public boolean shouldBeRemoved()

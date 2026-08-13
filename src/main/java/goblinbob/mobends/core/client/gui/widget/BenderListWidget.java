@@ -152,7 +152,12 @@ public class BenderListWidget
         VanillaLinearLayout rootLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         rootLayout.setBackgroundColor(MoBendsTheme.BG_LIST_ITEM);
 
-        VanillaLinearLayout headerLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        goblinbob.mobends.core.client.gui.vanilla.VanillaTileView headerLayout =
+                new goblinbob.mobends.core.client.gui.vanilla.VanillaTileView();
+        headerLayout.setOrientation(VanillaViewFactory.HORIZONTAL);
+        headerLayout.setIdleColor(MoBendsTheme.BG_LIST_ITEM);
+        headerLayout.setBulge(2);
+        headerLayout.setDrawBorder(false);
         headerLayout.setLayoutParams(factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 ITEM_HEIGHT

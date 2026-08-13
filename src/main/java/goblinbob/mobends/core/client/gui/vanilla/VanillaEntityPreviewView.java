@@ -7,10 +7,16 @@ public class VanillaEntityPreviewView extends VanillaView
 {
     private final EntityPreviewRenderer renderer;
     private boolean dragging = false;
+    private boolean interactive = true;
 
     public VanillaEntityPreviewView(EntityPreviewRenderer renderer)
     {
         this.renderer = renderer;
+    }
+
+    public void setInteractive(boolean interactive)
+    {
+        this.interactive = interactive;
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)
@@ -36,6 +42,7 @@ public class VanillaEntityPreviewView extends VanillaView
 
     public boolean handleClick(double mouseX, double mouseY, int button)
     {
+        if (!interactive) return false;
         if (visibility != VISIBLE || !enabled) return false;
         if (!isInBounds(mouseX, mouseY)) return false;
         if (button == 0)
@@ -66,6 +73,7 @@ public class VanillaEntityPreviewView extends VanillaView
 
     public boolean handleMouseScrolled(double mouseX, double mouseY, double scrollY)
     {
+        if (!interactive) return false;
         if (!isInBounds(mouseX, mouseY)) return false;
 
         float newScale = renderer.getScale() + (float) scrollY * 2.0f;

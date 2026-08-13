@@ -64,4 +64,6 @@ public interface IPlatformServices
     void setPositionTexShader();
 
     void setPositionTexColorShader();
+
+    void setConfigBoolean(String key, boolean value);
 }

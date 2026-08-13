@@ -1,5 +1,6 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 
 import java.util.HashMap;
@@ -31,9 +32,9 @@ public class ArrowTrailManager
         return trail;
     }
 
-    public static void renderTrail(AbstractArrow entity, double x, double y, double z, float partialTicks)
+    public static void renderTrail(AbstractArrow entity, PoseStack poseStack, float partialTicks)
     {
-        getOrMake(entity).render(x, y, z, partialTicks);
+        getOrMake(entity).render(poseStack, partialTicks);
     }
 
     public static void cleanup()
