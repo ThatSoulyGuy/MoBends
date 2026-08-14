@@ -1,0 +1,17 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "goblinbob.mobends.mixin.armourers",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "mobends-neoforge.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+    "SkinRendererManagerMixin",
+    "EntityRendererContextMixin",
+    "ModelVisibilityStateMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

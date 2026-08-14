@@ -482,6 +482,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                               int packedColor)
     {
         applyBabyHeadScale();
+        syncConcealmentFromVanillaModel();
 
         if (body != null)
         {
@@ -496,6 +497,43 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         {
             rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
         }
+    }
+
+    @Override
+    protected void clearConcealment()
+    {
+        super.clearConcealment();
+
+        clearConcealed(bodywear);
+        clearConcealed(leftArmwear);
+        clearConcealed(leftForeArmwear);
+        clearConcealed(rightArmwear);
+        clearConcealed(rightForeArmwear);
+        clearConcealed(leftLegwear);
+        clearConcealed(leftForeLegwear);
+        clearConcealed(rightLegwear);
+        clearConcealed(rightForeLegwear);
+    }
+
+    @Override
+    protected void syncOuterConcealment(net.minecraft.client.model.HumanoidModel<?> model)
+    {
+        super.syncOuterConcealment(model);
+
+        if (!(model instanceof net.minecraft.client.model.PlayerModel<?> playerModel))
+        {
+            return;
+        }
+
+        concealWith(bodywear, body, playerModel.jacket);
+        concealWith(leftArmwear, leftArm, playerModel.leftSleeve);
+        concealWith(leftForeArmwear, leftForeArm, playerModel.leftSleeve);
+        concealWith(rightArmwear, rightArm, playerModel.rightSleeve);
+        concealWith(rightForeArmwear, rightForeArm, playerModel.rightSleeve);
+        concealWith(leftLegwear, leftLeg, playerModel.leftPants);
+        concealWith(leftForeLegwear, leftForeLeg, playerModel.leftPants);
+        concealWith(rightLegwear, rightLeg, playerModel.rightPants);
+        concealWith(rightForeLegwear, rightForeLeg, playerModel.rightPants);
     }
 
     public BendsModelPart getBodywear() { return bodywear; }

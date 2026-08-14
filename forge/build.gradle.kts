@@ -43,7 +43,7 @@ loom {
     forge {
         convertAccessWideners = true
         extraAccessWideners.add(loom.accessWidenerPath.get().asFile.name)
-        mixinConfig("mobends-forge.mixins.json")
+        mixinConfig("mobends-forge.mixins.json", "mobends-forge-armourers.mixins.json")
     }
     mixin {
         defaultRefmapName = "mobends-forge.refmap.json"
@@ -59,6 +59,7 @@ repositories {
     maven("https://maven.architectury.dev/")
     maven("https://maven.minecraftforge.net")
     maven("https://cursemaven.com") { content { includeGroup("curse.maven") } }
+    maven("https://api.modrinth.com/maven") { content { includeGroup("maven.modrinth") } }
 }
 
 dependencies {
@@ -69,6 +70,8 @@ dependencies {
     modApi("dev.architectury:architectury-forge:${common.mod.dep("architectury")}")
 
     modCompileOnly("curse.maven:curios-309927:${common.mod.dep("curios")}")
+
+    modCompileOnly("maven.modrinth:armourers-workshop:${common.mod.dep("armourers_workshop")}")
 
     commonBundle(project(common.path, "namedElements")) { isTransitive = false }
     shadowBundle(project(common.path, "transformProductionForge")) { isTransitive = false }

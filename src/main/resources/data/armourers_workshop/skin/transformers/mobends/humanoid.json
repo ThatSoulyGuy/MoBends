@@ -1,0 +1,74 @@
+{
+  "type": "mobends:armature",
+  "target": "armourers_workshop:humanoid",
+  "joint": {
+    "Head": {
+      "target": "head",
+      "modifier": [
+        "armourers_workshop:modifier/baby_head_apt"
+      ]
+    },
+    "Chest": "body",
+    "Torso": {
+      "target": "body",
+      "translate": [ 0, 6, 0 ]
+    },
+    "Skirt": {
+      "target": "body",
+      "modifier": [
+        "armourers_workshop:modifier/body_to_skirt"
+      ]
+    },
+    "Arm_L": "left_arm",
+    "Arm_R": "right_arm",
+    "Hand_L": "left_fore_arm",
+    "Hand_R": "right_fore_arm",
+    "Thigh_L": "left_leg",
+    "Thigh_R": "right_leg",
+    "Leg_L": "left_fore_leg",
+    "Leg_R": "right_fore_leg",
+    "Foot_L": "left_fore_leg",
+    "Foot_R": "right_fore_leg",
+    "Wing_L": {
+      "target": "body",
+      "modifier": [
+        "armourers_workshop:modifier/body_to_flat_wing"
+      ]
+    },
+    "Wing_R": {
+      "target": "body",
+      "modifier": [
+        "armourers_workshop:modifier/body_to_flat_wing"
+      ]
+    },
+    "Phalanx_L": {
+      "target": "body",
+      "translate": [ 0, 0, 2 ]
+    },
+    "Phalanx_R": {
+      "target": "body",
+      "translate": [ 0, 0, 2 ]
+    },
+    "Backpack": {
+      "target": "body",
+      "translate": [ 0, 0, 2 ]
+    },
+    "Float": "Root",
+    "Static": "Root"
+  },
+  "override": {
+    "overrideModelHead": "head",
+    "overrideModelChest": "body",
+    "overrideModelArmLeft": "left_arm",
+    "overrideModelArmRight": "right_arm",
+    "overrideModelLegLeft": "left_leg",
+    "overrideModelLegRight": "right_leg",
+    "hideOverlayHead": "hat"
+  },
+  "plugin": [
+    "armourers_workshop:plugin/hidden_mob_layer"
+  ],
+  "model": [
+    "minecraft:model/humanoid"
+  ]
+}

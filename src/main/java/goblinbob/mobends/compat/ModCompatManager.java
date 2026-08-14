@@ -20,6 +20,8 @@ public class ModCompatManager
 
         LOGGER.info("Initializing Mo'Bends mod compatibility layers...");
 
+        goblinbob.mobends.core.client.skeleton.MoBendsSkeletonProvider.register();
+
         PlayerAnimationLibCompat.init();
 
         CuriosCompat.init();
@@ -27,6 +29,8 @@ public class ModCompatManager
         BetterBloodOverlayCompat.init();
 
         PhysicsModCompat.init();
+
+        ArmourersWorkshopCompat.init();
 
         logCompatSummary();
     }
@@ -40,6 +44,7 @@ public class ModCompatManager
         LOGGER.info("  - {}", CuriosCompat.getCompatInfo());
         LOGGER.info("  - {}", BetterBloodOverlayCompat.getCompatInfo());
         LOGGER.info("  - {}", PhysicsModCompat.getCompatInfo());
+        LOGGER.info("  - {}", ArmourersWorkshopCompat.getCompatInfo());
     }
 
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)

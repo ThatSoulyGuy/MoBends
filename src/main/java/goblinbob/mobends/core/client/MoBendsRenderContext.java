@@ -16,6 +16,7 @@ public class MoBendsRenderContext {
 
     private static final ThreadLocal<net.minecraft.client.model.HumanoidModel<?>> currentVanillaModel = new ThreadLocal<>();
 
+
     public static void beginMainModelRender() {
         inMainModelRender.set(true);
     }

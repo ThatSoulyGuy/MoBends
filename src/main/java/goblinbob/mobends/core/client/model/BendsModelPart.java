@@ -38,6 +38,8 @@ public class BendsModelPart implements IModelPart
 
     public boolean hidden = false;
 
+    public boolean concealed = false;
+
     public boolean mirror = false;
 
     public BendsModelPart()
@@ -66,15 +68,18 @@ public class BendsModelPart implements IModelPart
     public void render(PoseStack poseStack, VertexConsumer vertexConsumer,
                        int packedLight, int packedOverlay, int color)
     {
-        if (!isShowing()) return;
+        if (!isShowingIgnoringConcealment()) return;
 
         poseStack.pushPose();
 
         applyCharacterTransformPoseStack(poseStack);
 
-        for (BendsCube cube : cubes)
+        if (!concealed)
         {
-            cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
+            for (BendsCube cube : cubes)
+            {
+                cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
+            }
         }
 
         for (BendsModelPart child : children)
@@ -100,16 +105,19 @@ public class BendsModelPart implements IModelPart
     public void renderJust(PoseStack poseStack, VertexConsumer vertexConsumer,
                            int packedLight, int packedOverlay, int color)
     {
-        if (!isShowing()) return;
+        if (!isShowingIgnoringConcealment()) return;
 
         poseStack.pushPose();
 
         applyPreTransformPoseStack(poseStack);
         applyLocalTransformPoseStack(poseStack);
 
-        for (BendsCube cube : cubes)
+        if (!concealed)
         {
-            cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
+            for (BendsCube cube : cubes)
+            {
+                cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
+            }
         }
 
         for (BendsModelPart child : children)
@@ -322,6 +330,11 @@ public class BendsModelPart implements IModelPart
 
     @Override
     public boolean isShowing()
+    {
+        return visible && !hidden && !concealed;
+    }
+
+    public boolean isShowingIgnoringConcealment()
     {
         return visible && !hidden;
     }

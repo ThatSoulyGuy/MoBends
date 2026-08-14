@@ -51,6 +51,7 @@ repositories {
     maven("https://maven.architectury.dev/")
     maven("https://maven.neoforged.net/releases/")
     maven("https://cursemaven.com") { content { includeGroup("curse.maven") } }
+    maven("https://api.modrinth.com/maven") { content { includeGroup("maven.modrinth") } }
 }
 
 dependencies {
@@ -61,6 +62,8 @@ dependencies {
     modApi("dev.architectury:architectury-neoforge:${common.mod.dep("architectury")}")
 
     modCompileOnly("curse.maven:curios-309927:${common.mod.dep("curios")}")
+
+    modCompileOnly("maven.modrinth:armourers-workshop:${common.mod.dep("armourers_workshop")}")
 
     commonBundle(project(common.path, "namedElements")) { isTransitive = false }
     shadowBundle(project(common.path, "transformProductionNeoForge")) { isTransitive = false }

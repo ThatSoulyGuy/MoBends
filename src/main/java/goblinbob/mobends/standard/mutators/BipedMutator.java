@@ -2,6 +2,7 @@ package goblinbob.mobends.standard.mutators;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import goblinbob.mobends.core.client.MoBendsRenderContext;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
@@ -433,6 +434,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                               int packedLight, int packedOverlay, int color)
     {
         applyBabyHeadScale();
+        syncConcealmentFromVanillaModel();
 
         if (body != null)
         {
@@ -455,6 +457,134 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
+    }
+
+    protected void syncConcealmentFromVanillaModel()
+    {
+        final HumanoidModel<?> model = MoBendsRenderContext.getCurrentVanillaModel();
+        if (model == null)
+        {
+            return;
+        }
+
+        clearConcealment();
+
+        applyConcealment(head, model.head);
+        applyConcealment(body, model.body);
+        applyConcealment(leftArm, model.leftArm);
+        applyConcealment(leftForeArm, model.leftArm);
+        applyConcealment(rightArm, model.rightArm);
+        applyConcealment(rightForeArm, model.rightArm);
+        applyConcealment(leftLeg, model.leftLeg);
+        applyConcealment(leftForeLeg, model.leftLeg);
+        applyConcealment(rightLeg, model.rightLeg);
+        applyConcealment(rightForeLeg, model.rightLeg);
+
+        applySkinConcealment(model);
+    }
+
+    private void applySkinConcealment(HumanoidModel<?> model)
+    {
+        if (!goblinbob.mobends.compat.ArmourersWorkshopCompat.isModLoaded())
+        {
+            return;
+        }
+
+        concealIfSkinned(head, model.head);
+        concealIfSkinned(body, model.body);
+        concealIfSkinned(leftArm, model.leftArm);
+        concealIfSkinned(leftForeArm, model.leftArm);
+        concealIfSkinned(rightArm, model.rightArm);
+        concealIfSkinned(rightForeArm, model.rightArm);
+        concealIfSkinned(leftLeg, model.leftLeg);
+        concealIfSkinned(leftForeLeg, model.leftLeg);
+        concealIfSkinned(rightLeg, model.rightLeg);
+        concealIfSkinned(rightForeLeg, model.rightLeg);
+
+        syncOuterConcealment(model);
+    }
+
+    protected void clearConcealment()
+    {
+        clearConcealed(head);
+        clearConcealed(body);
+        clearConcealed(leftArm);
+        clearConcealed(leftForeArm);
+        clearConcealed(rightArm);
+        clearConcealed(rightForeArm);
+        clearConcealed(leftLeg);
+        clearConcealed(leftForeLeg);
+        clearConcealed(rightLeg);
+        clearConcealed(rightForeLeg);
+        clearConcealed(headwear);
+        clearConcealed(outerHead);
+        clearConcealed(outerBody);
+        clearConcealed(outerLeftArm);
+        clearConcealed(outerLeftForeArm);
+        clearConcealed(outerRightArm);
+        clearConcealed(outerRightForeArm);
+        clearConcealed(outerLeftLeg);
+        clearConcealed(outerLeftForeLeg);
+        clearConcealed(outerRightLeg);
+        clearConcealed(outerRightForeLeg);
+    }
+
+    protected static void clearConcealed(BendsModelPart part)
+    {
+        if (part != null)
+        {
+            part.concealed = false;
+        }
+    }
+
+    protected void syncOuterConcealment(HumanoidModel<?> model)
+    {
+        concealWith(headwear, head, model.hat);
+        concealWith(outerHead, head, model.hat);
+        concealWith(outerBody, body, model.body);
+        concealWith(outerLeftArm, leftArm, model.leftArm);
+        concealWith(outerLeftForeArm, leftForeArm, model.leftArm);
+        concealWith(outerRightArm, rightArm, model.rightArm);
+        concealWith(outerRightForeArm, rightForeArm, model.rightArm);
+        concealWith(outerLeftLeg, leftLeg, model.leftLeg);
+        concealWith(outerLeftForeLeg, leftForeLeg, model.leftLeg);
+        concealWith(outerRightLeg, rightLeg, model.rightLeg);
+        concealWith(outerRightForeLeg, rightForeLeg, model.rightLeg);
+    }
+
+    protected static void concealIfSkinned(BendsModelPart part, ModelPart modelPart)
+    {
+        if (part == null || modelPart == null)
+        {
+            return;
+        }
+        if (goblinbob.mobends.compat.armourers.AWHiddenParts.isHidden(modelPart))
+        {
+            part.concealed = true;
+        }
+    }
+
+    protected static void concealWith(BendsModelPart part, BendsModelPart basePart, ModelPart overlayPart)
+    {
+        if (part == null)
+        {
+            return;
+        }
+        if (basePart != null && basePart.concealed)
+        {
+            part.concealed = true;
+            return;
+        }
+        concealIfSkinned(part, overlayPart);
+    }
+
+    private static void applyConcealment(BendsModelPart part, ModelPart modelPart)
+    {
+        if (part == null || modelPart == null)
+        {
+            return;
+        }
+        part.concealed = !modelPart.visible;
     }
 
     public void setBabyHeadScale(float scale)
@@ -559,7 +689,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         model.body.xRot = bodyEuler[0];
         model.body.yRot = bodyEuler[1];
         model.body.zRot = bodyEuler[2];
-        model.body.visible = body.isShowing();
+        model.body.visible = model.body.visible && body.isShowingIgnoringConcealment();
 
         syncBodyChildToModelPart(head, model.head, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
         syncBodyChildToModelPart(leftArm, model.leftArm, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
@@ -577,7 +707,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             model.hat.xScale = babyHeadScale;
             model.hat.yScale = babyHeadScale;
             model.hat.zScale = babyHeadScale;
-            model.hat.visible = head.isShowing();
+            model.hat.visible = model.hat.visible && head.isShowingIgnoringConcealment();
             model.hat.x = model.head.x;
             model.hat.y = model.head.y;
             model.hat.z = model.head.z;
@@ -604,7 +734,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         modelPart.yRot = euler[1];
         modelPart.zRot = euler[2];
 
-        modelPart.visible = bendsPart.isShowing();
+        modelPart.visible = modelPart.visible && bendsPart.isShowingIgnoringConcealment();
     }
 
     private void syncBodyChildToModelPart(BendsModelPart child, ModelPart modelPart,
@@ -614,7 +744,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (child == null || modelPart == null) return;
         float[] pivot = new float[3];
         Quaternion rotation = composeChildWorld(bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation, child, pivot);
-        setEndModelPart(modelPart, pivot, rotation, child.isShowing());
+        setEndModelPart(modelPart, pivot, rotation, modelPart.visible && child.isShowingIgnoringConcealment());
     }
 
     private static Quaternion composeChildWorld(float parentPivotX, float parentPivotY, float parentPivotZ,
@@ -656,16 +786,16 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     private static final float[] ZERO_EULER = {0, 0, 0};
 
-    private float[] getForePartEulerAngles(BendsModelPart forePart)
+    public float[] getPartEulerAngles(BendsModelPart part)
     {
-        if (forePart == null) return ZERO_EULER;
-        return quaternionToEulerXYZ(forePart.rotation.getSmooth());
+        if (part == null) return ZERO_EULER;
+        return quaternionToEulerXYZ(part.rotation.getSmooth());
     }
 
-    public float[] getLeftForeArmEulerAngles() { return getForePartEulerAngles(leftForeArm); }
-    public float[] getRightForeArmEulerAngles() { return getForePartEulerAngles(rightForeArm); }
-    public float[] getLeftForeLegEulerAngles() { return getForePartEulerAngles(leftForeLeg); }
-    public float[] getRightForeLegEulerAngles() { return getForePartEulerAngles(rightForeLeg); }
+    public float[] getLeftForeArmEulerAngles() { return getPartEulerAngles(leftForeArm); }
+    public float[] getRightForeArmEulerAngles() { return getPartEulerAngles(rightForeArm); }
+    public float[] getLeftForeLegEulerAngles() { return getPartEulerAngles(leftForeLeg); }
+    public float[] getRightForeLegEulerAngles() { return getPartEulerAngles(rightForeLeg); }
 
     private static float[] quaternionToEulerXYZ(Quaternion q)
     {

@@ -22,6 +22,7 @@ loom {
 repositories {
     mavenCentral()
     maven("https://maven.architectury.dev/")
+    maven("https://api.modrinth.com/maven") { content { includeGroup("maven.modrinth") } }
 }
 
 dependencies {
@@ -29,6 +30,8 @@ dependencies {
     mappings(loom.officialMojangMappings())
 
     modApi("dev.architectury:architectury:${mod.dep("architectury")}")
+
+    modCompileOnly("maven.modrinth:armourers-workshop:${mod.dep("armourers_workshop")}")
 
     api(project(":core"))
 }
