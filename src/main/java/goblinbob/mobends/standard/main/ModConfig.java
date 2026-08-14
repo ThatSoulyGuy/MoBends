@@ -12,9 +12,13 @@ public class ModConfig
 
     public static boolean showSwordTrail = true;
 
+    public static boolean swordTrailFullBright = false;
+
     public static boolean showArrowTrails = true;
 
     public static boolean arrowTrailFullBright = false;
+
+    public static boolean newEnchantGlint = false;
 
     public static boolean performSpinAttack = true;
 

@@ -2,6 +2,8 @@ package goblinbob.mobends.standard.client.renderer.entity.layers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import goblinbob.mobends.core.client.model.BendsCube;
+import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.lib.math.SmoothOrientation;
@@ -12,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ArmedModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.HumanoidArm;
@@ -72,7 +75,7 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 
             boolean leftHanded = arm == HumanoidArm.LEFT;
-            poseStack.translate((float)(leftHanded ? -1 : 1) / 16.0F, 0.125F, -0.625F);
+            this.translateToGrip(arm, entity, itemStack, displayContext, poseStack);
 
             Minecraft.getInstance().getItemRenderer().renderStatic(
                     entity, itemStack, displayContext, leftHanded,
@@ -83,55 +86,109 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
         }
     }
 
+    protected void translateToGrip(HumanoidArm arm, E entity, ItemStack itemStack,
+                                   ItemDisplayContext displayContext, PoseStack poseStack)
+    {
+        float vanillaGripX = arm == HumanoidArm.LEFT ? 1.0F : -1.0F;
+        BendsModelPart foreArm = this.getCustomForeArm(arm);
+
+        if (foreArm != null && !foreArm.getCubes().isEmpty())
+        {
+            float minX = Float.POSITIVE_INFINITY;
+            float maxX = Float.NEGATIVE_INFINITY;
+
+            for (BendsCube cube : foreArm.getCubes())
+            {
+                minX = Math.min(minX, cube.minX);
+                maxX = Math.max(maxX, cube.maxX);
+            }
+
+            float centredGripX = (minX + maxX) * 0.5F;
+            float ownOffset = Math.abs(this.getDisplayOffsetX(entity, itemStack, displayContext));
+            float blend = 1.0F - Math.min(1.0F, ownOffset);
+            float gripX = vanillaGripX + (centredGripX - vanillaGripX) * blend;
+
+            poseStack.translate(-gripX / 16.0F, 0.125F, -0.625F);
+            return;
+        }
+
+        poseStack.translate(-vanillaGripX / 16.0F, 0.125F, -0.625F);
+    }
+
+    private float getDisplayOffsetX(E entity, ItemStack itemStack, ItemDisplayContext displayContext)
+    {
+        try
+        {
+            BakedModel model = Minecraft.getInstance().getItemRenderer()
+                    .getModel(itemStack, entity.level(), entity, entity.getId());
+            return model.getTransforms().getTransform(displayContext).translation.x() * 16.0F;
+        }
+        catch (Exception e)
+        {
+            return 0.0F;
+        }
+    }
+
+    private BendsModelPart getCustomForeArm(HumanoidArm arm)
+    {
+        if (mutator == null || !mutator.shouldRenderCustom() || mutator.getBody() == null)
+        {
+            return null;
+        }
+
+        BendsModelPart armPart = arm == HumanoidArm.RIGHT ? mutator.getRightArm() : mutator.getLeftArm();
+        BendsModelPart foreArm = arm == HumanoidArm.RIGHT ? mutator.getRightForeArm() : mutator.getLeftForeArm();
+
+        return armPart != null && foreArm != null ? foreArm : null;
+    }
+
     protected void translateToHand(HumanoidArm arm, E entity, PoseStack poseStack)
     {
-        if (mutator != null && mutator.shouldRenderCustom())
+        BendsModelPart foreArm = this.getCustomForeArm(arm);
+
+        if (foreArm != null)
         {
-            var body = mutator.getBody();
-            var armPart = arm == HumanoidArm.RIGHT ? mutator.getRightArm() : mutator.getLeftArm();
-            var foreArm = arm == HumanoidArm.RIGHT ? mutator.getRightForeArm() : mutator.getLeftForeArm();
+            BendsModelPart body = mutator.getBody();
+            BendsModelPart armPart = arm == HumanoidArm.RIGHT ? mutator.getRightArm() : mutator.getLeftArm();
 
-            if (body != null && armPart != null && foreArm != null)
+            float scale = 1.0F / 16.0F;
+
+            poseStack.translate(body.position.x * scale, body.position.y * scale, body.position.z * scale);
+            if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
             {
-                float scale = 1.0F / 16.0F;
-
-                poseStack.translate(body.position.x * scale, body.position.y * scale, body.position.z * scale);
-                if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
-                {
-                    poseStack.translate(body.offset.x * scale, body.offset.y * scale, body.offset.z * scale);
-                }
-                GlHelper.rotate(poseStack, body.rotation.getSmooth());
-
-                poseStack.translate(armPart.position.x * scale, armPart.position.y * scale, armPart.position.z * scale);
-                if (armPart.offset.x != 0 || armPart.offset.y != 0 || armPart.offset.z != 0)
-                {
-                    poseStack.translate(armPart.offset.x * scale, armPart.offset.y * scale, armPart.offset.z * scale);
-                }
-                GlHelper.rotate(poseStack, armPart.rotation.getSmooth());
-
-                poseStack.translate(foreArm.position.x * scale, foreArm.position.y * scale, foreArm.position.z * scale);
-                if (foreArm.offset.x != 0 || foreArm.offset.y != 0 || foreArm.offset.z != 0)
-                {
-                    poseStack.translate(foreArm.offset.x * scale, foreArm.offset.y * scale, foreArm.offset.z * scale);
-                }
-                GlHelper.rotate(poseStack, foreArm.rotation.getSmooth());
-
-                poseStack.translate(0, -4.0F * scale, -2.0F * scale);
-
-                EntityData<?> entityData = EntityDatabase.instance.get(entity);
-                if (entityData instanceof BipedEntityData<?> bipedData)
-                {
-                    SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
-                            ? bipedData.renderRightItemRotation
-                            : bipedData.renderLeftItemRotation;
-
-                    poseStack.translate(0, 8.0F * scale, 0);
-                    GlHelper.rotate(poseStack, itemRotation.getSmooth());
-                    poseStack.translate(0, -8.0F * scale, 0);
-                }
-
-                return;
+                poseStack.translate(body.offset.x * scale, body.offset.y * scale, body.offset.z * scale);
             }
+            GlHelper.rotate(poseStack, body.rotation.getSmooth());
+
+            poseStack.translate(armPart.position.x * scale, armPart.position.y * scale, armPart.position.z * scale);
+            if (armPart.offset.x != 0 || armPart.offset.y != 0 || armPart.offset.z != 0)
+            {
+                poseStack.translate(armPart.offset.x * scale, armPart.offset.y * scale, armPart.offset.z * scale);
+            }
+            GlHelper.rotate(poseStack, armPart.rotation.getSmooth());
+
+            poseStack.translate(foreArm.position.x * scale, foreArm.position.y * scale, foreArm.position.z * scale);
+            if (foreArm.offset.x != 0 || foreArm.offset.y != 0 || foreArm.offset.z != 0)
+            {
+                poseStack.translate(foreArm.offset.x * scale, foreArm.offset.y * scale, foreArm.offset.z * scale);
+            }
+            GlHelper.rotate(poseStack, foreArm.rotation.getSmooth());
+
+            poseStack.translate(0, -4.0F * scale, -2.0F * scale);
+
+            EntityData<?> entityData = EntityDatabase.instance.get(entity);
+            if (entityData instanceof BipedEntityData<?> bipedData)
+            {
+                SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
+                        ? bipedData.renderRightItemRotation
+                        : bipedData.renderLeftItemRotation;
+
+                poseStack.translate(0, 8.0F * scale, 0);
+                GlHelper.rotate(poseStack, itemRotation.getSmooth());
+                poseStack.translate(0, -8.0F * scale, 0);
+            }
+
+            return;
         }
 
         M model = this.getParentModel();

@@ -52,6 +52,10 @@ public class ConfigOptions
                     () -> ModConfig.showSwordTrail,
                     value -> ModConfig.showSwordTrail = value),
 
+            new Option("swordTrailFullBright", "mobends.gui.config.sword_trail_full_bright",
+                    () -> ModConfig.swordTrailFullBright,
+                    value -> ModConfig.swordTrailFullBright = value),
+
             new Option("showArrowTrail", "mobends.gui.config.show_arrow_trail",
                     () -> ModConfig.showArrowTrails,
                     value -> ModConfig.showArrowTrails = value),
@@ -59,6 +63,10 @@ public class ConfigOptions
             new Option("arrowTrailFullBright", "mobends.gui.config.arrow_trail_full_bright",
                     () -> ModConfig.arrowTrailFullBright,
                     value -> ModConfig.arrowTrailFullBright = value),
+
+            new Option("newEnchantGlint", "mobends.gui.config.new_enchant_glint",
+                    () -> ModConfig.newEnchantGlint,
+                    value -> ModConfig.newEnchantGlint = value),
 
             new Option("disableSpinSwing", "mobends.gui.config.disable_spin_swing",
                     () -> !ModConfig.performSpinAttack,

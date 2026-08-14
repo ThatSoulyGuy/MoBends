@@ -13,8 +13,13 @@ import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.core.util.IColorRead;
 import goblinbob.mobends.standard.data.BipedEntityData;
+import goblinbob.mobends.standard.main.ModConfig;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -113,7 +118,7 @@ public class SwordTrail
         }
     }
 
-    public void render(PoseStack poseStack)
+    public void render(PoseStack poseStack, LivingEntity entity)
     {
         if (trailPartList.isEmpty())
         {
@@ -133,6 +138,7 @@ public class SwordTrail
         }
 
         Matrix4f matrix = poseStack.last().pose();
+        final float brightness = trailBrightness(entity);
 
         ITesselator tesselator = ITesselator.getInstance();
         IBufferBuilder bufferBuilder = tesselator.begin(DrawMode.QUADS, VertexFormatType.POSITION_COLOR);
@@ -154,13 +160,13 @@ public class SwordTrail
             if (prevPart != null && prevTransformedPoints != null)
             {
                 int prevColor = ((int)(prevAlpha * 255.0F) << 24) |
-                               ((int)(color.getR() * 255.0F) << 16) |
-                               ((int)(color.getG() * 255.0F) << 8) |
-                               (int)(color.getB() * 255.0F);
+                               ((int)(color.getR() * brightness * 255.0F) << 16) |
+                               ((int)(color.getG() * brightness * 255.0F) << 8) |
+                               (int)(color.getB() * brightness * 255.0F);
                 int currColor = ((int)(alpha * 255.0F) << 24) |
-                               ((int)(color.getR() * 255.0F) << 16) |
-                               ((int)(color.getG() * 255.0F) << 8) |
-                               (int)(color.getB() * 255.0F);
+                               ((int)(color.getR() * brightness * 255.0F) << 16) |
+                               ((int)(color.getG() * brightness * 255.0F) << 8) |
+                               (int)(color.getB() * brightness * 255.0F);
 
                 bufferBuilder.addVertex(prevTransformedPoints[0].x, prevTransformedPoints[0].y, prevTransformedPoints[0].z)
                         .setColorPacked(prevColor);
@@ -180,6 +186,22 @@ public class SwordTrail
         tesselator.endAndDraw(bufferBuilder);
 
         RenderSystem.enableCull();
+    }
+
+    private static float trailBrightness(LivingEntity entity)
+    {
+        if (ModConfig.swordTrailFullBright)
+        {
+            return 1.0F;
+        }
+
+        final Level level = entity.level();
+        final BlockPos pos = BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ());
+        final int packedLight = LevelRenderer.getLightColor(level, pos);
+        final int blockLight = LightTexture.block(packedLight);
+        final int skyLight = Math.max(0, LightTexture.sky(packedLight) - level.getSkyDarken());
+
+        return 0.15F + 0.85F * (Math.max(blockLight, skyLight) / 15.0F);
     }
 
     private Vec3f[] transformPoints(Vec3f[] points, Matrix4f matrix)

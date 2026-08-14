@@ -338,7 +338,7 @@ public class MoBendsScreenBuilder
 
         VanillaLinearLayout list = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         list.setLayoutParams(factory.createMatchParent());
-        list.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
+        list.setPadding(MoBendsTheme.PADDING, MoBendsTheme.SPACING, MoBendsTheme.PADDING, 0);
 
         for (ConfigOptions.Option option : ConfigOptions.all())
         {
