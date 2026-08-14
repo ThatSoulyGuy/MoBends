@@ -204,4 +204,17 @@ public class RenderingEventHandler
         }
     }
 
+    @SubscribeEvent
+    public void onRenderLevelStage(net.neoforged.neoforge.client.event.RenderLevelStageEvent event)
+    {
+        if (event.getStage() == net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY)
+        {
+            goblinbob.mobends.core.client.TrailRenderQueue.clear();
+        }
+        else if (event.getStage() == net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS)
+        {
+            goblinbob.mobends.core.client.TrailRenderQueue.flush();
+        }
+    }
+
 }

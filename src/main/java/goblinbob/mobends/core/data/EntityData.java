@@ -236,14 +236,7 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
 
     public boolean isUnderwater()
     {
-        if (!this.entity.isInWater())
-            return false;
-
-        int blockX = Mth.floor(this.entity.getX());
-        int blockY = Mth.floor(this.entity.getY() + 2);
-        int blockZ = Mth.floor(this.entity.getZ());
-        BlockState state = Minecraft.getInstance().level.getBlockState(new BlockPos(blockX, blockY, blockZ));
-        return state.getBlock() instanceof LiquidBlock;
+        return this.entity.isUnderWater();
     }
 
     public double getPrevMotionMagnitude()

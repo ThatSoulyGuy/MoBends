@@ -31,6 +31,7 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected AnimationBit<BipedEntityData<?>> bitSneak = new SneakAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitLadderClimb = new LadderClimbAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitSwimming = new SwimmingAnimationBit();
+    protected AnimationBit<BipedEntityData<?>> bitCrawling = new CrawlingAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitRiding = new RidingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitSitting = new SittingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitFalling = new FallingAnimationBit();
@@ -58,9 +59,20 @@ public class PlayerController implements IAnimationController<PlayerData>
         this.upperBodyOnlyMask.exclude("rightForeLeg");
     }
 
+    public static boolean isCrawling(PlayerData data, AbstractClientPlayer player)
+    {
+        return player.isVisuallySwimming() && !data.isInWater();
+    }
+
     public void performActionAnimations(PlayerData data, AbstractClientPlayer player)
     {
         if (player.isAlive() && player.isSleeping())
+        {
+            actionController.clearAction();
+            return;
+        }
+
+        if (isCrawling(data, player))
         {
             actionController.clearAction();
             return;
@@ -112,13 +124,19 @@ public class PlayerController implements IAnimationController<PlayerData>
                 layerSneak.clearAnimation();
                 layerTorch.clearAnimation();
             }
-            else if (data.isInWater())
+            else if (isCrawling(data, player))
+            {
+                layerBase.playOrContinueBit(bitCrawling, data);
+                layerSneak.clearAnimation();
+                layerTorch.clearAnimation();
+            }
+            else if (data.isInWater() && (player.isVisuallySwimming() || !player.isCrouching()))
             {
                 layerBase.playOrContinueBit(bitSwimming, data);
                 layerSneak.clearAnimation();
                 layerTorch.clearAnimation();
             }
-            else if (!data.isOnGround() || data.getTicksAfterTouchdown() < 1)
+            else if ((!data.isOnGround() && !data.isInWater()) || data.getTicksAfterTouchdown() < 1)
             {
                 if (data.isFlying())
                 {

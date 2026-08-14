@@ -1,12 +1,7 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import goblinbob.mobends.api.platform.PlatformServices;
-import goblinbob.mobends.api.rendering.DrawMode;
-import goblinbob.mobends.api.rendering.IBufferBuilder;
-import goblinbob.mobends.api.rendering.ITesselator;
-import goblinbob.mobends.api.rendering.VertexFormatType;
+import goblinbob.mobends.core.client.TrailRenderQueue;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.lib.math.vector.VectorUtils;
@@ -83,15 +78,6 @@ public class ArrowTrail
         final Matrix4f matrix = poseStack.last().pose();
         final Level level = trackedArrow.level();
 
-        PlatformServices.get().setPositionColorShader();
-        RenderSystem.depthFunc(515);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableCull();
-
-        ITesselator tesselator = ITesselator.getInstance();
-        IBufferBuilder vertexbuffer = tesselator.begin(DrawMode.QUADS, VertexFormatType.POSITION_COLOR);
-
         for (int i = 1; i < MAX_LENGTH; i++)
         {
             TrailNode node0 = nodes[i - 1];
@@ -113,19 +99,16 @@ public class ArrowTrail
             final int color0 = trailColor(level, node0);
             final int color1 = trailColor(level, node1);
 
-            addVertex(vertexbuffer, matrix, pos0.x + (-right0.x) * scale0, pos0.y + (-right0.y) * scale0, pos0.z + (-right0.z) * scale0, color0);
-            addVertex(vertexbuffer, matrix, pos0.x + (right0.x) * scale0, pos0.y + (right0.y) * scale0, pos0.z + (right0.z) * scale0, color0);
-            addVertex(vertexbuffer, matrix, pos1.x + (right1.x) * scale1, pos1.y + (right1.y) * scale1, pos1.z + (right1.z) * scale1, color1);
-            addVertex(vertexbuffer, matrix, pos1.x + (-right1.x) * scale1, pos1.y + (-right1.y) * scale1, pos1.z + (-right1.z) * scale1, color1);
+            addVertex(matrix, pos0.x + (-right0.x) * scale0, pos0.y + (-right0.y) * scale0, pos0.z + (-right0.z) * scale0, color0);
+            addVertex(matrix, pos0.x + (right0.x) * scale0, pos0.y + (right0.y) * scale0, pos0.z + (right0.z) * scale0, color0);
+            addVertex(matrix, pos1.x + (right1.x) * scale1, pos1.y + (right1.y) * scale1, pos1.z + (right1.z) * scale1, color1);
+            addVertex(matrix, pos1.x + (-right1.x) * scale1, pos1.y + (-right1.y) * scale1, pos1.z + (-right1.z) * scale1, color1);
 
-            addVertex(vertexbuffer, matrix, pos0.x + (-up0.x) * scale0, pos0.y + (-up0.y) * scale0, pos0.z + (-up0.z) * scale0, color0);
-            addVertex(vertexbuffer, matrix, pos0.x + (up0.x) * scale0, pos0.y + (up0.y) * scale0, pos0.z + (up0.z) * scale0, color0);
-            addVertex(vertexbuffer, matrix, pos1.x + (up1.x) * scale1, pos1.y + (up1.y) * scale1, pos1.z + (up1.z) * scale1, color1);
-            addVertex(vertexbuffer, matrix, pos1.x + (-up1.x) * scale1, pos1.y + (-up1.y) * scale1, pos1.z + (-up1.z) * scale1, color1);
+            addVertex(matrix, pos0.x + (-up0.x) * scale0, pos0.y + (-up0.y) * scale0, pos0.z + (-up0.z) * scale0, color0);
+            addVertex(matrix, pos0.x + (up0.x) * scale0, pos0.y + (up0.y) * scale0, pos0.z + (up0.z) * scale0, color0);
+            addVertex(matrix, pos1.x + (up1.x) * scale1, pos1.y + (up1.y) * scale1, pos1.z + (up1.z) * scale1, color1);
+            addVertex(matrix, pos1.x + (-up1.x) * scale1, pos1.y + (-up1.y) * scale1, pos1.z + (-up1.z) * scale1, color1);
         }
-        tesselator.endAndDraw(vertexbuffer);
-
-        RenderSystem.enableCull();
     }
 
     private static int trailColor(Level level, TrailNode node)
@@ -144,11 +127,11 @@ public class ArrowTrail
         return 0x80000000 | (channel << 16) | (channel << 8) | channel;
     }
 
-    private static void addVertex(IBufferBuilder buffer, Matrix4f matrix, double x, double y, double z, int color)
+    private static void addVertex(Matrix4f matrix, double x, double y, double z, int color)
     {
         Vector4f vec = new Vector4f((float) x, (float) y, (float) z, 1.0F);
         vec.mul(matrix);
-        buffer.addVertex(vec.x(), vec.y(), vec.z()).setColorPacked(color);
+        TrailRenderQueue.vertex(vec.x(), vec.y(), vec.z(), color);
     }
 
     public boolean shouldBeRemoved()

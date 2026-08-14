@@ -7,6 +7,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(PlayerRenderer.class)
@@ -20,10 +21,17 @@ public abstract class PlayerRendererSwimMixin
     private float mobends$suppressSwimRotation(AbstractClientPlayer entity, float partialTick)
     {
         EntityBender bender = EntityBenderRegistry.instance.getForEntity(entity);
-        if (bender != null && bender.isAnimated() && !ModCompatManager.shouldDeferAnimation(entity))
+        if (bender != null && bender.isAnimated() && !ModCompatManager.shouldDeferAnimation(entity)
+                && !mobends$isCrawling(entity))
         {
             return 0.0F;
         }
         return entity.getSwimAmount(partialTick);
+    }
+
+    @Unique
+    private static boolean mobends$isCrawling(AbstractClientPlayer entity)
+    {
+        return entity.isVisuallySwimming() && !entity.isInWater();
     }
 }

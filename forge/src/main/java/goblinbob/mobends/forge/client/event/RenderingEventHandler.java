@@ -208,4 +208,17 @@ public class RenderingEventHandler
             event.getPoseStack().popPose();
         }
     }
+
+    @SubscribeEvent
+    public void onRenderLevelStage(net.minecraftforge.client.event.RenderLevelStageEvent event)
+    {
+        if (event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY)
+        {
+            goblinbob.mobends.core.client.TrailRenderQueue.clear();
+        }
+        else if (event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS)
+        {
+            goblinbob.mobends.core.client.TrailRenderQueue.flush();
+        }
+    }
 }

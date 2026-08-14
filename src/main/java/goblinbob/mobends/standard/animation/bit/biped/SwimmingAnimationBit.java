@@ -12,6 +12,7 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	private static final String[] ACTIONS_UNDERWATER = new String[] { "swimming", "swimming_deep" };
 	private static final float PI = (float) Math.PI;
 	private static final float PI_2 = PI*2;
+	private static final float MAX_HEAD_PITCH = 90F;
 
 	private float transformTransition = 0F;
 	private float transitionSpeed = 0.1F;
@@ -47,7 +48,9 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
         float t = (float) Tween.easeInOut(this.transformTransition, 3F);
 
-		if(data.isStillHorizontally() || data.isDrawingBow() || data.getTicksAfterAttack() < 10 || !data.isUnderwater())
+		final boolean swimmingPose = data.isUnderwater() || data.getEntity().isVisuallySwimming();
+
+		if(data.isStillHorizontally() || data.isDrawingBow() || data.getTicksAfterAttack() < 10 || !swimmingPose)
 		{
 			if (this.transformTransition > 0F)
 			{
@@ -98,9 +101,13 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.renderRightItemRotation.setSmoothness(.3F).orientX(armSway*50);
 		}
 
-		data.head.rotation.setSmoothness(1.0F).orientX(data.headPitch.get())
+		final float headCompensation = -80F * t;
+		final float headPitch = Mth.clamp(data.headPitch.get() + headCompensation, -MAX_HEAD_PITCH, MAX_HEAD_PITCH)
+				- headCompensation;
+
+		data.head.rotation.setSmoothness(1.0F).orientX(headPitch)
 		  				  .rotateY(data.headYaw.get())
-		  				  .rotateX(-80F * t);
+		  				  .rotateX(headCompensation);
 
 		data.renderRotation.setSmoothness(.7F).orientX(t * 80F);
 		data.globalOffset.slideZ(-20 * t, .7F);

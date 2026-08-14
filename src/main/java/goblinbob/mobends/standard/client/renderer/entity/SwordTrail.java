@@ -1,12 +1,7 @@
 package goblinbob.mobends.standard.client.renderer.entity;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import goblinbob.mobends.api.platform.PlatformServices;
-import goblinbob.mobends.api.rendering.DrawMode;
-import goblinbob.mobends.api.rendering.IBufferBuilder;
-import goblinbob.mobends.api.rendering.ITesselator;
-import goblinbob.mobends.api.rendering.VertexFormatType;
+import goblinbob.mobends.core.client.TrailRenderQueue;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.lib.math.vector.Vec3f;
@@ -125,23 +120,13 @@ public class SwordTrail
             return;
         }
 
-        RenderSystem.depthFunc(515);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableCull();
-        PlatformServices.get().setPositionColorShader();
-
         if (trailPartList.size() < 2)
         {
-            RenderSystem.enableCull();
             return;
         }
 
         Matrix4f matrix = poseStack.last().pose();
         final float brightness = trailBrightness(entity);
-
-        ITesselator tesselator = ITesselator.getInstance();
-        IBufferBuilder bufferBuilder = tesselator.begin(DrawMode.QUADS, VertexFormatType.POSITION_COLOR);
 
         Iterator<TrailPart> it = trailPartList.iterator();
         TrailPart prevPart = null;
@@ -168,14 +153,10 @@ public class SwordTrail
                                ((int)(color.getG() * brightness * 255.0F) << 8) |
                                (int)(color.getB() * brightness * 255.0F);
 
-                bufferBuilder.addVertex(prevTransformedPoints[0].x, prevTransformedPoints[0].y, prevTransformedPoints[0].z)
-                        .setColorPacked(prevColor);
-                bufferBuilder.addVertex(prevTransformedPoints[1].x, prevTransformedPoints[1].y, prevTransformedPoints[1].z)
-                        .setColorPacked(prevColor);
-                bufferBuilder.addVertex(transformedPoints[1].x, transformedPoints[1].y, transformedPoints[1].z)
-                        .setColorPacked(currColor);
-                bufferBuilder.addVertex(transformedPoints[0].x, transformedPoints[0].y, transformedPoints[0].z)
-                        .setColorPacked(currColor);
+                TrailRenderQueue.vertex(prevTransformedPoints[0].x, prevTransformedPoints[0].y, prevTransformedPoints[0].z, prevColor);
+                TrailRenderQueue.vertex(prevTransformedPoints[1].x, prevTransformedPoints[1].y, prevTransformedPoints[1].z, prevColor);
+                TrailRenderQueue.vertex(transformedPoints[1].x, transformedPoints[1].y, transformedPoints[1].z, currColor);
+                TrailRenderQueue.vertex(transformedPoints[0].x, transformedPoints[0].y, transformedPoints[0].z, currColor);
             }
 
             prevPart = part;
@@ -183,9 +164,6 @@ public class SwordTrail
             prevAlpha = alpha;
         }
 
-        tesselator.endAndDraw(bufferBuilder);
-
-        RenderSystem.enableCull();
     }
 
     private static float trailBrightness(LivingEntity entity)
