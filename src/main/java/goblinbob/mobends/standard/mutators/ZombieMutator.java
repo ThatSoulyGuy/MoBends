@@ -3,10 +3,10 @@ package goblinbob.mobends.standard.mutators;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.data.ZombieData;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.ZombieModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.entity.monster.Zombie;
 
-public class ZombieMutator extends ZombieMutatorBase<ZombieData, Zombie, ZombieModel<Zombie>>
+public class ZombieMutator extends ZombieMutatorBase<ZombieData, Zombie, HumanoidModel<Zombie>>
 {
 
     public ZombieMutator(IEntityDataFactory<Zombie> dataFactory)
@@ -15,7 +15,7 @@ public class ZombieMutator extends ZombieMutatorBase<ZombieData, Zombie, ZombieM
     }
 
     @Override
-    public void storeVanillaModel(ZombieModel<Zombie> model)
+    public void storeVanillaModel(HumanoidModel<Zombie> model)
     {
         super.storeVanillaModel(model);
     }
@@ -23,6 +23,6 @@ public class ZombieMutator extends ZombieMutatorBase<ZombieData, Zombie, ZombieM
     @Override
     public boolean shouldModelBeSkipped(EntityModel<?> model)
     {
-        return !(model instanceof ZombieModel);
+        return !(model instanceof HumanoidModel);
     }
 }

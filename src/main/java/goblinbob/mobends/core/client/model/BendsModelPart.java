@@ -32,6 +32,8 @@ public class BendsModelPart implements IModelPart
 
     protected final List<BendsCube> cubes = new ArrayList<>();
 
+    protected final List<BendsMesh> meshes = new ArrayList<>();
+
     protected final List<BendsModelPart> children = new ArrayList<>();
 
     public boolean visible = true;
@@ -80,6 +82,10 @@ public class BendsModelPart implements IModelPart
             {
                 cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
             }
+            for (BendsMesh mesh : meshes)
+            {
+                mesh.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
+            }
         }
 
         for (BendsModelPart child : children)
@@ -117,6 +123,10 @@ public class BendsModelPart implements IModelPart
             for (BendsCube cube : cubes)
             {
                 cube.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
+            }
+            for (BendsMesh mesh : meshes)
+            {
+                mesh.compile(poseStack.last(), vertexConsumer, packedLight, packedOverlay, color);
             }
         }
 
@@ -439,6 +449,15 @@ public class BendsModelPart implements IModelPart
                                        inflation, textureWidth, textureHeight, mirror,
                                        bottomTexOffsetX, bottomTexOffsetY);
         this.cubes.add(cube);
+        return this;
+    }
+
+    public BendsModelPart addMesh(BendsMesh mesh)
+    {
+        if (mesh != null && !mesh.isEmpty())
+        {
+            this.meshes.add(mesh);
+        }
         return this;
     }
 

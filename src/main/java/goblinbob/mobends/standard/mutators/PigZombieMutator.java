@@ -86,6 +86,12 @@ public class PigZombieMutator extends BipedMutator<PigZombieData, ZombifiedPigli
 	}
 
 	@Override
+	protected boolean usesAdaptiveGeometry()
+	{
+		return false;
+	}
+
+	@Override
 	public boolean shouldModelBeSkipped(EntityModel<?> model)
 	{
 		return !(model instanceof PiglinModel);

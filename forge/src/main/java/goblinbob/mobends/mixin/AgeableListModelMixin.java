@@ -33,6 +33,10 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
                 MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
                 ci.cancel();
             }
+            else if (MixinBridge.shouldRenderBipedOverlay(humanoidModel)) {
+                MixinBridge.renderBipedOverlay(humanoidModel, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                ci.cancel();
+            }
         }
         else if ((Object) this instanceof WolfModel<?> wolfModel) {
             if (MixinBridge.shouldRenderWolfCustom()) {

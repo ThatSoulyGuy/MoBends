@@ -3,6 +3,7 @@ package goblinbob.mobends.standard.mutators;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
+import goblinbob.mobends.standard.client.model.adaptive.HumanoidLayout;
 import goblinbob.mobends.standard.data.SkeletonData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.SkeletonModel;
@@ -11,8 +12,6 @@ import net.minecraft.world.entity.monster.AbstractSkeleton;
 
 public class SkeletonMutator<E extends AbstractSkeleton> extends BipedMutator<SkeletonData<E>, E, SkeletonModel<E>>
 {
-
-    private static final String BOGGED_MUSHROOMS_PART = "mushrooms";
 
     protected boolean boneLimbs = false;
 
@@ -41,15 +40,16 @@ public class SkeletonMutator<E extends AbstractSkeleton> extends BipedMutator<Sk
     public void storeVanillaModel(SkeletonModel<E> model)
     {
         super.storeVanillaModel(model);
-
-        this.extraHeadPart = model.head.hasChild(BOGGED_MUSHROOMS_PART)
-                ? model.head.getChild(BOGGED_MUSHROOMS_PART)
-                : null;
     }
 
     @Override
     public boolean createParts(SkeletonModel<E> original, float scaleFactor)
     {
+        if (tryCreateAdaptiveParts(original, HumanoidLayout.SKELETON))
+        {
+            return true;
+        }
+
         body = new BendsModelPart(16, 16)
                 .setTextureSize(64, 32)
                 .setPosition(0.0F, 12.0F, 0.0F);
@@ -135,6 +135,8 @@ public class SkeletonMutator<E extends AbstractSkeleton> extends BipedMutator<Sk
         leftLeg.addChild(leftForeLeg);
 
         createOuterParts(scaleFactor);
+
+        reconcileWithVanillaModel(original);
 
         return true;
     }

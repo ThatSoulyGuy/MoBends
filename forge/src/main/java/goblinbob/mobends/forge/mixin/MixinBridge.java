@@ -48,6 +48,27 @@ public final class MixinBridge {
         }
     }
 
+    public static boolean shouldRenderBipedOverlay(Object model) {
+        if (MoBendsRenderContext.isInMainModelRender()) {
+            return false;
+        }
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        return mutator != null && mutator.shouldRenderCustom() && mutator.isOverlayModel(model);
+    }
+
+    public static void renderBipedOverlay(Object model, PoseStack poseStack, VertexConsumer vertexConsumer,
+                                          int packedLight, int packedOverlay,
+                                          float red, float green, float blue, float alpha) {
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        if (mutator != null && model instanceof net.minecraft.client.model.HumanoidModel<?> humanoidModel) {
+            int color = ((int)(alpha * 255.0F) << 24) |
+                        ((int)(red * 255.0F) << 16) |
+                        ((int)(green * 255.0F) << 8) |
+                        (int)(blue * 255.0F);
+            mutator.renderOverlayModel(humanoidModel, poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        }
+    }
+
     public static boolean shouldRenderSpiderCustom() {
         SpiderMutator mutator = MoBendsRenderContext.getCurrentSpiderMutator();
         return mutator != null && mutator.shouldRenderCustom();
