@@ -93,6 +93,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         ItemStack itemStack = entity.getItemBySlot(slot);
         if (itemStack.isEmpty()) return;
 
+        if (isHiddenByFirstPersonView(entity, slot)) return;
+
         if (!(itemStack.getItem() instanceof ArmorItem armorItem)) return;
         if (armorItem.getEquipmentSlot() != slot) return;
 
@@ -151,6 +153,31 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         {
             renderVanillaArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
         }
+    }
+
+    private boolean isHiddenByFirstPersonView(E entity, EquipmentSlot slot)
+    {
+        if (!goblinbob.mobends.compat.FirstPersonModelCompat.isRenderingFirstPersonBody(entity))
+        {
+            return false;
+        }
+
+        if (slot == EquipmentSlot.HEAD)
+        {
+            return true;
+        }
+
+        if (slot != EquipmentSlot.CHEST)
+        {
+            return false;
+        }
+
+        if (entity instanceof net.minecraft.client.player.LocalPlayer localPlayer && localPlayer.isSwimming())
+        {
+            return true;
+        }
+
+        return goblinbob.mobends.compat.FirstPersonModelCompat.showsVanillaHands(getParentModel());
     }
 
     private void renderRigidArmor(PoseStack poseStack, MultiBufferSource bufferSource,

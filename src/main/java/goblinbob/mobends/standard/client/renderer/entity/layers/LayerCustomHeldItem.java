@@ -21,6 +21,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 
 public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel<E>> extends RenderLayer<E, M>
 {
@@ -38,6 +39,12 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
                        E entity, float limbSwing, float limbSwingAmount,
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
+        if (goblinbob.mobends.compat.FirstPersonModelCompat.isRenderingFirstPersonBody(entity)
+                && goblinbob.mobends.compat.FirstPersonModelCompat.showsVanillaHands(this.getParentModel()))
+        {
+            return;
+        }
+
         boolean rightHanded = entity.getMainArm() == HumanoidArm.RIGHT;
         ItemStack mainHandItem = rightHanded ? entity.getMainHandItem() : entity.getOffhandItem();
         ItemStack offHandItem = rightHanded ? entity.getOffhandItem() : entity.getMainHandItem();
@@ -67,6 +74,11 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
     {
         if (!itemStack.isEmpty())
         {
+            if (this.renderSpyglassOnHead(entity, itemStack, arm, poseStack, bufferSource, packedLight))
+            {
+                return;
+            }
+
             poseStack.pushPose();
 
             this.translateToHand(arm, entity, poseStack);
@@ -84,6 +96,52 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
 
             poseStack.popPose();
         }
+    }
+
+    private boolean renderSpyglassOnHead(E entity, ItemStack itemStack, HumanoidArm arm,
+                                         PoseStack poseStack, MultiBufferSource bufferSource, int packedLight)
+    {
+        if (itemStack.getUseAnimation() != UseAnim.SPYGLASS
+                || entity.getUseItem() != itemStack
+                || entity.swingTime != 0)
+        {
+            return false;
+        }
+
+        if (mutator == null || !mutator.shouldRenderCustom())
+        {
+            return false;
+        }
+
+        final BendsModelPart body = mutator.getBody();
+        final BendsModelPart head = mutator.getHead();
+        if (body == null || head == null)
+        {
+            return false;
+        }
+
+        final float scale = 1.0F / 16.0F;
+
+        poseStack.pushPose();
+
+        poseStack.translate(body.position.x * scale, body.position.y * scale, body.position.z * scale);
+        GlHelper.rotate(poseStack, body.rotation.getSmooth());
+        poseStack.translate(head.position.x * scale, head.position.y * scale, head.position.z * scale);
+        GlHelper.rotate(poseStack, head.rotation.getSmooth());
+
+        poseStack.translate(0.0F, -0.25F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        poseStack.scale(0.625F, -0.625F, -0.625F);
+
+        poseStack.translate((arm == HumanoidArm.LEFT ? -2.5F : 2.5F) / 16.0F, -0.0625F, 0.0F);
+
+        Minecraft.getInstance().getItemRenderer().renderStatic(
+                entity, itemStack, ItemDisplayContext.HEAD, false,
+                poseStack, bufferSource, entity.level(), packedLight,
+                LivingEntityRenderer.getOverlayCoords(entity, 0.0F), entity.getId());
+
+        poseStack.popPose();
+        return true;
     }
 
     protected void translateToGrip(HumanoidArm arm, E entity, ItemStack itemStack,

@@ -32,6 +32,8 @@ public class ModCompatManager
 
         ArmourersWorkshopCompat.init();
 
+        FirstPersonModelCompat.init();
+
         logCompatSummary();
     }
 
@@ -45,6 +47,7 @@ public class ModCompatManager
         LOGGER.info("  - {}", BetterBloodOverlayCompat.getCompatInfo());
         LOGGER.info("  - {}", PhysicsModCompat.getCompatInfo());
         LOGGER.info("  - {}", ArmourersWorkshopCompat.getCompatInfo());
+        LOGGER.info("  - {}", FirstPersonModelCompat.getCompatInfo());
     }
 
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)

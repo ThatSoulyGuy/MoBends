@@ -40,6 +40,9 @@ public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerM
                        AbstractClientPlayer player, float limbSwing, float limbSwingAmount,
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
+        if (goblinbob.mobends.compat.FirstPersonModelCompat.isRenderingFirstPersonBody(player) && player.isSwimming())
+            return;
+
         final EntityData<?> entityData = EntityDatabase.instance.get(player);
         if (!(entityData instanceof PlayerData))
             return;

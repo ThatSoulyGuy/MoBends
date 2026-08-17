@@ -14,7 +14,7 @@ import goblinbob.mobends.standard.previewer.PlayerPreviewer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.RemotePlayer;
+import goblinbob.mobends.standard.previewer.PreviewPlayer;
 
 public class PlayerBender extends EntityBender<AbstractClientPlayer>
 {
@@ -39,10 +39,11 @@ public class PlayerBender extends EntityBender<AbstractClientPlayer>
 
         try
         {
-            RemotePlayer preview = new RemotePlayer(
+            PreviewPlayer preview = new PreviewPlayer(
                 (ClientLevel) mc.level,
                 mc.player.getGameProfile()
             );
+            preview.copySkinCustomisation(mc.player);
             preview.moveTo(0, 0, 0, 0, 0);
             PreviewHelper.registerPreviewEntity(preview);
             return preview;

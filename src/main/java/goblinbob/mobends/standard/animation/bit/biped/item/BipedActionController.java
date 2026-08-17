@@ -6,7 +6,10 @@ import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.UseActionType;
 import goblinbob.mobends.standard.animation.bit.biped.EatingAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.GoatHornAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.ShieldAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SpearThrowAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SpyglassAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.model.HumanoidModel;
@@ -32,6 +35,9 @@ public class BipedActionController
         ITEM_USE_ACTION_MAP.put(UseActionType.FOOD, EatingAnimationBit::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.BOW, BowAction::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.SHIELD, ShieldAnimationBit::new);
+        ITEM_USE_ACTION_MAP.put(UseActionType.SPEAR, SpearThrowAnimationBit::new);
+        ITEM_USE_ACTION_MAP.put(UseActionType.SPYGLASS, SpyglassAnimationBit::new);
+        ITEM_USE_ACTION_MAP.put(UseActionType.HORN, GoatHornAnimationBit::new);
 
         ITEM_ATTACK_ACTION_MAP.put(AttackActionType.TOOL, ToolAction::new);
         ITEM_ATTACK_ACTION_MAP.put(AttackActionType.FISTS, PunchingAction::new);
@@ -50,11 +56,11 @@ public class BipedActionController
         }
     }
 
-    private static HumanoidModel.ArmPose getAction(LivingEntity entity, ItemStack heldItem)
+    private static HumanoidModel.ArmPose getAction(LivingEntity entity, ItemStack heldItem, InteractionHand hand)
     {
         if (!heldItem.isEmpty())
         {
-            if (entity.getUseItemRemainingTicks() > 0)
+            if (entity.getUsedItemHand() == hand && entity.getUseItemRemainingTicks() > 0)
             {
                 UseAnim useAnim = heldItem.getUseAnimation();
 
@@ -64,8 +70,12 @@ public class BipedActionController
                     return HumanoidModel.ArmPose.BOW_AND_ARROW;
                 else if (useAnim == UseAnim.CROSSBOW)
                     return HumanoidModel.ArmPose.CROSSBOW_HOLD;
+                else if (useAnim == UseAnim.SPEAR)
+                    return HumanoidModel.ArmPose.THROW_SPEAR;
                 else if (useAnim == UseAnim.SPYGLASS)
                     return HumanoidModel.ArmPose.SPYGLASS;
+                else if (useAnim == UseAnim.TOOT_HORN)
+                    return HumanoidModel.ArmPose.TOOT_HORN;
             }
 
             return HumanoidModel.ArmPose.ITEM;
@@ -94,6 +104,15 @@ public class BipedActionController
         UseAnim useAnim = new ItemStack(item).getUseAnimation();
         if (useAnim == UseAnim.EAT || useAnim == UseAnim.DRINK)
             return UseActionType.FOOD;
+
+        if (useAnim == UseAnim.SPEAR)
+            return UseActionType.SPEAR;
+
+        if (useAnim == UseAnim.SPYGLASS)
+            return UseActionType.SPYGLASS;
+
+        if (useAnim == UseAnim.TOOT_HORN)
+            return UseActionType.HORN;
 
         return null;
     }
@@ -132,8 +151,8 @@ public class BipedActionController
     ) {
         final LivingEntity entity = data.getEntity();
         final HumanoidArm offHand = primaryHand == HumanoidArm.RIGHT ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
-        final HumanoidModel.ArmPose armPoseMain = getAction(entity, heldItemMainhand);
-        final HumanoidModel.ArmPose armPoseOff = getAction(entity, heldItemOffhand);
+        final HumanoidModel.ArmPose armPoseMain = getAction(entity, heldItemMainhand, InteractionHand.MAIN_HAND);
+        final HumanoidModel.ArmPose armPoseOff = getAction(entity, heldItemOffhand, InteractionHand.OFF_HAND);
         final HumanoidArm activeHandSide = entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? primaryHand : offHand;
 
         UseActionType useActionType = getItemUseAction(activeItem, armPoseMain, armPoseOff);

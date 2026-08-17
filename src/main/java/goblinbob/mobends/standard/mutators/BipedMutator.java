@@ -960,6 +960,20 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         applyConcealment(rightForeLeg, model.rightLeg);
 
         applySkinConcealment(model);
+
+        syncOuterConcealment(model);
+
+        if (goblinbob.mobends.compat.FirstPersonModelCompat.isRenderingFirstPersonBody())
+        {
+            concealHeadParts();
+        }
+    }
+
+    protected void concealHeadParts()
+    {
+        if (head != null) head.concealed = true;
+        if (headwear != null) headwear.concealed = true;
+        if (outerHead != null) outerHead.concealed = true;
     }
 
     private void applySkinConcealment(HumanoidModel<?> model)
@@ -979,8 +993,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         concealIfSkinned(leftForeLeg, model.leftLeg);
         concealIfSkinned(rightLeg, model.rightLeg);
         concealIfSkinned(rightForeLeg, model.rightLeg);
-
-        syncOuterConcealment(model);
     }
 
     protected void clearConcealment()
@@ -1050,6 +1062,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return;
         }
         if (basePart != null && basePart.concealed)
+        {
+            part.concealed = true;
+            return;
+        }
+        if (overlayPart != null && !overlayPart.visible)
         {
             part.concealed = true;
             return;
@@ -1196,6 +1213,27 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             model.hat.yRot = model.head.yRot;
             model.hat.zRot = model.head.zRot;
         }
+    }
+
+    public void restoreVanillaPivots(HumanoidModel<?> model)
+    {
+        if (model == null || !vanillaPositionsStored) return;
+
+        applyStoredPivot(model.body, vanillaBodyPos);
+        applyStoredPivot(model.head, vanillaHeadPos);
+        applyStoredPivot(model.hat, vanillaHeadPos);
+        applyStoredPivot(model.leftArm, vanillaLeftArmPos);
+        applyStoredPivot(model.rightArm, vanillaRightArmPos);
+        applyStoredPivot(model.leftLeg, vanillaLeftLegPos);
+        applyStoredPivot(model.rightLeg, vanillaRightLegPos);
+    }
+
+    private static void applyStoredPivot(ModelPart modelPart, float[] pivot)
+    {
+        if (modelPart == null || pivot == null) return;
+        modelPart.x = pivot[0];
+        modelPart.y = pivot[1];
+        modelPart.z = pivot[2];
     }
 
     private void syncPartToModelPart(BendsModelPart bendsPart, ModelPart modelPart, float[] vanillaPos)

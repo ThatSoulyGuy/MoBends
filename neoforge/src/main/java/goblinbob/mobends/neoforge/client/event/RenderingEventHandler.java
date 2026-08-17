@@ -5,6 +5,7 @@ import goblinbob.mobends.core.addon.Addons;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
+import goblinbob.mobends.core.client.OffscreenAnimationUpdater;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.data.LivingEntityData;
@@ -77,6 +78,7 @@ public class RenderingEventHandler
             DataUpdateHandler.update(renderTickTime, newTicks);
             EntityDatabase.instance.updateRender(renderTickTime);
             Addons.onRenderTick(renderTickTime);
+            OffscreenAnimationUpdater.updateIfNotRendered(renderTickTime);
         }
         else
         {
@@ -101,7 +103,10 @@ public class RenderingEventHandler
         PlayerRenderer renderPlayer = (PlayerRenderer) mc.getEntityRenderDispatcher().getRenderer(player);
         PlayerMutator mutator = (PlayerMutator) BenderHelper.getMutatorForRenderer(AbstractClientPlayer.class, renderPlayer);
         if (mutator != null)
+        {
             mutator.poseForFirstPersonView();
+            mutator.restoreVanillaPivots(renderPlayer.getModel());
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -112,6 +117,11 @@ public class RenderingEventHandler
         LivingEntityRenderer renderer = event.getRenderer();
         float partialTicks = event.getPartialTick();
         PoseStack poseStack = event.getPoseStack();
+
+        if (entity == Minecraft.getInstance().player)
+        {
+            OffscreenAnimationUpdater.markPlayerRendered();
+        }
 
         EntityBender bender = EntityBenderRegistry.instance.getForEntity(entity);
         if (bender == null)
