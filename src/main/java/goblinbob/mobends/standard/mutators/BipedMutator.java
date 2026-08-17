@@ -39,6 +39,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                                    M extends HumanoidModel<E>>
                                   extends Mutator<D, E, M>
 {
+    private static final org.slf4j.Logger LOGGER =
+            org.slf4j.LoggerFactory.getLogger("MoBends-BipedMutator");
+
     protected BendsModelPart body;
     protected BendsModelPart head;
     protected BendsModelPart headwear;
@@ -75,6 +78,17 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             new IdentityHashMap<>();
 
     private boolean overlayModelsResolved = false;
+
+    private static final int MAX_CACHED_OVERLAY_GEOMETRY = 128;
+
+    private Set<ModelPart> overlayRenderedParts = null;
+
+    private final float[] scratchVec = new float[3];
+    private final float[] scratchPivot = new float[3];
+    private final float[] scratchEuler = new float[3];
+    private final Quaternion scratchRotation = new Quaternion();
+
+    private HumanoidModel<?> overlayRenderedModel = null;
 
     private final org.joml.Matrix4f mainRenderPose = new org.joml.Matrix4f();
     private final org.joml.Matrix3f mainRenderNormal = new org.joml.Matrix3f();
@@ -176,6 +190,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             }
             catch (Exception e)
             {
+                LOGGER.error("Failed to bake the armor models for {}; armor will not render",
+                        renderer.getClass().getName(), e);
             }
 
             layerRenderers.set(index, this.layerArmor);
@@ -608,6 +624,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     public boolean isOverlayModel(Object model)
     {
+        return isOverlayModel(model, null);
+    }
+
+    public boolean isOverlayModel(Object model, Object renderedParts)
+    {
         if (!(model instanceof HumanoidModel<?>))
         {
             return false;
@@ -621,7 +642,67 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             overlayModelsResolved = true;
             collectOverlayModels();
         }
-        return overlayModels.contains(model);
+        if (overlayModels.contains(model))
+        {
+            return true;
+        }
+
+        final HumanoidModel<?> humanoidModel = (HumanoidModel<?>) model;
+
+        if (!rendersSplitLimb(humanoidModel, renderedParts))
+        {
+            return false;
+        }
+
+        return isBendableAccessoryModel(humanoidModel);
+    }
+
+    private static boolean rendersSplitLimb(HumanoidModel<?> model, Object renderedParts)
+    {
+        if (!(renderedParts instanceof Set<?> parts))
+        {
+            return false;
+        }
+        return parts.contains(model.leftArm) || parts.contains(model.rightArm)
+                || parts.contains(model.leftLeg) || parts.contains(model.rightLeg);
+    }
+
+    private float[] baseJointOverride()
+    {
+        if (leftForeArm == null || leftForeLeg == null)
+        {
+            return null;
+        }
+        return new float[]{
+                leftForeArm.position.y, leftForeArm.position.z,
+                leftForeLeg.position.y, leftForeLeg.position.z
+        };
+    }
+
+    private boolean isBendableAccessoryModel(HumanoidModel<?> model)
+    {
+        if (MoBendsRenderContext.isInArmorRender())
+        {
+            return false;
+        }
+
+        if (overlayGeometry.containsKey(model))
+        {
+            return overlayGeometry.get(model) != null;
+        }
+
+        AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(model, true, baseJointOverride());
+        if (geometry != null)
+        {
+            geometry.adoptRuntimePivots(model);
+        }
+
+        if (overlayGeometry.size() >= MAX_CACHED_OVERLAY_GEOMETRY)
+        {
+            overlayGeometry.clear();
+        }
+        overlayGeometry.put(model, geometry);
+        return geometry != null;
     }
 
     private void collectOverlayModels()
@@ -664,13 +745,20 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
     }
 
-    public void renderOverlayModel(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer,
+    @SuppressWarnings("unchecked")
+    public void renderOverlayModel(HumanoidModel<?> model, Object renderedParts,
+                                   PoseStack poseStack, VertexConsumer vertexConsumer,
                                    int packedLight, int packedOverlay, int color)
     {
         if (model == null || body == null)
         {
             return;
         }
+
+        this.overlayRenderedParts = renderedParts instanceof Set<?> parts
+                ? (Set<ModelPart>) parts
+                : null;
+        this.overlayRenderedModel = model;
 
         poseStack.pushPose();
         applyMainRenderPose(poseStack);
@@ -707,7 +795,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         AdaptiveHumanoidGeometry geometry = overlayGeometry.get(model);
         if (geometry == null)
         {
-            geometry = AdaptiveHumanoidGeometry.build(model, true);
+            geometry = AdaptiveHumanoidGeometry.build(model, true, baseJointOverride());
             if (geometry == null)
             {
                 return;
@@ -764,6 +852,21 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 absoluteOf(baseUpper, foreBone), sum(overlayUpper, overlayForePivot));
     }
 
+    private boolean isOverlayPartRendered(ModelPart source)
+    {
+        if (overlayRenderedParts == null || source == null)
+        {
+            return true;
+        }
+        if (overlayRenderedParts.contains(source))
+        {
+            return true;
+        }
+        return overlayRenderedModel != null
+                && source == overlayRenderedModel.hat
+                && overlayRenderedParts.contains(overlayRenderedModel.head);
+    }
+
     private void drawOverlay(PoseStack poseStack, VertexConsumer vertexConsumer,
                              int packedLight, int packedOverlay, int color,
                              ModelPart source, BendsModelPart bone, BendsMesh mesh,
@@ -774,6 +877,10 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return;
         }
         if (source != null && !source.visible)
+        {
+            return;
+        }
+        if (!isOverlayPartRendered(source))
         {
             return;
         }
@@ -1179,11 +1286,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         float bodyPivotY = body.globalOffset.y + (body.position.y + body.offset.y) * body.offsetScale;
         float bodyPivotZ = body.globalOffset.z + (body.position.z + body.offset.z) * body.offsetScale;
 
-        float[] bodyNeck = rotateVectorByQuaternion(bodyRotation, 0.0F, -12.0F, 0.0F);
+        float[] bodyNeck = rotateVectorByQuaternion(bodyRotation, 0.0F, -12.0F, 0.0F, scratchVec);
         model.body.x = bodyPivotX + bodyNeck[0];
         model.body.y = bodyPivotY + bodyNeck[1];
         model.body.z = bodyPivotZ + bodyNeck[2];
-        float[] bodyEuler = quaternionToEulerXYZ(bodyRotation);
+        float[] bodyEuler = quaternionToEulerXYZ(bodyRotation, scratchEuler);
         model.body.xRot = bodyEuler[0];
         model.body.yRot = bodyEuler[1];
         model.body.zRot = bodyEuler[2];
@@ -1248,7 +1355,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
 
         Quaternion q = bendsPart.rotation.getSmooth();
-        float[] euler = quaternionToEulerXYZ(q);
+        float[] euler = quaternionToEulerXYZ(q, scratchEuler);
         modelPart.xRot = euler[0];
         modelPart.yRot = euler[1];
         modelPart.zRot = euler[2];
@@ -1261,30 +1368,29 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                                           Quaternion bodyRotation)
     {
         if (child == null || modelPart == null) return;
-        float[] pivot = new float[3];
-        Quaternion rotation = composeChildWorld(bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation, child, pivot);
-        setEndModelPart(modelPart, pivot, rotation, modelPart.visible && child.isShowingIgnoringConcealment());
+        Quaternion rotation = composeChildWorld(bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation, child, scratchPivot);
+        setEndModelPart(modelPart, scratchPivot, rotation, modelPart.visible && child.isShowingIgnoringConcealment());
     }
 
-    private static Quaternion composeChildWorld(float parentPivotX, float parentPivotY, float parentPivotZ,
-                                                Quaternion parentRotation, BendsModelPart child, float[] outPivot)
+    private Quaternion composeChildWorld(float parentPivotX, float parentPivotY, float parentPivotZ,
+                                        Quaternion parentRotation, BendsModelPart child, float[] outPivot)
     {
         float lx = (child.position.x + child.offset.x) * child.offsetScale;
         float ly = (child.position.y + child.offset.y) * child.offsetScale;
         float lz = (child.position.z + child.offset.z) * child.offsetScale;
-        float[] rotated = rotateVectorByQuaternion(parentRotation, lx, ly, lz);
+        float[] rotated = rotateVectorByQuaternion(parentRotation, lx, ly, lz, scratchVec);
         outPivot[0] = parentPivotX + rotated[0];
         outPivot[1] = parentPivotY + rotated[1];
         outPivot[2] = parentPivotZ + rotated[2];
-        return Quaternion.mul(parentRotation, child.rotation.getSmooth(), new Quaternion());
+        return Quaternion.mul(parentRotation, child.rotation.getSmooth(), scratchRotation);
     }
 
-    private static void setEndModelPart(ModelPart modelPart, float[] pivot, Quaternion rotation, boolean visible)
+    private void setEndModelPart(ModelPart modelPart, float[] pivot, Quaternion rotation, boolean visible)
     {
         modelPart.x = pivot[0];
         modelPart.y = pivot[1];
         modelPart.z = pivot[2];
-        float[] euler = quaternionToEulerXYZ(rotation);
+        float[] euler = quaternionToEulerXYZ(rotation, scratchEuler);
         modelPart.xRot = euler[0];
         modelPart.yRot = euler[1];
         modelPart.zRot = euler[2];
@@ -1293,14 +1399,18 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     private static float[] rotateVectorByQuaternion(Quaternion q, float x, float y, float z)
     {
+        return rotateVectorByQuaternion(q, x, y, z, new float[3]);
+    }
+
+    private static float[] rotateVectorByQuaternion(Quaternion q, float x, float y, float z, float[] dest)
+    {
         float tx = 2.0F * (q.y * z - q.z * y);
         float ty = 2.0F * (q.z * x - q.x * z);
         float tz = 2.0F * (q.x * y - q.y * x);
-        return new float[]{
-                x + q.w * tx + (q.y * tz - q.z * ty),
-                y + q.w * ty + (q.z * tx - q.x * tz),
-                z + q.w * tz + (q.x * ty - q.y * tx)
-        };
+        dest[0] = x + q.w * tx + (q.y * tz - q.z * ty);
+        dest[1] = y + q.w * ty + (q.z * tx - q.x * tz);
+        dest[2] = z + q.w * tz + (q.x * ty - q.y * tx);
+        return dest;
     }
 
     private static final float[] ZERO_EULER = {0, 0, 0};
@@ -1311,14 +1421,13 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return quaternionToEulerXYZ(part.rotation.getSmooth());
     }
 
-    public float[] getLeftForeArmEulerAngles() { return getPartEulerAngles(leftForeArm); }
-    public float[] getRightForeArmEulerAngles() { return getPartEulerAngles(rightForeArm); }
-    public float[] getLeftForeLegEulerAngles() { return getPartEulerAngles(leftForeLeg); }
-    public float[] getRightForeLegEulerAngles() { return getPartEulerAngles(rightForeLeg); }
-
     private static float[] quaternionToEulerXYZ(Quaternion q)
     {
-        float[] euler = new float[3];
+        return quaternionToEulerXYZ(q, new float[3]);
+    }
+
+    private static float[] quaternionToEulerXYZ(Quaternion q, float[] euler)
+    {
 
         float sinX = 2.0f * (q.w * q.x + q.y * q.z);
         float cosX = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);

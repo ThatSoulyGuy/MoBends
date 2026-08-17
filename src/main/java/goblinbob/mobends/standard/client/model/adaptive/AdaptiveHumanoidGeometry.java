@@ -48,6 +48,8 @@ public final class AdaptiveHumanoidGeometry
     public BendsMesh leftForeLegMesh;
     public BendsMesh rightForeLegMesh;
 
+    private float[] jointOverride = null;
+
     private AdaptiveHumanoidGeometry()
     {
     }
@@ -58,6 +60,12 @@ public final class AdaptiveHumanoidGeometry
     }
 
     public static AdaptiveHumanoidGeometry build(HumanoidModel<?> model, boolean includeChildren)
+    {
+        return build(model, includeChildren, null);
+    }
+
+    public static AdaptiveHumanoidGeometry build(HumanoidModel<?> model, boolean includeChildren,
+                                                 float[] jointOverride)
     {
         if (model == null || model.head == null || model.body == null
                 || model.leftArm == null || model.rightArm == null
@@ -75,6 +83,7 @@ public final class AdaptiveHumanoidGeometry
         final PartCapture rightLeg = capture(model.rightLeg, includeChildren);
 
         final AdaptiveHumanoidGeometry geometry = new AdaptiveHumanoidGeometry();
+        geometry.jointOverride = jointOverride;
 
         final float torsoBottom = body.isEmpty() ? DEFAULT_BODY_HEIGHT : body.baseMaxY;
         geometry.torsoBottom = torsoBottom;
@@ -147,8 +156,8 @@ public final class AdaptiveHumanoidGeometry
         pivot[1] = arm.pivotY - bodyPivot[1];
         pivot[2] = arm.pivotZ - bodyPivot[2];
 
-        final float splitY = (arm.baseMinY + arm.baseMaxY) * 0.5F;
-        final float hingeZ = arm.baseMaxZ;
+        final float splitY = jointOverride != null ? jointOverride[0] : (arm.baseMinY + arm.baseMaxY) * 0.5F;
+        final float hingeZ = jointOverride != null ? jointOverride[1] : arm.baseMaxZ;
 
         final float[] forePivot = isLeft ? leftForeArmPivot : rightForeArmPivot;
         forePivot[0] = 0.0F;
@@ -176,8 +185,8 @@ public final class AdaptiveHumanoidGeometry
         pivot[1] = leg.pivotY;
         pivot[2] = leg.pivotZ;
 
-        final float splitY = (leg.baseMinY + leg.baseMaxY) * 0.5F;
-        final float hingeZ = leg.baseMinZ;
+        final float splitY = jointOverride != null ? jointOverride[2] : (leg.baseMinY + leg.baseMaxY) * 0.5F;
+        final float hingeZ = jointOverride != null ? jointOverride[3] : leg.baseMinZ;
 
         final float[] forePivot = isLeft ? leftForeLegPivot : rightForeLegPivot;
         forePivot[0] = 0.0F;

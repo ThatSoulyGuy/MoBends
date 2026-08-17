@@ -28,6 +28,8 @@ public class BipedActionController
     protected AttackActionType currentAttackActionType = null;
     protected AnimationBit<BipedEntityData<?>> actionBit = null;
 
+    private static final Map<Item, UseAnim> USE_ANIM_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
     private static final Map<UseActionType, ItemActionFactory<AnimationBit<BipedEntityData<?>>>> ITEM_USE_ACTION_MAP = new HashMap<>();
     private static final Map<AttackActionType, ItemActionFactory<AnimationBit<BipedEntityData<?>>>> ITEM_ATTACK_ACTION_MAP = new HashMap<>();
     static
@@ -101,7 +103,7 @@ public class BipedActionController
         if (armPoseMain == HumanoidModel.ArmPose.BLOCK || armPoseOff == HumanoidModel.ArmPose.BLOCK)
             return UseActionType.SHIELD;
 
-        UseAnim useAnim = new ItemStack(item).getUseAnimation();
+        UseAnim useAnim = useAnimationOf(item);
         if (useAnim == UseAnim.EAT || useAnim == UseAnim.DRINK)
             return UseActionType.FOOD;
 
@@ -115,6 +117,11 @@ public class BipedActionController
             return UseActionType.HORN;
 
         return null;
+    }
+
+    private static UseAnim useAnimationOf(Item item)
+    {
+        return USE_ANIM_CACHE.computeIfAbsent(item, key -> new ItemStack(key).getUseAnimation());
     }
 
     public static UseActionType getItemUseAction(Item item, HumanoidModel.ArmPose armPoseMain, HumanoidModel.ArmPose armPoseOff)

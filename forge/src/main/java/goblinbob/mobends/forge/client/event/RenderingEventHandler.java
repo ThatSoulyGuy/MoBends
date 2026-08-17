@@ -12,7 +12,6 @@ import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.lib.flux.ComputedDependencyHelper;
 import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.core.util.BenderHelper;
-import goblinbob.mobends.compat.CuriosCompat;
 import goblinbob.mobends.compat.ModCompatManager;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.PlayerMutator;
@@ -172,7 +171,6 @@ public class RenderingEventHandler
                     {
                         MoBendsRenderContext.setCurrentVanillaModel(humanoidModel);
                         bipedMutator.syncPosesToVanillaModel(humanoidModel);
-                        CuriosCompat.syncTransformsForCurios(entity, humanoidModel, poseStack);
                     }
                 }
                 else if (rawMutator instanceof SpiderMutator spiderMutator)
@@ -204,7 +202,6 @@ public class RenderingEventHandler
     public void afterLivingRender(RenderLivingEvent.Post<?, ?> event)
     {
         MoBendsRenderContext.clear();
-        CuriosCompat.clearSplitLimbTransforms();
 
         LivingEntity entity = event.getEntity();
         EntityBender bender = EntityBenderRegistry.instance.getForEntity(entity);

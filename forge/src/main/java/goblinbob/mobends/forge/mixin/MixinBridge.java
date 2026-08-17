@@ -48,15 +48,23 @@ public final class MixinBridge {
         }
     }
 
-    public static boolean shouldRenderBipedOverlay(Object model) {
+    public static boolean mayRenderBipedOverlay() {
         if (MoBendsRenderContext.isInMainModelRender()) {
             return false;
         }
         BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
-        return mutator != null && mutator.shouldRenderCustom() && mutator.isOverlayModel(model);
+        return mutator != null && mutator.shouldRenderCustom();
     }
 
-    public static void renderBipedOverlay(Object model, PoseStack poseStack, VertexConsumer vertexConsumer,
+    public static boolean shouldRenderBipedOverlay(Object model, Object renderedParts) {
+        if (MoBendsRenderContext.isInMainModelRender()) {
+            return false;
+        }
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        return mutator != null && mutator.shouldRenderCustom() && mutator.isOverlayModel(model, renderedParts);
+    }
+
+    public static void renderBipedOverlay(Object model, Object renderedParts, PoseStack poseStack, VertexConsumer vertexConsumer,
                                           int packedLight, int packedOverlay,
                                           float red, float green, float blue, float alpha) {
         BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
@@ -65,7 +73,7 @@ public final class MixinBridge {
                         ((int)(red * 255.0F) << 16) |
                         ((int)(green * 255.0F) << 8) |
                         (int)(blue * 255.0F);
-            mutator.renderOverlayModel(humanoidModel, poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            mutator.renderOverlayModel(humanoidModel, renderedParts, poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
     }
 

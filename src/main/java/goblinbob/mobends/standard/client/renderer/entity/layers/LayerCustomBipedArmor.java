@@ -79,10 +79,18 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         boolean hasBendsAnimation = entityData instanceof BipedEntityData;
 
-        renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.CHEST, packedLight, hasBendsAnimation, entityData);
-        renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.LEGS, packedLight, hasBendsAnimation, entityData);
-        renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.FEET, packedLight, hasBendsAnimation, entityData);
-        renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.HEAD, packedLight, hasBendsAnimation, entityData);
+        goblinbob.mobends.core.client.MoBendsRenderContext.beginArmorRender();
+        try
+        {
+            renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.CHEST, packedLight, hasBendsAnimation, entityData);
+            renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.LEGS, packedLight, hasBendsAnimation, entityData);
+            renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.FEET, packedLight, hasBendsAnimation, entityData);
+            renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.HEAD, packedLight, hasBendsAnimation, entityData);
+        }
+        finally
+        {
+            goblinbob.mobends.core.client.MoBendsRenderContext.endArmorRender();
+        }
     }
 
     @SuppressWarnings("unchecked")

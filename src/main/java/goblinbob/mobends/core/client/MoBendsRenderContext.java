@@ -69,7 +69,22 @@ public class MoBendsRenderContext {
         return currentWolfMutator.get();
     }
 
+    private static boolean inArmorRender = false;
+
+    public static void beginArmorRender() {
+        inArmorRender = true;
+    }
+
+    public static void endArmorRender() {
+        inArmorRender = false;
+    }
+
+    public static boolean isInArmorRender() {
+        return inArmorRender;
+    }
+
     public static void clear() {
+        inArmorRender = false;
         currentBipedMutator.remove();
         currentSpiderMutator.remove();
         currentSquidMutator.remove();
