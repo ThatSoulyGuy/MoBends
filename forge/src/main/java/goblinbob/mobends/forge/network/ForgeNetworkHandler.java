@@ -16,7 +16,6 @@ public class ForgeNetworkHandler {
     private static SimpleChannel CHANNEL;
 
     public static void register() {
-        LOGGER.info("Registering Mo' Bends network channel");
 
         CHANNEL = NetworkRegistry.newSimpleChannel(
                 new ResourceLocation(MoBendsForge.MOD_ID, "main"),
@@ -39,7 +38,6 @@ public class ForgeNetworkHandler {
                 MessageConfigResponse::decode,
                 MessageConfigResponse::handle);
 
-        LOGGER.info("Mo' Bends network channel registered");
     }
 
     public static SimpleChannel getChannel() {

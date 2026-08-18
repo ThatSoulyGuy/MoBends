@@ -91,7 +91,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 java.lang.reflect.Field slimField = PlayerRenderer.class.getDeclaredField(fieldName);
                 slimField.setAccessible(true);
                 boolean result = slimField.getBoolean(playerRenderer);
-                LOG.debug("Detected slim arms via field '{}': {}", fieldName, result);
                 return result;
             }
             catch (NoSuchFieldException | IllegalAccessException ignored)
@@ -127,11 +126,9 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                         float width = cube.maxX - cube.minX;
                         if (Math.abs(width - 3.0f) < 0.1f)
                         {
-                            LOG.debug("Detected slim arms via cube width: true");
                             return true;
                         }
                     }
-                    LOG.debug("Detected slim arms via cube width: false");
                     return false;
                 }
             }
@@ -545,9 +542,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             boolean playerIsSlim = skinProvider != null && skinProvider.isSlimModel(entity);
             if (playerIsSlim != this.smallArms)
             {
-                LOG.debug(
-                    "Slim arm mismatch detected for {}: mutator={}, player={}. Updating.",
-                    entity.getName().getString(), this.smallArms, playerIsSlim);
                 this.smallArms = playerIsSlim;
             }
         }

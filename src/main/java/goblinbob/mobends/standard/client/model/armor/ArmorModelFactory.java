@@ -28,7 +28,6 @@ public class ArmorModelFactory
                 wrapper = ArmorWrapper.createFor(model, inflation);
                 cache.put(model, wrapper);
 
-                LOG.info("Creating armor wrapper for {} with inflation {}", model, inflation);
             }
 
             return wrapper;

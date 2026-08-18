@@ -20,7 +20,6 @@ public class EntityBenderRegistry
 
     public void registerBender(EntityBender<?> entityBender)
     {
-        LOGGER.info(String.format("Registering %s", entityBender.getKey()));
         entityClassToBenderMap.put(entityBender.entityClass, entityBender);
     }
 
@@ -54,6 +53,11 @@ public class EntityBenderRegistry
     public <E extends LivingEntity> EntityBender<E> getForEntityClass(Class<E> c)
     {
         return (EntityBender<E>) entityClassToBenderMap.get(c);
+    }
+
+    public boolean hasBenderForClass(Class<?> c)
+    {
+        return entityClassToBenderMap.containsKey(c);
     }
 
     public <E extends LivingEntity> EntityBender<E> getForEntity(E entity)

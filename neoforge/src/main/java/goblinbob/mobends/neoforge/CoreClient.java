@@ -46,13 +46,11 @@ public class CoreClient extends Core
 
         PackManager.INSTANCE.initialize(configuration);
 
-        LOGGER.info("Mo' Bends client core initialized");
     }
 
     @Override
     public void applyConfigurationToEntityBenders()
     {
-        LOGGER.info("Applying configuration to entity benders");
         EntityBenderRegistry.instance.applyConfiguration(configuration);
     }
 

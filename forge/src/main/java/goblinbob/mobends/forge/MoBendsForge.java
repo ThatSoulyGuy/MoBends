@@ -68,12 +68,10 @@ public class MoBendsForge
 
         MinecraftForge.EVENT_BUS.register(this);
 
-        LOGGER.info("Mo' Bends {} initializing...", ModStatics.VERSION);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-        LOGGER.info("Mo' Bends common setup");
 
         goblinbob.mobends.core.network.SharedNetworkConfiguration.init();
 
@@ -91,7 +89,6 @@ public class MoBendsForge
     private void clientSetup(final FMLClientSetupEvent event)
     {
         PlatformServices.set(new ForgePlatformServices());
-        LOGGER.info("Mo' Bends platform services initialized: {}", PlatformServices.get().getPlatformName());
 
         IPlayerSkinProvider.Holder.setProvider(new ForgePlayerSkinProvider());
 
@@ -106,17 +103,14 @@ public class MoBendsForge
         MinecraftForge.EVENT_BUS.register(new RenderingEventHandler());
         MinecraftForge.EVENT_BUS.register(new KeyboardEventHandler());
         MinecraftForge.EVENT_BUS.register(new goblinbob.mobends.forge.network.ConfigSyncClientHandler());
-        LOGGER.info("Mo' Bends event handlers registered");
 
         ModCompatManager.init();
 
-        LOGGER.info("Mo' Bends client setup complete");
     }
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
     {
-        LOGGER.info("Mo' Bends: Server starting");
     }
 
     public static void refreshSystems()

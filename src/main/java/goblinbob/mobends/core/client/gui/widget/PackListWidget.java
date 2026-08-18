@@ -205,7 +205,6 @@ public class PackListWidget
         try
         {
             PackManager.INSTANCE.setAppliedPacks(appliedKeys, true);
-            LOG.info("Pack '{}' {}", pack.getDisplayName(), apply ? "activated" : "deactivated");
         }
         catch (InvalidPackFormatException e)
         {

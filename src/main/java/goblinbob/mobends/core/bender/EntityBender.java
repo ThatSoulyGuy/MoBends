@@ -102,6 +102,11 @@ public abstract class EntityBender<T extends LivingEntity>
 
     public abstract LivingEntityData<?> getDataForPreview();
 
+    protected MutatedRenderer<T> getMutatedRenderer()
+    {
+        return this.renderer;
+    }
+
     public String getKey()
     {
         return this.key;
@@ -169,6 +174,19 @@ public abstract class EntityBender<T extends LivingEntity>
             mutator.demutate(renderer);
             mutatorMap.remove(renderer);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void demutateAll()
+    {
+        for (Entry<LivingEntityRenderer<? extends T, ?>, Mutator<LivingEntityData<T>, T, ?>> entry : mutatorMap.entrySet())
+        {
+            LivingEntityRenderer<T, EntityModel<T>> renderer = (LivingEntityRenderer<T, EntityModel<T>>) entry.getKey();
+            Mutator<LivingEntityData<T>, T, EntityModel<T>> mutator = (Mutator<LivingEntityData<T>, T, EntityModel<T>>) entry.getValue();
+            mutator.demutate(renderer);
+        }
+
+        mutatorMap.clear();
     }
 
     @SuppressWarnings("unchecked")

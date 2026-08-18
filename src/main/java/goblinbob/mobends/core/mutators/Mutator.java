@@ -60,7 +60,6 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
                     {
                         layersField = LivingEntityRenderer.class.getDeclaredField(name);
                         layersField.setAccessible(true);
-                        LOGGER.debug("Found layers field via name '{}'", name);
                         break;
                     }
                     catch (NoSuchFieldException ignored)
@@ -80,7 +79,6 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
                                 && list.get(0) instanceof RenderLayer)
                             {
                                 layersField = field;
-                                LOGGER.debug("Found layers field via type search: '{}'", field.getName());
                                 break;
                             }
                         }

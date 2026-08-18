@@ -64,14 +64,12 @@ public class MoBends
         modEventBus.addListener((ModConfigEvent.Loading event) -> onModConfigEvent(event));
         modEventBus.addListener((ModConfigEvent.Reloading event) -> onModConfigEvent(event));
 
-        LOGGER.info("Mo' Bends {} initializing...", ModStatics.VERSION);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
         goblinbob.mobends.core.network.SharedNetworkConfiguration.init();
 
-        LOGGER.info("Mo' Bends common setup complete");
     }
 
     private void onModConfigEvent(final ModConfigEvent event)
@@ -85,7 +83,6 @@ public class MoBends
     private void clientSetup(final FMLClientSetupEvent event)
     {
         PlatformServices.set(new NeoForgePlatformServices());
-        LOGGER.info("Mo' Bends platform services initialized: {}", PlatformServices.get().getPlatformName());
 
         IPlayerSkinProvider.Holder.setProvider(new NeoForgePlayerSkinProvider());
 
@@ -100,11 +97,9 @@ public class MoBends
         NeoForge.EVENT_BUS.register(new RenderingEventHandler());
         NeoForge.EVENT_BUS.register(new KeyboardEventHandler());
         NeoForge.EVENT_BUS.register(new goblinbob.mobends.neoforge.network.ConfigSyncClientHandler());
-        LOGGER.info("Mo' Bends event handlers registered");
 
         ModCompatManager.init();
 
-        LOGGER.info("Mo' Bends client setup complete");
     }
 
     public static void refreshSystems()

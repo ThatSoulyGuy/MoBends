@@ -28,7 +28,6 @@ public class ConfigSyncClientHandler
         }
         catch (Exception e)
         {
-            LOGGER.debug("Mo' Bends server configuration not available: {}", e.getMessage());
         }
     }
 

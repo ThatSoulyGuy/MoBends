@@ -32,6 +32,9 @@ public class VanillaMoBendsScreen extends Screen
     {
         super.init();
 
+        screenBuilder.dispose();
+        GuiOverlay.clear();
+
         VanillaViewFactory factory = new VanillaViewFactory();
         VanillaView content = screenBuilder.buildContent(factory);
 
@@ -54,11 +57,13 @@ public class VanillaMoBendsScreen extends Screen
             rootView.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 
+        GuiOverlay.renderPending(guiGraphics, mouseX, mouseY);
         GuiTooltip.renderPending(guiGraphics, mouseX, mouseY);
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
+        if (GuiOverlay.clickPending(mouseX, mouseY, button)) return true;
         if (rootView != null && rootView.handleClick(mouseX, mouseY, button)) return true;
         return super.mouseClicked(mouseX, mouseY, button);
     }

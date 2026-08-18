@@ -129,7 +129,6 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
             ArmorTrim trim = armorStack.get(DataComponents.TRIM);
             if (trim != null)
             {
-                LOGGER.debug("Rendering trim for slot {} - pattern: {}", slot, trim.pattern());
 
                 try
                 {
@@ -137,7 +136,6 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 
                     boolean isLeggings = (slot == EquipmentSlot.LEGS);
                     mobends$invokeRenderTrim(materialHolder, poseStack, bufferSource, packedLight, trim, armorModel, isLeggings);
-                    LOGGER.debug("Trim render call completed for slot {}", slot);
                 }
                 catch (Exception e)
                 {

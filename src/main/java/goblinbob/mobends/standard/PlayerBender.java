@@ -65,7 +65,7 @@ public class PlayerBender extends EntityBender<AbstractClientPlayer>
     public String[] getSupportedAnimations()
     {
         return new String[] {
-            "walk", "sprint", "jump", "fall", "sneak", "swim", "attack", "use_item", "ride", "climb"
+            "walk", "sprint", "jump", "fall", "sneak", "swim", "attack", "ride", "climb"
         };
     }
 

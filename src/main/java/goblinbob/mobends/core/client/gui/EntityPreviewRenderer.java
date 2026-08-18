@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexSorting;
 import goblinbob.mobends.core.bender.EntityBender;
+import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.bender.IPreviewer;
 import goblinbob.mobends.core.bender.PreviewHelper;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
@@ -85,6 +86,7 @@ public class EntityPreviewRenderer
         if (previewEntity != null)
         {
             EntityDatabase.instance.remove(previewEntity);
+            EntityBenderRegistry.instance.clearCache(previewEntity);
             PreviewHelper.unregisterPreviewEntity(previewEntity);
         }
 
@@ -99,8 +101,6 @@ public class EntityPreviewRenderer
         {
             T entity = createPreviewEntityForBender(bender);
             this.previewEntity = entity;
-            LOGGER.info("Entity creation for '{}': {}", bender.getLocalizedName(),
-                    entity != null ? entity.getClass().getSimpleName() : "FAILED (null)");
 
             if (entity != null && bender.getDataFactory() != null)
             {
@@ -158,6 +158,17 @@ public class EntityPreviewRenderer
     public void setScale(float scale)
     {
         this.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+    }
+
+    public void fitToSize(float availablePixels, float minFitScale, float maxFitScale)
+    {
+        if (previewEntity == null) return;
+
+        float extent = Math.max(previewEntity.getBbHeight(), previewEntity.getBbWidth());
+        if (extent < 0.01F) return;
+
+        float fitted = availablePixels / extent;
+        setScale(Math.max(minFitScale, Math.min(maxFitScale, fitted)));
     }
 
     public float getRotationX()
@@ -381,6 +392,8 @@ public class EntityPreviewRenderer
         boolean prevScissorTest = GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);
         int prevDepthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
         boolean prevDepthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+        int[] prevScissorBox = new int[4];
+        GL11.glGetIntegerv(GL11.GL_SCISSOR_BOX, prevScissorBox);
 
         Matrix4f savedProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
         Matrix4f mcProjection = new Matrix4f().setOrtho(
@@ -394,12 +407,26 @@ public class EntityPreviewRenderer
 
         double guiScale = mc.getWindow().getGuiScale();
         int windowHeight = mc.getWindow().getHeight();
+
+        int scissorLeft = (int) (x * guiScale);
+        int scissorBottom = windowHeight - (int) ((y + height) * guiScale);
+        int scissorRight = scissorLeft + (int) (width * guiScale);
+        int scissorTop = scissorBottom + (int) (height * guiScale);
+
+        if (prevScissorTest)
+        {
+            scissorLeft = Math.max(scissorLeft, prevScissorBox[0]);
+            scissorBottom = Math.max(scissorBottom, prevScissorBox[1]);
+            scissorRight = Math.min(scissorRight, prevScissorBox[0] + prevScissorBox[2]);
+            scissorTop = Math.min(scissorTop, prevScissorBox[1] + prevScissorBox[3]);
+        }
+
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GL11.glScissor(
-            (int) (x * guiScale),
-            windowHeight - (int) ((y + height) * guiScale),
-            (int) (width * guiScale),
-            (int) (height * guiScale)
+            scissorLeft,
+            scissorBottom,
+            Math.max(0, scissorRight - scissorLeft),
+            Math.max(0, scissorTop - scissorBottom)
         );
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -458,6 +485,7 @@ public class EntityPreviewRenderer
         Lighting.setupFor3DItems();
 
         RenderSystem.setProjectionMatrix(savedProjection, VertexSorting.ORTHOGRAPHIC_Z);
+        GL11.glScissor(prevScissorBox[0], prevScissorBox[1], prevScissorBox[2], prevScissorBox[3]);
         if (!prevScissorTest) GL11.glDisable(GL11.GL_SCISSOR_TEST);
         if (!prevDepthTest) GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glDepthFunc(prevDepthFunc);

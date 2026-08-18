@@ -53,7 +53,6 @@ public class PhysicsModCompat
             try
             {
                 ragdollApiClass = Class.forName(className);
-                LOGGER.debug("Found Physics Mod class: {}", className);
                 break;
             }
             catch (ClassNotFoundException ignored) {}
@@ -71,7 +70,6 @@ public class PhysicsModCompat
             try
             {
                 isRagdollActiveMethod = ragdollApiClass.getMethod(methodName, net.minecraft.world.entity.Entity.class);
-                LOGGER.debug("Found ragdoll check method: {}.{}", ragdollApiClass.getSimpleName(), methodName);
                 return;
             }
             catch (NoSuchMethodException ignored) {}
@@ -79,7 +77,6 @@ public class PhysicsModCompat
             try
             {
                 isRagdollActiveMethod = ragdollApiClass.getMethod(methodName, LivingEntity.class);
-                LOGGER.debug("Found ragdoll check method: {}.{}", ragdollApiClass.getSimpleName(), methodName);
                 return;
             }
             catch (NoSuchMethodException ignored) {}
@@ -110,7 +107,6 @@ public class PhysicsModCompat
             }
             catch (Exception e)
             {
-                LOGGER.debug("Reflection check failed, falling back to death state: {}", e.getMessage());
             }
         }
 

@@ -57,7 +57,6 @@ public class NeoForgeClientConfig extends CoreClientConfig
     {
         if (configFile == null || !configFile.exists())
         {
-            LOGGER.info("MoBends config file not found, using defaults");
             return;
         }
 
@@ -68,7 +67,6 @@ public class NeoForgeClientConfig extends CoreClientConfig
             if (loaded != null)
             {
                 this.data = loaded;
-                LOGGER.info("Loaded MoBends config with {} applied packs", data.appliedPacks.size());
             }
         }
         catch (IOException e)
@@ -88,7 +86,6 @@ public class NeoForgeClientConfig extends CoreClientConfig
         try (FileWriter writer = new FileWriter(configFile))
         {
             GSON.toJson(data, writer);
-            LOGGER.debug("Saved MoBends config with {} applied packs", data.appliedPacks.size());
         }
         catch (IOException e)
         {
@@ -106,7 +103,6 @@ public class NeoForgeClientConfig extends CoreClientConfig
     public void setAppliedPacks(List<String> packs)
     {
         data.appliedPacks = new ArrayList<>(packs);
-        LOGGER.info("Setting applied packs: {}", packs);
         save();
     }
 

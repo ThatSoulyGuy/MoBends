@@ -52,10 +52,6 @@ public class ArmorRenderingFacade
 
         if (debugMode)
         {
-            LOGGER.debug("Rendering armor for {} slot {} using {}",
-                    context.getEntity().getClass().getSimpleName(),
-                    context.getSlot(),
-                    tier);
         }
 
         boolean success = false;
@@ -90,7 +86,6 @@ public class ArmorRenderingFacade
                     {
                         return true;
                     }
-                    LOGGER.debug("Tier 1 failed, falling back to Tier 2");
                 }
 
             case TIER_2_MODEL_INTERCEPTION:
@@ -171,7 +166,6 @@ public class ArmorRenderingFacade
 
         if (debugMode)
         {
-            LOGGER.debug("Rendering armor with texture {} using {}", texture, tier);
         }
 
         boolean success = false;

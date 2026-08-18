@@ -88,7 +88,6 @@ public class PlayerAnimationLibCompat
 
             if (result)
             {
-                LOGGER.debug("PlayerAnimationLib animation active for player: {}", player.getName().getString());
             }
 
             return result;

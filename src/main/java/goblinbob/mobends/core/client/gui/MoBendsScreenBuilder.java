@@ -5,17 +5,22 @@ import goblinbob.mobends.core.client.gui.vanilla.*;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
-import goblinbob.mobends.core.client.gui.widget.BenderListWidget;
 import goblinbob.mobends.core.client.gui.widget.EntityPreviewWidget;
+import goblinbob.mobends.core.client.gui.widget.MobPreviewGridWidget;
 import goblinbob.mobends.core.client.gui.widget.PackListWidget;
 import goblinbob.mobends.core.client.gui.widget.TabBarWidget;
 import goblinbob.mobends.core.client.gui.widget.UIGalleryWidget;
 import goblinbob.mobends.api.platform.PlatformServices;
+import goblinbob.mobends.core.configuration.CoreClientConfig;
 import goblinbob.mobends.core.pack.IBendsPack;
 import goblinbob.mobends.core.network.NetworkConfiguration;
 import goblinbob.mobends.core.util.ResourceLocationFactory;
 import goblinbob.mobends.standard.main.ConfigOptions;
 import net.minecraft.client.resources.language.I18n;
+
+import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MoBendsScreenBuilder
 {
@@ -35,13 +40,17 @@ public class MoBendsScreenBuilder
     private static final int CONFIG_TOGGLE_WIDTH = 40;
     private static final int CONFIG_TOGGLE_HEIGHT = 20;
 
+    private static final int SEARCH_FIELD_WIDTH = 90;
+    private static final int CHIP_WIDTH = 54;
+    private static final int CHIP_TEXT_SIZE = 10;
+
     private static final int COLOR_SETTINGS = MoBendsTheme.COLOR_SETTINGS;
     private static final int COLOR_PACKS = MoBendsTheme.COLOR_PACKS;
     private static final int COLOR_CUSTOMIZE = MoBendsTheme.COLOR_CUSTOMIZE;
 
     private TabBarWidget tabBar;
-    private BenderListWidget benderList;
-    private EntityPreviewWidget entityPreview;
+    private MobPreviewGridWidget mobGrid;
+    private final Map<String, VanillaButton> animationChips = new LinkedHashMap<>();
     private PackListWidget packList;
     private VanillaFrameLayout contentFrame;
     private VanillaView settingsContent;
@@ -67,16 +76,11 @@ public class MoBendsScreenBuilder
         return I18n.get("mobends.gui.title");
     }
 
-    public EntityPreviewWidget getEntityPreview()
-    {
-        return entityPreview;
-    }
-
     public void dispose()
     {
-        if (entityPreview != null)
+        if (mobGrid != null)
         {
-            entityPreview.getRenderer().dispose();
+            mobGrid.dispose();
         }
         if (chooserPreview != null)
         {
@@ -175,45 +179,92 @@ public class MoBendsScreenBuilder
 
     private VanillaView buildAnimationsContent(VanillaViewFactory factory)
     {
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         layout.setLayoutParams(factory.createMatchParent());
-        layout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
-                         MoBendsTheme.PADDING, MoBendsTheme.PADDING);
+        layout.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        VanillaLinearLayout leftPanel = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        VanillaLayoutParams leftParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT);
-        leftPanel.setLayoutParams(leftParams);
+        mobGrid = new MobPreviewGridWidget(factory);
+        mobGrid.populateFromRegistry(filter);
+
+        VanillaLinearLayout toolbar = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        toolbar.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
 
         searchField = factory.createTextField(I18n.get("mobends.gui.search"));
         searchField.setOnTextChangedListener(this::onSearchTextChanged);
         VanillaLayoutParams searchParams = factory.createLayoutParams(
+                SEARCH_FIELD_WIDTH,
+                MoBendsTheme.BUTTON_HEIGHT
+        );
+        searchParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
+        toolbar.addView(searchField, searchParams);
+
+        VanillaTextView hint = factory.createTextView(I18n.get("mobends.gui.animations.hint"));
+        hint.setTextColor(MoBendsTheme.TEXT_HINT);
+        hint.setTextSize(10);
+        toolbar.addView(hint, factory.createLayoutParams(
+                0, VanillaLayoutParams.WRAP_CONTENT, 1.0f));
+
+        VanillaLayoutParams toolbarParams = factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.BUTTON_HEIGHT
         );
-        searchParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
-        leftPanel.addView(searchField, searchParams);
+        toolbarParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
+        layout.addView(toolbar, toolbarParams);
 
-        benderList = new BenderListWidget(factory);
-        benderList.setOnBenderSelected(this::onBenderSelected);
-        benderList.setOnAnimationSelected(this::onAnimationSelected);
-        benderList.populateFromRegistry(filter);
-
-        leftPanel.addView(benderList.getView(), factory.createMatchParent());
-
-        int previewWidth = 150;
-
-        entityPreview = new EntityPreviewWidget(factory, previewWidth, 0);
-        VanillaLayoutParams previewParams = factory.createLayoutParams(
-                previewWidth,
-                VanillaLayoutParams.MATCH_PARENT
+        VanillaLayoutParams chipParams = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT,
+                VanillaLayoutParams.WRAP_CONTENT
         );
-        previewParams.setMargins(MoBendsTheme.SPACING, 0, 0, 0);
+        chipParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
+        layout.addView(buildAnimationChips(), chipParams);
 
-        VanillaLayoutParams leftPanelParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
-        layout.addView(leftPanel, leftPanelParams);
-        layout.addView(entityPreview.getView(), previewParams);
+        layout.addView(mobGrid.getView(), factory.createMatchParent());
 
         return layout;
+    }
+
+    private VanillaView buildAnimationChips()
+    {
+        VanillaGridLayout chipGrid = new VanillaGridLayout();
+        chipGrid.setCellSize(CHIP_WIDTH, MoBendsTheme.BUTTON_HEIGHT);
+        chipGrid.setSpacing(MoBendsTheme.SPACING, MoBendsTheme.SPACING);
+
+        animationChips.clear();
+
+        for (String animation : mobGrid.getAvailableAnimations())
+        {
+            VanillaButton chip = new VanillaButton(getAnimationLabel(animation));
+            chip.setTextSize(CHIP_TEXT_SIZE);
+            chip.setOnClickListener(() -> onAnimationSelected(animation));
+            animationChips.put(animation, chip);
+
+            chipGrid.addView(chip);
+        }
+
+        applyAnimationChipStyles();
+
+        return chipGrid;
+    }
+
+    private static String getAnimationLabel(String animation)
+    {
+        String key = "mobends.animation." + animation;
+        return I18n.exists(key) ? I18n.get(key) : animation;
+    }
+
+    private void applyAnimationChipStyles()
+    {
+        String selected = mobGrid.getAnimationType();
+
+        for (Map.Entry<String, VanillaButton> entry : animationChips.entrySet())
+        {
+            boolean active = entry.getKey().equals(selected);
+            VanillaButton chip = entry.getValue();
+
+            chip.setBackgroundColor(active ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.BG_BUTTON);
+            chip.setTextColor(active ? MoBendsTheme.BG_HEADER : MoBendsTheme.TEXT_PRIMARY);
+            chip.setTextShadow(!active);
+        }
     }
 
     private VanillaView buildSettingsTab(VanillaViewFactory factory)
@@ -222,7 +273,10 @@ public class MoBendsScreenBuilder
         settingsFrame.setLayoutParams(factory.createMatchParent());
 
         settingsChooser = buildSettingsChooser(factory);
-        animationsContent = withBackHeader(factory, buildAnimationsContent(factory));
+
+        VanillaView animations = buildAnimationsContent(factory);
+        animationsContent = withBackHeader(factory, animations, buildSpinDropDown());
+
         configContent = withBackHeader(factory, buildConfigContent(factory));
 
         settingsFrame.addView(settingsChooser, factory.createMatchParent());
@@ -365,19 +419,73 @@ public class MoBendsScreenBuilder
 
     private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content)
     {
+        return withBackHeader(factory, content, null);
+    }
+
+    private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content,
+                                       @Nullable VanillaView trailingControl)
+    {
         VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         layout.setLayoutParams(factory.createMatchParent());
+
+        VanillaLinearLayout header = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        header.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
 
         VanillaButton backButton = factory.createButton(I18n.get("mobends.gui.back"));
         backButton.setOnClickListener(() -> showSettingsSubView(SUB_CHOOSER));
 
         VanillaLayoutParams backParams = factory.createLayoutParams(60, MoBendsTheme.BUTTON_HEIGHT);
-        backParams.setMargins(MoBendsTheme.PADDING, MoBendsTheme.PADDING, 0, MoBendsTheme.SPACING);
-        layout.addView(backButton, backParams);
+        backParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
+        header.addView(backButton, backParams);
+
+        if (trailingControl != null)
+        {
+            header.addView(trailingControl, factory.createLayoutParams(
+                    VanillaLayoutParams.WRAP_CONTENT, MoBendsTheme.BUTTON_HEIGHT));
+        }
+
+        VanillaLayoutParams headerParams = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT, MoBendsTheme.BUTTON_HEIGHT);
+        headerParams.setMargins(MoBendsTheme.PADDING, MoBendsTheme.PADDING, 0, MoBendsTheme.SPACING);
+        layout.addView(header, headerParams);
 
         layout.addView(content, factory.createMatchParent());
 
         return layout;
+    }
+
+    private VanillaDropDown buildSpinDropDown()
+    {
+        VanillaDropDown dropDown = new VanillaDropDown(I18n.get("mobends.gui.animations.spin"));
+        dropDown.addOption(I18n.get("mobends.gui.animations.spin.off"));
+        dropDown.addOption(I18n.get("mobends.gui.animations.spin.hover"));
+        dropDown.addOption(I18n.get("mobends.gui.animations.spin.always"));
+
+        MobPreviewGridWidget.SpinMode mode = readSpinMode();
+        mobGrid.setSpinMode(mode);
+        dropDown.setSelectedIndex(mode.ordinal());
+
+        dropDown.setOnSelectionChanged(index -> {
+            MobPreviewGridWidget.SpinMode selected = MobPreviewGridWidget.SpinMode.values()[index];
+            mobGrid.setSpinMode(selected);
+            CoreClientConfig.getInstance().setPreviewSpinMode(selected.name());
+        });
+
+        return dropDown;
+    }
+
+    private static MobPreviewGridWidget.SpinMode readSpinMode()
+    {
+        String stored = CoreClientConfig.getInstance().getPreviewSpinMode();
+
+        try
+        {
+            return MobPreviewGridWidget.SpinMode.valueOf(stored);
+        }
+        catch (IllegalArgumentException | NullPointerException e)
+        {
+            return MobPreviewGridWidget.SpinMode.HOVER;
+        }
     }
 
     private void showSettingsSubView(int subView)
@@ -513,9 +621,9 @@ public class MoBendsScreenBuilder
 
     private void onSearchTextChanged(String query)
     {
-        if (benderList != null)
+        if (mobGrid != null)
         {
-            benderList.filter(query);
+            mobGrid.filter(query);
         }
     }
 
@@ -562,20 +670,12 @@ public class MoBendsScreenBuilder
         }
     }
 
-    private void onBenderSelected(EntityBender<?> bender)
-    {
-        if (entityPreview != null)
-        {
-            entityPreview.setBender(bender);
-        }
-    }
-
     private void onAnimationSelected(String animationType)
     {
-        if (entityPreview != null)
-        {
-            entityPreview.setAnimationModeByName(animationType);
-        }
+        if (mobGrid == null) return;
+
+        mobGrid.setAnimationType(animationType);
+        applyAnimationChipStyles();
     }
 
     private void onPackSearchTextChanged(String query)

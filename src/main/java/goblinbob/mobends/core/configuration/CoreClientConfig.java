@@ -59,7 +59,6 @@ public class CoreClientConfig
     {
         if (configFile == null || !configFile.exists())
         {
-            LOGGER.info("MoBends config file not found, using defaults");
             return;
         }
 
@@ -69,8 +68,6 @@ public class CoreClientConfig
             if (loaded != null)
             {
                 this.data = loaded;
-                LOGGER.info("Loaded MoBends config: {} entity overrides, {} applied packs",
-                        data.enabledEntities.size(), data.appliedPacks.size());
             }
         }
         catch (IOException e)
@@ -135,10 +132,22 @@ public class CoreClientConfig
         return isEntityEnabled(entity);
     }
 
+    public String getPreviewSpinMode()
+    {
+        return data.previewSpinMode;
+    }
+
+    public void setPreviewSpinMode(String previewSpinMode)
+    {
+        data.previewSpinMode = previewSpinMode;
+        save();
+    }
+
     private static class ConfigData
     {
         boolean enabled = true;
         List<String> appliedPacks = new ArrayList<>();
         Map<String, Boolean> enabledEntities = new HashMap<>();
+        String previewSpinMode = "HOVER";
     }
 }

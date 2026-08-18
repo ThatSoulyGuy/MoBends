@@ -146,6 +146,16 @@ public class EntityPreviewWidget
         applyScaleMultiplier();
     }
 
+    public void fitToSize(float availablePixels, float minFitScale, float maxFitScale)
+    {
+        renderer.fitToSize(availablePixels, minFitScale, maxFitScale);
+    }
+
+    public void setBackgroundColor(int color)
+    {
+        rootLayout.setBackgroundColor(color);
+    }
+
     private void applyScaleMultiplier()
     {
         if (scaleMultiplier == 1.0F) return;

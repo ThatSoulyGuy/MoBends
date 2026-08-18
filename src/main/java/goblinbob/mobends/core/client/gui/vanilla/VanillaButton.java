@@ -12,6 +12,7 @@ public class VanillaButton extends VanillaView
     private String text;
     private int textColor = MoBendsTheme.TEXT_PRIMARY;
     private float textScale = 1.0f;
+    private boolean textShadow = true;
     @Nullable
     private ResourceLocation icon;
 
@@ -28,6 +29,8 @@ public class VanillaButton extends VanillaView
     public void setTextColor(int color) { this.textColor = color; }
 
     public void setTextSize(float sizeSp) { this.textScale = sizeSp / 14.0f; }
+
+    public void setTextShadow(boolean textShadow) { this.textShadow = textShadow; }
 
     public void setIcon(Object drawable)
     {
@@ -88,12 +91,12 @@ public class VanillaButton extends VanillaView
             {
                 guiGraphics.pose().pushPose();
                 guiGraphics.pose().scale(textScale, textScale, 1.0f);
-                guiGraphics.drawString(font, text, (int) (textX / textScale), (int) (textY / textScale), color, true);
+                guiGraphics.drawString(font, text, (int) (textX / textScale), (int) (textY / textScale), color, textShadow);
                 guiGraphics.pose().popPose();
             }
             else
             {
-                guiGraphics.drawString(font, text, textX, textY, color, true);
+                guiGraphics.drawString(font, text, textX, textY, color, textShadow);
             }
         }
     }

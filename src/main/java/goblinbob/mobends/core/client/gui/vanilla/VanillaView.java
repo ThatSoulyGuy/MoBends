@@ -60,6 +60,10 @@ public class VanillaView
 
     public int getHeight() { return measuredHeight; }
 
+    public int getLeft() { return x; }
+
+    public int getTop() { return y; }
+
     public void setMinimumWidth(int minWidth) { this.minWidth = minWidth; }
 
     public void setMinimumHeight(int minHeight) { this.minHeight = minHeight; }

@@ -5,6 +5,7 @@ import goblinbob.mobends.core.addon.Addons;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
+import goblinbob.mobends.core.client.AnimatedRiderAnchor;
 import goblinbob.mobends.core.client.OffscreenAnimationUpdater;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.data.EntityDatabase;
@@ -37,6 +38,7 @@ import java.util.Set;
 public class RenderingEventHandler
 {
     private static final Set<Integer> entitiesWithPushedPose = new HashSet<>();
+    private static final Set<Integer> ridersWithPushedPose = new HashSet<>();
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event)
@@ -122,6 +124,14 @@ public class RenderingEventHandler
             OffscreenAnimationUpdater.markPlayerRendered();
         }
 
+        net.minecraft.world.phys.Vec3 riderOffset = AnimatedRiderAnchor.getRenderOffset(entity, partialTicks);
+        if (riderOffset != null)
+        {
+            poseStack.pushPose();
+            poseStack.translate(riderOffset.x, riderOffset.y, riderOffset.z);
+            ridersWithPushedPose.add(entity.getId());
+        }
+
         EntityBender bender = EntityBenderRegistry.instance.getForEntity(entity);
         if (bender == null)
             return;
@@ -201,12 +211,14 @@ public class RenderingEventHandler
         LivingEntity entity = event.getEntity();
         EntityBender bender = EntityBenderRegistry.instance.getForEntity(entity);
 
-        if (bender == null)
-            return;
-
-        if (entitiesWithPushedPose.remove(entity.getId()))
+        if (bender != null && entitiesWithPushedPose.remove(entity.getId()))
         {
             bender.afterRender(entity, event.getPartialTick(), event.getPoseStack());
+            event.getPoseStack().popPose();
+        }
+
+        if (ridersWithPushedPose.remove(entity.getId()))
+        {
             event.getPoseStack().popPose();
         }
     }

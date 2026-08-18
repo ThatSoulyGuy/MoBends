@@ -49,15 +49,6 @@ public class MessageConfigResponse
             }
 
             SharedNetworkConfiguration.INSTANCE.getSharedConfig().readFromNBT(message.configData);
-
-            final StringBuilder builder = new StringBuilder("Received Mo' Bends server configuration.\n");
-            final Iterable<SharedProperty<?>> properties =
-                    SharedNetworkConfiguration.INSTANCE.getSharedConfig().getProperties();
-            for (SharedProperty<?> property : properties)
-            {
-                builder.append(String.format(" - %s: %s\n", property.getKey(), property.getValue()));
-            }
-            LOGGER.info(builder.toString());
         });
 
         context.setPacketHandled(true);
