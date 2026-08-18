@@ -32,16 +32,12 @@ public class PlayerAnimationLibCompat
 
         if (isLoaded)
         {
-            LOGGER.info("PlayerAnimationLib detected, initializing compatibility layer");
             try
             {
                 initReflection();
-                LOGGER.info("PlayerAnimationLib compatibility initialized successfully");
-                debugReflection();
             }
             catch (Exception e)
             {
-                LOGGER.warn("Failed to initialize PlayerAnimationLib compatibility: {}", e.getMessage(), e);
                 isLoaded = false;
             }
         }
@@ -99,17 +95,7 @@ public class PlayerAnimationLibCompat
         }
         catch (Exception e)
         {
-            LOGGER.warn("Error checking PlayerAnimationLib animation state: {}", e.getMessage());
             return false;
         }
-    }
-
-    public static void debugReflection()
-    {
-        LOGGER.info("PlayerAnimationLib compat debug:");
-        LOGGER.info("  - Mod loaded: {}", isLoaded);
-        LOGGER.info("  - PlayerAnimationAccess class: {}", playerAnimationAccessClass);
-        LOGGER.info("  - getPlayerAnimLayer method: {}", getPlayerAnimLayerMethod);
-        LOGGER.info("  - isActive method: {}", isActiveMethod);
     }
 }

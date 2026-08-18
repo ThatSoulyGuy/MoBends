@@ -9,6 +9,7 @@ import goblinbob.mobends.standard.client.model.armor.SliceResult;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class AdaptiveHumanoidGeometry
@@ -48,7 +49,26 @@ public final class AdaptiveHumanoidGeometry
     public BendsMesh leftForeLegMesh;
     public BendsMesh rightForeLegMesh;
 
+    public BendsMesh bodyWearMesh;
+    public BendsMesh leftArmWearMesh;
+    public BendsMesh rightArmWearMesh;
+    public BendsMesh leftForeArmWearMesh;
+    public BendsMesh rightForeArmWearMesh;
+    public BendsMesh leftLegWearMesh;
+    public BendsMesh rightLegWearMesh;
+    public BendsMesh leftForeLegWearMesh;
+    public BendsMesh rightForeLegWearMesh;
+
     private float[] jointOverride = null;
+
+    public boolean limbSubtreesBaked = false;
+
+    public enum CaptureMode
+    {
+        OWN_CUBES,
+        SUBTREE,
+        OVERLAY
+    }
 
     private AdaptiveHumanoidGeometry()
     {
@@ -67,6 +87,20 @@ public final class AdaptiveHumanoidGeometry
     public static AdaptiveHumanoidGeometry build(HumanoidModel<?> model, boolean includeChildren,
                                                  float[] jointOverride)
     {
+        return build(model, includeChildren, jointOverride, null);
+    }
+
+    public static AdaptiveHumanoidGeometry build(HumanoidModel<?> model, boolean includeChildren,
+                                                 float[] jointOverride, WearParts wear)
+    {
+        final CaptureMode mode = includeChildren ? CaptureMode.OVERLAY : CaptureMode.OWN_CUBES;
+        return build(model, mode, mode, jointOverride, wear);
+    }
+
+    public static AdaptiveHumanoidGeometry build(HumanoidModel<?> model,
+                                                 CaptureMode headMode, CaptureMode limbMode,
+                                                 float[] jointOverride, WearParts wear)
+    {
         if (model == null || model.head == null || model.body == null
                 || model.leftArm == null || model.rightArm == null
                 || model.leftLeg == null || model.rightLeg == null)
@@ -74,16 +108,17 @@ public final class AdaptiveHumanoidGeometry
             return null;
         }
 
-        final PartCapture head = capture(model.head, includeChildren);
-        final PartCapture hat = capture(model.hat, includeChildren);
-        final PartCapture body = capture(model.body, includeChildren);
-        final PartCapture leftArm = capture(model.leftArm, includeChildren);
-        final PartCapture rightArm = capture(model.rightArm, includeChildren);
-        final PartCapture leftLeg = capture(model.leftLeg, includeChildren);
-        final PartCapture rightLeg = capture(model.rightLeg, includeChildren);
+        final PartCapture head = capture(model.head, headMode);
+        final PartCapture hat = capture(model.hat, headMode);
+        final PartCapture body = capture(model.body, limbMode);
+        final PartCapture leftArm = capture(model.leftArm, limbMode);
+        final PartCapture rightArm = capture(model.rightArm, limbMode);
+        final PartCapture leftLeg = capture(model.leftLeg, limbMode);
+        final PartCapture rightLeg = capture(model.rightLeg, limbMode);
 
         final AdaptiveHumanoidGeometry geometry = new AdaptiveHumanoidGeometry();
         geometry.jointOverride = jointOverride;
+        geometry.limbSubtreesBaked = limbMode == CaptureMode.SUBTREE;
 
         final float torsoBottom = body.isEmpty() ? DEFAULT_BODY_HEIGHT : body.baseMaxY;
         geometry.torsoBottom = torsoBottom;
@@ -96,11 +131,12 @@ public final class AdaptiveHumanoidGeometry
         geometry.headPivot[1] = head.pivotY - geometry.bodyPivot[1];
         geometry.headPivot[2] = head.pivotZ - geometry.bodyPivot[2];
 
-        geometry.buildTorso(body, head, hat, torsoBottom);
-        geometry.buildArm(leftArm, true);
-        geometry.buildArm(rightArm, false);
-        geometry.buildLeg(leftLeg, true);
-        geometry.buildLeg(rightLeg, false);
+        geometry.buildTorso(body, head, hat, torsoBottom,
+                capture(wear == null ? null : wear.body, limbMode));
+        geometry.buildArm(leftArm, capture(wear == null ? null : wear.leftArm, limbMode), true);
+        geometry.buildArm(rightArm, capture(wear == null ? null : wear.rightArm, limbMode), false);
+        geometry.buildLeg(leftLeg, capture(wear == null ? null : wear.leftLeg, limbMode), true);
+        geometry.buildLeg(rightLeg, capture(wear == null ? null : wear.rightLeg, limbMode), false);
 
         return geometry;
     }
@@ -142,14 +178,23 @@ public final class AdaptiveHumanoidGeometry
         pivot[2] = part.z - (crouching ? CROUCH_LEG_Z : 0.0F);
     }
 
-    private void buildTorso(PartCapture body, PartCapture head, PartCapture hat, float torsoBottom)
+    private void buildTorso(PartCapture body, PartCapture head, PartCapture hat, float torsoBottom,
+                            PartCapture bodyWear)
     {
         bodyMesh = meshOf(body.quads, 0.0F, -torsoBottom, 0.0F);
         headMesh = meshOf(head.quads, 0.0F, 0.0F, 0.0F);
         hatMesh = meshOf(hat.quads, 0.0F, 0.0F, 0.0F);
+
+        if (!bodyWear.isEmpty())
+        {
+            bodyWearMesh = meshOf(bodyWear.quads,
+                    bodyWear.pivotX - body.pivotX,
+                    bodyWear.pivotY - body.pivotY - torsoBottom,
+                    bodyWear.pivotZ - body.pivotZ);
+        }
     }
 
-    private void buildArm(PartCapture arm, boolean isLeft)
+    private void buildArm(PartCapture arm, PartCapture wear, boolean isLeft)
     {
         final float[] pivot = isLeft ? leftArmPivot : rightArmPivot;
         pivot[0] = arm.pivotX - bodyPivot[0];
@@ -165,20 +210,34 @@ public final class AdaptiveHumanoidGeometry
         forePivot[2] = hingeZ;
 
         final List<SliceResult> slices = sliceAt(arm.quads, JointDefinitions.createElbowPlane(splitY));
+        final List<SliceResult> wearSlices = wear.isEmpty() ? null
+                : sliceAt(shiftOnto(wear, arm), JointDefinitions.createElbowPlane(splitY));
 
         if (isLeft)
         {
             leftArmMesh = slicedMesh(slices, true, 0.0F, 0.0F, 0.0F);
             leftForeArmMesh = slicedMesh(slices, false, 0.0F, -splitY, -hingeZ);
+
+            if (wearSlices != null)
+            {
+                leftArmWearMesh = slicedMesh(wearSlices, true, 0.0F, 0.0F, 0.0F);
+                leftForeArmWearMesh = slicedMesh(wearSlices, false, 0.0F, -splitY, -hingeZ);
+            }
         }
         else
         {
             rightArmMesh = slicedMesh(slices, true, 0.0F, 0.0F, 0.0F);
             rightForeArmMesh = slicedMesh(slices, false, 0.0F, -splitY, -hingeZ);
+
+            if (wearSlices != null)
+            {
+                rightArmWearMesh = slicedMesh(wearSlices, true, 0.0F, 0.0F, 0.0F);
+                rightForeArmWearMesh = slicedMesh(wearSlices, false, 0.0F, -splitY, -hingeZ);
+            }
         }
     }
 
-    private void buildLeg(PartCapture leg, boolean isLeft)
+    private void buildLeg(PartCapture leg, PartCapture wear, boolean isLeft)
     {
         final float[] pivot = isLeft ? leftLegPivot : rightLegPivot;
         pivot[0] = leg.pivotX;
@@ -194,22 +253,89 @@ public final class AdaptiveHumanoidGeometry
         forePivot[2] = hingeZ;
 
         final List<SliceResult> slices = sliceAt(leg.quads, JointDefinitions.createKneePlane(splitY));
+        final List<SliceResult> wearSlices = wear.isEmpty() ? null
+                : sliceAt(shiftOnto(wear, leg), JointDefinitions.createKneePlane(splitY));
 
         if (isLeft)
         {
             leftLegMesh = slicedMesh(slices, true, 0.0F, 0.0F, 0.0F);
             leftForeLegMesh = slicedMesh(slices, false, 0.0F, -splitY, -hingeZ);
+
+            if (wearSlices != null)
+            {
+                leftLegWearMesh = slicedMesh(wearSlices, true, 0.0F, 0.0F, 0.0F);
+                leftForeLegWearMesh = slicedMesh(wearSlices, false, 0.0F, -splitY, -hingeZ);
+            }
         }
         else
         {
             rightLegMesh = slicedMesh(slices, true, 0.0F, 0.0F, 0.0F);
             rightForeLegMesh = slicedMesh(slices, false, 0.0F, -splitY, -hingeZ);
+
+            if (wearSlices != null)
+            {
+                rightLegWearMesh = slicedMesh(wearSlices, true, 0.0F, 0.0F, 0.0F);
+                rightForeLegWearMesh = slicedMesh(wearSlices, false, 0.0F, -splitY, -hingeZ);
+            }
         }
     }
 
-    private static PartCapture capture(ModelPart part, boolean overlay)
+    private static List<CapturedVertex[]> shiftOnto(PartCapture wear, PartCapture base)
     {
-        return overlay ? PartCapture.ofOverlay(part) : PartCapture.ofOwnCubes(part);
+        final float dx = (wear.pivotX - base.pivotX) * SCALE;
+        final float dy = (wear.pivotY - base.pivotY) * SCALE;
+        final float dz = (wear.pivotZ - base.pivotZ) * SCALE;
+
+        if (dx == 0.0F && dy == 0.0F && dz == 0.0F)
+        {
+            return wear.quads;
+        }
+
+        final List<CapturedVertex[]> shifted = new ArrayList<>(wear.quads.size());
+
+        for (CapturedVertex[] quad : wear.quads)
+        {
+            final CapturedVertex[] moved = new CapturedVertex[quad.length];
+
+            for (int i = 0; i < quad.length; ++i)
+            {
+                final CapturedVertex vertex = quad[i];
+                moved[i] = new CapturedVertex(vertex.x + dx, vertex.y + dy, vertex.z + dz,
+                        vertex.red, vertex.green, vertex.blue, vertex.alpha,
+                        vertex.u, vertex.v,
+                        vertex.overlayUV, vertex.lightmapUV,
+                        vertex.normalX, vertex.normalY, vertex.normalZ);
+            }
+
+            shifted.add(moved);
+        }
+
+        return shifted;
+    }
+
+    public static final class WearParts
+    {
+        private final ModelPart body, leftArm, rightArm, leftLeg, rightLeg;
+
+        public WearParts(ModelPart body, ModelPart leftArm, ModelPart rightArm,
+                         ModelPart leftLeg, ModelPart rightLeg)
+        {
+            this.body = body;
+            this.leftArm = leftArm;
+            this.rightArm = rightArm;
+            this.leftLeg = leftLeg;
+            this.rightLeg = rightLeg;
+        }
+    }
+
+    private static PartCapture capture(ModelPart part, CaptureMode mode)
+    {
+        return switch (mode)
+        {
+            case OVERLAY -> PartCapture.ofOverlay(part);
+            case SUBTREE -> PartCapture.ofSubtree(part);
+            default -> PartCapture.ofOwnCubes(part);
+        };
     }
 
     private static List<SliceResult> sliceAt(List<CapturedVertex[]> quads, JointPlane plane)

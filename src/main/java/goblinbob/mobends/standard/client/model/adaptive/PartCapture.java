@@ -138,6 +138,11 @@ public final class PartCapture
         return capture(part, false, true);
     }
 
+    public static PartCapture ofSubtree(ModelPart part)
+    {
+        return capture(part, false, false);
+    }
+
     private static PartCapture capture(ModelPart part, boolean ownCubesOnly, boolean keepRestRotation)
     {
         if (part == null)

@@ -27,16 +27,13 @@ public class PhysicsModCompat
 
         if (isLoaded)
         {
-            LOGGER.info("Physics Mod detected, initializing compatibility layer");
             try
             {
                 initReflection();
                 reflectionAvailable = true;
-                LOGGER.info("Physics Mod compatibility initialized with reflection API");
             }
-            catch (Exception e)
+            catch (Exception ignored)
             {
-                LOGGER.info("Physics Mod reflection API not available, using death-state fallback");
             }
         }
     }
@@ -118,12 +115,5 @@ public class PhysicsModCompat
         }
 
         return entity.isDeadOrDying();
-    }
-
-    public static String getCompatInfo()
-    {
-        if (!isModLoaded()) return "Physics Mod: Not loaded";
-        if (reflectionAvailable) return "Physics Mod: Loaded, reflection API active";
-        return "Physics Mod: Loaded, death-state fallback active";
     }
 }

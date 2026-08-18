@@ -12,15 +12,12 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public class FirstPersonModelCompat
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger("MoBends-FirstPersonModelCompat");
     private static final String MOD_ID = "firstperson";
 
     private static final String API_CLASS = "dev.tr7zw.firstperson.api.FirstPersonAPI";
@@ -50,15 +47,12 @@ public class FirstPersonModelCompat
             return;
         }
 
-        LOGGER.info("First-person Model detected, initializing compatibility layer");
-
         try
         {
             initReflection();
         }
         catch (Throwable e)
         {
-            LOGGER.warn("Failed to initialize First-person Model compatibility: {}", e.toString());
             isLoaded = false;
             return;
         }
@@ -68,12 +62,9 @@ public class FirstPersonModelCompat
             registerOffsetHandler();
             offsetHandlerRegistered = true;
         }
-        catch (Throwable e)
+        catch (Throwable ignored)
         {
-            LOGGER.warn("Failed to register the Mo'Bends body offset handler with First-person Model: {}", e.toString());
         }
-
-        LOGGER.info("First-person Model compatibility initialized successfully");
     }
 
     private static void initReflection() throws Exception
@@ -232,12 +223,5 @@ public class FirstPersonModelCompat
                 y + q.w * ty + (q.z * tx - q.x * tz),
                 z + q.w * tz + (q.x * ty - q.y * tx)
         };
-    }
-
-    public static String getCompatInfo()
-    {
-        if (!isModLoaded()) return "First-person Model: Not loaded";
-        if (offsetHandlerRegistered) return "First-person Model: Loaded, body offset handler registered";
-        return "First-person Model: Loaded, view culling only";
     }
 }

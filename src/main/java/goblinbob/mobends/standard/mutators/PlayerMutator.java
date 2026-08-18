@@ -3,9 +3,12 @@ package goblinbob.mobends.standard.mutators;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
+import goblinbob.mobends.core.client.model.BendsMesh;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
+import goblinbob.mobends.standard.client.model.adaptive.AdaptiveHumanoidGeometry;
+import goblinbob.mobends.standard.client.model.adaptive.HumanoidLayout;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomCape;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomElytra;
 import goblinbob.mobends.standard.data.PlayerData;
@@ -14,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -225,8 +229,82 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     }
 
     @Override
+    protected AdaptiveHumanoidGeometry.WearParts adaptiveWearParts(PlayerModel<AbstractClientPlayer> original)
+    {
+        if (original == null)
+        {
+            return null;
+        }
+
+        return new AdaptiveHumanoidGeometry.WearParts(original.jacket,
+                original.leftSleeve, original.rightSleeve,
+                original.leftPants, original.rightPants);
+    }
+
+    @Override
+    protected AdaptiveHumanoidGeometry.CaptureMode adaptiveLimbCaptureMode()
+    {
+        return AdaptiveHumanoidGeometry.CaptureMode.SUBTREE;
+    }
+
+    @Override
+    protected void createAdaptiveWearParts(AdaptiveHumanoidGeometry geometry)
+    {
+        bodywear = attachWear(body, geometry.bodyWearMesh);
+        leftArmwear = attachWear(leftArm, geometry.leftArmWearMesh);
+        rightArmwear = attachWear(rightArm, geometry.rightArmWearMesh);
+        leftForeArmwear = attachWear(leftForeArm, geometry.leftForeArmWearMesh);
+        rightForeArmwear = attachWear(rightForeArm, geometry.rightForeArmWearMesh);
+        leftLegwear = attachWear(leftLeg, geometry.leftLegWearMesh);
+        rightLegwear = attachWear(rightLeg, geometry.rightLegWearMesh);
+        leftForeLegwear = attachWear(leftForeLeg, geometry.leftForeLegWearMesh);
+        rightForeLegwear = attachWear(rightForeLeg, geometry.rightForeLegWearMesh);
+    }
+
+    private static BendsModelPart attachWear(BendsModelPart parent, BendsMesh mesh)
+    {
+        if (parent == null || mesh == null)
+        {
+            return null;
+        }
+
+        final BendsModelPart wear = new BendsModelPart().addMesh(mesh);
+        parent.addChild(wear);
+        return wear;
+    }
+
+    @Override
+    protected void reconcileWithVanillaModel(HumanoidModel<?> original)
+    {
+        super.reconcileWithVanillaModel(original);
+
+        if (!(original instanceof PlayerModel<?> playerModel) || body == null)
+        {
+            return;
+        }
+
+        if (limbSubtreesBaked())
+        {
+            return;
+        }
+
+        final float[] bodyAnchor = {body.position.x, body.position.y, body.position.z};
+
+        attach(playerModel.jacket, playerModel.jacket, body, bodyAnchor);
+        attach(playerModel.leftSleeve, playerModel.leftSleeve, leftArm, childAnchor(bodyAnchor, leftArm));
+        attach(playerModel.rightSleeve, playerModel.rightSleeve, rightArm, childAnchor(bodyAnchor, rightArm));
+        attach(playerModel.leftPants, playerModel.leftPants, leftLeg, rootAnchor(leftLeg));
+        attach(playerModel.rightPants, playerModel.rightPants, rightLeg, rootAnchor(rightLeg));
+    }
+
+    @Override
     public boolean createParts(PlayerModel<AbstractClientPlayer> original, float scaleFactor)
     {
+        if (tryCreateAdaptiveParts(original, HumanoidLayout.PLAYER, HumanoidLayout.PLAYER_SLIM))
+        {
+            return true;
+        }
+
         int armWidth = this.smallArms ? 3 : 4;
         float armY = this.smallArms ? -9.5F : -10F;
 
@@ -481,6 +559,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                               int packedLight, int packedOverlay,
                               int packedColor)
     {
+        resolveAdaptivePivots();
         applyBabyHeadScale();
         syncConcealmentFromVanillaModel();
 
@@ -488,6 +567,8 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         {
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
         }
+
+        renderAttachedParts(poseStack, vertexConsumer, packedLight, packedOverlay);
 
         if (leftLeg != null)
         {

@@ -16,6 +16,17 @@ public final class HumanoidLayout
             new Slot(0, 16, -2, 0, -2, 2, 12, 2, 0.0F).or(16, 48),
             new Slot(0, 16, -2, 0, -2, 2, 12, 2, 0.0F));
 
+    public static final HumanoidLayout PLAYER = ZOMBIE;
+
+    public static final HumanoidLayout PLAYER_SLIM = new HumanoidLayout(64.0F, 64.0F,
+            new Slot(0, 0, -4, -8, -4, 4, 0, 4, 0.0F),
+            new Slot(32, 0, -4, -8, -4, 4, 0, 4, 0.5F),
+            new Slot(16, 16, -4, 0, -2, 4, 12, 2, 0.0F),
+            new Slot(40, 16, -1, -2, -2, 2, 10, 2, 0.0F).or(32, 48),
+            new Slot(40, 16, -2, -2, -2, 1, 10, 2, 0.0F),
+            new Slot(0, 16, -2, 0, -2, 2, 12, 2, 0.0F).or(16, 48),
+            new Slot(0, 16, -2, 0, -2, 2, 12, 2, 0.0F));
+
     public static final HumanoidLayout SKELETON = new HumanoidLayout(64.0F, 32.0F,
             new Slot(0, 0, -4, -8, -4, 4, 0, 4, 0.0F),
             new Slot(32, 0, -4, -8, -4, 4, 0, 4, 0.5F),

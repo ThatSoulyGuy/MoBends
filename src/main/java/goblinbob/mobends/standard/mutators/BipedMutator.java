@@ -256,17 +256,46 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return true;
     }
 
-    protected boolean tryCreateAdaptiveParts(M original, HumanoidLayout baseline)
+    protected AdaptiveHumanoidGeometry.WearParts adaptiveWearParts(M original)
+    {
+        return null;
+    }
+
+    protected AdaptiveHumanoidGeometry.CaptureMode adaptiveHeadCaptureMode()
+    {
+        return AdaptiveHumanoidGeometry.CaptureMode.OWN_CUBES;
+    }
+
+    protected AdaptiveHumanoidGeometry.CaptureMode adaptiveLimbCaptureMode()
+    {
+        return AdaptiveHumanoidGeometry.CaptureMode.OWN_CUBES;
+    }
+
+    protected void createAdaptiveWearParts(AdaptiveHumanoidGeometry geometry)
+    {
+    }
+
+    protected boolean tryCreateAdaptiveParts(M original, HumanoidLayout... baselines)
     {
         this.adaptiveGeometry = null;
         this.adaptivePivotsResolved = false;
 
-        if (original == null || !usesAdaptiveGeometry() || baseline.describes(original))
+        if (original == null || !usesAdaptiveGeometry())
         {
             return false;
         }
 
-        final AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(original);
+        for (HumanoidLayout baseline : baselines)
+        {
+            if (baseline.describes(original))
+            {
+                return false;
+            }
+        }
+
+        final AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(original,
+                adaptiveHeadCaptureMode(), adaptiveLimbCaptureMode(), null,
+                adaptiveWearParts(original));
         if (geometry == null)
         {
             return false;
@@ -311,6 +340,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         this.adaptiveGeometry = geometry;
 
+        createAdaptiveWearParts(geometry);
+
         reconcileWithVanillaModel(original);
 
         return true;
@@ -336,22 +367,54 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         final float[] bodyAnchor = {body.position.x, body.position.y, body.position.z};
         final float[] headAnchor = childAnchor(bodyAnchor, head);
 
-        attach(original.body, original.body, body, bodyAnchor);
-        attach(original.head, original.head, head, headAnchor);
-        attach(original.hat, original.head, head, headAnchor);
-        attach(original.leftArm, original.leftArm, leftArm, childAnchor(bodyAnchor, leftArm));
-        attach(original.rightArm, original.rightArm, rightArm, childAnchor(bodyAnchor, rightArm));
-        attach(original.leftLeg, original.leftLeg, leftLeg, rootAnchor(leftLeg));
-        attach(original.rightLeg, original.rightLeg, rightLeg, rootAnchor(rightLeg));
+        if (limbSubtreesBaked())
+        {
+            attachChildrenUnderBone(original.head, head);
+        }
+        else
+        {
+            attach(original.head, original.head, head, headAnchor);
+        }
+
+        if (limbSubtreesBaked())
+        {
+            attachChildrenUnderBone(original.hat, headwear != null ? headwear : head);
+        }
+        else
+        {
+            attach(original.hat, original.head, head, headAnchor);
+            attach(original.body, original.body, body, bodyAnchor);
+            attach(original.leftArm, original.leftArm, leftArm, childAnchor(bodyAnchor, leftArm));
+            attach(original.rightArm, original.rightArm, rightArm, childAnchor(bodyAnchor, rightArm));
+            attach(original.leftLeg, original.leftLeg, leftLeg, rootAnchor(leftLeg));
+            attach(original.rightLeg, original.rightLeg, rightLeg, rootAnchor(rightLeg));
+        }
 
         if (headwear != null && adaptiveGeometry == null
                 && PartCapture.ofOwnCubes(original.hat).isEmpty())
         {
             headwear.hidden = true;
         }
+
     }
 
-    private static float[] childAnchor(float[] parentAnchor, BendsModelPart bone)
+    protected void attachChildrenUnderBone(ModelPart source, BendsModelPart bone)
+    {
+        if (source == null || bone == null)
+        {
+            return;
+        }
+
+        attachedParts.add(new AttachedPart(source, bone, 0.0F, 0.0F, 0.0F,
+                !bone.hasGeometry(), true));
+    }
+
+    protected boolean limbSubtreesBaked()
+    {
+        return adaptiveGeometry != null && adaptiveGeometry.limbSubtreesBaked;
+    }
+
+    protected static float[] childAnchor(float[] parentAnchor, BendsModelPart bone)
     {
         if (bone == null)
         {
@@ -364,7 +427,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         };
     }
 
-    private static float[] rootAnchor(BendsModelPart bone)
+    protected static float[] rootAnchor(BendsModelPart bone)
     {
         if (bone == null)
         {
@@ -373,14 +436,16 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return new float[] {bone.position.x, bone.position.y, bone.position.z};
     }
 
-    private void attach(ModelPart source, ModelPart anchorSource, BendsModelPart bone, float[] boneAnchor)
+    protected void attach(ModelPart source, ModelPart anchorSource, BendsModelPart bone, float[] boneAnchor)
     {
         if (source == null || anchorSource == null || bone == null || boneAnchor == null)
         {
             return;
         }
 
-        if (source.getAllParts().count() <= 1L)
+        final boolean drawOwnCubes = !bone.hasGeometry();
+
+        if (source.getAllParts().count() <= 1L && !drawOwnCubes)
         {
             return;
         }
@@ -388,7 +453,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         attachedParts.add(new AttachedPart(source, bone,
                 anchorSource.x - boneAnchor[0],
                 anchorSource.y - boneAnchor[1],
-                anchorSource.z - boneAnchor[2]));
+                anchorSource.z - boneAnchor[2],
+                drawOwnCubes));
     }
 
     @Override
@@ -996,6 +1062,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected void renderAttachedParts(PoseStack poseStack, VertexConsumer vertexConsumer,
                                        int packedLight, int packedOverlay)
     {
+
         if (attachedParts.isEmpty())
         {
             return;
@@ -1007,6 +1074,26 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
             if (!attached.bone.isShowing())
             {
+                continue;
+            }
+
+            final java.util.Collection<ModelPart> foreignChildren = attached.useOwnTransform
+                    ? goblinbob.mobends.compat.EmfSupport.childrenOf(part)
+                    : java.util.Collections.emptyList();
+
+            if (!foreignChildren.isEmpty())
+            {
+                goblinbob.mobends.compat.EmfSupport.advanceAnimation(part);
+
+                poseStack.pushPose();
+                attached.bone.applyCharacterTransformPoseStack(poseStack);
+
+                for (ModelPart child : foreignChildren)
+                {
+                    child.render(poseStack, vertexConsumer, packedLight, packedOverlay);
+                }
+
+                poseStack.popPose();
                 continue;
             }
 
@@ -1027,7 +1114,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             part.xRot = 0.0F;
             part.yRot = 0.0F;
             part.zRot = 0.0F;
-            part.skipDraw = true;
+            part.skipDraw = !attached.drawOwnCubes;
             part.visible = true;
 
             part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
@@ -1297,6 +1384,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         model.body.visible = model.body.visible && body.isShowingIgnoringConcealment();
 
         syncBodyChildToModelPart(head, model.head, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
+
+        if (limbSubtreesBaked() && model.hat != null)
+        {
+            syncBodyChildToModelPart(head, model.hat, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
+        }
         syncBodyChildToModelPart(leftArm, model.leftArm, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
         syncBodyChildToModelPart(rightArm, model.rightArm, bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation);
 
@@ -1455,15 +1547,27 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         private final ModelPart part;
         private final BendsModelPart bone;
         private final float offsetX, offsetY, offsetZ;
+        private final boolean drawOwnCubes;
+        private final boolean useOwnTransform;
 
         private AttachedPart(ModelPart part, BendsModelPart bone,
-                             float offsetX, float offsetY, float offsetZ)
+                             float offsetX, float offsetY, float offsetZ,
+                             boolean drawOwnCubes)
         {
+            this(part, bone, offsetX, offsetY, offsetZ, drawOwnCubes, false);
+        }
+
+        private AttachedPart(ModelPart part, BendsModelPart bone,
+                             float offsetX, float offsetY, float offsetZ,
+                             boolean drawOwnCubes, boolean useOwnTransform)
+        {
+            this.useOwnTransform = useOwnTransform;
             this.part = part;
             this.bone = bone;
             this.offsetX = offsetX;
             this.offsetY = offsetY;
             this.offsetZ = offsetZ;
+            this.drawOwnCubes = drawOwnCubes;
         }
     }
 

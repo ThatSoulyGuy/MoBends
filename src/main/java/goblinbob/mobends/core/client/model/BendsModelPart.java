@@ -344,6 +344,11 @@ public class BendsModelPart implements IModelPart
         return visible && !hidden && !concealed;
     }
 
+    public boolean hasGeometry()
+    {
+        return !cubes.isEmpty() || !meshes.isEmpty();
+    }
+
     public boolean isShowingIgnoringConcealment()
     {
         return visible && !hidden;
