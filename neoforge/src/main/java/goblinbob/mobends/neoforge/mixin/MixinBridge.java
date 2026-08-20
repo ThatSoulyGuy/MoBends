@@ -112,6 +112,7 @@ public final class MixinBridge {
         WolfMutator mutator = MoBendsRenderContext.getCurrentWolfMutator();
         if (mutator != null) {
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            MoBendsRenderContext.endMainModelRender();
         }
     }
 

@@ -262,8 +262,11 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
         {
             wolfBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
-            LayerWolfMisc.render(poseStack, this, MoBendsRenderContext.getCurrentBufferSource(),
-                    packedLight, packedOverlay);
+            if (MoBendsRenderContext.isInMainModelRender())
+            {
+                LayerWolfMisc.render(poseStack, this, MoBendsRenderContext.getCurrentBufferSource(),
+                        packedLight, packedOverlay);
+            }
         }
     }
 

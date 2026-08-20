@@ -136,6 +136,7 @@ public final class MixinBridge {
                         ((int)(green * 255.0F) << 8) |
                         (int)(blue * 255.0F);
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            MoBendsRenderContext.endMainModelRender();
         }
     }
 
