@@ -2,11 +2,13 @@ package goblinbob.mobends.standard.mutators;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import goblinbob.mobends.core.client.MoBendsRenderContext;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.client.model.FaceRotation;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.core.mutators.Mutator;
+import goblinbob.mobends.standard.client.renderer.entity.layers.LayerWolfMisc;
 import goblinbob.mobends.standard.data.WolfData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.WolfModel;
@@ -27,6 +29,7 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
 
     public BendsModelPart nose;
     public BendsModelPart mouth;
+    public BendsModelPart tongue;
     public BendsModelPart leftEar;
     public BendsModelPart rightEar;
     public BendsModelPart foreLeg1;
@@ -148,6 +151,11 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
                 .create();
         wolfHeadMain.addChild(mouth);
 
+        tongue = new BendsModelPart(0, 0)
+                .setTextureSize(64, 32)
+                .setPosition(0, 2F, -3F);
+        wolfHeadMain.addChild(tongue);
+
         leftEar = new BendsModelPart(16, 14)
                 .setTextureSize(64, 32)
                 .setPosition(0, 1F, -4F);
@@ -201,6 +209,7 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
 
         nose.syncUp(data.nose);
         mouth.syncUp(data.mouth);
+        tongue.syncUp(data.tongue);
         leftEar.syncUp(data.leftEar);
         rightEar.syncUp(data.rightEar);
         foreLeg1.syncUp(data.foreLeg1);
@@ -252,6 +261,9 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
         if (wolfBody != null)
         {
             wolfBody.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+
+            LayerWolfMisc.render(poseStack, this, MoBendsRenderContext.getCurrentBufferSource(),
+                    packedLight, packedOverlay);
         }
     }
 

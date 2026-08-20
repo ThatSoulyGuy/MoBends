@@ -193,6 +193,7 @@ public class RenderingEventHandler
                     MoBendsRenderContext.setCurrentWolfMutator(wolfMutator);
                     MoBendsRenderContext.beginMainModelRender();
                 }
+                MoBendsRenderContext.setCurrentRenderBuffers(event.getMultiBufferSource(), event.getPackedLight());
                 bender.beforeRender(data, entity, partialTicks, poseStack);
             }
         }
