@@ -29,12 +29,14 @@ public class ModCompatManager
 
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)
     {
-        if (PlayerAnimationLibCompat.hasActiveAnimation(entity))
-            return true;
-
         if (PhysicsModCompat.hasActivePhysics(entity))
             return true;
 
         return false;
+    }
+
+    public static boolean hasExternalAnimation(net.minecraft.world.entity.LivingEntity entity)
+    {
+        return PlayerAnimationLibCompat.hasActiveAnimation(entity);
     }
 }

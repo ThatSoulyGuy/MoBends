@@ -655,6 +655,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     @Override
     public void syncUpWithData(D data)
     {
+        goblinbob.mobends.compat.PlayerAnimationLibCompat.applyToPose(
+                data, goblinbob.mobends.core.client.event.DataUpdateHandler.partialTicks);
+
         head.syncUp(data.head);
         body.syncUp(data.body);
         leftArm.syncUp(data.leftArm);
