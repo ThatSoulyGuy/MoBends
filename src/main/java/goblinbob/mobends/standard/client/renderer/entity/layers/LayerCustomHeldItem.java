@@ -187,6 +187,12 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
         }
     }
 
+    private boolean isDrivenByMoBends(E entity)
+    {
+        return goblinbob.mobends.core.util.BenderHelper.isEntityAnimated(entity)
+                && !goblinbob.mobends.compat.ModCompatManager.shouldDeferAnimation(entity);
+    }
+
     private BendsModelPart getCustomForeArm(HumanoidArm arm)
     {
         if (mutator == null || !mutator.shouldRenderCustom() || mutator.getBody() == null)
@@ -202,7 +208,7 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
 
     protected void translateToHand(HumanoidArm arm, E entity, PoseStack poseStack)
     {
-        BendsModelPart foreArm = this.getCustomForeArm(arm);
+        BendsModelPart foreArm = this.isDrivenByMoBends(entity) ? this.getCustomForeArm(arm) : null;
 
         if (foreArm != null)
         {
@@ -253,7 +259,7 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
         ((ArmedModel) model).translateToHand(arm, poseStack);
 
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
-        if (entityData instanceof BipedEntityData<?> bipedData)
+        if (entityData instanceof BipedEntityData<?> bipedData && this.isDrivenByMoBends(entity))
         {
             SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
                     ? bipedData.renderRightItemRotation

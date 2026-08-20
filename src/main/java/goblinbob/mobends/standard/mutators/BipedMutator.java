@@ -74,7 +74,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     private final Set<HumanoidModel<?>> overlayModels =
             Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private final Map<HumanoidModel<?>, AdaptiveHumanoidGeometry> overlayGeometry =
+    private static final Map<HumanoidModel<?>, AdaptiveHumanoidGeometry> overlayGeometry =
             new IdentityHashMap<>();
 
     private boolean overlayModelsResolved = false;
@@ -356,7 +356,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     {
         attachedParts.clear();
         overlayModels.clear();
-        overlayGeometry.clear();
         overlayModelsResolved = false;
 
         if (original == null || body == null)

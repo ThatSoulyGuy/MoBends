@@ -77,7 +77,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
-        boolean hasBendsAnimation = entityData instanceof BipedEntityData;
+        boolean hasBendsAnimation = entityData instanceof BipedEntityData
+                && goblinbob.mobends.core.util.BenderHelper.isEntityAnimated(entity)
+                && !goblinbob.mobends.compat.ModCompatManager.shouldDeferAnimation(entity);
 
         goblinbob.mobends.core.client.MoBendsRenderContext.beginArmorRender();
         try
