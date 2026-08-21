@@ -32,6 +32,9 @@ public class ModCompatManager
         if (PhysicsModCompat.hasActivePhysics(entity))
             return true;
 
+        if (ThirdPartyPoseCompat.shouldYieldToHeldItem(entity))
+            return true;
+
         return false;
     }
 
