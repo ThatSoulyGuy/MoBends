@@ -26,6 +26,8 @@ gradlew.bat text eol=crlf
 *.jar binary
 *.class binary
 *.ogg binary
+*.fbx binary
+*.bendsanim binary
 
 *.bends text eol=lf
 *.bpd text eol=lf
