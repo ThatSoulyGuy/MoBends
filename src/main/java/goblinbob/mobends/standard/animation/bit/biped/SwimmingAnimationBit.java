@@ -109,6 +109,7 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		  				  .rotateY(data.headYaw.get())
 		  				  .rotateX(headCompensation);
 
+		data.centerRotation.setSmoothness(.3F).orientZero();
 		data.renderRotation.setSmoothness(.7F).orientX(t * 80F);
 		data.globalOffset.slideZ(-20 * t, .7F);
 		if (data.getEntity().isVisuallySwimming())

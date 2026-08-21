@@ -2,6 +2,7 @@ package goblinbob.mobends.standard.client.renderer.entity.mutated;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.standard.data.PlayerData;
 import net.minecraft.client.player.AbstractClientPlayer;
 
 public class PlayerRenderer extends BipedRenderer<AbstractClientPlayer>
@@ -12,7 +13,11 @@ public class PlayerRenderer extends BipedRenderer<AbstractClientPlayer>
     {
         if (entity.isCrouching())
         {
-            if (entity.getAbilities().flying)
+            final boolean flying = data instanceof PlayerData
+                    ? ((PlayerData) data).isFlying()
+                    : entity.getAbilities().flying;
+
+            if (flying)
             {
                 poseStack.translate(0F, 4F * scale, 0F);
             }

@@ -9,10 +9,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Items;
 
 public class PlayerData extends BipedEntityData<AbstractClientPlayer>
 {
+    private static final double FALLING_SPEED_THRESHOLD = -0.35D;
+    private static final int ALTITUDE_HISTORY_TICKS = 20;
+    private static final int HOVER_WINDOW_TICKS = 10;
+    private static final double HOVER_MAX_SPREAD = 0.35D;
+    private static final double CLIMB_MIN_RISE = 3.5D;
+    private static final int TICKS_AIRBORNE_BEFORE_DETECTION = 14;
+    private static final int TICKS_FALLING_TO_RELEASE_FLIGHT = 3;
+
     protected boolean sprintJumpLeg = false;
     protected boolean sprintJumpLegSwitched = false;
     protected boolean fistPunchArm = false;
@@ -20,7 +29,13 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
     protected float capeWavePhase = 0;
     protected float capeWaveSpeed = 0;
 
+    private final double[] altitudeHistory = new double[ALTITUDE_HISTORY_TICKS];
+
     private Boolean flyingStateOverride = null;
+    private boolean flightDetected = false;
+    private int airborneTicks = 0;
+    private int ticksSinceAltitudeHeld = 0;
+    private int fallingTicks = 0;
 
     public ModelPartTransform cape;
 
@@ -91,6 +106,83 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
         super.updateParts(ticksPerFrame);
 
         cape.update(ticksPerFrame);
+    }
+
+    @Override
+    public void updateClient()
+    {
+        super.updateClient();
+
+        this.updateFlightDetection();
+    }
+
+    private void updateFlightDetection()
+    {
+        if (this.entity == Minecraft.getInstance().player || !this.couldBeFlying())
+        {
+            this.flightDetected = false;
+            this.airborneTicks = 0;
+            this.ticksSinceAltitudeHeld = 0;
+            this.fallingTicks = 0;
+            return;
+        }
+
+        this.altitudeHistory[this.airborneTicks % ALTITUDE_HISTORY_TICKS] = this.entity.getY();
+        this.airborneTicks++;
+        this.ticksSinceAltitudeHeld = this.motionY >= 0.0D ? 0 : this.ticksSinceAltitudeHeld + 1;
+        this.fallingTicks = this.motionY < FALLING_SPEED_THRESHOLD ? this.fallingTicks + 1 : 0;
+
+        if (this.fallingTicks >= TICKS_FALLING_TO_RELEASE_FLIGHT)
+        {
+            this.flightDetected = false;
+            return;
+        }
+
+        if (this.airborneTicks >= TICKS_AIRBORNE_BEFORE_DETECTION
+                && this.ticksSinceAltitudeHeld <= HOVER_WINDOW_TICKS
+                && this.altitudeSpread(HOVER_WINDOW_TICKS) < HOVER_MAX_SPREAD)
+        {
+            this.flightDetected = true;
+        }
+        else if (this.airborneTicks >= ALTITUDE_HISTORY_TICKS
+                && this.altitudeAt(0) - this.altitudeAt(ALTITUDE_HISTORY_TICKS - 1) > CLIMB_MIN_RISE)
+        {
+            this.flightDetected = true;
+        }
+    }
+
+    private double altitudeAt(int ticksAgo)
+    {
+        return this.altitudeHistory[Math.floorMod(this.airborneTicks - 1 - ticksAgo, ALTITUDE_HISTORY_TICKS)];
+    }
+
+    private double altitudeSpread(int window)
+    {
+        double lowest = this.altitudeAt(0);
+        double highest = lowest;
+
+        for (int i = 1; i < window; i++)
+        {
+            final double altitude = this.altitudeAt(i);
+            lowest = Math.min(lowest, altitude);
+            highest = Math.max(highest, altitude);
+        }
+
+        return highest - lowest;
+    }
+
+    private boolean couldBeFlying()
+    {
+        return !this.isOnGround()
+                && !this.entity.onGround()
+                && !this.isRiding()
+                && !this.isClimbing()
+                && !this.entity.onClimbable()
+                && !this.isInWater()
+                && !this.entity.isInLava()
+                && !this.entity.isFallFlying()
+                && !this.entity.hasEffect(MobEffects.LEVITATION)
+                && !this.entity.hasEffect(MobEffects.SLOW_FALLING);
     }
 
     @Override
@@ -201,9 +293,10 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
 
     public boolean isFlying()
     {
-        return this.flyingStateOverride != null ?
-                this.flyingStateOverride :
-                this.entity.getAbilities().flying;
+        if (this.flyingStateOverride != null)
+            return this.flyingStateOverride;
+
+        return this.entity.getAbilities().flying || this.flightDetected;
     }
 
 }

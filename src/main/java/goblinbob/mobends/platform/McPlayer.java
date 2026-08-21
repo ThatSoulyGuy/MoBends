@@ -1,6 +1,9 @@
 package goblinbob.mobends.platform;
 
 import goblinbob.mobends.api.entity.IPlayer;
+import goblinbob.mobends.core.data.EntityDatabase;
+import goblinbob.mobends.core.data.LivingEntityData;
+import goblinbob.mobends.standard.data.PlayerData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -47,7 +50,17 @@ public class McPlayer extends McLivingEntity implements IPlayer
     @Override
     public boolean isFlying()
     {
-        return player.getAbilities().flying;
+        if (player.getAbilities().flying)
+            return true;
+
+        if (player instanceof AbstractClientPlayer clientPlayer)
+        {
+            LivingEntityData<?> data = EntityDatabase.instance.get(clientPlayer);
+            if (data instanceof PlayerData)
+                return ((PlayerData) data).isFlying();
+        }
+
+        return false;
     }
 
     @Override
