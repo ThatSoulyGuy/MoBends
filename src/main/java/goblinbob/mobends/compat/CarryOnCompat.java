@@ -76,9 +76,6 @@ public class CarryOnCompat
             catch (Exception e)
             {
                 isLoaded = false;
-                org.slf4j.LoggerFactory.getLogger("MoBends").warn(
-                        "Carry On was detected but its API could not be bound; "
-                                + "the carrying pose will not be applied to the Mo'Bends model.", e);
             }
         }
     }

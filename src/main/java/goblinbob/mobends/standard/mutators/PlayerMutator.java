@@ -556,6 +556,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         resolveAdaptivePivots();
         applyBabyHeadScale();
         syncConcealmentFromVanillaModel();
+        adoptExternalArmPose();
 
         captureRenderAnchorPose(poseStack);
 

@@ -16,6 +16,8 @@ public class MoBendsRenderContext {
 
     private static final ThreadLocal<net.minecraft.client.model.HumanoidModel<?>> currentVanillaModel = new ThreadLocal<>();
 
+    private static final ThreadLocal<net.minecraft.world.entity.LivingEntity> currentEntity = new ThreadLocal<>();
+
     private static final ThreadLocal<net.minecraft.client.renderer.MultiBufferSource> currentBufferSource = new ThreadLocal<>();
     private static final ThreadLocal<Integer> currentPackedLight = new ThreadLocal<>();
 
@@ -38,6 +40,14 @@ public class MoBendsRenderContext {
 
     public static net.minecraft.client.model.HumanoidModel<?> getCurrentVanillaModel() {
         return currentVanillaModel.get();
+    }
+
+    public static void setCurrentEntity(net.minecraft.world.entity.LivingEntity entity) {
+        currentEntity.set(entity);
+    }
+
+    public static net.minecraft.world.entity.LivingEntity getCurrentEntity() {
+        return currentEntity.get();
     }
 
     public static void setCurrentBipedMutator(BipedMutator<?, ?, ?> mutator) {
@@ -108,6 +118,7 @@ public class MoBendsRenderContext {
         currentWolfMutator.remove();
         inMainModelRender.remove();
         currentVanillaModel.remove();
+        currentEntity.remove();
         currentBufferSource.remove();
         currentPackedLight.remove();
     }

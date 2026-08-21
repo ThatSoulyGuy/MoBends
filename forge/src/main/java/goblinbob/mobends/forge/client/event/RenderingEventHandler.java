@@ -177,6 +177,8 @@ public class RenderingEventHandler
                 final Mutator<?, LivingEntity, ?> mutator = (Mutator<?, LivingEntity, ?>) rawMutator;
                 final LivingEntityData<LivingEntity> data = (LivingEntityData<LivingEntity>) mutator.getData(entity);
 
+                MoBendsRenderContext.setCurrentEntity(entity);
+
                 if (rawMutator instanceof BipedMutator<?, ?, ?> bipedMutator)
                 {
                     MoBendsRenderContext.setCurrentBipedMutator(bipedMutator);

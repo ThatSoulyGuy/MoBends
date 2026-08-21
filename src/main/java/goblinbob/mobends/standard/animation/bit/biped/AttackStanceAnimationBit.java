@@ -28,6 +28,7 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 		LivingEntity entity = data.getEntity();
 		HumanoidArm primaryHand = entity.getMainArm();
 		boolean crouching = entity.isCrouching();
+		boolean grounded = !crouching && !data.isRiding();
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -48,7 +49,7 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.head.rotation.rotateY(-30 * handDirMtp);
 		data.head.rotation.rotateX(-bodyRotationX);
 
-		if (!crouching)
+		if (grounded)
 		{
 			data.rightLeg.rotation.setSmoothness(0.3F).orientX(-30)
 					.rotateZ(10)
@@ -69,11 +70,11 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 		offForeArm.getRotation().setSmoothness(0.3F).orientX(-60);
 
 		mainItemRotation.setSmoothness(.3F).orientX(65);
-		if (!crouching)
+		if (grounded)
 			data.globalOffset.slideY(-2.0F);
 
 		float touchdown = Math.min(data.getTicksAfterTouchdown() * kneelDuration, 1.0F);
-		if (!crouching && touchdown < 1.0F)
+		if (grounded && touchdown < 1.0F)
 		{
 			data.body.rotation.setSmoothness(1F);
 			data.body.rotation.orientX(5F * (1 - touchdown) + 15F);

@@ -58,7 +58,7 @@ repositories {
     mavenCentral()
     maven("https://maven.architectury.dev/")
     maven("https://maven.minecraftforge.net")
-    maven("https://cursemaven.com") { content { includeGroup("curse.maven") } }
+    maven("https://maven.theillusivec4.top") { content { includeGroup("top.theillusivec4.curios") } }
     maven("https://api.modrinth.com/maven") { content { includeGroup("maven.modrinth") } }
 }
 
@@ -69,7 +69,7 @@ dependencies {
 
     modApi("dev.architectury:architectury-forge:${common.mod.dep("architectury")}")
 
-    modCompileOnly("curse.maven:curios-309927:${common.mod.dep("curios")}")
+    modCompileOnly("top.theillusivec4.curios:curios-forge:${common.mod.dep("curios")}")
 
     modCompileOnly("maven.modrinth:armourers-workshop:${common.mod.dep("armourers_workshop")}")
 

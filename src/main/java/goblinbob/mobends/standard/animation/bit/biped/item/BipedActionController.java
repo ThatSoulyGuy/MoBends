@@ -10,6 +10,7 @@ import goblinbob.mobends.standard.animation.bit.biped.GoatHornAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.ShieldAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SpearThrowAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SpyglassAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.UmbrellaHoldingAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.model.HumanoidModel;
@@ -24,9 +25,11 @@ import java.util.Map;
 public class BipedActionController
 {
     protected HardAnimationLayer<BipedEntityData<?>> layerAction = new HardAnimationLayer<>();
+    protected HardAnimationLayer<BipedEntityData<?>> layerUmbrella = new HardAnimationLayer<>();
     protected UseActionType currentUseActionType = null;
     protected AttackActionType currentAttackActionType = null;
     protected AnimationBit<BipedEntityData<?>> actionBit = null;
+    protected final AnimationBit<BipedEntityData<?>> umbrellaBit = new UmbrellaHoldingAnimationBit();
 
     private static final Map<Item, UseAnim> USE_ANIM_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -200,10 +203,22 @@ public class BipedActionController
         }
 
         this.layerAction.perform(data);
+
+        if (goblinbob.mobends.compat.ArtifactsCompat.isHoldingUmbrellaUpright(entity))
+        {
+            this.layerUmbrella.playOrContinueBit(this.umbrellaBit, data);
+        }
+        else
+        {
+            this.layerUmbrella.clearAnimation();
+        }
+
+        this.layerUmbrella.perform(data);
     }
 
     public void clearAction()
     {
         layerAction.clearAnimation();
+        layerUmbrella.clearAnimation();
     }
 }

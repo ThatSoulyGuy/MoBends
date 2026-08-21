@@ -27,6 +27,10 @@ public class ModCompatManager
         FirstPersonModelCompat.init();
 
         CarryOnCompat.init();
+
+        ArtifactsCompat.init();
+
+        NotEnoughAnimationsCompat.init();
     }
 
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)

@@ -30,8 +30,9 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 		}
 
 		boolean crouching = living.isCrouching();
+		boolean grounded = !crouching && !data.isRiding();
 
-		if (!crouching)
+		if (grounded)
 			data.globalOffset.slideY(-2.0F);
 		data.renderRotation.setSmoothness(.3F).orientY(-20 * handDirMtp);
 
@@ -45,7 +46,7 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 
 		data.body.rotation.rotateX(10);
 
-		if (!crouching)
+		if (grounded)
 		{
 			data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F)
 					.rotateZ(10);

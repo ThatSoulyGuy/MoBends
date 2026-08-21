@@ -74,6 +74,12 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
     {
         if (!itemStack.isEmpty())
         {
+            if (goblinbob.mobends.compat.NotEnoughAnimationsCompat.renderHeldItem(
+                    entity, this.getParentModel(), itemStack, arm, poseStack, bufferSource, packedLight))
+            {
+                return;
+            }
+
             if (this.renderSpyglassOnHead(entity, itemStack, arm, poseStack, bufferSource, packedLight))
             {
                 return;

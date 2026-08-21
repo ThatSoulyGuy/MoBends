@@ -28,7 +28,7 @@ public class PunchAnimationBit extends AnimationBit<BipedEntityData<?>>
 		{
 			renderRotationY = -20F;
 
-			if (!data.getEntity().isCrouching())
+			if (!data.getEntity().isCrouching() && !data.isRiding())
 			{
 				data.globalOffset.slideY(-2.0f);
 

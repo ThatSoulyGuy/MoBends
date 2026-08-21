@@ -846,6 +846,17 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
     }
 
+    protected void adoptExternalArmPose()
+    {
+        if (!MoBendsRenderContext.isInMainModelRender())
+        {
+            return;
+        }
+
+        goblinbob.mobends.compat.NotEnoughAnimationsCompat.applyArmPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+    }
+
     protected void captureRenderAnchorPose(PoseStack poseStack)
     {
         if (!MoBendsRenderContext.isInMainModelRender())
@@ -1052,6 +1063,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         resolveAdaptivePivots();
         applyBabyHeadScale();
         syncConcealmentFromVanillaModel();
+        adoptExternalArmPose();
 
         if (MoBendsRenderContext.isInMainModelRender())
         {
