@@ -218,6 +218,9 @@ public class RenderingEventHandler
     @SubscribeEvent
     public void afterLivingRender(RenderLivingEvent.Post<?, ?> event)
     {
+        goblinbob.mobends.compat.CarryOnCompat.captureAnchor(
+                event.getEntity(), MoBendsRenderContext.getCurrentBipedMutator());
+
         MoBendsRenderContext.clear();
 
         LivingEntity entity = event.getEntity();

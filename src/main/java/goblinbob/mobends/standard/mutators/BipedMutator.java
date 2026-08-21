@@ -94,6 +94,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     private final org.joml.Matrix3f mainRenderNormal = new org.joml.Matrix3f();
     private boolean mainRenderPoseValid = false;
 
+    private final org.joml.Matrix4f renderAnchorPose = new org.joml.Matrix4f();
+    private boolean renderAnchorPoseValid = false;
+
     protected float babyHeadScale = 1.0F;
 
     protected ModelPart vanillaBody;
@@ -658,6 +661,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         goblinbob.mobends.compat.PlayerAnimationLibCompat.applyToPose(
                 data, goblinbob.mobends.core.client.event.DataUpdateHandler.partialTicks);
 
+        goblinbob.mobends.compat.CarryOnCompat.applyToPose(data);
+
         head.syncUp(data.head);
         body.syncUp(data.body);
         leftArm.syncUp(data.leftArm);
@@ -839,6 +844,17 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             poseStack.popPose();
         }
+    }
+
+    protected void captureRenderAnchorPose(PoseStack poseStack)
+    {
+        if (!MoBendsRenderContext.isInMainModelRender())
+        {
+            return;
+        }
+
+        renderAnchorPose.set(poseStack.last().pose());
+        renderAnchorPoseValid = true;
     }
 
     private void applyMainRenderPose(PoseStack poseStack)
@@ -1043,6 +1059,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             mainRenderNormal.set(poseStack.last().normal());
             mainRenderPoseValid = true;
         }
+
+        captureRenderAnchorPose(poseStack);
 
         if (body != null)
         {
@@ -1337,6 +1355,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         dst.visible = src.visible;
         dst.hidden = src.hidden;
     }
+
+    public org.joml.Matrix4f getRenderAnchorPose() { return renderAnchorPoseValid ? renderAnchorPose : null; }
 
     public BendsModelPart getBody() { return body; }
     public BendsModelPart getHead() { return head; }

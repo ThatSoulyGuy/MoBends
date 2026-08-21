@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "goblinbob.mobends.mixin.carryon",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "mobends-neoforge.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+    "CarryRenderHelperMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

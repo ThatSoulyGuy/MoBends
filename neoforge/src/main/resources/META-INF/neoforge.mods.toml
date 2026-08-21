@@ -17,6 +17,9 @@ config = "mobends-neoforge.mixins.json"
 [[mixins]]
 config = "mobends-neoforge-armourers.mixins.json"
 
+[[mixins]]
+config = "mobends-neoforge-carryon.mixins.json"
+
 [[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "required"

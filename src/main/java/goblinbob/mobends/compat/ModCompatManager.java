@@ -25,6 +25,8 @@ public class ModCompatManager
         ArmourersWorkshopCompat.init();
 
         FirstPersonModelCompat.init();
+
+        CarryOnCompat.init();
     }
 
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)

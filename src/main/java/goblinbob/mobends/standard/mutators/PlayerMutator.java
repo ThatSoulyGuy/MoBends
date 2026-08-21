@@ -557,6 +557,8 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         applyBabyHeadScale();
         syncConcealmentFromVanillaModel();
 
+        captureRenderAnchorPose(poseStack);
+
         if (body != null)
         {
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
