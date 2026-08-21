@@ -59,13 +59,19 @@ public class RenderingEventHandler
         if (event.phase != TickEvent.Phase.START)
             return;
 
+        advanceAnimations(event.renderTickTime);
+        renderTickDrivenThisFrame = true;
+    }
+
+    private static boolean renderTickDrivenThisFrame = false;
+
+    private static void advanceAnimations(float renderTickTime)
+    {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null)
             return;
 
         ComputedDependencyHelper.reevaluateDirty();
-
-        float renderTickTime = event.renderTickTime;
 
         if (!mc.isPaused())
         {
@@ -234,6 +240,12 @@ public class RenderingEventHandler
     {
         if (event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY)
         {
+            if (!renderTickDrivenThisFrame)
+            {
+                advanceAnimations(event.getPartialTick());
+            }
+            renderTickDrivenThisFrame = false;
+
             goblinbob.mobends.core.client.TrailRenderQueue.clear();
         }
         else if (event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS)

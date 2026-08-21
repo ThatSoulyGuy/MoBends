@@ -54,13 +54,19 @@ public class RenderingEventHandler
     @SubscribeEvent
     public void onRenderTick(RenderFrameEvent.Pre event)
     {
+        advanceAnimations(event.getPartialTick().getGameTimeDeltaPartialTick(false));
+        renderTickDrivenThisFrame = true;
+    }
+
+    private static boolean renderTickDrivenThisFrame = false;
+
+    private static void advanceAnimations(float renderTickTime)
+    {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null)
             return;
 
         ComputedDependencyHelper.reevaluateDirty();
-
-        float renderTickTime = event.getPartialTick().getGameTimeDeltaPartialTick(false);
 
         if (!mc.isPaused())
         {
@@ -229,6 +235,12 @@ public class RenderingEventHandler
     {
         if (event.getStage() == net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY)
         {
+            if (!renderTickDrivenThisFrame)
+            {
+                advanceAnimations(event.getPartialTick().getGameTimeDeltaPartialTick(false));
+            }
+            renderTickDrivenThisFrame = false;
+
             goblinbob.mobends.core.client.TrailRenderQueue.clear();
         }
         else if (event.getStage() == net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS)
