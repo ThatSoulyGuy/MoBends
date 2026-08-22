@@ -8,6 +8,7 @@
   ],
   "client": [
     "AgeableListModelMixin",
+    "HierarchicalModelMixin",
     "SpiderModelMixin",
     "RenderLayerMixin",
     "PlayerRendererSwimMixin"

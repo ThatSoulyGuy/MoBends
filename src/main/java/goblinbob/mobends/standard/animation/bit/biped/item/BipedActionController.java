@@ -5,6 +5,7 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.UseActionType;
+import goblinbob.mobends.standard.animation.bit.biped.CrossbowHoldAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.EatingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.GoatHornAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.ShieldAnimationBit;
@@ -26,10 +27,12 @@ public class BipedActionController
 {
     protected HardAnimationLayer<BipedEntityData<?>> layerAction = new HardAnimationLayer<>();
     protected HardAnimationLayer<BipedEntityData<?>> layerUmbrella = new HardAnimationLayer<>();
+    protected HardAnimationLayer<BipedEntityData<?>> layerCrossbow = new HardAnimationLayer<>();
     protected UseActionType currentUseActionType = null;
     protected AttackActionType currentAttackActionType = null;
     protected AnimationBit<BipedEntityData<?>> actionBit = null;
     protected final AnimationBit<BipedEntityData<?>> umbrellaBit = new UmbrellaHoldingAnimationBit();
+    protected final AnimationBit<BipedEntityData<?>> crossbowHoldBit = new CrossbowHoldAnimationBit();
 
     private static final Map<Item, UseAnim> USE_ANIM_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -214,11 +217,23 @@ public class BipedActionController
         }
 
         this.layerUmbrella.perform(data);
+
+        if (CrossbowHoldAnimationBit.getChargedCrossbowArm(entity) != null)
+        {
+            this.layerCrossbow.playOrContinueBit(this.crossbowHoldBit, data);
+        }
+        else
+        {
+            this.layerCrossbow.clearAnimation();
+        }
+
+        this.layerCrossbow.perform(data);
     }
 
     public void clearAction()
     {
         layerAction.clearAnimation();
         layerUmbrella.clearAnimation();
+        layerCrossbow.clearAnimation();
     }
 }

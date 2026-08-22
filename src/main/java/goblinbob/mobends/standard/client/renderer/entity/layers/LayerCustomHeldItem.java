@@ -23,7 +23,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 
-public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel<E>> extends RenderLayer<E, M>
+public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft.client.model.EntityModel<E>> extends RenderLayer<E, M>
 {
 
     private final BipedMutator<?, E, M> mutator;
@@ -40,7 +40,8 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
         if (goblinbob.mobends.compat.FirstPersonModelCompat.isRenderingFirstPersonBody(entity)
-                && goblinbob.mobends.compat.FirstPersonModelCompat.showsVanillaHands(this.getParentModel()))
+                && this.getParentModel() instanceof HumanoidModel<?> humanoidParent
+                && goblinbob.mobends.compat.FirstPersonModelCompat.showsVanillaHands(humanoidParent))
         {
             return;
         }
@@ -53,7 +54,7 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends HumanoidModel
         {
             poseStack.pushPose();
 
-            if (this.getParentModel().young)
+            if (this.getParentModel().young && !this.isDrivenByMoBends(entity))
             {
                 poseStack.translate(0.0F, 0.75F, 0.0F);
                 poseStack.scale(0.5F, 0.5F, 0.5F);

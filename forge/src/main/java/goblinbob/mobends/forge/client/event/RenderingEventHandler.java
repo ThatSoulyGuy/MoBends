@@ -185,7 +185,8 @@ public class RenderingEventHandler
                     MoBendsRenderContext.beginMainModelRender();
 
                     EntityModel<?> model = renderer.getModel();
-                    if (model instanceof HumanoidModel<?> humanoidModel)
+                    HumanoidModel<?> humanoidModel = bipedMutator.humanoidViewOf(model);
+                    if (humanoidModel != null)
                     {
                         MoBendsRenderContext.setCurrentVanillaModel(humanoidModel);
                         bipedMutator.syncPosesToVanillaModel(humanoidModel);

@@ -3,6 +3,7 @@ package goblinbob.mobends.core.client.gui.widget;
 import goblinbob.mobends.core.bender.BenderDiscovery;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
+import goblinbob.mobends.core.client.gui.EntityPreviewRenderer;
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import goblinbob.mobends.core.client.gui.vanilla.*;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
@@ -169,6 +170,12 @@ public class MobPreviewGridWidget
         for (MobCard card : cards)
         {
             card.lastSpinNanos = -1L;
+
+            if (spinMode == SpinMode.OFF)
+            {
+                card.preview.setRotation(EntityPreviewRenderer.DEFAULT_ROTATION_X,
+                        EntityPreviewRenderer.DEFAULT_ROTATION_Y);
+            }
         }
     }
 

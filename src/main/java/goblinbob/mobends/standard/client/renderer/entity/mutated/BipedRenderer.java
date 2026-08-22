@@ -19,8 +19,10 @@ public class BipedRenderer<T extends LivingEntity> extends MutatedRenderer<T>
             BipedEntityData<?> bipedData = (BipedEntityData<?>) data;
             if (ModConfig.showSwordTrail)
             {
+                final float trailScale = scale * (entity.isBaby() ? getChildScale() : 1.0F);
+
                 poseStack.pushPose();
-                poseStack.scale(scale, scale, scale);
+                poseStack.scale(trailScale, trailScale, trailScale);
                 bipedData.swordTrail.render(poseStack, entity);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 poseStack.popPose();

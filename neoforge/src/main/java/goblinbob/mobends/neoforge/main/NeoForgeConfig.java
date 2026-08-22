@@ -9,6 +9,8 @@ public class NeoForgeConfig
 
     public static final ModConfigSpec.BooleanValue DISABLE_SPIN_SWING;
 
+    public static final ModConfigSpec.BooleanValue MOBS_CAN_SPIN;
+
     public static final ModConfigSpec.BooleanValue DISABLE_MOVEMENT_IN_GUI;
 
     public static final ModConfigSpec.BooleanValue ARROW_TRAIL_FULL_BRIGHT;
@@ -26,8 +28,12 @@ public class NeoForgeConfig
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         DISABLE_SPIN_SWING = builder
-                .comment("Disable spin swing animation.")
+                .comment("Disable spinning animation when swinging for players")
                 .define("disableSpinSwing", false);
+
+        MOBS_CAN_SPIN = builder
+                .comment("Allow mobs to do the spinning animation when swinging")
+                .define("mobsCanSpin", false);
 
         DISABLE_MOVEMENT_IN_GUI = builder
                 .comment("Disables head movement when inside a GUI.")
@@ -61,6 +67,7 @@ public class NeoForgeConfig
         switch (key)
         {
             case "disableSpinSwing": DISABLE_SPIN_SWING.set(value); break;
+            case "mobsCanSpin": MOBS_CAN_SPIN.set(value); break;
             case "disableMovementInGui": DISABLE_MOVEMENT_IN_GUI.set(value); break;
             case "arrowTrailFullBright": ARROW_TRAIL_FULL_BRIGHT.set(value); break;
             case "newEnchantGlint": NEW_ENCHANT_GLINT.set(value); break;
@@ -77,6 +84,7 @@ public class NeoForgeConfig
     public static void sync()
     {
         ModConfig.performSpinAttack = !DISABLE_SPIN_SWING.get();
+        ModConfig.mobsCanSpin = MOBS_CAN_SPIN.get();
         ModConfig.disableMovementInGui = DISABLE_MOVEMENT_IN_GUI.get();
         ModConfig.arrowTrailFullBright = ARROW_TRAIL_FULL_BRIGHT.get();
         ModConfig.newEnchantGlint = NEW_ENCHANT_GLINT.get();

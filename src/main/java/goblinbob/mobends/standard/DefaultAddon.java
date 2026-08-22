@@ -10,17 +10,24 @@ import goblinbob.mobends.standard.kumo.WolfStateCondition;
 import goblinbob.mobends.standard.main.ModConfig;
 import goblinbob.mobends.standard.mutators.*;
 import goblinbob.mobends.standard.previewer.BipedPreviewer;
+import goblinbob.mobends.standard.previewer.PiglinPreviewer;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
 import goblinbob.mobends.standard.previewer.SpiderPreviewer;
 import goblinbob.mobends.standard.previewer.SquidPreviewer;
 import goblinbob.mobends.standard.previewer.WolfPreviewer;
 import goblinbob.mobends.standard.previewer.ZombiePreviewer;
+import net.minecraft.world.entity.monster.Evoker;
+import net.minecraft.world.entity.monster.Illusioner;
+import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.Stray;
+import net.minecraft.world.entity.monster.Vindicator;
 import net.minecraft.world.entity.monster.WitherSkeleton;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
+import net.minecraft.world.entity.monster.piglin.Piglin;
+import net.minecraft.world.entity.monster.piglin.PiglinBrute;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.animal.Wolf;
 
@@ -62,6 +69,24 @@ public class DefaultAddon implements IAddon
 				new BipedPreviewer<>(), BIPED_ANIMATIONS,
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
+
+		registry.registerNewEntity(Piglin.class, PiglinData::new, PiglinMutator::new, new BipedRenderer<>(),
+				new PiglinPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(PiglinBrute.class, PiglinData::new, PiglinMutator::new, new BipedRenderer<>(),
+				new PiglinPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(Pillager.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
+				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(Vindicator.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
+				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(Evoker.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
+				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(Illusioner.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
+				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,

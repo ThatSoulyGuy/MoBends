@@ -32,11 +32,14 @@ public class EntityPreviewRenderer
     public static final float PREVIEW_BODY_YAW = 180.0f;
 
     private static final float DEFAULT_SCALE = 40.0f;
+
+    public static final float DEFAULT_ROTATION_X = -10.0f;
+    public static final float DEFAULT_ROTATION_Y = 45.0f;
     private static final float MIN_SCALE = 20.0f;
     private static final float MAX_SCALE = 80.0f;
 
-    private float rotationX = -10;
-    private float rotationY = 45;
+    private float rotationX = DEFAULT_ROTATION_X;
+    private float rotationY = DEFAULT_ROTATION_Y;
     private float scale = DEFAULT_SCALE;
 
     private String currentAnimationType = "idle";
@@ -518,8 +521,8 @@ public class EntityPreviewRenderer
 
     public void resetView()
     {
-        this.rotationX = -10;
-        this.rotationY = 45;
+        this.rotationX = DEFAULT_ROTATION_X;
+        this.rotationY = DEFAULT_ROTATION_Y;
         this.scale = DEFAULT_SCALE;
         this.animationTicks = 0;
         this.tickAccumulator = 0;

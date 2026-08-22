@@ -23,6 +23,7 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 {
 	protected HardAnimationLayer<SkeletonData<?>> layerBase;
 	protected AnimationBit<? extends SkeletonData<?>> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
+	protected AnimationBit<SkeletonData<?>> bitSprint;
 
 	protected final BipedActionController actionController = new BipedActionController();
 
@@ -35,6 +36,7 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 		this.bitJump = new JumpAnimationBit<SkeletonData<?>>();
 		this.bitRiding = new RidingAnimationBit<SkeletonData<?>>();
 		this.bitSitting = new SittingAnimationBit<SkeletonData<?>>();
+		this.bitSprint = new goblinbob.mobends.standard.animation.bit.biped.SprintAnimationBit<SkeletonData<?>>();
 	}
 
 	public void performActionAnimations(SkeletonData<?> data, AbstractSkeleton skeleton)
@@ -66,6 +68,10 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 			if (skeletonData.isStillHorizontally())
 			{
 				this.layerBase.playOrContinueBit(bitStand, skeletonData);
+			}
+			else if (skeletonData.isMovingAtSprintSpeed())
+			{
+				this.layerBase.playOrContinueBit(bitSprint, skeletonData);
 			}
 			else
 			{

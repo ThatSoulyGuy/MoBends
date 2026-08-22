@@ -36,7 +36,7 @@ import java.util.Set;
 
 public abstract class BipedMutator<D extends BipedEntityData<E>,
                                    E extends LivingEntity,
-                                   M extends HumanoidModel<E>>
+                                   M extends EntityModel<E>>
                                   extends Mutator<D, E, M>
 {
     private static final org.slf4j.Logger LOGGER =
@@ -115,36 +115,50 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     private VanillaPartState vanillaLeftLegState;
     private VanillaPartState vanillaRightLegState;
 
-    protected LayerCustomBipedArmor<E, M> layerArmor;
-    protected HumanoidArmorLayer<E, M, ?> layerArmorVanilla;
+    @SuppressWarnings("rawtypes")
+    protected LayerCustomBipedArmor layerArmor;
+    @SuppressWarnings("rawtypes")
+    protected HumanoidArmorLayer layerArmorVanilla;
     protected LayerCustomHeldItem<E, M> layerHeldItem;
-    protected ItemInHandLayer<E, M> layerHeldItemVanilla;
-    protected CustomHeadLayer<E, M> layerCustomHead;
-    protected CustomHeadLayer<E, M> layerCustomHeadVanilla;
+    @SuppressWarnings("rawtypes")
+    protected ItemInHandLayer layerHeldItemVanilla;
+    @SuppressWarnings("rawtypes")
+    protected CustomHeadLayer layerCustomHead;
+    @SuppressWarnings("rawtypes")
+    protected CustomHeadLayer layerCustomHeadVanilla;
 
     public BipedMutator(IEntityDataFactory<E> dataFactory)
     {
         super(dataFactory);
     }
 
+    public HumanoidModel<?> humanoidViewOf(EntityModel<?> model)
+    {
+        return model instanceof HumanoidModel<?> humanoidModel ? humanoidModel : null;
+    }
+
     @Override
     public void storeVanillaModel(M model)
     {
-        this.vanillaBody = model.body;
-        this.vanillaHead = model.head;
-        this.vanillaHat = model.hat;
-        this.vanillaLeftArm = model.leftArm;
-        this.vanillaRightArm = model.rightArm;
-        this.vanillaLeftLeg = model.leftLeg;
-        this.vanillaRightLeg = model.rightLeg;
+        final HumanoidModel<?> view = humanoidViewOf(model);
+        if (view == null)
+            return;
 
-        this.vanillaBodyState = VanillaPartState.capture(model.body);
-        this.vanillaHeadState = VanillaPartState.capture(model.head);
-        this.vanillaHatState = VanillaPartState.capture(model.hat);
-        this.vanillaLeftArmState = VanillaPartState.capture(model.leftArm);
-        this.vanillaRightArmState = VanillaPartState.capture(model.rightArm);
-        this.vanillaLeftLegState = VanillaPartState.capture(model.leftLeg);
-        this.vanillaRightLegState = VanillaPartState.capture(model.rightLeg);
+        this.vanillaBody = view.body;
+        this.vanillaHead = view.head;
+        this.vanillaHat = view.hat;
+        this.vanillaLeftArm = view.leftArm;
+        this.vanillaRightArm = view.rightArm;
+        this.vanillaLeftLeg = view.leftLeg;
+        this.vanillaRightLeg = view.rightLeg;
+
+        this.vanillaBodyState = VanillaPartState.capture(view.body);
+        this.vanillaHeadState = VanillaPartState.capture(view.head);
+        this.vanillaHatState = VanillaPartState.capture(view.hat);
+        this.vanillaLeftArmState = VanillaPartState.capture(view.leftArm);
+        this.vanillaRightArmState = VanillaPartState.capture(view.rightArm);
+        this.vanillaLeftLegState = VanillaPartState.capture(view.leftLeg);
+        this.vanillaRightLegState = VanillaPartState.capture(view.rightLeg);
     }
 
     @Override
@@ -153,13 +167,17 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (model == null)
             return;
 
-        VanillaPartState.restore(this.vanillaBodyState, model.body);
-        VanillaPartState.restore(this.vanillaHeadState, model.head);
-        VanillaPartState.restore(this.vanillaHatState, model.hat);
-        VanillaPartState.restore(this.vanillaLeftArmState, model.leftArm);
-        VanillaPartState.restore(this.vanillaRightArmState, model.rightArm);
-        VanillaPartState.restore(this.vanillaLeftLegState, model.leftLeg);
-        VanillaPartState.restore(this.vanillaRightLegState, model.rightLeg);
+        final HumanoidModel<?> view = humanoidViewOf(model);
+        if (view == null)
+            return;
+
+        VanillaPartState.restore(this.vanillaBodyState, view.body);
+        VanillaPartState.restore(this.vanillaHeadState, view.head);
+        VanillaPartState.restore(this.vanillaHatState, view.hat);
+        VanillaPartState.restore(this.vanillaLeftArmState, view.leftArm);
+        VanillaPartState.restore(this.vanillaRightArmState, view.rightArm);
+        VanillaPartState.restore(this.vanillaLeftLegState, view.leftLeg);
+        VanillaPartState.restore(this.vanillaRightLegState, view.rightLeg);
 
         this.vanillaPositionsStored = false;
     }
@@ -171,11 +189,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         RenderLayer<E, M> layer = layerRenderers.get(index);
         if (layer instanceof HumanoidArmorLayer)
         {
-            HumanoidArmorLayer<E, M, ?> vanillaArmor = (HumanoidArmorLayer<E, M, ?>) layer;
+            HumanoidArmorLayer vanillaArmor = (HumanoidArmorLayer) layer;
             if (isModelVanilla)
                 this.layerArmorVanilla = vanillaArmor;
 
-            this.layerArmor = new LayerCustomBipedArmor<>(renderer, this);
+            this.layerArmor = new LayerCustomBipedArmor(renderer, this);
             this.layerArmor.setVanillaArmorLayer(vanillaArmor);
 
             try
@@ -203,13 +221,13 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             this.layerHeldItem = new LayerCustomHeldItem<>(renderer, this);
             if (isModelVanilla)
-                this.layerHeldItemVanilla = (ItemInHandLayer<E, M>) layer;
+                this.layerHeldItemVanilla = (ItemInHandLayer) layer;
             layerRenderers.set(index, this.layerHeldItem);
         }
         else if (layer instanceof CustomHeadLayer)
         {
             if (isModelVanilla)
-                this.layerCustomHeadVanilla = (CustomHeadLayer<E, M>) layer;
+                this.layerCustomHeadVanilla = (CustomHeadLayer) layer;
         }
     }
 
@@ -288,15 +306,21 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return false;
         }
 
+        final HumanoidModel<?> view = humanoidViewOf(original);
+        if (view == null)
+        {
+            return false;
+        }
+
         for (HumanoidLayout baseline : baselines)
         {
-            if (baseline.describes(original))
+            if (baseline.describes(view))
             {
                 return false;
             }
         }
 
-        final AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(original,
+        final AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(view,
                 adaptiveHeadCaptureMode(), adaptiveLimbCaptureMode(), null,
                 adaptiveWearParts(original));
         if (geometry == null)
@@ -345,7 +369,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         createAdaptiveWearParts(geometry);
 
-        reconcileWithVanillaModel(original);
+        reconcileWithVanillaModel(view);
 
         return true;
     }
@@ -547,7 +571,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         createOuterParts(scaleFactor);
 
-        reconcileWithVanillaModel(original);
+        reconcileWithVanillaModel(humanoidViewOf(original));
 
         return true;
     }

@@ -72,6 +72,10 @@ public class ConfigOptions
                     () -> !ModConfig.performSpinAttack,
                     value -> ModConfig.performSpinAttack = !value),
 
+            new Option("mobsCanSpin", "mobends.gui.config.mobs_can_spin",
+                    () -> ModConfig.mobsCanSpin,
+                    value -> ModConfig.mobsCanSpin = value),
+
             new Option("disableMovementInGui", "mobends.gui.config.disable_movement_in_gui",
                     () -> ModConfig.disableMovementInGui,
                     value -> ModConfig.disableMovementInGui = value)

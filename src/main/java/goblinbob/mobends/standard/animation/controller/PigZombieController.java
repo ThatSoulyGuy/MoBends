@@ -4,7 +4,7 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
-import goblinbob.mobends.standard.animation.bit.biped.AttackSlashInwardAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.MobSwingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
@@ -24,7 +24,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 	protected HardAnimationLayer<BipedEntityData<ZombifiedPiglin>> layerBase;
 	protected HardAnimationLayer<BipedEntityData<?>> layerAction;
 	protected AnimationBit<? extends BipedEntityData<ZombifiedPiglin>> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
-	protected AttackSlashInwardAnimationBit bitAttack;
+	protected MobSwingAnimationBit bitAttack;
 
 	public PigZombieController()
 	{
@@ -35,7 +35,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 		this.bitJump = new JumpAnimationBit<>();
 		this.bitRiding = new RidingAnimationBit<BipedEntityData<ZombifiedPiglin>>();
 		this.bitSitting = new SittingAnimationBit<BipedEntityData<ZombifiedPiglin>>();
-		this.bitAttack = new AttackSlashInwardAnimationBit();
+		this.bitAttack = new MobSwingAnimationBit();
 	}
 
 	@Override

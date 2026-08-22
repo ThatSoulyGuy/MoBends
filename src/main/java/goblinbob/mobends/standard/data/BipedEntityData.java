@@ -26,9 +26,25 @@ public abstract class BipedEntityData<E extends LivingEntity> extends LivingEnti
 
     public SwordTrail swordTrail;
 
+    public static final double SPRINT_SPEED = 0.2806D;
+
+    private static final double SPRINT_ENTER_SQ = SPRINT_SPEED * SPRINT_SPEED;
+    private static final double SPRINT_EXIT_SQ = (SPRINT_SPEED * 0.9D) * (SPRINT_SPEED * 0.9D);
+
+    private boolean movingAtSprintSpeed = false;
+
     public BipedEntityData(E entity)
     {
         super(entity);
+    }
+
+    public boolean isMovingAtSprintSpeed()
+    {
+        final double horizontalSq = this.motionX * this.motionX + this.motionZ * this.motionZ;
+        final double threshold = this.movingAtSprintSpeed ? SPRINT_EXIT_SQ : SPRINT_ENTER_SQ;
+
+        this.movingAtSprintSpeed = horizontalSq >= threshold;
+        return this.movingAtSprintSpeed;
     }
 
     @Override

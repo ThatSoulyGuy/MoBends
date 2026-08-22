@@ -22,6 +22,8 @@ public class ModConfig
 
     public static boolean performSpinAttack = true;
 
+    public static boolean mobsCanSpin = false;
+
     public static boolean disableMovementInGui = false;
 
     public static ModConfig getInstance()

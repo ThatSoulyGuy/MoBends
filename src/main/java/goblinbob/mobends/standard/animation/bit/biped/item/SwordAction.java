@@ -41,7 +41,8 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
         LivingEntity entity = entityData.getEntity();
         boolean isLocal = entity == Minecraft.getInstance().player;
 
-        int moveCount = ModConfig.performSpinAttack ? bits.size() : bits.size() - 1;
+        boolean spinAllowed = isLocal ? ModConfig.performSpinAttack : ModConfig.mobsCanSpin;
+        int moveCount = spinAllowed ? bits.size() : bits.size() - 1;
 
         if (!isLocal)
         {
