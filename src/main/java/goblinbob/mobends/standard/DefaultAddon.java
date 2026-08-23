@@ -2,7 +2,7 @@ package goblinbob.mobends.standard;
 
 import goblinbob.mobends.core.addon.AddonAnimationRegistry;
 import goblinbob.mobends.core.addon.IAddon;
-import goblinbob.mobends.core.kumo.state.condition.EquipmentNameCondition;
+import goblinbob.mobends.standard.kumo.EquipmentNameCondition;
 import goblinbob.mobends.core.kumo.state.condition.TriggerConditionRegistry;
 import goblinbob.mobends.standard.client.model.armor.ArmorModelFactory;
 import goblinbob.mobends.standard.client.renderer.entity.ArrowTrailManager;

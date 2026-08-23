@@ -1,6 +1,8 @@
-package goblinbob.mobends.core.kumo.state.condition;
+package goblinbob.mobends.standard.kumo;
 
 import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.core.kumo.state.condition.ITriggerCondition;
+import goblinbob.mobends.core.kumo.state.condition.ITriggerConditionContext;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
