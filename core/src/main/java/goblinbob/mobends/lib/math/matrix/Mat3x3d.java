@@ -3,12 +3,18 @@ package goblinbob.mobends.lib.math.matrix;
 public class Mat3x3d implements IMat3x3d
 {
 
-	public static final Mat3x3d ONE = new Mat3x3d(1);
-	public static final Mat3x3d IDENTITY = new Mat3x3d(new double[] {
-		1, 0, 0,
-		0, 1, 0,
-		0, 0, 1
-	});
+	/**
+	 * Returns a new identity matrix. See {@link Mat4x4d#identity()} for why this is a factory
+	 * rather than a shared constant.
+	 */
+	public static Mat3x3d identity()
+	{
+		return new Mat3x3d(new double[] {
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+		});
+	}
 
 	private final double[] fields;
 

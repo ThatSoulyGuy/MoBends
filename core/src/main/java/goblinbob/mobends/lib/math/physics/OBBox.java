@@ -30,7 +30,7 @@ public class OBBox implements IOBBox, ICollider
 	{
 		this.min = new Vec3f(aabb.getMin());
 		this.max = new Vec3f(aabb.getMax());
-		this.transform = new Mat4x4d(Mat4x4d.IDENTITY);
+		this.transform = Mat4x4d.identity();
 	}
 
 	public IVec3fRead getMin()

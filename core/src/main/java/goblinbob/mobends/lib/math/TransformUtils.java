@@ -126,7 +126,10 @@ public class TransformUtils
 
 	public static void rotate(double angle, IVec3dRead axis, IMat4x4d dest)
 	{
-		rotate(Mat4x4d.ONE, angle, axis, dest);
+		// Was Mat4x4d.ONE, an all-ones matrix rather than the identity, which made every
+		// destination column the sum of a rotation column and wrote 1s into the translation
+		// row. The overload had no callers, so the bad matrix never reached a render path.
+		rotate(Mat4x4d.identity(), angle, axis, dest);
 	}
 
 	public static void transform(IVec3dRead src, IMat4x4d mat, IVec3d dest)
@@ -159,7 +162,7 @@ public class TransformUtils
 
 	public static void rotate(IMat4x4d src, Quaternion quat, IMat4x4d dest)
 	{
-		Mat4x4d rotation = new Mat4x4d(Mat4x4d.IDENTITY);
+		Mat4x4d rotation = Mat4x4d.identity();
 		QuaternionUtils.quatToMat(quat, rotation);
 
 		MatrixUtils.multiply(src, rotation, dest);

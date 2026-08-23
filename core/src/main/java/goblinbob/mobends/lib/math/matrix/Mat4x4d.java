@@ -3,13 +3,22 @@ package goblinbob.mobends.lib.math.matrix;
 public class Mat4x4d implements IMat4x4d
 {
 
-	public static final Mat4x4d ONE = new Mat4x4d(1);
-	public static final Mat4x4d IDENTITY = new Mat4x4d(new double[] {
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1
-	});
+	/**
+	 * Returns a new identity matrix.
+	 *
+	 * <p>Deliberately a factory rather than a shared constant: {@link #getFields()} hands out
+	 * the backing array, so a shared instance is one careless write — or one call passing it as
+	 * a destination — away from being corrupted for the lifetime of the JVM.
+	 */
+	public static Mat4x4d identity()
+	{
+		return new Mat4x4d(new double[] {
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		});
+	}
 
 	private final double[] fields;
 
