@@ -239,33 +239,6 @@ public class SmoothVector3f
 		this.completion.z = Math.min(this.completion.z, 1.0F);
 	}
 
-	public float getNextX(float ticksPerFrame)
-	{
-		float c = this.completion.x + ticksPerFrame * this.smoothness.x;
-		float v = this.start.x + (this.end.x - this.start.x) * this.completion.x;
-		if (completion.x >= 1.0f)
-			v = this.end.x;
-		return v;
-	}
-
-	public float getNextY(float ticksPerFrame)
-	{
-		float c = this.completion.y + ticksPerFrame * this.smoothness.y;
-		float v = this.start.y + (this.end.y - this.start.y) * this.completion.y;
-		if (completion.y >= 1.0f)
-			v = this.end.y;
-		return v;
-	}
-
-	public float getNextZ(float ticksPerFrame)
-	{
-		float c = this.completion.z + ticksPerFrame * this.smoothness.z;
-		float v = this.start.z + (this.end.z - this.start.z) * this.completion.z;
-		if (completion.z >= 1.0f)
-			v = this.end.z;
-		return v;
-	}
-
 	public void finish()
 	{
 		this.set(this.end.x, this.end.y, this.end.z);
