@@ -105,17 +105,6 @@ public class CoreClientConfig
         save();
     }
 
-    public boolean isEnabled()
-    {
-        return data.enabled;
-    }
-
-    public void setEnabled(boolean enabled)
-    {
-        data.enabled = enabled;
-        save();
-    }
-
     public boolean isEntityEnabled(String entity)
     {
         return data.enabledEntities.getOrDefault(entity, true);
@@ -145,7 +134,8 @@ public class CoreClientConfig
 
     private static class ConfigData
     {
-        boolean enabled = true;
+        // Fields here are populated by Gson, so a field with no Java writer is normal.
+        // A stale "enabled" key in an existing mobends-client.json is simply ignored on read.
         List<String> appliedPacks = new ArrayList<>();
         Map<String, Boolean> enabledEntities = new HashMap<>();
         String previewSpinMode = "HOVER";
