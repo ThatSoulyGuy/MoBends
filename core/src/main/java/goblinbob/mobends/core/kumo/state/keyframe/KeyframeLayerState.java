@@ -24,6 +24,7 @@ public class KeyframeLayerState implements ILayerState
 
     private List<INodeState> nodeStates = new ArrayList<>();
     private ArmatureMask mask;
+    private final boolean additive;
     private INodeState previousNode;
     private INodeState currentNode;
     private float transitionProgress = 0.0F;
@@ -33,6 +34,7 @@ public class KeyframeLayerState implements ILayerState
     public KeyframeLayerState(IKumoInstancingContext context, KeyframeLayerTemplate layerTemplate) throws MalformedKumoTemplateException
     {
         this.mask = layerTemplate.mask;
+        this.additive = layerTemplate.additive;
 
         for (KeyframeNodeTemplate nodeTemplate : layerTemplate.nodes)
         {
@@ -60,6 +62,12 @@ public class KeyframeLayerState implements ILayerState
         currentNode.start(context);
     }
 
+    /** Package-private, for tests that need to assert on a node the layer never entered. */
+    List<INodeState> getNodeStates()
+    {
+        return nodeStates;
+    }
+
     @Override
     public void update(IKumoContext context, float deltaTime) throws MalformedKumoTemplateException
     {
@@ -71,7 +79,10 @@ public class KeyframeLayerState implements ILayerState
 
             if (animation != null)
             {
-                applyRestPose(data, animation);
+                if (!additive)
+                {
+                    applyRestPose(data, animation);
+                }
 
                 if (previousNode != null)
                 {
@@ -92,7 +103,25 @@ public class KeyframeLayerState implements ILayerState
                     }
 
                     KeyframeAnimation previousAnimation = previousNode.getAnimation();
-                    applyKeyframeAnimation(data, previousAnimation, previousNode.getProgress(), 1 - t);
+
+                    if (previousAnimation != null)
+                    {
+                        // The OUTGOING animation's bones have to be cleared too. The rest pose
+                        // above only names what the INCOMING animation contains, so a bone that
+                        // exists only in the outgoing animation gets written additively below on
+                        // every frame of the cross-fade and never reset -- its offset and its raw
+                        // quaternion grow tick by tick. And because nothing writes that bone once
+                        // previousNode is dropped, it stays wherever it accumulated to for the
+                        // rest of the entity's life. Clearing here is idempotent for the bones the
+                        // two animations share: they are simply zeroed twice before being written.
+                        if (!additive)
+                        {
+                            applyRestPose(data, previousAnimation);
+                        }
+
+                        applyKeyframeAnimation(data, previousAnimation, previousNode.getProgress(), 1 - t);
+                    }
+
                     applyKeyframeAnimation(data, animation, currentNode.getProgress(), t);
 
                     transitionProgress += deltaTime;
@@ -110,9 +139,19 @@ public class KeyframeLayerState implements ILayerState
 
         context.setCurrentNode(currentNode);
 
-        for (INodeState node : nodeStates)
+        // Only the nodes actually being sampled advance. Ticking every node in the layer was
+        // wasted work, and worse, it advanced the progress of nodes nobody was looking at -- so a
+        // node's progress on entry depended on how long the layer had been running rather than on
+        // its own start frame. previousNode is included because a cross-fade samples it, and the
+        // identity guard stops a self-transition ticking the same node twice in one frame.
+        if (currentNode != null)
         {
-            node.update(context, deltaTime);
+            currentNode.update(context, deltaTime);
+        }
+
+        if (previousNode != null && previousNode != currentNode)
+        {
+            previousNode.update(context, deltaTime);
         }
 
         for (ConnectionState connection : currentNode.getConnections())

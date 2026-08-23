@@ -21,6 +21,7 @@ public class ProceduralLayerTemplate extends LayerTemplate
     public void validate(IKumoValidationContext context) throws MalformedKumoTemplateException
     {
         super.validate(context);
+        validateMask(mask, "procedural layer");
 
         if (bones == null || bones.isEmpty())
         {
