@@ -251,6 +251,63 @@ public class ExpressionTest
         }
     }
 
+    // ---------- laziness of if() ----------
+
+    @Test
+    public void ifEvaluatesOnlyTheTakenBranch()
+    {
+        RecordingContext ctx = new RecordingContext().set("c", 1.0).set("taken", 5.0).set("other", 9.0);
+        assertEquals(5.0, eval("if(c, taken, other)", ctx), EPSILON);
+        assertEquals(1, ctx.readCount("taken"));
+        assertEquals(0, ctx.readCount("other"), "if() evaluated the branch it did not take");
+    }
+
+    @Test
+    public void ifIsLoweredToATernaryNode()
+    {
+        ExpressionNode node = new ExpressionParser("if(x, 1, 2)").parse();
+        assertInstanceOf(goblinbob.mobends.core.expression.ast.TernaryNode.class, node);
+    }
+
+    @Test
+    public void ifAgreesWithTheTernaryOperator()
+    {
+        RecordingContext ctx = new RecordingContext().set("a", 3.0).set("b", 4.0);
+        for (double c : new double[] { 0.0, 1.0, -1.0, 0.5 })
+        {
+            ctx.set("c", c);
+            assertEquals(eval("c ? a : b", ctx), eval("if(c, a, b)", ctx), EPSILON, "disagreed at c=" + c);
+        }
+    }
+
+    @Test
+    public void ifGuardsItsOwnBranchAgainstDivisionByZero()
+    {
+        // The motivating case: the condition exists precisely to stop the other branch running.
+        RecordingContext ctx = new RecordingContext().set("len", 0.0).set("x", 10.0);
+        assertEquals(0.0, eval("if(len > 0, x / len, 0)", ctx), EPSILON);
+        assertEquals(0, ctx.readCount("x"), "the guarded branch was evaluated anyway");
+    }
+
+    @Test
+    public void ifStillRejectsWrongArity()
+    {
+        assertThrows(ExpressionException.class, () -> eval("if(1, 2)"));
+        assertThrows(ExpressionException.class, () -> eval("if(1, 2, 3, 4)"));
+    }
+
+    // ---------- constant folding context ----------
+
+    @Test
+    public void constantFoldingContextRefusesVariableReads()
+    {
+        ExpressionException thrown = assertThrows(ExpressionException.class,
+                () -> ExpressionContext.CONSTANT_FOLDING.getVariable("limb_swing"));
+        assertTrue(thrown.getMessage().contains("limb_swing"),
+                "the folding error should name the variable, got: " + thrown.getMessage());
+        assertFalse(ExpressionContext.CONSTANT_FOLDING.hasVariable("limb_swing"));
+    }
+
     // ---------- caching ----------
 
     @Test
