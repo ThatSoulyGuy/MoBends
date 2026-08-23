@@ -64,6 +64,10 @@ public class ConfigOptions
                     () -> ModConfig.arrowTrailFullBright,
                     value -> ModConfig.arrowTrailFullBright = value),
 
+            new Option("tridentTrail", "mobends.gui.config.trident_trail",
+                    () -> ModConfig.tridentTrail,
+                    value -> ModConfig.tridentTrail = value),
+
             new Option("newEnchantGlint", "mobends.gui.config.new_enchant_glint",
                     () -> ModConfig.newEnchantGlint,
                     value -> ModConfig.newEnchantGlint = value),

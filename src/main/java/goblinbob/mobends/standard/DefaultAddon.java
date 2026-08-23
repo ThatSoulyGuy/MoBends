@@ -33,7 +33,8 @@ import net.minecraft.world.entity.animal.Wolf;
 
 public class DefaultAddon implements IAddon
 {
-	protected static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall"};
+	protected static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall", "attack", "ride"};
+	protected static final String[] SPRINTING_BIPED_ANIMATIONS = {"walk", "sprint", "jump", "fall", "attack", "ride"};
 	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump"};
 	private static final String[] SQUID_ANIMATIONS = {"swim"};
 	private static final String[] WOLF_ANIMATIONS = {"walk", "sit"};
@@ -56,14 +57,14 @@ public class DefaultAddon implements IAddon
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
 		registry.registerNewEntity(Skeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(WitherSkeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Stray.class, SkeletonData::new,
 				dataFactory -> new SkeletonMutator<>(dataFactory, STRAY_CLOTHING_DEFORMATION), new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(ZombifiedPiglin.class, PigZombieData::new, PigZombieMutator::new, new ZombieRenderer<>(),
 				new BipedPreviewer<>(), BIPED_ANIMATIONS,
@@ -71,22 +72,22 @@ public class DefaultAddon implements IAddon
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
 		registry.registerNewEntity(Piglin.class, PiglinData::new, PiglinMutator::new, new BipedRenderer<>(),
-				new PiglinPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new PiglinPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(PiglinBrute.class, PiglinData::new, PiglinMutator::new, new BipedRenderer<>(),
-				new PiglinPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new PiglinPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Pillager.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Vindicator.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Evoker.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Illusioner.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,
@@ -115,7 +116,7 @@ public class DefaultAddon implements IAddon
 	@Override
 	public void onRenderTick(float partialTicks)
 	{
-		if (ModConfig.showArrowTrails)
+		if (ModConfig.showArrowTrails || ModConfig.tridentTrail)
 			ArrowTrailManager.onRenderTick();
 		PlayerPreviewer.updatePreviewData(partialTicks);
 	}

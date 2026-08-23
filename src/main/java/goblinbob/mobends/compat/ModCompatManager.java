@@ -31,6 +31,10 @@ public class ModCompatManager
         ArtifactsCompat.init();
 
         NotEnoughAnimationsCompat.init();
+
+        WatutCompat.init();
+
+        EssentialCompat.init();
     }
 
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)

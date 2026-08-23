@@ -64,7 +64,8 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 			}
 		}
 
-		if (pigZombie.getAttackAnim(DataUpdateHandler.partialTicks) > 0)
+		if (pigZombie.getAttackAnim(DataUpdateHandler.partialTicks) > 0
+				&& MobSwingAnimationBit.canPerform(pigZombie))
 		{
 			this.layerAction.playOrContinueBit(this.bitAttack, pigZombieData);
 		}

@@ -15,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import org.joml.Matrix4f;
@@ -38,6 +39,9 @@ public class EntityPreviewRenderer
     private static final float MIN_SCALE = 20.0f;
     private static final float MAX_SCALE = 80.0f;
 
+    private static final int SWING_DURATION = 6;
+    private static final int SWING_REST_TICKS = 14;
+
     private float rotationX = DEFAULT_ROTATION_X;
     private float rotationY = DEFAULT_ROTATION_Y;
     private float scale = DEFAULT_SCALE;
@@ -47,6 +51,7 @@ public class EntityPreviewRenderer
     private float tickAccumulator = 0;
     private float limbSwing = 0;
     private float limbSwingAmount = 0;
+    private int swingCooldown = 0;
     private long lastUpdateNanos = -1;
 
     @Nullable
@@ -149,6 +154,7 @@ public class EntityPreviewRenderer
             this.animationTicks = 0;
             this.limbSwing = 0;
             this.limbSwingAmount = 0;
+            this.swingCooldown = 0;
         }
     }
 
@@ -220,6 +226,17 @@ public class EntityPreviewRenderer
     {
         if (previewEntity == null) return;
 
+        previewEntity.setSprinting("sprint".equals(currentAnimationType));
+
+        if ("attack".equals(currentAnimationType))
+        {
+            updateSwingState();
+        }
+        else
+        {
+            clearSwingState();
+        }
+
         switch (currentAnimationType)
         {
             case "walk":
@@ -272,16 +289,6 @@ public class EntityPreviewRenderer
                 break;
 
             case "attack":
-                float attackPhase = (animationTicks % 20) / 20.0f;
-                if (attackPhase < 0.3f)
-                {
-                    previewEntity.swingTime = (int) (attackPhase / 0.3f * 6);
-                    previewEntity.swinging = true;
-                }
-                else
-                {
-                    previewEntity.swinging = false;
-                }
                 limbSwing += 0.3f;
                 limbSwingAmount = 0.3f;
                 previewEntity.setOnGround(true);
@@ -320,11 +327,49 @@ public class EntityPreviewRenderer
                 previewEntity.setOnGround(true);
                 previewEntity.setPose(Pose.STANDING);
                 previewEntity.setSwimming(false);
-                previewEntity.swinging = false;
                 break;
         }
 
         previewEntity.walkAnimation.update(limbSwingAmount, 0.4f);
+    }
+
+    private void updateSwingState()
+    {
+        previewEntity.oAttackAnim = previewEntity.attackAnim;
+
+        if (!previewEntity.swinging && --swingCooldown <= 0)
+        {
+            previewEntity.swinging = true;
+            previewEntity.swingingArm = InteractionHand.MAIN_HAND;
+            previewEntity.swingTime = -1;
+            swingCooldown = SWING_REST_TICKS;
+        }
+
+        if (previewEntity.swinging)
+        {
+            ++previewEntity.swingTime;
+
+            if (previewEntity.swingTime >= SWING_DURATION)
+            {
+                previewEntity.swingTime = 0;
+                previewEntity.swinging = false;
+            }
+        }
+        else
+        {
+            previewEntity.swingTime = 0;
+        }
+
+        previewEntity.attackAnim = previewEntity.swingTime / (float) SWING_DURATION;
+    }
+
+    private void clearSwingState()
+    {
+        previewEntity.swinging = false;
+        previewEntity.swingTime = 0;
+        previewEntity.attackAnim = 0;
+        previewEntity.oAttackAnim = 0;
+        swingCooldown = 0;
     }
 
     public void render(int x, int y, int width, int height, float partialTicks)
@@ -528,6 +573,7 @@ public class EntityPreviewRenderer
         this.tickAccumulator = 0;
         this.limbSwing = 0;
         this.limbSwingAmount = 0;
+        this.swingCooldown = 0;
         this.currentAnimationType = "idle";
         this.lastUpdateNanos = -1;
     }

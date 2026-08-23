@@ -15,6 +15,6 @@ public class NeoForgeAddon extends DefaultAddon
     {
         registry.registerNewEntity(Bogged.class, SkeletonData::new,
                 dataFactory -> new SkeletonMutator<>(dataFactory, BOGGED_CLOTHING_DEFORMATION), new BipedRenderer<>(),
-                new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+                new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
     }
 }

@@ -23,6 +23,8 @@ public class ForgeConfig
 
     public static final ForgeConfigSpec.BooleanValue SHOW_ARROW_TRAIL;
 
+    public static final ForgeConfigSpec.BooleanValue TRIDENT_TRAIL;
+
     static
     {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -59,6 +61,10 @@ public class ForgeConfig
                 .comment("Show the trail when arrows are travelling")
                 .define("showArrowTrail", true);
 
+        TRIDENT_TRAIL = builder
+                .comment("Allow the Trident to have a trail")
+                .define("tridentTrail", false);
+
         SPEC = builder.build();
     }
 
@@ -74,6 +80,7 @@ public class ForgeConfig
             case "swordTrailFullBright": SWORD_TRAIL_FULL_BRIGHT.set(value); break;
             case "showSwordTrail": SHOW_SWORD_TRAIL.set(value); break;
             case "showArrowTrail": SHOW_ARROW_TRAIL.set(value); break;
+            case "tridentTrail": TRIDENT_TRAIL.set(value); break;
             default: return;
         }
 
@@ -91,5 +98,6 @@ public class ForgeConfig
         ModConfig.swordTrailFullBright = SWORD_TRAIL_FULL_BRIGHT.get();
         ModConfig.showSwordTrail = SHOW_SWORD_TRAIL.get();
         ModConfig.showArrowTrails = SHOW_ARROW_TRAIL.get();
+        ModConfig.tridentTrail = TRIDENT_TRAIL.get();
     }
 }

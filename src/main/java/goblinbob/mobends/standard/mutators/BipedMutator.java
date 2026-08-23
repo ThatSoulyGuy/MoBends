@@ -6,6 +6,7 @@ import goblinbob.mobends.core.client.MoBendsRenderContext;
 import goblinbob.mobends.core.client.model.BendsMesh;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
+import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.core.mutators.Mutator;
@@ -87,6 +88,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     private final float[] scratchPivot = new float[3];
     private final float[] scratchEuler = new float[3];
     private final Quaternion scratchRotation = new Quaternion();
+    private final Quaternion adoptedRotation = new Quaternion();
+    private final Quaternion adoptedBodyRotation = new Quaternion();
+    private final Quaternion adoptedParentInverse = new Quaternion();
+    private final goblinbob.mobends.lib.math.SmoothOrientation adoptedOrientation =
+            new goblinbob.mobends.lib.math.SmoothOrientation();
 
     private HumanoidModel<?> overlayRenderedModel = null;
 
@@ -680,6 +686,33 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     }
 
     @Override
+    public void performAnimations(D data, String animatedEntityKey,
+                                  LivingEntityRenderer<E, M> renderer, float partialTicks)
+    {
+        if (data.externalPoseAdopted)
+        {
+            data.externalPoseAdopted = false;
+            clearAdoptedOffsets(data);
+        }
+
+        super.performAnimations(data, animatedEntityKey, renderer, partialTicks);
+    }
+
+    private static void clearAdoptedOffsets(BipedEntityData<?> data)
+    {
+        data.body.offset.set(0.0F, 0.0F, 0.0F);
+        data.head.offset.set(0.0F, 0.0F, 0.0F);
+        data.leftArm.offset.set(0.0F, 0.0F, 0.0F);
+        data.rightArm.offset.set(0.0F, 0.0F, 0.0F);
+        data.leftLeg.offset.set(0.0F, 0.0F, 0.0F);
+        data.rightLeg.offset.set(0.0F, 0.0F, 0.0F);
+        data.leftForeArm.offset.set(0.0F, 0.0F, 0.0F);
+        data.rightForeArm.offset.set(0.0F, 0.0F, 0.0F);
+        data.leftForeLeg.offset.set(0.0F, 0.0F, 0.0F);
+        data.rightForeLeg.offset.set(0.0F, 0.0F, 0.0F);
+    }
+
+    @Override
     public void syncUpWithData(D data)
     {
         goblinbob.mobends.compat.PlayerAnimationLibCompat.applyToPose(
@@ -704,6 +737,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected void resolveAdaptivePivots()
     {
         if (adaptiveGeometry == null || adaptivePivotsResolved)
+        {
+            return;
+        }
+
+        if (goblinbob.mobends.compat.EssentialCompat.isPlayingEmote(MoBendsRenderContext.getCurrentEntity()))
         {
             return;
         }
@@ -878,6 +916,12 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
 
         goblinbob.mobends.compat.NotEnoughAnimationsCompat.applyArmPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.WatutCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.EssentialCompat.applyEmotePose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 
@@ -1470,6 +1514,168 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             model.hat.yRot = model.head.yRot;
             model.hat.zRot = model.head.zRot;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public BipedEntityData<?> getRenderData()
+    {
+        final LivingEntity entity = MoBendsRenderContext.getCurrentEntity();
+        if (entity == null) return null;
+
+        final Object data = goblinbob.mobends.core.data.EntityDatabase.instance.get(entity);
+        return data instanceof BipedEntityData<?> bipedData ? bipedData : null;
+    }
+
+    public void adoptPoseFromVanillaModel(HumanoidModel<?> model, float[] restLeftLegPivot, float[] restRightLegPivot)
+    {
+        if (model == null || body == null) return;
+
+        final BipedEntityData<?> data = getRenderData();
+
+        readModelRotation(model.body, adoptedBodyRotation);
+
+        float[] neck = rotateVectorByQuaternion(adoptedBodyRotation, 0.0F, -12.0F, 0.0F, scratchVec);
+        final float bodyPivotX = model.body.x - neck[0];
+        final float bodyPivotY = model.body.y - neck[1];
+        final float bodyPivotZ = model.body.z - neck[2];
+
+        applyAdoptedRotation(body, data == null ? null : data.body, adoptedBodyRotation);
+        solveOffset(body, bodyPivotX - body.globalOffset.x,
+                bodyPivotY - body.globalOffset.y,
+                bodyPivotZ - body.globalOffset.z);
+        if (data != null)
+        {
+            solveOffset(data.body, bodyPivotX - data.body.globalOffset.x,
+                    bodyPivotY - data.body.globalOffset.y,
+                    bodyPivotZ - data.body.globalOffset.z);
+        }
+
+        adoptedParentInverse.set(-adoptedBodyRotation.x, -adoptedBodyRotation.y,
+                -adoptedBodyRotation.z, adoptedBodyRotation.w);
+
+        adoptBodyChild(head, data == null ? null : data.head, model.head, bodyPivotX, bodyPivotY, bodyPivotZ);
+        adoptBodyChild(leftArm, data == null ? null : data.leftArm, model.leftArm, bodyPivotX, bodyPivotY, bodyPivotZ);
+        adoptBodyChild(rightArm, data == null ? null : data.rightArm, model.rightArm, bodyPivotX, bodyPivotY, bodyPivotZ);
+
+        adoptRootPart(leftLeg, data == null ? null : data.leftLeg, model.leftLeg,
+                restLeftLegPivot != null ? restLeftLegPivot : vanillaLeftLegPos);
+        adoptRootPart(rightLeg, data == null ? null : data.rightLeg, model.rightLeg,
+                restRightLegPivot != null ? restRightLegPivot : vanillaRightLegPos);
+
+        straightenJoint(leftForeArm, data == null ? null : data.leftForeArm);
+        straightenJoint(rightForeArm, data == null ? null : data.rightForeArm);
+        straightenJoint(leftForeLeg, data == null ? null : data.leftForeLeg);
+        straightenJoint(rightForeLeg, data == null ? null : data.rightForeLeg);
+
+        if (data != null)
+        {
+            data.externalPoseAdopted = true;
+        }
+    }
+
+    public static void applyAdoptedRotation(BendsModelPart part, ModelPartTransform dataPart, Quaternion rotation)
+    {
+        if (part != null)
+        {
+            part.rotation.set(rotation.x, rotation.y, rotation.z, rotation.w);
+        }
+        if (dataPart != null)
+        {
+            dataPart.rotation.set(rotation.x, rotation.y, rotation.z, rotation.w);
+        }
+    }
+
+    private void adoptBodyChild(BendsModelPart child, ModelPartTransform dataChild, ModelPart modelPart,
+                                float bodyPivotX, float bodyPivotY, float bodyPivotZ)
+    {
+        if (child == null || modelPart == null) return;
+
+        readModelRotation(modelPart, adoptedRotation);
+        Quaternion.mul(adoptedParentInverse, adoptedRotation, scratchRotation);
+        applyAdoptedRotation(child, dataChild, scratchRotation);
+
+        float[] local = rotateVectorByQuaternion(adoptedParentInverse,
+                modelPart.x - bodyPivotX, modelPart.y - bodyPivotY, modelPart.z - bodyPivotZ, scratchPivot);
+
+        solveOffset(child, local[0] - child.globalOffset.x,
+                local[1] - child.globalOffset.y,
+                local[2] - child.globalOffset.z);
+
+        if (dataChild != null)
+        {
+            solveOffset(dataChild, local[0] - dataChild.globalOffset.x,
+                    local[1] - dataChild.globalOffset.y,
+                    local[2] - dataChild.globalOffset.z);
+        }
+    }
+
+    private void adoptRootPart(BendsModelPart part, ModelPartTransform dataPart, ModelPart modelPart, float[] restPivot)
+    {
+        if (part == null || modelPart == null) return;
+
+        readModelRotation(modelPart, adoptedRotation);
+        applyAdoptedRotation(part, dataPart, adoptedRotation);
+
+        if (restPivot != null)
+        {
+            final float dx = modelPart.x - restPivot[0];
+            final float dy = modelPart.y - restPivot[1];
+            final float dz = modelPart.z - restPivot[2];
+
+            part.offset.set(dx, dy, dz);
+            if (dataPart != null)
+            {
+                dataPart.offset.set(dx, dy, dz);
+            }
+        }
+    }
+
+    public static void straightenJoint(BendsModelPart part, ModelPartTransform dataPart)
+    {
+        if (part != null)
+        {
+            part.rotation.identity();
+            part.offset.set(0.0F, 0.0F, 0.0F);
+        }
+        if (dataPart != null)
+        {
+            dataPart.rotation.identity();
+            dataPart.offset.set(0.0F, 0.0F, 0.0F);
+        }
+    }
+
+    private static void solveOffset(BendsModelPart part, float localX, float localY, float localZ)
+    {
+        solveOffset(part.offset, part.position, part.offsetScale, localX, localY, localZ);
+    }
+
+    private static void solveOffset(ModelPartTransform part, float localX, float localY, float localZ)
+    {
+        solveOffset(part.offset, part.position, part.offsetScale, localX, localY, localZ);
+    }
+
+    private static void solveOffset(goblinbob.mobends.lib.math.vector.Vec3f offset,
+                                    goblinbob.mobends.lib.math.vector.Vec3f position,
+                                    float offsetScale, float localX, float localY, float localZ)
+    {
+        if (offsetScale == 0.0F)
+        {
+            offset.set(0.0F, 0.0F, 0.0F);
+            return;
+        }
+
+        offset.set(localX / offsetScale - position.x,
+                localY / offsetScale - position.y,
+                localZ / offsetScale - position.z);
+    }
+
+    private void readModelRotation(ModelPart modelPart, Quaternion dest)
+    {
+        adoptedOrientation
+                .orientInstantX((float) Math.toDegrees(modelPart.xRot))
+                .rotateInstantY((float) Math.toDegrees(modelPart.yRot))
+                .rotateInstantZ((float) Math.toDegrees(modelPart.zRot));
+        dest.set(adoptedOrientation.getSmooth());
     }
 
     public void restoreVanillaPivots(HumanoidModel<?> model)

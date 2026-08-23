@@ -22,6 +22,8 @@
   "mobends.gui.config.show_arrow_trail.desc": "Show the trail when arrows are travelling",
   "mobends.gui.config.arrow_trail_full_bright": "Arrow Trail Full Bright",
   "mobends.gui.config.arrow_trail_full_bright.desc": "Arrow trail does not respect lighting conditions.",
+  "mobends.gui.config.trident_trail": "Trident Trail",
+  "mobends.gui.config.trident_trail.desc": "Allow the Trident to have a trail",
   "mobends.gui.config.new_enchant_glint": "Upscale Armor Enchant Glint",
   "mobends.gui.config.new_enchant_glint.desc": "Upscale the enchant glint texture for armor. This was originally a bug, but I thought it was cool, so I made it a feature.",
   "mobends.gui.config.disable_spin_swing": "Disable Spin Swing",
