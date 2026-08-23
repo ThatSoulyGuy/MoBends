@@ -44,7 +44,7 @@ public class UnaryOpNode implements ExpressionNode {
     public ExpressionNode optimize() {
         ExpressionNode optimized = operand.optimize();
         if (optimized.isConstant()) {
-            return new LiteralNode(new UnaryOpNode(operator, optimized).evaluate(null));
+            return new LiteralNode(new UnaryOpNode(operator, optimized).evaluate(ExpressionContext.CONSTANT_FOLDING));
         }
         if (optimized != operand) {
             return new UnaryOpNode(operator, optimized);

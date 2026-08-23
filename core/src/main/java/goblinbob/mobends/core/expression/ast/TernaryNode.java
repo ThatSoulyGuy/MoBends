@@ -34,7 +34,7 @@ public class TernaryNode implements ExpressionNode {
         ExpressionNode optimizedElse = elseBranch.optimize();
 
         if (optimizedCondition.isConstant()) {
-            if (optimizedCondition.evaluate(null) != 0.0) {
+            if (optimizedCondition.evaluate(ExpressionContext.CONSTANT_FOLDING) != 0.0) {
                 return optimizedThen;
             } else {
                 return optimizedElse;

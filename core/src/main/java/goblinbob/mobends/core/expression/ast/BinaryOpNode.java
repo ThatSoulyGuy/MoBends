@@ -1,6 +1,7 @@
 package goblinbob.mobends.core.expression.ast;
 
 import goblinbob.mobends.core.expression.ExpressionContext;
+import goblinbob.mobends.core.expression.ExpressionMath;
 
 public class BinaryOpNode implements ExpressionNode {
     private final ExpressionNode left;
@@ -60,8 +61,8 @@ public class BinaryOpNode implements ExpressionNode {
             case ADD -> leftVal + rightVal;
             case SUBTRACT -> leftVal - rightVal;
             case MULTIPLY -> leftVal * rightVal;
-            case DIVIDE -> rightVal != 0.0 ? leftVal / rightVal : 0.0;
-            case MODULO -> rightVal != 0.0 ? leftVal % rightVal : 0.0;
+            case DIVIDE -> ExpressionMath.safeDivide(leftVal, rightVal);
+            case MODULO -> ExpressionMath.safeModulo(leftVal, rightVal);
             case POWER -> Math.pow(leftVal, rightVal);
             case LESS_THAN -> leftVal < rightVal ? 1.0 : 0.0;
             case GREATER_THAN -> leftVal > rightVal ? 1.0 : 0.0;
@@ -84,7 +85,7 @@ public class BinaryOpNode implements ExpressionNode {
         ExpressionNode optimizedRight = right.optimize();
 
         if (optimizedLeft.isConstant() && optimizedRight.isConstant()) {
-            return new LiteralNode(new BinaryOpNode(optimizedLeft, operator, optimizedRight).evaluate(null));
+            return new LiteralNode(new BinaryOpNode(optimizedLeft, operator, optimizedRight).evaluate(ExpressionContext.CONSTANT_FOLDING));
         }
 
         if (optimizedLeft != left || optimizedRight != right) {

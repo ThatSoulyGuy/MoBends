@@ -55,7 +55,7 @@ public class FunctionCallNode implements ExpressionNode {
         }
 
         if (allConstant) {
-            return new LiteralNode(new FunctionCallNode(functionName, optimizedArgs).evaluate(null));
+            return new LiteralNode(new FunctionCallNode(functionName, optimizedArgs).evaluate(ExpressionContext.CONSTANT_FOLDING));
         }
 
         boolean changed = false;
