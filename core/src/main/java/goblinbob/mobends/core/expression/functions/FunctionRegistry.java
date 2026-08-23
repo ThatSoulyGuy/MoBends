@@ -1,6 +1,7 @@
 package goblinbob.mobends.core.expression.functions;
 
 import goblinbob.mobends.core.expression.ExpressionException;
+import goblinbob.mobends.core.expression.ExpressionMath;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,7 +73,7 @@ public final class FunctionRegistry {
         }));
         register("sign", ExpressionFunction.of(1, args -> Math.signum(args[0])));
         register("frac", ExpressionFunction.of(1, args -> args[0] - Math.floor(args[0])));
-        register("mod", ExpressionFunction.of(2, args -> args[1] != 0 ? args[0] % args[1] : 0.0));
+        register("mod", ExpressionFunction.of(2, args -> ExpressionMath.safeModulo(args[0], args[1])));
 
         register("random", ExpressionFunction.impure(0, 2, args -> {
             if (args.length == 0) {
@@ -97,6 +98,10 @@ public final class FunctionRegistry {
         register("degToRad", ExpressionFunction.of(1, args -> Math.toRadians(args[0])));
         register("radToDeg", ExpressionFunction.of(1, args -> Math.toDegrees(args[0])));
 
+        // ExpressionParser lowers if(...) to a TernaryNode so it short-circuits, so this lambda
+        // is never invoked. The registration still has to exist: the parser resolves the name
+        // here to validate that "if" is a known function and that it was given exactly 3
+        // arguments. Do not delete it as dead code.
         register("if", ExpressionFunction.of(3, args -> args[0] != 0.0 ? args[1] : args[2]));
 
         register("step", ExpressionFunction.of(2, args -> args[1] >= args[0] ? 1.0 : 0.0));
