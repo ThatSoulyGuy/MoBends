@@ -169,11 +169,23 @@ public class KeyframeLayerState implements ILayerState
         }
     }
 
+    /**
+     * Reads a keyframe, clamping a past-the-end index to the final keyframe.
+     *
+     * <p>The clamp is what lets a non-looping node run all the way to its last frame: at that
+     * point {@code frameB} is one past the end, and returning null there would leave the bone
+     * unwritten for that frame, so it would snap back to the rest pose instead of holding its
+     * authored final pose. Clamping makes the tween degenerate to the last keyframe.
+     */
     private static Keyframe frameAt(java.util.List<Keyframe> keyframes, int index)
     {
-        if (keyframes == null || index < 0 || index >= keyframes.size())
+        if (keyframes == null || keyframes.isEmpty() || index < 0)
         {
             return null;
+        }
+        if (index >= keyframes.size())
+        {
+            return keyframes.get(keyframes.size() - 1);
         }
         return keyframes.get(index);
     }
