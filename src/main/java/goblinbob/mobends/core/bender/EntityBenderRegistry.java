@@ -66,6 +66,9 @@ public class EntityBenderRegistry
             if (ModConfig.shouldKeepEntityAsVanilla(entity))
                 return null;
 
+            if (goblinbob.mobends.api.animation.MoBendsAnimationControl.isExcluded(entity))
+                return null;
+
             Class<? extends LivingEntity> entityClass = entity.getClass();
             for (EntityBender<?> entityBender : entityClassToBenderMap.values())
                 if (entityBender.entityClass.equals(entityClass))

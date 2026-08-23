@@ -1,6 +1,6 @@
 package goblinbob.mobends.neoforge.platform;
 
-import goblinbob.mobends.api.armor.IArmorTextureProvider;
+import goblinbob.mobends.platform.armor.IArmorTextureProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;

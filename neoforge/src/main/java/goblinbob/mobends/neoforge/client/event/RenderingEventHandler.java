@@ -1,7 +1,7 @@
 package goblinbob.mobends.neoforge.client.event;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import goblinbob.mobends.core.addon.Addons;
+import goblinbob.mobends.api.addon.Addons;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.MoBendsRenderContext;

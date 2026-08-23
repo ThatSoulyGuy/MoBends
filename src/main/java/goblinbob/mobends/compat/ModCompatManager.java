@@ -1,5 +1,8 @@
 package goblinbob.mobends.compat;
 
+import goblinbob.mobends.api.animation.MoBendsAnimationControl;
+import net.minecraft.world.entity.LivingEntity;
+
 public class ModCompatManager
 {
     private static boolean initialized = false;
@@ -37,26 +40,34 @@ public class ModCompatManager
         EssentialCompat.init();
 
         ParCoolCompat.init();
+
+        ThirdPartyPoseCompat.init();
+
+        registerBuiltInAnimationControl();
     }
 
-    public static boolean isExternallyPosed(net.minecraft.world.entity.LivingEntity entity)
+    private static void registerBuiltInAnimationControl()
     {
-        return EssentialCompat.isPlayingEmote(entity) || ParCoolCompat.isAnimating(entity);
+        MoBendsAnimationControl.registerPoseOverride("essential", EssentialCompat::isPlayingEmote);
+        MoBendsAnimationControl.registerPoseOverride("parcool", ParCoolCompat::isAnimating);
+
+        MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
+
+        MoBendsAnimationControl.registerExternalAnimation("playeranimator", PlayerAnimationLibCompat::hasActiveAnimation);
     }
 
-    public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)
+    public static boolean isExternallyPosed(LivingEntity entity)
     {
-        if (PhysicsModCompat.hasActivePhysics(entity))
-            return true;
-
-        if (ThirdPartyPoseCompat.shouldYieldToHeldItem(entity))
-            return true;
-
-        return false;
+        return MoBendsAnimationControl.isPoseOverridden(entity);
     }
 
-    public static boolean hasExternalAnimation(net.minecraft.world.entity.LivingEntity entity)
+    public static boolean shouldDeferAnimation(LivingEntity entity)
     {
-        return PlayerAnimationLibCompat.hasActiveAnimation(entity);
+        return MoBendsAnimationControl.isAnimationDeferred(entity);
+    }
+
+    public static boolean hasExternalAnimation(LivingEntity entity)
+    {
+        return MoBendsAnimationControl.hasExternalAnimation(entity);
     }
 }

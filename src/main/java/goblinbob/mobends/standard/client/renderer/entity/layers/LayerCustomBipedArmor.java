@@ -2,9 +2,9 @@ package goblinbob.mobends.standard.client.renderer.entity.layers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import goblinbob.mobends.api.armor.ArmorModelProviderHolder;
+import goblinbob.mobends.platform.armor.ArmorModelProviderHolder;
 import goblinbob.mobends.api.rendering.IArmorLayerProvider;
-import goblinbob.mobends.api.armor.IArmorTextureProvider;
+import goblinbob.mobends.platform.armor.IArmorTextureProvider;
 import goblinbob.mobends.api.rendering.IArmorHelper;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
 import goblinbob.mobends.core.data.EntityData;

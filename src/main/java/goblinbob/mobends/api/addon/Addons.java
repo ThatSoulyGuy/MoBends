@@ -1,0 +1,48 @@
+package goblinbob.mobends.api.addon;
+
+import goblinbob.mobends.core.Core;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Addons
+{
+
+    private static final Addons INSTANCE = new Addons();
+
+    private final List<IAddon> addons = new ArrayList<>();
+
+    public static void registerAddon(String modId, IAddon addon)
+    {
+        if (INSTANCE.addons.contains(addon))
+            return;
+
+        INSTANCE.addons.add(addon);
+
+        if (Core.getInstance() != null)
+        {
+            addon.registerContent(new AddonAnimationRegistry(modId));
+        }
+    }
+
+    public static Iterable<IAddon> getRegistered()
+    {
+        return INSTANCE.addons;
+    }
+
+    public static void onRenderTick(float partialTicks)
+    {
+        INSTANCE.addons.forEach(addon -> addon.onRenderTick(partialTicks));
+    }
+
+    public static void onClientTick()
+    {
+        INSTANCE.addons.forEach(IAddon::onClientTick);
+    }
+
+    public static void onRefresh()
+    {
+        INSTANCE.addons.forEach(IAddon::onRefresh);
+    }
+
+}

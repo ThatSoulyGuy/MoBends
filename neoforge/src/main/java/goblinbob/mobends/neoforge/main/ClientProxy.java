@@ -1,7 +1,7 @@
 package goblinbob.mobends.neoforge.main;
 
 import goblinbob.mobends.neoforge.CoreClient;
-import goblinbob.mobends.core.addon.AddonHelper;
+import goblinbob.mobends.api.addon.AddonHelper;
 import goblinbob.mobends.neoforge.NeoForgeAddon;
 import goblinbob.mobends.neoforge.client.event.RenderingEventHandler;
 import goblinbob.mobends.standard.main.ModStatics;

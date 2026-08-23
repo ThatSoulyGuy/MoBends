@@ -1,18 +1,15 @@
 package goblinbob.mobends.compat;
 
+import goblinbob.mobends.api.animation.MoBendsAnimationControl;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 public final class ThirdPartyPoseCompat
 {
-    private static final Set<String> SELF_POSING_MODS = Collections.synchronizedSet(new HashSet<>(Set.of(
+    private static final String[] DEFAULT_SELF_POSING_MODS = {
             "tacz",
             "cgm",
             "cgs",
@@ -26,23 +23,28 @@ public final class ThirdPartyPoseCompat
             "stabxmodernguns",
             "scguns",
             "lrtactical"
-    )));
+    };
+
+    private static boolean initialized = false;
 
     private ThirdPartyPoseCompat()
     {
     }
 
-    public static void register(String modId)
+    public static void init()
     {
-        if (modId != null && !modId.isEmpty())
+        if (initialized)
         {
-            SELF_POSING_MODS.add(modId);
+            return;
         }
-    }
+        initialized = true;
 
-    public static boolean isSelfPosingMod(String modId)
-    {
-        return SELF_POSING_MODS.contains(modId);
+        for (final String modId : DEFAULT_SELF_POSING_MODS)
+        {
+            MoBendsAnimationControl.registerSelfPosingMod(modId);
+        }
+
+        MoBendsAnimationControl.registerAnimationDeferral("mobends", ThirdPartyPoseCompat::shouldYieldToHeldItem);
     }
 
     public static boolean shouldYieldToHeldItem(LivingEntity entity)
@@ -64,6 +66,6 @@ public final class ThirdPartyPoseCompat
         }
 
         final ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return id != null && SELF_POSING_MODS.contains(id.getNamespace());
+        return id != null && MoBendsAnimationControl.isSelfPosingMod(id.getNamespace());
     }
 }

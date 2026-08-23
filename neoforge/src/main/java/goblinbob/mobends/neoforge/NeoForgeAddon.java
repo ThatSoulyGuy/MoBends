@@ -1,6 +1,6 @@
 package goblinbob.mobends.neoforge;
 
-import goblinbob.mobends.core.addon.AddonAnimationRegistry;
+import goblinbob.mobends.api.addon.AddonAnimationRegistry;
 import goblinbob.mobends.standard.DefaultAddon;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.BipedRenderer;
 import goblinbob.mobends.standard.data.SkeletonData;

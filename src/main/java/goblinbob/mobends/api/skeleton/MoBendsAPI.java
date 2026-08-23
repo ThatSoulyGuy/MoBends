@@ -2,6 +2,8 @@ package goblinbob.mobends.api.skeleton;
 
 import net.minecraft.world.entity.LivingEntity;
 
+import javax.annotation.Nullable;
+
 public final class MoBendsAPI
 {
     private static ISkeletonProvider provider;
@@ -25,11 +27,13 @@ public final class MoBendsAPI
         return provider != null && provider.isAnimated(entity);
     }
 
+    @Nullable
     public static IAnimatedSkeleton getSkeleton(LivingEntity entity)
     {
         return provider != null ? provider.getSkeleton(entity) : null;
     }
 
+    @Nullable
     public static IAnimatedSkeleton getRenderingSkeleton()
     {
         return provider != null ? provider.getRenderingSkeleton() : null;

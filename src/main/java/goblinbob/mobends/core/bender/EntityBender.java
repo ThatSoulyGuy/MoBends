@@ -135,6 +135,7 @@ public abstract class EntityBender<T extends LivingEntity>
     public void beforeRender(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
     {
         this.renderer.beforeRender(data, entity, partialTicks, poseStack);
+        goblinbob.mobends.api.event.MoBendsPoseEvents.dispatch(entity, partialTicks);
     }
 
     public void afterRender(T entity, float partialTicks, PoseStack poseStack)

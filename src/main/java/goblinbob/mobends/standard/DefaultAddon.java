@@ -1,7 +1,7 @@
 package goblinbob.mobends.standard;
 
-import goblinbob.mobends.core.addon.AddonAnimationRegistry;
-import goblinbob.mobends.core.addon.IAddon;
+import goblinbob.mobends.api.addon.AddonAnimationRegistry;
+import goblinbob.mobends.api.addon.IAddon;
 import goblinbob.mobends.standard.client.model.armor.ArmorModelFactory;
 import goblinbob.mobends.standard.client.renderer.entity.ArrowTrailManager;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.*;
