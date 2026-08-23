@@ -977,6 +977,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
         else
         {
+            java.util.List<goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.Layer> extendedLayers =
+                    resolveExtendedArmorLayers(armorItem, slot);
+
+            if (!extendedLayers.isEmpty())
+            {
+                renderExtendedArmorLayers(poseStack, bufferSource, packedLight, entity,
+                        armorModel, slot, itemStack, bipedData, extendedLayers);
+                return;
+            }
+
             ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
             if (texture == null)
             {
@@ -998,21 +1008,15 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
             renderArmorOverlayPass(poseStack, bufferSource, packedLight, entity, armorItem,
                     armorModel, slot, itemStack, bipedData);
-
-            renderExtendedArmorLayers(poseStack, bufferSource, packedLight, entity, armorItem,
-                    armorModel, slot, itemStack, bipedData);
-
         }
     }
 
-    private void renderExtendedArmorLayers(PoseStack poseStack, MultiBufferSource bufferSource,
-                                           int packedLight, E entity, ArmorItem armorItem,
-                                           Model armorModel, EquipmentSlot slot,
-                                           ItemStack itemStack, BipedEntityData<?> bipedData)
+    private java.util.List<goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.Layer>
+        resolveExtendedArmorLayers(ArmorItem armorItem, EquipmentSlot slot)
     {
         if (!goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.isAvailable())
         {
-            return;
+            return java.util.Collections.emptyList();
         }
 
         IArmorHelper helper = IArmorHelper.Holder.getHelper();
@@ -1020,7 +1024,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         if (materialName == null)
         {
-            return;
+            return java.util.Collections.emptyList();
         }
 
         int colonIndex = materialName.indexOf(':');
@@ -1029,15 +1033,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             materialName = materialName.substring(colonIndex + 1);
         }
 
-        java.util.List<goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.Layer> layers =
-                goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.getLayers(
-                        armorItem, slot, materialName);
+        return goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.getLayers(
+                armorItem, slot, materialName);
+    }
 
-        if (layers.isEmpty())
-        {
-            return;
-        }
-
+    private void renderExtendedArmorLayers(PoseStack poseStack, MultiBufferSource bufferSource,
+                                           int packedLight, E entity,
+                                           Model armorModel, EquipmentSlot slot,
+                                           ItemStack itemStack, BipedEntityData<?> bipedData,
+                                           java.util.List<goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.Layer> layers)
+    {
         goblinbob.mobends.api.rendering.IArmorColorProvider colorProvider =
                 goblinbob.mobends.api.rendering.IArmorColorProvider.Holder.getProvider();
 
