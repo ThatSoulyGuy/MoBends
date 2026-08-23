@@ -1,18 +1,18 @@
 package goblinbob.mobends.core.kumo.state;
 
-import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.lib.data.IEntityAnimationData;
 
 public class KumoContext implements IKumoContext
 {
 
-    public EntityData<?> entityData;
+    public IEntityAnimationData entityData;
 
     public ILayerState layerState;
 
     public INodeState currentNode;
 
     @Override
-    public EntityData<?> getEntityData()
+    public IEntityAnimationData getEntityData()
     {
         return entityData;
     }

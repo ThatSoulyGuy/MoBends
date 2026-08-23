@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.kumo.state.condition;
 
-import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.lib.data.IEntityAnimationData;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 
@@ -22,7 +22,7 @@ public class StateCondition implements ITriggerCondition
     @Override
     public boolean isConditionMet(ITriggerConditionContext context)
     {
-        EntityData<?> entityData = context.getEntityData();
+        IEntityAnimationData entityData = context.getEntityData();
 
         switch (this.state)
         {
@@ -31,7 +31,7 @@ public class StateCondition implements ITriggerCondition
             case AIRBORNE:
                 return !entityData.isOnGround();
             case SPRINTING:
-                return entityData.getEntity().isSprinting();
+                return entityData.isSprinting();
             case STANDING_STILL:
                 return entityData.isStillHorizontally();
             case MOVING_HORIZONTALLY:

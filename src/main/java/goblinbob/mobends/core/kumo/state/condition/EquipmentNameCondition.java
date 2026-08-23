@@ -1,5 +1,6 @@
 package goblinbob.mobends.core.kumo.state.condition;
 
+import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -21,7 +22,15 @@ public class EquipmentNameCondition implements ITriggerCondition
     @Override
     public boolean isConditionMet(ITriggerConditionContext context)
     {
-        Entity entity = context.getEntityData().getEntity();
+        // This condition stays on the mod side of the Kumo split precisely because it reads item
+        // stacks out of equipment slots. The context hands back the loader-independent interface,
+        // so narrow to the concrete data type to reach the backing entity.
+        if (!(context.getEntityData() instanceof EntityData<?> entityData))
+        {
+            return false;
+        }
+
+        Entity entity = entityData.getEntity();
 
         if (entity instanceof Player)
         {

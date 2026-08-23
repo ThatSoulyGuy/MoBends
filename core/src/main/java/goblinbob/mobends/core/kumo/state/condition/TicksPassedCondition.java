@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.kumo.state.condition;
 
-import goblinbob.mobends.core.client.event.DataUpdateHandler;
+import goblinbob.mobends.lib.time.ITickSource;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 
 public class TicksPassedCondition implements ITriggerCondition
@@ -17,13 +17,13 @@ public class TicksPassedCondition implements ITriggerCondition
     @Override
     public void onNodeStarted(ITriggerConditionContext context)
     {
-        this.ticksOnStart = DataUpdateHandler.getTicks();
+        this.ticksOnStart = ITickSource.Holder.getTicks();
     }
 
     @Override
     public boolean isConditionMet(ITriggerConditionContext context)
     {
-        return DataUpdateHandler.getTicks() > this.ticksOnStart + this.ticksToPass;
+        return ITickSource.Holder.getTicks() > this.ticksOnStart + this.ticksToPass;
     }
 
     public static class Template extends TriggerConditionTemplate

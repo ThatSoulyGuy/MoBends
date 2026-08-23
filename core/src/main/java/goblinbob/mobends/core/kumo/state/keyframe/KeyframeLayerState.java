@@ -4,8 +4,8 @@ import goblinbob.mobends.lib.animation.keyframe.ArmatureMask;
 import goblinbob.mobends.lib.animation.keyframe.Bone;
 import goblinbob.mobends.lib.animation.keyframe.Keyframe;
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
-import goblinbob.mobends.core.client.model.IModelPart;
-import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.lib.client.model.IAnimatedPart;
+import goblinbob.mobends.lib.data.IEntityAnimationData;
 import goblinbob.mobends.core.kumo.state.*;
 import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
@@ -63,7 +63,7 @@ public class KeyframeLayerState implements ILayerState
     @Override
     public void update(IKumoContext context, float deltaTime) throws MalformedKumoTemplateException
     {
-        final EntityData<?> data = context.getEntityData();
+        final IEntityAnimationData data = context.getEntityData();
 
         if (currentNode != null)
         {
@@ -139,17 +139,17 @@ public class KeyframeLayerState implements ILayerState
         }
     }
 
-    public void applyRestPose(EntityData<?> entityData, KeyframeAnimation animation)
+    public void applyRestPose(IEntityAnimationData entityData, KeyframeAnimation animation)
     {
         if (shouldPartBeAffected("root") && animation.bones.containsKey("root"))
         {
-            entityData.globalOffset.set(0, 0, 0);
+            entityData.getGlobalOffset().set(0, 0, 0);
         }
 
         if ((shouldPartBeAffected("root") && animation.bones.containsKey("root")) ||
             (shouldPartBeAffected("centerRotation") && animation.bones.containsKey("centerRotation")))
         {
-            entityData.centerRotation.set(0F, 0F, 0F, 0F);
+            entityData.getCenterRotation().set(0F, 0F, 0F, 0F);
         }
 
         for (Map.Entry<String, Bone> entry : animation.bones.entrySet())
@@ -160,10 +160,10 @@ public class KeyframeLayerState implements ILayerState
             {
                 Object part = entityData.getPartForName(key);
 
-                if (part instanceof IModelPart)
+                if (part instanceof IAnimatedPart)
                 {
-                    ((IModelPart) part).getRotation().set(0F, 0F, 0F, 0F);
-                    ((IModelPart) part).getOffset().set(0F, 0F, 0F);
+                    ((IAnimatedPart) part).getRotation().set(0F, 0F, 0F, 0F);
+                    ((IAnimatedPart) part).getOffset().set(0F, 0F, 0F);
                 }
             }
         }
@@ -178,7 +178,7 @@ public class KeyframeLayerState implements ILayerState
         return keyframes.get(index);
     }
 
-    public void applyKeyframeAnimation(EntityData<?> entityData, KeyframeAnimation animation, float keyframeIndex, float amount)
+    public void applyKeyframeAnimation(IEntityAnimationData entityData, KeyframeAnimation animation, float keyframeIndex, float amount)
     {
         final int frameA = (int) keyframeIndex;
         final int frameB = (int) keyframeIndex + 1;
@@ -192,7 +192,7 @@ public class KeyframeLayerState implements ILayerState
 
             if (keyframe != null && nextFrame != null)
             {
-                KeyframeUtils.tweenVectorAdditive(entityData.globalOffset, keyframe.position, nextFrame.position, tween, amount);
+                KeyframeUtils.tweenVectorAdditive(entityData.getGlobalOffset(), keyframe.position, nextFrame.position, tween, amount);
             }
         }
 
@@ -204,8 +204,8 @@ public class KeyframeLayerState implements ILayerState
 
             if (keyframe != null && nextFrame != null)
             {
-                KeyframeUtils.tweenOrientationAdditive(entityData.centerRotation, keyframe.rotation, nextFrame.rotation, tween, amount);
-                KeyframeUtils.tweenVectorAdditive(entityData.globalOffset, keyframe.position, nextFrame.position, tween, amount);
+                KeyframeUtils.tweenOrientationAdditive(entityData.getCenterRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
+                KeyframeUtils.tweenVectorAdditive(entityData.getGlobalOffset(), keyframe.position, nextFrame.position, tween, amount);
             }
         }
 
@@ -225,10 +225,10 @@ public class KeyframeLayerState implements ILayerState
 
                     if (keyframe != null && nextFrame != null)
                     {
-                        if (part instanceof IModelPart)
+                        if (part instanceof IAnimatedPart)
                         {
-                            KeyframeUtils.tweenOrientationAdditive(((IModelPart) part).getRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
-                            KeyframeUtils.tweenVectorAdditive(((IModelPart) part).getOffset(), keyframe.position, nextFrame.position, tween, -amount);
+                            KeyframeUtils.tweenOrientationAdditive(((IAnimatedPart) part).getRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
+                            KeyframeUtils.tweenVectorAdditive(((IAnimatedPart) part).getOffset(), keyframe.position, nextFrame.position, tween, -amount);
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.kumo.state;
 
-import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.lib.data.IEntityAnimationData;
 import goblinbob.mobends.core.kumo.state.template.AnimatorTemplate;
 import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.template.LayerTemplate;
@@ -9,7 +9,7 @@ import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException
 import java.util.ArrayList;
 import java.util.List;
 
-public class KumoAnimatorState<D extends EntityData<?>>
+public class KumoAnimatorState<D extends IEntityAnimationData>
 {
 
     private List<ILayerState> layerStates = new ArrayList<>();

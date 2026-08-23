@@ -2,7 +2,7 @@ package goblinbob.mobends.core.kumo.state.keyframe;
 
 import goblinbob.mobends.lib.animation.keyframe.Bone;
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
-import goblinbob.mobends.core.data.LivingEntityData;
+import goblinbob.mobends.lib.data.ILivingEntityAnimationData;
 import goblinbob.mobends.core.kumo.state.ConnectionState;
 import goblinbob.mobends.core.kumo.state.IKumoContext;
 import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
@@ -101,13 +101,13 @@ public class MovementKeyframeNode implements INodeState
     @Override
     public void update(IKumoContext context, float deltaTime)
     {
-        LivingEntityData<?> data = (LivingEntityData<?>) context.getEntityData();
+        ILivingEntityAnimationData data = (ILivingEntityAnimationData) context.getEntityData();
 
         if (animation != null)
         {
             final float PI = (float) Math.PI;
-            float limbSwing = data.limbSwing.get() * 0.6662F;
-            float limbSwingAmount = data.limbSwingAmount.get() * 0.5F / PI * 180F;
+            float limbSwing = data.getLimbSwing() * 0.6662F;
+            float limbSwingAmount = data.getLimbSwingAmount() * 0.5F / PI * 180F;
 
             if (limbSwing < 0)
             {

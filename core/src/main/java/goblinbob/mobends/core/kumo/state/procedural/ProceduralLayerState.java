@@ -1,11 +1,11 @@
 package goblinbob.mobends.core.kumo.state.procedural;
 
-import com.mojang.logging.LogUtils;
+import org.slf4j.LoggerFactory;
 import goblinbob.mobends.lib.animation.keyframe.ArmatureMask;
 import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.lib.math.vector.IVec3f;
-import goblinbob.mobends.core.client.model.IModelPart;
-import goblinbob.mobends.core.data.EntityData;
+import goblinbob.mobends.lib.client.model.IAnimatedPart;
+import goblinbob.mobends.lib.data.IEntityAnimationData;
 import goblinbob.mobends.core.expression.ExpressionContext;
 import goblinbob.mobends.core.expression.ExpressionException;
 import goblinbob.mobends.core.kumo.KumoExpressionContext;
@@ -24,7 +24,7 @@ import java.util.HashSet;
 
 public class ProceduralLayerState implements ILayerState
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProceduralLayerState.class);
 
     private final Map<String, CompiledBoneExpression> compiledBones;
     private final ArmatureMask mask;
@@ -65,7 +65,7 @@ public class ProceduralLayerState implements ILayerState
     @Override
     public void update(IKumoContext context, float deltaTime) throws MalformedKumoTemplateException
     {
-        EntityData<?> entityData = context.getEntityData();
+        IEntityAnimationData entityData = context.getEntityData();
         ExpressionContext exprContext = new KumoExpressionContext(entityData);
 
         for (Map.Entry<String, CompiledBoneExpression> entry : compiledBones.entrySet())
@@ -91,7 +91,7 @@ public class ProceduralLayerState implements ILayerState
                 continue;
             }
 
-            if (partObj instanceof IModelPart part)
+            if (partObj instanceof IAnimatedPart part)
             {
                 applyBoneTransform(part, bone, exprContext);
             }
@@ -103,7 +103,7 @@ public class ProceduralLayerState implements ILayerState
         }
     }
 
-    private void applyBoneTransform(IModelPart part, CompiledBoneExpression bone, ExpressionContext context)
+    private void applyBoneTransform(IAnimatedPart part, CompiledBoneExpression bone, ExpressionContext context)
     {
         SmoothOrientation rotation = part.getRotation();
         IVec3f offset = part.getOffset();
@@ -159,7 +159,7 @@ public class ProceduralLayerState implements ILayerState
         }
     }
 
-    private void applyRootBone(EntityData<?> entityData, CompiledBoneExpression bone, ExpressionContext context)
+    private void applyRootBone(IEntityAnimationData entityData, CompiledBoneExpression bone, ExpressionContext context)
     {
         if (bone.hasOffset())
         {
@@ -169,22 +169,22 @@ public class ProceduralLayerState implements ILayerState
 
             if (additive)
             {
-                entityData.globalOffset.set(
-                        entityData.globalOffset.getX() + offX,
-                        entityData.globalOffset.getY() + offY,
-                        entityData.globalOffset.getZ() + offZ
+                entityData.getGlobalOffset().set(
+                        entityData.getGlobalOffset().getX() + offX,
+                        entityData.getGlobalOffset().getY() + offY,
+                        entityData.getGlobalOffset().getZ() + offZ
                 );
             }
             else
             {
-                entityData.globalOffset.set(offX, offY, offZ);
+                entityData.getGlobalOffset().set(offX, offY, offZ);
             }
         }
     }
 
-    private void applyCenterRotation(EntityData<?> entityData, CompiledBoneExpression bone, ExpressionContext context)
+    private void applyCenterRotation(IEntityAnimationData entityData, CompiledBoneExpression bone, ExpressionContext context)
     {
-        SmoothOrientation rotation = entityData.centerRotation;
+        SmoothOrientation rotation = entityData.getCenterRotation();
 
         if (bone.hasRotation())
         {
@@ -224,15 +224,15 @@ public class ProceduralLayerState implements ILayerState
 
             if (additive)
             {
-                entityData.globalOffset.set(
-                        entityData.globalOffset.getX() + offX,
-                        entityData.globalOffset.getY() + offY,
-                        entityData.globalOffset.getZ() + offZ
+                entityData.getGlobalOffset().set(
+                        entityData.getGlobalOffset().getX() + offX,
+                        entityData.getGlobalOffset().getY() + offY,
+                        entityData.getGlobalOffset().getZ() + offZ
                 );
             }
             else
             {
-                entityData.globalOffset.set(offX, offY, offZ);
+                entityData.getGlobalOffset().set(offX, offY, offZ);
             }
         }
     }

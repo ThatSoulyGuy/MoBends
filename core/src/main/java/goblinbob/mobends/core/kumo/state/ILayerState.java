@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.kumo.state;
 
-import com.mojang.logging.LogUtils;
+import org.slf4j.LoggerFactory;
 import goblinbob.mobends.core.kumo.state.keyframe.KeyframeLayerState;
 import goblinbob.mobends.core.kumo.state.procedural.ProceduralLayerState;
 import org.slf4j.Logger;
@@ -13,7 +13,7 @@ import goblinbob.mobends.core.kumo.state.template.procedural.ProceduralLayerTemp
 
 public interface ILayerState
 {
-    Logger LOGGER = LogUtils.getLogger();
+    Logger LOGGER = LoggerFactory.getLogger(ILayerState.class);
 
     void start(IKumoContext context);
 

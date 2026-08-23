@@ -2,22 +2,21 @@ package goblinbob.mobends.core.kumo;
 
 import goblinbob.mobends.core.expression.ExpressionContext;
 
-import goblinbob.mobends.core.client.event.DataUpdateHandler;
-import goblinbob.mobends.core.data.EntityData;
-import goblinbob.mobends.core.data.LivingEntityData;
+import goblinbob.mobends.lib.time.ITickSource;
+import goblinbob.mobends.lib.data.IEntityAnimationData;
+import goblinbob.mobends.lib.data.ILivingEntityAnimationData;
 import goblinbob.mobends.core.kumo.state.condition.ITriggerConditionContext;
-import net.minecraft.world.entity.LivingEntity;
 
 public class KumoExpressionContext implements ExpressionContext {
     private final ITriggerConditionContext kumoContext;
-    private final EntityData<?> entityData;
+    private final IEntityAnimationData entityData;
 
     public KumoExpressionContext(ITriggerConditionContext kumoContext) {
         this.kumoContext = kumoContext;
         this.entityData = kumoContext.getEntityData();
     }
 
-    public KumoExpressionContext(EntityData<?> entityData) {
+    public KumoExpressionContext(IEntityAnimationData entityData) {
         this.kumoContext = null;
         this.entityData = entityData;
     }
@@ -25,7 +24,7 @@ public class KumoExpressionContext implements ExpressionContext {
     @Override
     public double getVariable(String name) {
         return switch (name) {
-            case "ticks" -> DataUpdateHandler.getTicks();
+            case "ticks" -> ITickSource.Holder.getTicks();
 
             case "PI" -> Math.PI;
             case "E" -> Math.E;
@@ -55,22 +54,27 @@ public class KumoExpressionContext implements ExpressionContext {
             case "isStrafing" -> entityData.isStrafing() ? 1.0 : 0.0;
             case "isUnderwater" -> entityData.isUnderwater() ? 1.0 : 0.0;
 
-            case "health" -> getLivingValue(e -> (double) e.getHealth(), 0.0);
-            case "maxHealth" -> getLivingValue(e -> (double) e.getMaxHealth(), 0.0);
-            case "healthPercent" -> getLivingValue(e -> (double) (e.getHealth() / e.getMaxHealth()), 0.0);
+            case "health" -> entityData.isLiving() ? entityData.getHealth() : 0.0;
+            case "maxHealth" -> entityData.isLiving() ? entityData.getMaxHealth() : 0.0;
+            // Both guards are load-bearing. isLiving() reproduces the old instanceof gate, and
+            // the maxHealth check stops a living entity with zero max health yielding NaN, which
+            // would then poison every comparison the expression feeds.
+            case "healthPercent" -> entityData.isLiving() && entityData.getMaxHealth() > 0F
+                    ? entityData.getHealth() / entityData.getMaxHealth()
+                    : 0.0;
 
             case "ticksInAir" -> getLivingDataValue(d -> (double) d.getTicksInAir(), 0.0);
             case "ticksAfterTouchdown" -> getLivingDataValue(d -> (double) d.getTicksAfterTouchdown(), 0.0);
             case "ticksAfterPunch", "ticksAfterAttack" -> getLivingDataValue(d -> (double) d.getTicksAfterAttack(), 0.0);
             case "ticksFalling" -> getLivingDataValue(d -> (double) d.getTicksFalling(), 0.0);
 
-            case "limbSwing" -> getLivingDataValue(d -> (double) d.limbSwing.get(), 0.0);
-            case "limbSwingAmount" -> getLivingDataValue(d -> (double) d.limbSwingAmount.get(), 0.0);
+            case "limbSwing" -> getLivingDataValue(d -> (double) d.getLimbSwing(), 0.0);
+            case "limbSwingAmount" -> getLivingDataValue(d -> (double) d.getLimbSwingAmount(), 0.0);
 
-            case "headYaw" -> getLivingDataValue(d -> (double) d.headYaw.get(), 0.0);
-            case "headPitch" -> getLivingDataValue(d -> (double) d.headPitch.get(), 0.0);
+            case "headYaw" -> getLivingDataValue(d -> (double) d.getHeadYaw(), 0.0);
+            case "headPitch" -> getLivingDataValue(d -> (double) d.getHeadPitch(), 0.0);
 
-            case "swingProgress" -> getLivingDataValue(d -> (double) d.swingProgress.get(), 0.0);
+            case "swingProgress" -> getLivingDataValue(d -> (double) d.getSwingProgress(), 0.0);
 
             case "isClimbing" -> getLivingDataValue(d -> d.isClimbing() ? 1.0 : 0.0, 0.0);
             case "climbingCycle" -> getLivingDataValue(d -> (double) d.getClimbingCycle(), 0.0);
@@ -110,15 +114,9 @@ public class KumoExpressionContext implements ExpressionContext {
         };
     }
 
-    private double getLivingValue(java.util.function.Function<LivingEntity, Double> getter, double defaultValue) {
-        if (entityData.getEntity() instanceof LivingEntity living) {
-            return getter.apply(living);
-        }
-        return defaultValue;
-    }
 
-    private double getLivingDataValue(java.util.function.Function<LivingEntityData<?>, Double> getter, double defaultValue) {
-        if (entityData instanceof LivingEntityData<?> livingData) {
+    private double getLivingDataValue(java.util.function.Function<ILivingEntityAnimationData, Double> getter, double defaultValue) {
+        if (entityData instanceof ILivingEntityAnimationData livingData) {
             return getter.apply(livingData);
         }
         return defaultValue;

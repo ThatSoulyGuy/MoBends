@@ -2,6 +2,8 @@ package goblinbob.mobends.standard;
 
 import goblinbob.mobends.core.addon.AddonAnimationRegistry;
 import goblinbob.mobends.core.addon.IAddon;
+import goblinbob.mobends.core.kumo.state.condition.EquipmentNameCondition;
+import goblinbob.mobends.core.kumo.state.condition.TriggerConditionRegistry;
 import goblinbob.mobends.standard.client.model.armor.ArmorModelFactory;
 import goblinbob.mobends.standard.client.renderer.entity.ArrowTrailManager;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.*;
@@ -111,6 +113,13 @@ public class DefaultAddon implements IAddon
 				"nose", "mouth", "tongue", "leftEar", "rightEar");
 
 		registry.registerTriggerCondition("wolf_state", WolfStateCondition::new, WolfStateCondition.Template.class);
+
+		// Registered directly rather than through registry.registerTriggerCondition, which would
+		// namespace it as "mobends:equipment_name" and break every pack that already uses
+		// "core:equipment_name". It lives here rather than in the core module because it reads
+		// item stacks out of equipment slots.
+		TriggerConditionRegistry.instance.register("core:equipment_name",
+				EquipmentNameCondition::new, EquipmentNameCondition.Template.class);
 
 		registerVersionSpecificContent(registry);
 	}
