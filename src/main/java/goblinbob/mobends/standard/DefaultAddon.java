@@ -25,6 +25,7 @@ import net.minecraft.world.entity.monster.Vindicator;
 import net.minecraft.world.entity.monster.WitherSkeleton;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.monster.piglin.PiglinBrute;
@@ -54,6 +55,12 @@ public class DefaultAddon implements IAddon
 				new ZombiePreviewer(), BIPED_ANIMATIONS,
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
+
+		// Registered explicitly rather than left to BenderDiscovery's derived-bender scan, which
+		// only runs once the player opens the mob-selection screen. ZombieVillagerData/Mutator/
+		// Controller have always existed; they were simply never wired up here.
+		registry.registerNewEntity(ZombieVillager.class, ZombieVillagerData::new, ZombieVillagerMutator::new,
+				new ZombieRenderer<>(), new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Skeleton.class, SkeletonData::new, SkeletonMutator::new, new BipedRenderer<>(),
 				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
