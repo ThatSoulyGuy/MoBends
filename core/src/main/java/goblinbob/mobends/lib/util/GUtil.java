@@ -39,9 +39,16 @@ public class GUtil
         return d;
     }
 
+    /**
+     * Wraps an angle in radians into [-PI, PI).
+     *
+     * <p>Note the modulo is by a full turn, not by PI. Taking {@code a % Math.PI} would fold
+     * angles a half-turn apart onto the same value — two limbs pointing in opposite directions
+     * would compare as identical — and would leave both correction branches below unreachable.
+     */
     public static double wrapRadians(double a)
     {
-        a = a % Math.PI;
+        a = a % (Math.PI * 2);
 
         if (a >= Math.PI)
         {
