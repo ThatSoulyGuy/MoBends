@@ -741,7 +741,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return;
         }
 
-        if (goblinbob.mobends.compat.EssentialCompat.isPlayingEmote(MoBendsRenderContext.getCurrentEntity()))
+        if (goblinbob.mobends.compat.ModCompatManager.isExternallyPosed(MoBendsRenderContext.getCurrentEntity()))
         {
             return;
         }
@@ -922,6 +922,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
         goblinbob.mobends.compat.EssentialCompat.applyEmotePose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.ParCoolCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 

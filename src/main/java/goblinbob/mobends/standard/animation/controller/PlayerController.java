@@ -43,7 +43,7 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected ElytraAnimationBit bitElytra = new ElytraAnimationBit();
     protected CapeAnimationBit bitCape = new CapeAnimationBit();
     protected SleepingAnimationBit bitSleeping = new SleepingAnimationBit();
-    protected AnimationBit<BipedEntityData<?>> bitEmote = new EmoteAnimationBit();
+    protected AnimationBit<BipedEntityData<?>> bitExternalPose = new ExternalPoseAnimationBit();
 
     protected final BipedActionController actionController = new BipedActionController();
 
@@ -92,17 +92,17 @@ public class PlayerController implements IAnimationController<PlayerData>
     {
         final AbstractClientPlayer player = data.getEntity();
 
-        if (goblinbob.mobends.compat.EssentialCompat.isPlayingEmote(player))
+        if (goblinbob.mobends.compat.ModCompatManager.isExternallyPosed(player))
         {
-            layerBase.playOrContinueBit(bitEmote, data);
+            layerBase.playOrContinueBit(bitExternalPose, data);
             layerSneak.clearAnimation();
             layerTorch.clearAnimation();
             layerCape.clearAnimation();
             actionController.clearAction();
 
-            final List<String> emoteActions = new ArrayList<>();
-            layerBase.perform(data, emoteActions);
-            return emoteActions;
+            final List<String> externalActions = new ArrayList<>();
+            layerBase.perform(data, externalActions);
+            return externalActions;
         }
 
         layerCape.playOrContinueBit(bitCape, data);

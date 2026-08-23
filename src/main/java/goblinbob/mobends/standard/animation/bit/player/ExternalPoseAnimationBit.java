@@ -3,9 +3,9 @@ package goblinbob.mobends.standard.animation.bit.player;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 
-public class EmoteAnimationBit extends AnimationBit<BipedEntityData<?>>
+public class ExternalPoseAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "emote" };
+    private static final String[] ACTIONS = new String[] { "external_pose" };
 
     @Override
     public String[] getActions(BipedEntityData<?> entityData)

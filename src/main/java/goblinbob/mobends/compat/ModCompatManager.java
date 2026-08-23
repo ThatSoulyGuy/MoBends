@@ -35,6 +35,13 @@ public class ModCompatManager
         WatutCompat.init();
 
         EssentialCompat.init();
+
+        ParCoolCompat.init();
+    }
+
+    public static boolean isExternallyPosed(net.minecraft.world.entity.LivingEntity entity)
+    {
+        return EssentialCompat.isPlayingEmote(entity) || ParCoolCompat.isAnimating(entity);
     }
 
     public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)
