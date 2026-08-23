@@ -6,7 +6,6 @@ import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.core.data.LivingEntityData;
-import goblinbob.mobends.core.kumo.variable.KumoVariableRegistry;
 import goblinbob.mobends.lib.math.vector.SmoothVector3f;
 import goblinbob.mobends.core.network.NetworkConfiguration;
 import goblinbob.mobends.core.pack.BendsPackPerformer;
@@ -228,7 +227,6 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         data.swingProgress.set(this.swingProgress);
         data.setRidingBodyYaw(this.ridingBodyYaw);
 
-        KumoVariableRegistry.instance.provideTemporaryData(data);
 
         final IAnimationController<D> controller = (IAnimationController<D>) data.getController();
         final Collection<String> actions = controller.perform(data);
