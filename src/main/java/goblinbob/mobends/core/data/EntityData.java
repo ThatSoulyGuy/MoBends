@@ -2,7 +2,7 @@ package goblinbob.mobends.core.data;
 
 import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
-import goblinbob.mobends.lib.client.model.IBendsModel;
+import goblinbob.mobends.lib.data.IEntityAnimationData;
 import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.lib.math.vector.SmoothVector3f;
 import goblinbob.mobends.core.pack.state.PackAnimationState;
@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-public abstract class EntityData<E extends Entity> implements IBendsModel
+public abstract class EntityData<E extends Entity> implements IEntityAnimationData
 {
 
     protected int entityID;
@@ -186,6 +186,46 @@ public abstract class EntityData<E extends Entity> implements IBendsModel
     public E getEntity()
     {
         return this.entity;
+    }
+
+    // --- IEntityAnimationData ---------------------------------------------------------------
+    // These exist so the animation runtime, which lives in the loader-independent core module,
+    // never has to see a Minecraft type. getEntity() deliberately stays off that interface.
+
+    @Override
+    public SmoothVector3f getGlobalOffset()
+    {
+        return this.globalOffset;
+    }
+
+    @Override
+    public SmoothOrientation getCenterRotation()
+    {
+        return this.centerRotation;
+    }
+
+    @Override
+    public boolean isSprinting()
+    {
+        return this.entity != null && this.entity.isSprinting();
+    }
+
+    @Override
+    public boolean isLiving()
+    {
+        return this.entity instanceof net.minecraft.world.entity.LivingEntity;
+    }
+
+    @Override
+    public float getHealth()
+    {
+        return this.entity instanceof net.minecraft.world.entity.LivingEntity living ? living.getHealth() : 0F;
+    }
+
+    @Override
+    public float getMaxHealth()
+    {
+        return this.entity instanceof net.minecraft.world.entity.LivingEntity living ? living.getMaxHealth() : 0F;
     }
 
     public float getLookAngle()

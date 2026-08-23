@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class LivingEntityData<E extends LivingEntity> extends EntityData<E>
+public abstract class LivingEntityData<E extends LivingEntity> extends EntityData<E> implements goblinbob.mobends.lib.data.ILivingEntityAnimationData
 {
 
     protected float ticksInAir;
@@ -132,6 +132,25 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         return this.ridingOverride != null ? this.ridingOverride
                 : this.entity.getVehicle() instanceof net.minecraft.world.entity.LivingEntity;
     }
+
+    // --- ILivingEntityAnimationData -----------------------------------------------------------
+    // Plain-float views of the OverridableProperty fields above, so the override mechanism stays
+    // an implementation detail on this side of the module boundary.
+
+    @Override
+    public float getLimbSwing() { return this.limbSwing.get(); }
+
+    @Override
+    public float getLimbSwingAmount() { return this.limbSwingAmount.get(); }
+
+    @Override
+    public float getSwingProgress() { return this.swingProgress.get(); }
+
+    @Override
+    public float getHeadYaw() { return this.headYaw.get(); }
+
+    @Override
+    public float getHeadPitch() { return this.headPitch.get(); }
 
     public float getClimbingCycle() { return this.climbingCycle; }
 

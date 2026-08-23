@@ -5,7 +5,7 @@ import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.lib.math.matrix.IMat4x4d;
 import goblinbob.mobends.lib.math.vector.IVec3f;
 
-public interface IModelPart
+public interface IModelPart extends goblinbob.mobends.lib.client.model.IAnimatedPart
 {
 
 	void applyPreTransform(PoseStack poseStack, float scale);
