@@ -37,19 +37,59 @@ jobs:
 
       - name: Build both loaders
         run: >
-          ./gradlew chiseledBuild
+          ./gradlew :core:test :core:checkNoSplitPackages chiseledBuild
           --stacktrace
           -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
 
-      - name: Verify both jars were produced
+      # Existence is not enough. Stonecutter makes every task on the non-active version
+      # NO-SOURCE, so a per-node build can "succeed" having compiled nothing and still write a
+      # jar -- one containing only the :core classes, with no mods.toml and no @Mod entrypoint.
+      # chiseledBuild is not supposed to be able to do that, and this step is what proves it.
+      - name: Verify both jars are actually loadable mods
         run: |
-          set -e
-          forge=$(find build/libs -name 'mobends-1.20.1-*-forge.jar' | head -1)
-          neoforge=$(find build/libs -name 'mobends-1.21.1-*-neoforge.jar' | head -1)
-          [ -n "$forge" ] || { echo "::error::Forge jar missing"; exit 1; }
-          [ -n "$neoforge" ] || { echo "::error::NeoForge jar missing"; exit 1; }
-          echo "forge:    $forge"
-          echo "neoforge: $neoforge"
+          set -euo pipefail
+
+          check_jar() {
+            local label="$1" jar="$2" metadata="$3" entrypoint="$4"
+
+            if [ -z "$jar" ] || [ ! -f "$jar" ]; then
+              echo "::error::$label jar missing"; exit 1
+            fi
+
+            # Listed once into a variable on purpose. Piping unzip into `grep -q` under
+            # `set -o pipefail` reports failure even on a match, because grep exits at the first
+            # hit and unzip then dies of SIGPIPE.
+            local listing
+            listing=$(unzip -l "$jar")
+
+            if ! grep -qF "$metadata" <<<"$listing"; then
+              echo "::error::$label jar has no $metadata -- it cannot load as a mod"; exit 1
+            fi
+
+            if ! grep -qF "$entrypoint" <<<"$listing"; then
+              echo "::error::$label jar has no $entrypoint -- the loader entrypoint is missing"; exit 1
+            fi
+
+            # Guards against a jar that carries metadata but almost no code. A healthy jar is
+            # ~670 classes; :core alone is ~230. 400 sits clear of both.
+            local classes
+            classes=$(grep -c '\.class$' <<<"$listing" || true)
+            if [ "$classes" -lt 400 ]; then
+              echo "::error::$label jar has only $classes classes -- expected ~670, so a source set did not compile"; exit 1
+            fi
+
+            echo "$label: $jar ($classes classes)"
+          }
+
+          check_jar "Forge" \
+            "$(find build/libs -name 'mobends-1.20.1-*-forge.jar' ! -name '*sources*' | head -1)" \
+            "META-INF/mods.toml" \
+            "goblinbob/mobends/forge/MoBendsForge.class"
+
+          check_jar "NeoForge" \
+            "$(find build/libs -name 'mobends-1.21.1-*-neoforge.jar' ! -name '*sources*' | head -1)" \
+            "META-INF/neoforge.mods.toml" \
+            "goblinbob/mobends/neoforge/main/MoBends.class"
 
       - name: Upload jars
         uses: actions/upload-artifact@v4
