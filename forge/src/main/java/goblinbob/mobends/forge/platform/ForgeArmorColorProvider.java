@@ -14,7 +14,7 @@ public class ForgeArmorColorProvider implements IArmorColorProvider
             return -1;
         }
 
-        if (stack.getItem() instanceof DyeableLeatherItem dyeable && dyeable.hasCustomColor(stack))
+        if (stack.getItem() instanceof DyeableLeatherItem dyeable)
         {
             return dyeable.getColor(stack) & 0xFFFFFF;
         }

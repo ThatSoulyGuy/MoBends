@@ -16,13 +16,12 @@ public class NeoForgeArmorColorProvider implements IArmorColorProvider
             return -1;
         }
 
-        DyedItemColor dyed = stack.get(DataComponents.DYED_COLOR);
-        if (dyed == null)
+        if (!stack.is(ItemTags.DYEABLE))
         {
             return -1;
         }
 
-        return dyed.rgb() & 0xFFFFFF;
+        return DyedItemColor.getOrDefault(stack, 0xA06540) & 0xFFFFFF;
     }
 
     @Override

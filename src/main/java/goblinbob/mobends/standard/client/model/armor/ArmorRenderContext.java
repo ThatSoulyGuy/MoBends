@@ -32,6 +32,9 @@ public class ArmorRenderContext<E extends LivingEntity>
     private final boolean isBaby;
     private final boolean isSlimArms;
 
+    @Nullable
+    private final Integer colorOverride;
+
     private ArmorRenderContext(Builder<E> builder)
     {
         this.entity = builder.entity;
@@ -48,6 +51,7 @@ public class ArmorRenderContext<E extends LivingEntity>
 
         this.isBaby = builder.entity != null && builder.entity.isBaby();
         this.isSlimArms = detectSlimArms(builder.entity);
+        this.colorOverride = builder.colorOverride;
     }
 
     private static <E extends LivingEntity> boolean detectSlimArms(E entity)
@@ -141,6 +145,11 @@ public class ArmorRenderContext<E extends LivingEntity>
 
     public int getArmorColor()
     {
+        if (colorOverride != null)
+        {
+            return colorOverride;
+        }
+
         if (armorStack == null || armorStack.isEmpty())
         {
             return 0xFFFFFFFF;
@@ -192,6 +201,13 @@ public class ArmorRenderContext<E extends LivingEntity>
         private float partialTicks;
         private Model armorModel;
         private RenderTier determinedTier;
+        private Integer colorOverride;
+
+        public Builder<E> colorOverride(Integer colorOverride)
+        {
+            this.colorOverride = colorOverride;
+            return this;
+        }
 
         public Builder<E> entity(E entity)
         {

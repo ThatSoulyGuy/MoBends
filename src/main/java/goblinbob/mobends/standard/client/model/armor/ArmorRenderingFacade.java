@@ -10,6 +10,7 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -135,12 +136,30 @@ public class ArmorRenderingFacade
             BipedEntityData<?> entityData,
             ResourceLocation texture)
     {
+        return renderArmor(poseStack, bufferSource, packedLight, entity, slot, armorStack,
+                armorItem, armorModel, entityData, texture, null);
+    }
+
+    public <T extends LivingEntity> boolean renderArmor(
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            int packedLight,
+            T entity,
+            EquipmentSlot slot,
+            ItemStack armorStack,
+            ArmorItem armorItem,
+            Model armorModel,
+            BipedEntityData<?> entityData,
+            ResourceLocation texture,
+            @Nullable Integer colorOverride)
+    {
         if (texture == null || armorModel == null || entityData == null)
         {
             return false;
         }
 
         ArmorRenderContext<T> context = ArmorRenderContext.<T>builder()
+                .colorOverride(colorOverride)
                 .entity(entity)
                 .entityData(entityData)
                 .slot(slot)
@@ -154,6 +173,50 @@ public class ArmorRenderingFacade
                 .build();
 
         return renderWithTexture(context, armorModel, texture, armorStack.hasFoil());
+    }
+
+    public <T extends LivingEntity> boolean renderArmorLayer(
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            int packedLight,
+            T entity,
+            EquipmentSlot slot,
+            ItemStack armorStack,
+            Model layerModel,
+            BipedEntityData<?> entityData,
+            ResourceLocation texture,
+            @Nullable Integer colorOverride,
+            java.util.function.Function<ResourceLocation, RenderType> renderTypeProvider)
+    {
+        if (texture == null || layerModel == null || entityData == null || renderTypeProvider == null)
+        {
+            return false;
+        }
+
+        ArmorRenderContext<T> context = ArmorRenderContext.<T>builder()
+                .colorOverride(colorOverride)
+                .entity(entity)
+                .entityData(entityData)
+                .slot(slot)
+                .armorStack(armorStack)
+                .poseStack(poseStack)
+                .bufferSource(bufferSource)
+                .packedLight(packedLight)
+                .packedOverlay(OverlayTexture.NO_OVERLAY)
+                .partialTicks(0)
+                .armorModel(layerModel)
+                .build();
+
+        try
+        {
+            tier1Renderer.render(context, layerModel, texture, renderTypeProvider);
+            return true;
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("Error rendering armor layer: {}", e.getMessage());
+            return false;
+        }
     }
 
     private <T extends LivingEntity> boolean renderWithTexture(

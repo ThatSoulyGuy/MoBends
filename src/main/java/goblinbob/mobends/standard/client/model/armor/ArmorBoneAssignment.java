@@ -69,6 +69,51 @@ public class ArmorBoneAssignment
         );
     }
 
+    public BoneRegion assignVertexForSlot(float x, float y, float z, net.minecraft.world.entity.EquipmentSlot slot)
+    {
+        if (slot == net.minecraft.world.entity.EquipmentSlot.HEAD)
+        {
+            return BoneRegion.HEAD;
+        }
+
+        if (slot == net.minecraft.world.entity.EquipmentSlot.LEGS
+                || slot == net.minecraft.world.entity.EquipmentSlot.FEET)
+        {
+            if (slot == net.minecraft.world.entity.EquipmentSlot.LEGS && y < LEG_MIN_Y)
+            {
+                return BoneRegion.BODY;
+            }
+
+            if (x >= 0.0F)
+            {
+                return leftKneePlane.isAbovePlane(x, y, z)
+                        ? BoneRegion.LEFT_LEG_UPPER : BoneRegion.LEFT_LEG_LOWER;
+            }
+
+            return rightKneePlane.isAbovePlane(x, y, z)
+                    ? BoneRegion.RIGHT_LEG_UPPER : BoneRegion.RIGHT_LEG_LOWER;
+        }
+
+        if (y >= ARM_MAX_Y)
+        {
+            return BoneRegion.BODY;
+        }
+
+        if (x > BODY_MAX_X)
+        {
+            return leftElbowPlane.isAbovePlane(x, y, z)
+                    ? BoneRegion.LEFT_ARM_UPPER : BoneRegion.LEFT_ARM_LOWER;
+        }
+
+        if (x < BODY_MIN_X)
+        {
+            return rightElbowPlane.isAbovePlane(x, y, z)
+                    ? BoneRegion.RIGHT_ARM_UPPER : BoneRegion.RIGHT_ARM_LOWER;
+        }
+
+        return BoneRegion.BODY;
+    }
+
     public BoneRegion assignVertex(float x, float y, float z)
     {
 
