@@ -6,7 +6,6 @@ import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.util.Mth;
 import org.joml.Vector3f;
@@ -19,7 +18,7 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 		data.localOffset.slideToZero(0.3F);
 
 		final LivingEntity living = data.getEntity();
-		final HumanoidArm primaryHand = living.getMainArm();
+		final HumanoidArm primaryHand = AttackArms.attackingArm(data, living);
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -29,17 +28,17 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 		SmoothOrientation mainItemRotation = mainHandSwitch ? data.renderRightItemRotation : data.renderLeftItemRotation;
 
-		if (data.getTicksAfterAttack() < 0.5f)
+		final boolean dualWielding = AttackArms.isDualWielding(data);
+		final float attackTicks = AttackArms.ticksAfterAttack(data, living, primaryHand);
+
+		if (attackTicks < 0.5f)
 		{
-			data.swordTrail.reset();
+			AttackArms.resetTrails(data);
 		}
 
-		if (living.getItemInHand(InteractionHand.MAIN_HAND) != null)
-		{
-			data.swordTrail.add(data);
-		}
+		AttackArms.emitTrails(data, living, primaryHand, attackTicks, dualWielding);
 
-		float attackState = data.getTicksAfterAttack() / 10.0f;
+		float attackState = attackTicks / 10.0f;
 		float armSwing = attackState * 2.0f;
 		armSwing = Math.min(armSwing, 1F);
 

@@ -26,7 +26,7 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 	public void perform(BipedEntityData<?> data)
 	{
 		LivingEntity entity = data.getEntity();
-		HumanoidArm primaryHand = entity.getMainArm();
+		HumanoidArm primaryHand = AttackArms.attackingArm(data, entity);
 		boolean crouching = entity.isCrouching();
 		boolean grounded = !crouching && !data.isRiding();
 

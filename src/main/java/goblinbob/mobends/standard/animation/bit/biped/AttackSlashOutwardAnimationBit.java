@@ -7,8 +7,6 @@ import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.util.Mth;
 
@@ -27,7 +25,7 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 	@Override
 	public void onPlay(BipedEntityData<?> data)
 	{
-		data.swordTrail.reset();
+		AttackArms.resetTrails(data);
 
 		this.ticksPlayed = 0F;
 	}
@@ -38,7 +36,7 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 		data.localOffset.slideToZero(0.3F);
 
 		final LivingEntity living = data.getEntity();
-		final HumanoidArm primaryHand = living.getMainArm();
+		final HumanoidArm primaryHand = AttackArms.attackingArm(data, living);
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -47,18 +45,18 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 		SmoothOrientation mainItemRotation = mainHandSwitch ? data.renderRightItemRotation : data.renderLeftItemRotation;
+		SmoothOrientation offItemRotation = mainHandSwitch ? data.renderLeftItemRotation : data.renderRightItemRotation;
 
-		if (data.getTicksAfterAttack() < 4F &&
-			living.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SwordItem)
-		{
-			data.swordTrail.add(data);
-		}
+		final boolean dualWielding = AttackArms.isDualWielding(data);
+
+		AttackArms.emitTrails(data, living, primaryHand,
+				AttackArms.ticksAfterAttack(data, living, primaryHand), dualWielding);
 
 		float attackState = this.ticksPlayed / 10F;
 		float armSwing = GUtil.clamp(attackState * 3F, 0F, 1F);
 
 		float bodyRotationX = 20F - attackState * 20F;
-		float bodyRotationY = (30F + 10F * attackState) * handDirMtp;
+		float bodyRotationY = dualWielding ? 0F : (30F + 10F * attackState) * handDirMtp;
 
 		data.body.rotation.setSmoothness(.9F).orientX(bodyRotationX)
 											 .orientY(bodyRotationY);
@@ -67,10 +65,21 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 
 		mainArm.getRotation().setSmoothness(.3F).orientZ((70F + armSwing * 40F) * handDirMtp)
 												.rotateInstantY((-20F + armSwing * 70F) * handDirMtp);
-		offArm.getRotation().setSmoothness(.3F).orientZ(-80 * handDirMtp);
 
 		mainForeArm.getRotation().setSmoothness(.3F).orientX(-20F);
-		offForeArm.getRotation().setSmoothness(.3F).orientX(-60F);
+
+		if (dualWielding)
+		{
+			offArm.getRotation().setSmoothness(.3F).orientZ((70F + armSwing * 40F) * -handDirMtp)
+													.rotateInstantY((-20F + armSwing * 70F) * -handDirMtp);
+			offForeArm.getRotation().setSmoothness(.3F).orientX(-20F);
+			offItemRotation.setSmoothness(.9F).orientInstantX(180);
+		}
+		else
+		{
+			offArm.getRotation().setSmoothness(.3F).orientZ(-80 * handDirMtp);
+			offForeArm.getRotation().setSmoothness(.3F).orientX(-60F);
+		}
 
 		if (data.isStillHorizontally() && !living.isPassenger())
 		{

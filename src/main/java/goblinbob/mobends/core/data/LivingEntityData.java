@@ -5,6 +5,7 @@ import goblinbob.mobends.lib.data.OverridableProperty;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
@@ -19,8 +20,11 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     protected float ticksAfterTouchdown;
     protected float ticksAfterAttack;
     protected float ticksFalling;
+    protected float ticksAfterOffHandAttack;
     protected float climbingCycle = 0F;
     protected boolean alreadyAttacked = false;
+    protected int lastMainSwingTime = -1;
+    protected int lastOffHandSwingTime = -1;
     protected boolean climbing = false;
 
     protected Boolean climbingOverride = null;
@@ -44,6 +48,7 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         this.ticksInAir = 100F;
         this.ticksAfterTouchdown = 100F;
         this.ticksAfterAttack = 100F;
+        this.ticksAfterOffHandAttack = 100F;
         this.ticksFalling = 100F;
     }
 
@@ -173,6 +178,13 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
             this.climbing = false;
         }
 
+        if (goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        {
+            this.updateHandAttack(InteractionHand.MAIN_HAND);
+            this.updateHandAttack(InteractionHand.OFF_HAND);
+            return;
+        }
+
         if (this.entity.swinging)
         {
             if (!this.alreadyAttacked || this.ticksAfterAttack > 5.0F)
@@ -184,6 +196,38 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         else
         {
             this.alreadyAttacked = false;
+        }
+    }
+
+    private void updateHandAttack(InteractionHand hand)
+    {
+        final boolean mainHand = hand == InteractionHand.MAIN_HAND;
+        final int swingTime = goblinbob.mobends.compat.OffHandCombatCompat.getSwingTime(this.entity, hand);
+        final int lastSwingTime = mainHand ? this.lastMainSwingTime : this.lastOffHandSwingTime;
+
+        final boolean started = swingTime != goblinbob.mobends.compat.OffHandCombatCompat.NOT_SWINGING
+                && (lastSwingTime == goblinbob.mobends.compat.OffHandCombatCompat.NOT_SWINGING
+                    || swingTime < lastSwingTime);
+
+        if (started)
+        {
+            if (mainHand)
+            {
+                this.onAttack();
+            }
+            else
+            {
+                this.onOffHandAttack();
+            }
+        }
+
+        if (mainHand)
+        {
+            this.lastMainSwingTime = swingTime;
+        }
+        else
+        {
+            this.lastOffHandSwingTime = swingTime;
         }
     }
 
@@ -211,6 +255,7 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         }
 
         this.ticksAfterAttack += DataUpdateHandler.ticksPerFrame;
+        this.ticksAfterOffHandAttack += DataUpdateHandler.ticksPerFrame;
     }
 
     public void onTouchdown()
@@ -227,6 +272,29 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     public void onAttack()
     {
         this.ticksAfterAttack = 0.0F;
+    }
+
+    public void onOffHandAttack()
+    {
+        this.ticksAfterOffHandAttack = 0.0F;
+    }
+
+    public float getTicksAfterOffHandAttack() { return this.ticksAfterOffHandAttack; }
+
+    public float getTicksAfterAnyAttack()
+    {
+        if (!goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        {
+            return this.ticksAfterAttack;
+        }
+
+        return Math.min(this.ticksAfterAttack, this.ticksAfterOffHandAttack);
+    }
+
+    public boolean isOffHandAttacking()
+    {
+        return goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded()
+                && this.ticksAfterOffHandAttack < 10.0F;
     }
 
     public float getClimbingRotation()

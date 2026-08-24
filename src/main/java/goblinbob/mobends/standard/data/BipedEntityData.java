@@ -25,6 +25,7 @@ public abstract class BipedEntityData<E extends LivingEntity> extends LivingEnti
     public SmoothOrientation renderLeftItemRotation;
 
     public SwordTrail swordTrail;
+    public SwordTrail offHandSwordTrail;
 
     public static final double SPRINT_SPEED = 0.2806D;
 
@@ -86,6 +87,7 @@ public abstract class BipedEntityData<E extends LivingEntity> extends LivingEnti
         this.renderLeftItemRotation = new SmoothOrientation();
 
         this.swordTrail = new SwordTrail(() -> new Color(1.0f, 1.0f, 1.0f, 1.0f));
+        this.offHandSwordTrail = new SwordTrail(() -> new Color(1.0f, 1.0f, 1.0f, 1.0f));
 
         this.nameToPartMap.put("body", body);
         this.nameToPartMap.put("head", head);
@@ -134,6 +136,7 @@ public abstract class BipedEntityData<E extends LivingEntity> extends LivingEnti
         this.renderLeftItemRotation.update(ticksPerFrame);
 
         this.swordTrail.update(ticksPerFrame);
+        this.offHandSwordTrail.update(ticksPerFrame);
     }
 
     @Override

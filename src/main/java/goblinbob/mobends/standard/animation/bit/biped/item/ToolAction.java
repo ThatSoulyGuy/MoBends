@@ -28,8 +28,11 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
         final float headPitch = data.headPitch.get();
         final float headYaw = data.headYaw.get();
 
-        boolean mainHandSwitch = actionHand == HumanoidArm.RIGHT;
-        float sideMultiplier = actionHand == HumanoidArm.RIGHT ? 1.0F : -1.0F;
+        final HumanoidArm activeHand = goblinbob.mobends.standard.animation.bit.biped.AttackArms
+                .attackingArm(data, entity);
+
+        boolean mainHandSwitch = activeHand == HumanoidArm.RIGHT;
+        float sideMultiplier = activeHand == HumanoidArm.RIGHT ? 1.0F : -1.0F;
         ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
         ModelPartTransform offArm = mainHandSwitch ? data.leftArm : data.rightArm;
         ModelPartTransform mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;

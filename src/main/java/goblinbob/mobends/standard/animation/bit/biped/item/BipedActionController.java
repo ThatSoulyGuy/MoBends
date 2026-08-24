@@ -186,7 +186,11 @@ public class BipedActionController
             }
         }
 
-        AttackActionType attackActionType = getItemAttackAction(heldItemMainhand.getItem());
+        final HumanoidArm attackArm = goblinbob.mobends.standard.animation.bit.biped.AttackArms
+                .attackingArm(data, entity);
+        final ItemStack attackStack = attackArm == primaryHand ? heldItemMainhand : heldItemOffhand;
+
+        AttackActionType attackActionType = getItemAttackAction(attackStack.getItem());
 
         if (this.currentAttackActionType != attackActionType)
         {

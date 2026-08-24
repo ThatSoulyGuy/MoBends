@@ -45,6 +45,8 @@ public class ModCompatManager
 
         CrawlCompat.init();
 
+        OffHandCombatCompat.init();
+
         ThirdPartyPoseCompat.init();
 
         registerBuiltInAnimationControl();

@@ -196,8 +196,17 @@ public class SwordTrail
 
     public void add(BipedEntityData<?> entityData, float velocityX, float velocityY, float velocityZ)
     {
-        final LivingEntity entity = entityData.getEntity();
-        final HumanoidArm primaryHand = entity.getMainArm();
+        add(entityData, entityData.getEntity().getMainArm(), velocityX, velocityY, velocityZ);
+    }
+
+    public void add(BipedEntityData<?> entityData, HumanoidArm arm)
+    {
+        add(entityData, arm, 0, 0, 0);
+    }
+
+    public void add(BipedEntityData<?> entityData, HumanoidArm arm, float velocityX, float velocityY, float velocityZ)
+    {
+        final HumanoidArm primaryHand = arm;
         final TrailPart newPart = new TrailPart(primaryHand, this.baseColor.get(), velocityX, velocityY, velocityZ);
 
         newPart.body.syncUp(entityData.body);

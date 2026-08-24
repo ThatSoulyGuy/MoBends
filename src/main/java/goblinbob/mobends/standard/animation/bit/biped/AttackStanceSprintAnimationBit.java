@@ -16,7 +16,7 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 		data.localOffset.slideToZero(0.3F);
 
 		final LivingEntity living = data.getEntity();
-		final HumanoidArm primaryHand = living.getMainArm();
+		final HumanoidArm primaryHand = AttackArms.attackingArm(data, living);
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		float handDirMtp = mainHandSwitch ? 1 : -1;
@@ -25,9 +25,9 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 
-		if (living.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SwordItem)
+		if (living.getItemInHand(AttackArms.handOf(living, primaryHand)).getItem() instanceof SwordItem)
 		{
-			data.swordTrail.add(data, 0.0F, 0.0F, -10.0F);
+			data.swordTrail.add(data, primaryHand, 0.0F, 0.0F, -10.0F);
 		}
 
 		data.body.rotation.rotateY(20 * handDirMtp);
