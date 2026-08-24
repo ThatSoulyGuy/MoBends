@@ -43,6 +43,8 @@ public class ModCompatManager
 
         MonsterExpansionCompat.init();
 
+        CrawlCompat.init();
+
         ThirdPartyPoseCompat.init();
 
         registerBuiltInAnimationControl();
@@ -53,6 +55,7 @@ public class ModCompatManager
         MoBendsAnimationControl.registerPoseOverride("essential", EssentialCompat::isPlayingEmote);
         MoBendsAnimationControl.registerPoseOverride("parcool", ParCoolCompat::isAnimating);
         MoBendsAnimationControl.registerPoseOverride("monsterexpansion", MonsterExpansionCompat::isAnimating);
+        MoBendsAnimationControl.registerPoseOverride("crawl", CrawlCompat::isPosingModel);
 
         MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
 

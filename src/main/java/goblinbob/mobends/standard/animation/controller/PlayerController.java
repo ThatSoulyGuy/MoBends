@@ -62,7 +62,8 @@ public class PlayerController implements IAnimationController<PlayerData>
 
     public static boolean isCrawling(PlayerData data, AbstractClientPlayer player)
     {
-        return player.isVisuallySwimming() && !data.isInWater();
+        return (player.isVisuallySwimming() && !data.isInWater())
+                || goblinbob.mobends.compat.CrawlCompat.isCrawling(player);
     }
 
     public void performActionAnimations(PlayerData data, AbstractClientPlayer player)
