@@ -1,5 +1,6 @@
 package goblinbob.mobends.api.addon;
 
+import goblinbob.mobends.api.annotation.Internal;
 import goblinbob.mobends.core.bender.DefaultEntityBender;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
@@ -15,6 +16,7 @@ import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 import goblinbob.mobends.core.mutators.IMutatorFactory;
 import net.minecraft.world.entity.LivingEntity;
 
+@Internal
 public class AddonAnimationRegistry
 {
 

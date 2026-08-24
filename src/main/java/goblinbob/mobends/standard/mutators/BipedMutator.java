@@ -926,6 +926,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         goblinbob.mobends.compat.ParCoolCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.MonsterExpansionCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 
     protected void captureRenderAnchorPose(PoseStack poseStack)

@@ -1,9 +1,14 @@
 package goblinbob.mobends.api.addon;
 
+import goblinbob.mobends.api.annotation.Internal;
+
 public interface IAddon
 {
 
-	void registerContent(AddonAnimationRegistry registry);
+	@Internal
+	default void registerContent(AddonAnimationRegistry registry)
+	{
+	}
 
 	String getDisplayName();
 

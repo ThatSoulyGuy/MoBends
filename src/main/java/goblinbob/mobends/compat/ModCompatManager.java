@@ -41,6 +41,8 @@ public class ModCompatManager
 
         ParCoolCompat.init();
 
+        MonsterExpansionCompat.init();
+
         ThirdPartyPoseCompat.init();
 
         registerBuiltInAnimationControl();
@@ -50,6 +52,7 @@ public class ModCompatManager
     {
         MoBendsAnimationControl.registerPoseOverride("essential", EssentialCompat::isPlayingEmote);
         MoBendsAnimationControl.registerPoseOverride("parcool", ParCoolCompat::isAnimating);
+        MoBendsAnimationControl.registerPoseOverride("monsterexpansion", MonsterExpansionCompat::isAnimating);
 
         MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
 
