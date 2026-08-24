@@ -38,7 +38,7 @@ public class NeoForgeConfig
                 .define("mobsCanSpin", false);
 
         DISABLE_MOVEMENT_IN_GUI = builder
-                .comment("Disables head movement when inside a GUI.")
+                .comment("Disables movement when inside a GUI.")
                 .define("disableMovementInGui", false);
 
         ARROW_TRAIL_FULL_BRIGHT = builder
@@ -63,7 +63,7 @@ public class NeoForgeConfig
 
         TRIDENT_TRAIL = builder
                 .comment("Allow the Trident to have a trail")
-                .define("tridentTrail", false);
+                .define("tridentTrail", true);
 
         SPEC = builder.build();
     }

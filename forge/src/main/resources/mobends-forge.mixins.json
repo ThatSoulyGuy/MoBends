@@ -13,7 +13,8 @@
     "HierarchicalModelMixin",
     "SpiderModelMixin",
     "RenderLayerMixin",
-    "PlayerRendererSwimMixin"
+    "PlayerRendererSwimMixin",
+    "InventoryScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -720,6 +720,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         goblinbob.mobends.compat.CarryOnCompat.applyToPose(data);
 
+        settlePoseForGui(data);
+
         head.syncUp(data.head);
         body.syncUp(data.body);
         leftArm.syncUp(data.leftArm);
@@ -732,6 +734,31 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         rightForeLeg.syncUp(data.rightForeLeg);
 
         applyAdaptivePivots();
+    }
+
+    private void settlePoseForGui(D data)
+    {
+        final net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+
+        if (!goblinbob.mobends.standard.main.ModConfig.disableMovementInGui
+                || mc.screen == null
+                || data.getEntity() != mc.player)
+        {
+            return;
+        }
+
+        data.head.rotation.finish();
+        data.body.rotation.finish();
+        data.leftArm.rotation.finish();
+        data.rightArm.rotation.finish();
+        data.leftForeArm.rotation.finish();
+        data.rightForeArm.rotation.finish();
+        data.leftLeg.rotation.finish();
+        data.rightLeg.rotation.finish();
+        data.leftForeLeg.rotation.finish();
+        data.rightForeLeg.rotation.finish();
+        data.renderLeftItemRotation.finish();
+        data.renderRightItemRotation.finish();
     }
 
     protected void resolveAdaptivePivots()

@@ -18,7 +18,7 @@ public class ModConfig
 
     public static boolean arrowTrailFullBright = false;
 
-    public static boolean tridentTrail = false;
+    public static boolean tridentTrail = true;
 
     public static boolean newEnchantGlint = false;
 
