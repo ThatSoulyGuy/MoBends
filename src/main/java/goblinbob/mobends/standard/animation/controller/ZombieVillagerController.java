@@ -47,7 +47,7 @@ public class ZombieVillagerController implements IAnimationController<ZombieVill
 	}
 
 	@Override
-	public Collection<String> perform(ZombieVillagerData zombieData)
+	public void perform(ZombieVillagerData zombieData)
 	{
 		if (zombieData.isRiding())
 		{
@@ -86,10 +86,9 @@ public class ZombieVillagerController implements IAnimationController<ZombieVill
 		}
 
 		List<String> actions = new ArrayList<String>();
-		this.layerBase.perform(zombieData, actions);
-		this.layerSet.perform(zombieData, actions);
-		this.layerAction.perform(zombieData, actions);
-		return actions;
+		this.layerBase.perform(zombieData);
+		this.layerSet.perform(zombieData);
+		this.layerAction.perform(zombieData);
 	}
 
 }

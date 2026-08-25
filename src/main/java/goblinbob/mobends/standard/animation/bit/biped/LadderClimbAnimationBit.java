@@ -11,11 +11,6 @@ public class LadderClimbAnimationBit extends AnimationBit<BipedEntityData<?>>
 
     private static final String[] ACTIONS = new String[] { "ladder_climb" };
 
-    @Override
-    public String[] getActions(BipedEntityData<?> entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void perform(BipedEntityData<?> data)

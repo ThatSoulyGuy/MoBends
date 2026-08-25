@@ -12,7 +12,7 @@ public class BendsPackPerformer
 
     public static final BendsPackPerformer INSTANCE = new BendsPackPerformer();
 
-    public void performCurrentPack(EntityData<?> entityData, String animatedEntityKey, @Nullable Collection<String> actions)
+    public void performCurrentPack(EntityData<?> entityData, String animatedEntityKey)
     {
         final BendsPackData packData = PackDataProvider.INSTANCE.getAppliedData();
         if (packData == null)

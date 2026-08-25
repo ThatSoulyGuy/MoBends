@@ -28,11 +28,6 @@ public class SpyglassAnimationBit extends AnimationBit<BipedEntityData<?>>
         this.actionHand = handSide;
     }
 
-    @Override
-    public String[] getActions(BipedEntityData<?> data)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void onPlay(BipedEntityData<?> data)

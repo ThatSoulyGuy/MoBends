@@ -229,7 +229,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
 
 
         final IAnimationController<D> controller = (IAnimationController<D>) data.getController();
-        final Collection<String> actions = controller.perform(data);
+        controller.perform(data);
 
         if (NetworkConfiguration.instance.areBendsPacksAllowed())
         {
@@ -237,7 +237,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
             final SmoothVector3f lastGlobalOffset = limitMovement ? new SmoothVector3f(data.globalOffset) : null;
             final SmoothVector3f lastLocalOffset = limitMovement ? new SmoothVector3f(data.localOffset) : null;
 
-            BendsPackPerformer.INSTANCE.performCurrentPack(data, animatedEntityKey, actions);
+            BendsPackPerformer.INSTANCE.performCurrentPack(data, animatedEntityKey);
 
             if (limitMovement)
             {

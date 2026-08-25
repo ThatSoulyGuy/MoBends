@@ -58,11 +58,6 @@ public class CrossbowHoldAnimationBit extends AnimationBit<BipedEntityData<?>>
         return entity.getUsedItemHand() != hand || entity.getUseItemRemainingTicks() <= 0;
     }
 
-    @Override
-    public String[] getActions(BipedEntityData<?> entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void perform(BipedEntityData<?> data)

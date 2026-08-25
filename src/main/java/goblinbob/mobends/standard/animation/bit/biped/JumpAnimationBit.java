@@ -7,10 +7,6 @@ import net.minecraft.util.Mth;
 public class JumpAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T> {
     private static final String[] ACTIONS = new String[]{"jump"};
 
-    @Override
-    public String[] getActions(T entityData) {
-        return ACTIONS;
-    }
 
     @Override
     public void onPlay(T data) {

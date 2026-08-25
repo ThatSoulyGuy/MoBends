@@ -18,11 +18,6 @@ public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData
 
 	private float ticksPlayed;
 
-	@Override
-	public String[] getActions(BipedEntityData<?> entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void onPlay(BipedEntityData<?> data)

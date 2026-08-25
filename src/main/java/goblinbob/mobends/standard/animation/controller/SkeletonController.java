@@ -50,7 +50,7 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 	}
 
 	@Override
-	public Collection<String> perform(SkeletonData<?> skeletonData)
+	public void perform(SkeletonData<?> skeletonData)
 	{
 		AbstractSkeleton skeleton = skeletonData.getEntity();
 
@@ -80,8 +80,7 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 		}
 
 		List<String> actions = new ArrayList<>();
-		this.layerBase.perform(skeletonData, actions);
+		this.layerBase.perform(skeletonData);
 		this.performActionAnimations(skeletonData, skeleton);
-		return actions;
 	}
 }

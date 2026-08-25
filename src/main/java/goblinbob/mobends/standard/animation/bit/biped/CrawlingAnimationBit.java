@@ -24,11 +24,6 @@ public class CrawlingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	private static final float MAX_HEAD_PITCH = 90F;
 	private static final float GROUND_OFFSET = -2F;
 
-	@Override
-	public String[] getActions(BipedEntityData<?> data)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(BipedEntityData<?> data)

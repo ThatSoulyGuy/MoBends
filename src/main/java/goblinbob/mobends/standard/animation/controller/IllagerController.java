@@ -52,7 +52,7 @@ public class IllagerController implements IAnimationController<IllagerData<?>>
     }
 
     @Override
-    public Collection<String> perform(IllagerData<?> data)
+    public void perform(IllagerData<?> data)
     {
         final AbstractIllager illager = data.getEntity();
 
@@ -100,10 +100,8 @@ public class IllagerController implements IAnimationController<IllagerData<?>>
             layerWeapon.clearAnimation();
         }
 
-        final List<String> actions = new ArrayList<>();
-        layerBase.perform(data, actions);
+        layerBase.perform(data);
         performActionAnimations(data, illager);
-        layerWeapon.perform(data, actions);
-        return actions;
+        layerWeapon.perform(data);
     }
 }

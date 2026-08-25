@@ -11,11 +11,6 @@ public class FallingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	public static final float TICKS_BEFORE_FALLING = 10;
 	public static final float FALLING_TRANSITION_TICKS = 80;
 
-	@Override
-	public String[] getActions(BipedEntityData<?> entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(BipedEntityData<?> data)

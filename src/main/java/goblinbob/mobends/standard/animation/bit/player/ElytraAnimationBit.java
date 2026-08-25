@@ -9,11 +9,6 @@ public class ElytraAnimationBit extends AnimationBit<PlayerData>
 
     private static final String[] ACTIONS = new String[] { "elytra" };
 
-    @Override
-    public String[] getActions(PlayerData entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void perform(PlayerData data)

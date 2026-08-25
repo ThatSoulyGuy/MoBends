@@ -23,11 +23,6 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
     private final HardAnimationLayer<BipedEntityData<?>> layer = new HardAnimationLayer<>();
 
-    @Override
-    public String[] getActions(BipedEntityData<?> entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void onPlay(BipedEntityData<?> data)

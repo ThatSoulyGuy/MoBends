@@ -10,11 +10,6 @@ public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 {
 	private float relax = 0F;
 
-	@Override
-	public String[] getActions(PlayerData entityData)
-	{
-		return new String[] { "sprint_jump" };
-	}
 
 	@Override
 	public void onPlay(PlayerData entityData)

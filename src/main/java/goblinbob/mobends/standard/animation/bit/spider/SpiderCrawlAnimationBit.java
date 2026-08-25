@@ -10,11 +10,6 @@ public class SpiderCrawlAnimationBit extends SpiderAnimationBitBase
 
     protected static final String[] ACTIONS = new String[] { "crawl" };
 
-    @Override
-    public String[] getActions(SpiderData entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void perform(SpiderData data)

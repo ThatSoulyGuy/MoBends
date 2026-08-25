@@ -11,11 +11,6 @@ public class StandAnimationBit<T extends BipedEntityData<?>> extends AnimationBi
 
 	protected final float kneelDuration = 0.15F;
 
-	@Override
-	public String[] getActions(T entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void onPlay(T data)

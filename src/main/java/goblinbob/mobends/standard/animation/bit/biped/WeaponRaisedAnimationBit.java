@@ -19,11 +19,6 @@ public class WeaponRaisedAnimationBit extends AnimationBit<BipedEntityData<?>>
     private static final float ARM_SPLAY = 0.15707964F;
     private static final float SMOOTHNESS = 0.35F;
 
-    @Override
-    public String[] getActions(BipedEntityData<?> entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void perform(BipedEntityData<?> data)

@@ -10,11 +10,6 @@ public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit
 
 	protected final float KNEEL_DURATION = 0.15F;
 
-	@Override
-	public String[] getActions(T entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(T data)

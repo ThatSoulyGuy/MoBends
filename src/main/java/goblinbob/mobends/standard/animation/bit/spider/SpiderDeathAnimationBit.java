@@ -14,11 +14,6 @@ public class SpiderDeathAnimationBit extends AnimationBit<SpiderData>
     protected float wiggleSpeedMultiplier = 1.0F;
     protected float wigglePhase = 0.0F;
 
-    @Override
-    public String[] getActions(SpiderData entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void onPlay(SpiderData entityData)

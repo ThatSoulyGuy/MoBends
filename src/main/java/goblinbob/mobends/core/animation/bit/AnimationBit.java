@@ -13,7 +13,6 @@ public abstract class AnimationBit<T extends EntityData<?>>
         this.onPlay(entityData);
     }
 
-    public String[] getActions(T entityData) { return new String[] {}; }
 
     public void onPlay(T entityData) {}
 

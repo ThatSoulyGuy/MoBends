@@ -8,11 +8,6 @@ import net.minecraft.util.Mth;
 public class SpiderJumpAnimationBit extends AnimationBit<SpiderData>
 {
 
-    @Override
-    public String[] getActions(SpiderData entityData)
-    {
-        return new String[] { "jump" };
-    }
 
     @Override
     public void perform(SpiderData data)

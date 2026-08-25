@@ -9,11 +9,6 @@ import net.minecraft.util.Mth;
 public class CapeAnimationBit extends AnimationBit<PlayerData>
 {
 
-    @Override
-    public String[] getActions(PlayerData entityData)
-    {
-        return null;
-    }
 
     @Override
     public void perform(PlayerData data)

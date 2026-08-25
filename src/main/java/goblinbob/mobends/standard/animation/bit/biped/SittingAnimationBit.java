@@ -7,11 +7,6 @@ public class SittingAnimationBit<T extends BipedEntityData<?>> extends Animation
 {
 	private static final String[] ACTIONS = new String[] { "sitting" };
 
-	@Override
-	public String[] getActions(T entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(T data)

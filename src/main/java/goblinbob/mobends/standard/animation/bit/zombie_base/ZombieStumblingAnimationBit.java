@@ -6,11 +6,6 @@ import net.minecraft.util.Mth;
 
 public class ZombieStumblingAnimationBit extends AnimationBit<ZombieDataBase<?>>
 {
-	@Override
-	public String[] getActions(ZombieDataBase<?> data)
-	{
-		return new String[] { "stumbling" };
-	}
 
 	@Override
 	public void perform(ZombieDataBase<?> data)

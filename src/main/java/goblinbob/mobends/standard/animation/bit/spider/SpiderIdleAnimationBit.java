@@ -11,11 +11,6 @@ public class SpiderIdleAnimationBit extends AnimationBit<SpiderData>
 {
 	protected static final float KNEEL_DURATION = 10F;
 
-	@Override
-	public String[] getActions(SpiderData entityData)
-	{
-		return new String[] { "idle" };
-	}
 
 	@Override
 	public void onPlay(SpiderData data)

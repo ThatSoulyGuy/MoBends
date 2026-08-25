@@ -48,14 +48,4 @@ public class HardAnimationLayer<T extends EntityData<?>> extends AnimationLayer<
 	{
 		return this.performedBit;
 	}
-
-	@Override
-	public String[] getActions(T entityData)
-	{
-		if (this.isPlaying())
-		{
-			return this.getPerformedBit().getActions(entityData);
-		}
-		return new String[] {};
-	}
 }

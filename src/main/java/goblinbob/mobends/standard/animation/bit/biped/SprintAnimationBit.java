@@ -8,11 +8,6 @@ public class SprintAnimationBit<T extends BipedEntityData<?>> extends AnimationB
 {
 	private static String[] ACTIONS = new String[] { "sprint" };
 
-	@Override
-	public String[] getActions(T entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(T data)

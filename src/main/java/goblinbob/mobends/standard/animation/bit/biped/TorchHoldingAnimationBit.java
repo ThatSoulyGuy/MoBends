@@ -14,11 +14,6 @@ public class TorchHoldingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
 	private static final String[] ACTIONS = new String[] { "torch_holding" };
 
-	@Override
-	public String[] getActions(BipedEntityData<?> data)
-	{
-		return ACTIONS;
-	}
 
 	private HumanoidArm getTorchHand(LivingEntity living)
 	{

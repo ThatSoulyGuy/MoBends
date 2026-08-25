@@ -13,11 +13,6 @@ public class RidingAnimationBit<T extends BipedEntityData<?>> extends AnimationB
 
 	private static final float PI = (float) Math.PI;
 
-	@Override
-	public String[] getActions(T entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(T data)

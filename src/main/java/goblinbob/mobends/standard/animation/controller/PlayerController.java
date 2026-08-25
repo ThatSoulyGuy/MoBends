@@ -2,7 +2,6 @@ package goblinbob.mobends.standard.animation.controller;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.controller.IAnimationController;
-import goblinbob.mobends.lib.animation.keyframe.ArmatureMask;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.*;
 import goblinbob.mobends.standard.animation.bit.biped.item.*;
@@ -46,19 +45,6 @@ public class PlayerController implements IAnimationController<PlayerData>
 
     protected final BipedActionController actionController = new BipedActionController();
 
-    protected ArmatureMask upperBodyOnlyMask;
-
-    public PlayerController()
-    {
-        this.upperBodyOnlyMask = new ArmatureMask(ArmatureMask.Mode.EXCLUDE_ONLY);
-        this.upperBodyOnlyMask.exclude("root");
-        this.upperBodyOnlyMask.exclude("head");
-        this.upperBodyOnlyMask.exclude("leftLeg");
-        this.upperBodyOnlyMask.exclude("leftForeLeg");
-        this.upperBodyOnlyMask.exclude("rightLeg");
-        this.upperBodyOnlyMask.exclude("rightForeLeg");
-    }
-
     public static boolean isCrawling(PlayerData data, AbstractClientPlayer player)
     {
         return player.isVisuallySwimming() && !data.isInWater();
@@ -87,7 +73,7 @@ public class PlayerController implements IAnimationController<PlayerData>
     }
 
     @Override
-    public Collection<String> perform(PlayerData data)
+    public void perform(PlayerData data)
     {
         final AbstractClientPlayer player = data.getEntity();
 
@@ -191,12 +177,10 @@ public class PlayerController implements IAnimationController<PlayerData>
         data.renderLeftItemRotation.orientZero();
         data.renderRightItemRotation.orientZero();
 
-        final List<String> actions = new ArrayList<>();
-        layerBase.perform(data, actions);
-        layerSneak.perform(data, actions);
-        layerTorch.perform(data, actions);
+        layerBase.perform(data);
+        layerSneak.perform(data);
+        layerTorch.perform(data);
         this.performActionAnimations(data, player);
-        layerCape.perform(data, actions);
-        return actions;
+        layerCape.perform(data);
     }
 }

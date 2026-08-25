@@ -56,7 +56,7 @@ public class WolfController implements IAnimationController<WolfData>
     }
 
     @Override
-    public Collection<String> perform(WolfData data)
+    public void perform(WolfData data)
     {
         final Wolf wolf = data.getEntity();
         final float partialTicks = DataUpdateHandler.partialTicks;
@@ -91,8 +91,6 @@ public class WolfController implements IAnimationController<WolfData>
         data.tail.rotation.localRotateX(wolf.getTailAngle() * GUtil.RAD_TO_DEG - 90.0F).finish();
 
         data.head.offset.set(0, 0, 0);
-
-        return null;
     }
 
 }

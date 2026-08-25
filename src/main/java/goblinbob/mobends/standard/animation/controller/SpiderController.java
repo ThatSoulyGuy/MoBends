@@ -25,7 +25,7 @@ public class SpiderController implements IAnimationController<SpiderData>
 	protected boolean resetAfterJumped = false;
 
 	@Override
-	public Collection<String> perform(SpiderData spiderData)
+	public void perform(SpiderData spiderData)
 	{
 		final Spider spider = spiderData.getEntity();
 
@@ -70,9 +70,7 @@ public class SpiderController implements IAnimationController<SpiderData>
 			}
 		}
 
-		final List<String> actions = new ArrayList<>();
-		this.layerBase.perform(spiderData, actions);
-		return actions;
+		this.layerBase.perform(spiderData);
 	}
 
 	public static void putLimbOnGround(SmoothOrientation upperLimb, SmoothOrientation lowerLimb, boolean odd, double stretchDistance, double groundLevel)

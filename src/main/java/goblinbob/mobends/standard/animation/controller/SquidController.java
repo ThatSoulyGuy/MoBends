@@ -15,7 +15,7 @@ public class SquidController implements IAnimationController<SquidData>
 
     @Override
     @Nullable
-    public Collection<String> perform(SquidData data)
+    public void perform(SquidData data)
     {
         Squid squid = data.getEntity();
 
@@ -46,8 +46,6 @@ public class SquidController implements IAnimationController<SquidData>
                 data.squidTentacles[i][j].rotation.setSmoothness(0.1F).orientX(-tentacleAngle);
             }
         }
-
-        return null;
     }
 
 }

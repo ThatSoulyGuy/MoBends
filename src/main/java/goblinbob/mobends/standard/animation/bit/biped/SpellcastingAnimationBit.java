@@ -14,11 +14,6 @@ public class SpellcastingAnimationBit extends AnimationBit<BipedEntityData<?>>
     private static final float ARM_RAISE = 2.3561945F;
     private static final float SMOOTHNESS = 0.3F;
 
-    @Override
-    public String[] getActions(BipedEntityData<?> entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void perform(BipedEntityData<?> data)

@@ -51,7 +51,7 @@ public class PiglinController implements IAnimationController<PiglinData<?>>
     }
 
     @Override
-    public Collection<String> perform(PiglinData<?> data)
+    public void perform(PiglinData<?> data)
     {
         final AbstractPiglin piglin = data.getEntity();
 
@@ -92,10 +92,8 @@ public class PiglinController implements IAnimationController<PiglinData<?>>
             layerWeapon.clearAnimation();
         }
 
-        final List<String> actions = new ArrayList<>();
-        layerBase.perform(data, actions);
+        layerBase.perform(data);
         performActionAnimations(data, piglin);
-        layerWeapon.perform(data, actions);
-        return actions;
+        layerWeapon.perform(data);
     }
 }

@@ -5,11 +5,6 @@ import goblinbob.mobends.standard.data.ZombieDataBase;
 
 public class ZombieLeanAnimationBit extends AnimationBit<ZombieDataBase<?>>
 {
-	@Override
-	public String[] getActions(ZombieDataBase<?> entityData)
-	{
-		return new String[] { "lean" };
-	}
 
 	@Override
 	public void perform(ZombieDataBase<?> data)

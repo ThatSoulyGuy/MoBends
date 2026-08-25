@@ -39,7 +39,7 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 	}
 
 	@Override
-	public Collection<String> perform(PigZombieData pigZombieData)
+	public void perform(PigZombieData pigZombieData)
 	{
 		ZombifiedPiglin pigZombie =  pigZombieData.getEntity();
 
@@ -74,9 +74,8 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 		}
 
 		List<String> actions = new ArrayList<>();
-		this.layerBase.perform(pigZombieData, actions);
-		this.layerAction.perform(pigZombieData, actions);
-		return actions;
+		this.layerBase.perform(pigZombieData);
+		this.layerAction.perform(pigZombieData);
 	}
 
 }

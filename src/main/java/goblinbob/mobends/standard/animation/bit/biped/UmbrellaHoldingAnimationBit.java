@@ -16,11 +16,6 @@ public class UmbrellaHoldingAnimationBit extends AnimationBit<BipedEntityData<?>
 	private static final float RAISE_PITCH = -180.0F;
 	private static final float ELBOW_BEND = 20.0F;
 
-	@Override
-	public String[] getActions(BipedEntityData<?> data)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(BipedEntityData<?> data)

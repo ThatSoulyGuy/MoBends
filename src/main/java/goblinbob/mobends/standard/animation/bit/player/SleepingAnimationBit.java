@@ -10,11 +10,6 @@ public class SleepingAnimationBit extends AnimationBit<PlayerData>
 
     private static final String[] ACTIONS = new String[] { "sleeping" };
 
-    @Override
-    public String[] getActions(PlayerData entityData)
-    {
-        return ACTIONS;
-    }
 
     @Override
     public void perform(PlayerData data)

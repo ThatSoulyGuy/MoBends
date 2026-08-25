@@ -17,11 +17,6 @@ public class FlyingAnimationBit extends AnimationBit<PlayerData>
 
 	private float transformTransition = 0F;
 
-	@Override
-	public String[] getActions(PlayerData entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(PlayerData data)

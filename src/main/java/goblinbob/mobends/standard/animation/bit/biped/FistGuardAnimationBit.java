@@ -9,11 +9,6 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	private static final String[] ACTIONS = new String[] { "fist_guard" };
 
-	@Override
-	public String[] getActions(BipedEntityData<?> entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(BipedEntityData<?> data)

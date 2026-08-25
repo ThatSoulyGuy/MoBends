@@ -8,11 +8,6 @@ public class SneakAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	private static final String[] ACTIONS = new String[] { "sneak" };
 
-	@Override
-	public String[] getActions(BipedEntityData<?> entityData)
-	{
-		return ACTIONS;
-	}
 
 	@Override
 	public void perform(BipedEntityData<?> data)

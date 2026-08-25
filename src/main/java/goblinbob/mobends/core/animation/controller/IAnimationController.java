@@ -9,6 +9,6 @@ public interface IAnimationController<T extends EntityData<?>>
 {
 
     @Nullable
-    Collection<String> perform(T entityData);
+    void perform(T entityData);
 
 }
