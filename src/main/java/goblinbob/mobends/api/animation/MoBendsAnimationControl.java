@@ -19,6 +19,7 @@ public final class MoBendsAnimationControl
     private static final List<Entry> POSE_OVERRIDES = new CopyOnWriteArrayList<>();
     private static final List<Entry> ANIMATION_DEFERRALS = new CopyOnWriteArrayList<>();
     private static final List<Entry> EXTERNAL_ANIMATIONS = new CopyOnWriteArrayList<>();
+    private static final List<Entry> STATIC_POSES = new CopyOnWriteArrayList<>();
 
     private static final Set<String> SELF_POSING_MODS = new CopyOnWriteArraySet<>();
 
@@ -42,6 +43,11 @@ public final class MoBendsAnimationControl
     public static void registerExternalAnimation(String modId, Predicate<LivingEntity> hasAnimation)
     {
         put(EXTERNAL_ANIMATIONS, modId, hasAnimation);
+    }
+
+    public static void registerStaticPose(String modId, Predicate<LivingEntity> isStatic)
+    {
+        put(STATIC_POSES, modId, isStatic);
     }
 
     public static void registerSelfPosingMod(String modId)
@@ -124,6 +130,7 @@ public final class MoBendsAnimationControl
         POSE_OVERRIDES.removeIf(entry -> entry.modId.equals(modId));
         ANIMATION_DEFERRALS.removeIf(entry -> entry.modId.equals(modId));
         EXTERNAL_ANIMATIONS.removeIf(entry -> entry.modId.equals(modId));
+        STATIC_POSES.removeIf(entry -> entry.modId.equals(modId));
         SELF_POSING_MODS.remove(modId);
     }
 
@@ -140,6 +147,11 @@ public final class MoBendsAnimationControl
     public static boolean hasExternalAnimation(LivingEntity entity)
     {
         return anyMatch(EXTERNAL_ANIMATIONS, entity);
+    }
+
+    public static boolean isStaticallyPosed(LivingEntity entity)
+    {
+        return anyMatch(STATIC_POSES, entity);
     }
 
     public static boolean isSelfPosingMod(String modId)

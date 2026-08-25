@@ -51,6 +51,8 @@ public class ModCompatManager
 
         UmapyoiCompat.init();
 
+        CorpseCompat.init();
+
         ThirdPartyPoseCompat.init();
 
         registerBuiltInAnimationControl();
@@ -64,6 +66,8 @@ public class ModCompatManager
         MoBendsAnimationControl.registerPoseOverride("crawl", CrawlCompat::isPosingModel);
 
         MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
+
+        MoBendsAnimationControl.registerStaticPose("corpse", CorpseCompat::isCorpse);
 
         MoBendsAnimationControl.registerExternalAnimation("playeranimator", PlayerAnimationLibCompat::hasActiveAnimation);
     }

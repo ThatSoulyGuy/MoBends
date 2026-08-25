@@ -16,7 +16,7 @@ public class EntityBenderRegistry
 
     private final Map<Class<? extends LivingEntity>, EntityBender<?>> entityClassToBenderMap = new HashMap<>();
 
-    private final Map<LivingEntity, EntityBender<?>> entityToBenderMap = new HashMap<>();
+    private final Map<LivingEntity, EntityBender<?>> entityToBenderMap = new IdentityHashMap<>();
 
     public void registerBender(EntityBender<?> entityBender)
     {

@@ -160,7 +160,12 @@ public abstract class EntityBender<T extends LivingEntity>
 
         mutator.updateModel(entity, renderer, partialTicks);
         LivingEntityData<T> data = mutator.getOrMakeData(entity);
-        mutator.performAnimations(data, this.key, renderer, partialTicks);
+
+        if (!goblinbob.mobends.api.animation.MoBendsAnimationControl.isStaticallyPosed(entity))
+        {
+            mutator.performAnimations(data, this.key, renderer, partialTicks);
+        }
+
         mutator.syncUpWithData(data);
 
         return true;

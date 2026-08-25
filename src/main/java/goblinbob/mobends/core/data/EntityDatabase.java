@@ -5,8 +5,9 @@ import goblinbob.mobends.core.bender.PreviewHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,41 +17,41 @@ public class EntityDatabase
 
     public static EntityDatabase instance = new EntityDatabase();
 
-    protected final Map<Integer, LivingEntityData<?>> entryMap = new HashMap<>();
+    private static final int DETACHED_RETENTION_TICKS = 200;
 
-    private LivingEntityData<?> get(Integer identifier)
-    {
-        return entryMap.get(identifier);
-    }
+    protected final Map<LivingEntity, LivingEntityData<?>> entryMap = new IdentityHashMap<>();
 
+    @SuppressWarnings("unchecked")
     public <T extends LivingEntityData<E>, E extends LivingEntity> T get(E entity)
     {
-        return (T) this.get(entity.getId());
+        if (entity == null)
+            return null;
+
+        return (T) this.entryMap.get(entity);
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends LivingEntityData<E>, E extends LivingEntity> T getOrMake(IEntityDataFactory<E> dataCreationFunction, E entity)
     {
-        final int entityId = entity.getId();
-
-        @SuppressWarnings("unchecked")
-        T data = (T) this.get(entityId);
+        T data = (T) this.entryMap.get(entity);
 
         if (data == null)
         {
             data = (T) dataCreationFunction.createEntityData(entity);
-            this.add(entityId, data);
+            this.entryMap.put(entity, data);
         }
-        return data;
-    }
 
-    private void add(int identifier, LivingEntityData<?> data)
-    {
-        this.entryMap.put(identifier, data);
+        data.markSeen();
+
+        return data;
     }
 
     public void add(Entity entity, LivingEntityData<?> data)
     {
-        this.add(entity.getId(), data);
+        if (entity instanceof LivingEntity livingEntity)
+        {
+            this.entryMap.put(livingEntity, data);
+        }
     }
 
     public void remove(Entity entity)
@@ -58,11 +59,9 @@ public class EntityDatabase
         if (entity == null)
             return;
 
-        LivingEntityData<?> data = this.entryMap.get(entity.getId());
-        if (data == null || data.getEntity() != entity)
+        LivingEntityData<?> data = this.entryMap.remove(entity);
+        if (data == null)
             return;
-
-        this.entryMap.remove(entity.getId());
 
         if (data.getEntity() != null)
         {
@@ -72,25 +71,42 @@ public class EntityDatabase
 
     public void updateClient()
     {
-        if (Minecraft.getInstance().level == null) return;
+        final Level level = Minecraft.getInstance().level;
+        if (level == null) return;
 
-        Iterator<Entry<Integer, LivingEntityData<?>>> it = entryMap.entrySet().iterator();
+        Iterator<Entry<LivingEntity, LivingEntityData<?>>> it = entryMap.entrySet().iterator();
         while (it.hasNext())
         {
-            Entry<Integer, LivingEntityData<?>> entry = it.next();
+            Entry<LivingEntity, LivingEntityData<?>> entry = it.next();
 
+            LivingEntity entity = entry.getKey();
             LivingEntityData<?> entityData = entry.getValue();
-            LivingEntity entityInData = entityData.getEntity();
-            Entity entity = Minecraft.getInstance().level.getEntity(entry.getKey());
-            if (!PreviewHelper.isPreviewEntity(entityInData) && (entity == null || entityInData != entity))
+
+            if (level.getEntity(entity.getId()) == entity)
             {
-                EntityBenderRegistry.instance.clearCache(entityInData);
-                it.remove();
-            }
-            else
-            {
+                entityData.setDetached(false);
+                entityData.markSeen();
                 entityData.updateClient();
+                continue;
             }
+
+            if (PreviewHelper.isPreviewEntity(entity))
+            {
+                entityData.setDetached(true);
+                entityData.markSeen();
+                entityData.updateClient();
+                continue;
+            }
+
+            if (entity.isRemoved() || entityData.trackUnseen() > DETACHED_RETENTION_TICKS)
+            {
+                EntityBenderRegistry.instance.clearCache(entity);
+                it.remove();
+                continue;
+            }
+
+            entityData.setDetached(true);
+            entityData.updateClient();
         }
     }
 
