@@ -26,6 +26,9 @@ config = "mobends-neoforge-wearablebackpacks.mixins.json"
 [[mixins]]
 config = "mobends-neoforge-iris.mixins.json"
 
+[[mixins]]
+config = "mobends-neoforge-umapyoi.mixins.json"
+
 [[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "required"

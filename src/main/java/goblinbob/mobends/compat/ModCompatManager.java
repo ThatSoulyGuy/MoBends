@@ -49,6 +49,8 @@ public class ModCompatManager
 
         WearableBackpacksCompat.init();
 
+        UmapyoiCompat.init();
+
         ThirdPartyPoseCompat.init();
 
         registerBuiltInAnimationControl();

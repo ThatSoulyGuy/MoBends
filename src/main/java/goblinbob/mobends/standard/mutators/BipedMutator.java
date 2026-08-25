@@ -1813,6 +1813,12 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return quaternionToEulerXYZ(part.rotation.getSmooth());
     }
 
+    public static float[] eulerAnglesOf(Quaternion q)
+    {
+        if (q == null) return ZERO_EULER;
+        return quaternionToEulerXYZ(q);
+    }
+
     private static float[] quaternionToEulerXYZ(Quaternion q)
     {
         return quaternionToEulerXYZ(q, new float[3]);
