@@ -17,13 +17,13 @@ public class NeoForgeArmorTextureProvider implements IArmorTextureProvider
     @Nullable
     public <E extends LivingEntity> ResourceLocation getArmorTexture(
             ArmorItem armorItem, ItemStack itemStack, E entity,
-            EquipmentSlot slot, @Nullable Object layer, boolean isInnerModel)
+            EquipmentSlot slot, @Nullable Object layer, @Nullable String type, boolean isInnerModel)
     {
         ArmorMaterial.Layer materialLayer = (layer instanceof ArmorMaterial.Layer) ? (ArmorMaterial.Layer) layer : null;
 
         if (materialLayer == null)
         {
-            materialLayer = getFirstLayer(armorItem);
+            materialLayer = type == null ? getLayer(armorItem, 0) : getLayer(armorItem, 1);
         }
 
         if (materialLayer == null)
@@ -41,9 +41,9 @@ public class NeoForgeArmorTextureProvider implements IArmorTextureProvider
     }
 
     @Nullable
-    private static ArmorMaterial.Layer getFirstLayer(ArmorItem armorItem)
+    private static ArmorMaterial.Layer getLayer(ArmorItem armorItem, int index)
     {
         List<ArmorMaterial.Layer> layers = armorItem.getMaterial().value().layers();
-        return layers.isEmpty() ? null : layers.get(0);
+        return index < layers.size() ? layers.get(index) : null;
     }
 }

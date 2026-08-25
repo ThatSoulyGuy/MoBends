@@ -17,6 +17,7 @@ public interface IArmorTextureProvider
             E entity,
             EquipmentSlot slot,
             @Nullable Object layer,
+            @Nullable String type,
             boolean isInnerModel
     );
 
@@ -25,7 +26,7 @@ public interface IArmorTextureProvider
         @Override
         public <E extends LivingEntity> ResourceLocation getArmorTexture(
                 ArmorItem armorItem, ItemStack itemStack, E entity,
-                EquipmentSlot slot, Object layer, boolean isInnerModel)
+                EquipmentSlot slot, Object layer, String type, boolean isInnerModel)
         {
             return null;
         }

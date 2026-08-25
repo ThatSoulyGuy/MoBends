@@ -16,9 +16,9 @@ public class ForgeArmorTextureProvider implements IArmorTextureProvider
     @Nullable
     public <E extends LivingEntity> ResourceLocation getArmorTexture(
             ArmorItem armorItem, ItemStack itemStack, E entity,
-            EquipmentSlot slot, @Nullable Object layer, boolean isInnerModel)
+            EquipmentSlot slot, @Nullable Object layer, @Nullable String type, boolean isInnerModel)
     {
-        String texture = armorItem.getArmorTexture(itemStack, entity, slot, null);
+        String texture = armorItem.getArmorTexture(itemStack, entity, slot, type);
         if (texture != null)
         {
             return ResourceLocationFactory.parse(texture);

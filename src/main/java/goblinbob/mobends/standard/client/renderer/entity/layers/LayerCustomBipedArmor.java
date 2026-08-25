@@ -1273,7 +1273,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         boolean isInnerModel = usesInnerModel(slot);
 
         IArmorTextureProvider textureProvider = IArmorTextureProvider.Holder.getProvider();
-        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, layer, isInnerModel);
+        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, layer, overlay, isInnerModel);
 
         if (customTexture != null)
         {
