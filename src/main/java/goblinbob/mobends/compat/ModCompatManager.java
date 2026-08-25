@@ -47,6 +47,8 @@ public class ModCompatManager
 
         OffHandCombatCompat.init();
 
+        WearableBackpacksCompat.init();
+
         ThirdPartyPoseCompat.init();
 
         registerBuiltInAnimationControl();

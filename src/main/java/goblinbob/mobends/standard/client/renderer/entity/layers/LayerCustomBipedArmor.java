@@ -110,6 +110,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         if (!(itemStack.getItem() instanceof ArmorItem armorItem)) return;
         if (armorItem.getEquipmentSlot() != slot) return;
 
+        if (goblinbob.mobends.compat.WearableBackpacksCompat.isBackpackItem(itemStack)) return;
+
         boolean usesInnerModel = usesInnerModel(slot);
         HumanoidModel<E> defaultModel = usesInnerModel ? getInnerModel() : getOuterModel();
         if (defaultModel == null)
