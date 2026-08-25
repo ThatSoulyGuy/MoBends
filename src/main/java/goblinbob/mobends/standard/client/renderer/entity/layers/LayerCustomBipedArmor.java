@@ -233,6 +233,28 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         return null;
     }
 
+    private static final float EMISSIVE_INFLATION = 0.03F;
+
+    private static java.util.List<CapturedVertex> inflateAlongNormals(
+            java.util.List<CapturedVertex> source, float amount)
+    {
+        final java.util.List<CapturedVertex> result = new java.util.ArrayList<>(source.size());
+
+        for (CapturedVertex v : source)
+        {
+            result.add(new CapturedVertex(
+                    v.x + v.normalX * amount,
+                    v.y + v.normalY * amount,
+                    v.z + v.normalZ * amount,
+                    v.red, v.green, v.blue, v.alpha,
+                    v.u, v.v,
+                    v.overlayUV, v.lightmapUV,
+                    v.normalX, v.normalY, v.normalZ));
+        }
+
+        return result;
+    }
+
     private static final float ELBOW_Y = 6.0F / 16.0F;
     private static final float KNEE_Y = 18.0F / 16.0F;
     private static final float JOINT_BLEND_BAND = 2.0F / 16.0F;
@@ -253,6 +275,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         {
             return false;
         }
+
+        goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.clearEmissive();
 
         float[] savedState = captureArmorPartState(defaultModel);
         boolean[] savedVisibility = captureArmorPartVisibility(defaultModel);
@@ -276,6 +300,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         restoreArmorPartVisibility(defaultModel, savedVisibility);
         restoreArmorPartState(defaultModel, savedState);
 
+        final java.util.List<RenderType> emissiveTypes =
+                goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.drainEmissive();
+
         if (vertices.isEmpty())
         {
             return false;
@@ -286,6 +313,18 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         rigidRenderer.renderTaggedVertices(poseStack, outputConsumer, packedLight, OverlayTexture.NO_OVERLAY,
                 bipedData, vertices, regions, blendRegions, blendWeights);
+
+        if (!emissiveTypes.isEmpty())
+        {
+            final java.util.List<CapturedVertex> emissiveVertices = inflateAlongNormals(vertices, EMISSIVE_INFLATION);
+
+            for (RenderType emissiveType : emissiveTypes)
+            {
+                rigidRenderer.renderTaggedVertices(poseStack, bufferSource.getBuffer(emissiveType),
+                        packedLight, OverlayTexture.NO_OVERLAY,
+                        bipedData, emissiveVertices, regions, blendRegions, blendWeights);
+            }
+        }
 
         return true;
     }
