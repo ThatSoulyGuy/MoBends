@@ -63,11 +63,6 @@ public class EntityDatabase
             return;
 
         this.entryMap.remove(entity.getId());
-
-        if (data.getEntity() != null)
-        {
-            EntityBenderRegistry.instance.clearCache(data.getEntity());
-        }
     }
 
     public void updateClient()
@@ -84,7 +79,7 @@ public class EntityDatabase
             Entity entity = Minecraft.getInstance().level.getEntity(entry.getKey());
             if (!PreviewHelper.isPreviewEntity(entityInData) && (entity == null || entityInData != entity))
             {
-                EntityBenderRegistry.instance.clearCache(entityInData);
+
                 it.remove();
             }
             else

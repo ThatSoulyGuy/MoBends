@@ -49,6 +49,15 @@ public class RenderingEventHandler
         if (mc.player == null || mc.isPaused())
             return;
 
+        // Modded mobs that derive from a supported one get their bender here, so they animate
+
+
+        // from world load rather than from whenever the settings screen is first opened.
+
+
+        goblinbob.mobends.core.bender.BenderDiscovery.scanForDerivedBenders();
+
+
         EntityDatabase.instance.updateClient();
         Addons.onClientTick();
     }

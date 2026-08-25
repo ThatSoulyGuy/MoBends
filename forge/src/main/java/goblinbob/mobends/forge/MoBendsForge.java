@@ -96,6 +96,9 @@ public class MoBendsForge
 
         Core.getInstance().onClientSetup();
 
+        // Any addon that registered before Core existed had its content dropped; replay it now.
+        goblinbob.mobends.core.addon.Addons.flushPending();
+
         AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());
 
         Core.getInstance().applyConfigurationToEntityBenders();

@@ -89,7 +89,6 @@ public class EntityPreviewRenderer
         if (previewEntity != null)
         {
             EntityDatabase.instance.remove(previewEntity);
-            EntityBenderRegistry.instance.clearCache(previewEntity);
             PreviewHelper.unregisterPreviewEntity(previewEntity);
         }
 
