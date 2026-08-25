@@ -11,7 +11,6 @@
     "BufferSourceCaptureMixin",
     "ItemRendererArmorFoilMixin",
     "HierarchicalModelMixin",
-    "SpiderModelMixin",
     "RenderLayerMixin",
     "PlayerRendererSwimMixin"
   ],

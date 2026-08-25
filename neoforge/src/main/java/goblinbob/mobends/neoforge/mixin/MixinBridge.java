@@ -115,17 +115,4 @@ public final class MixinBridge {
             MoBendsRenderContext.endMainModelRender();
         }
     }
-
-    public static boolean hasAnimationData(LivingEntity entity) {
-        Object data = EntityDatabase.instance.get(entity);
-        return data instanceof BipedEntityData<?>;
-    }
-
-    public static BipedEntityData<?> getEntityData(LivingEntity entity) {
-        Object data = EntityDatabase.instance.get(entity);
-        if (data instanceof BipedEntityData<?>) {
-            return (BipedEntityData<?>) data;
-        }
-        return null;
-    }
 }

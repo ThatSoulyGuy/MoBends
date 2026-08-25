@@ -11,13 +11,8 @@
     "BufferSourceCaptureMixin",
     "ItemRendererArmorFoilMixin",
     "HierarchicalModelMixin",
-    "SpiderModelMixin",
     "RenderLayerMixin",
     "PlayerRendererSwimMixin",
-    "LivingEntityRendererAccessor",
-    "armor.ArmorTrimLayerMixin",
-    "armor.ElytraLayerMixin",
-    "armor.ModelPartAccessor",
     "armor.HumanoidArmorLayerMixin"
   ],
   "injectors": {

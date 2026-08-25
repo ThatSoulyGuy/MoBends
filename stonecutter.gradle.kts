@@ -56,19 +56,16 @@ for (node in stonecutter.tree.nodes) {
     val version = node.metadata.version
 
     for (type in listOf("Client", "Server")) {
-        tasks.register("run$type$loader") {
+        // A nested build, not a plain dependsOn. Stonecutter decides which nodes have sources at
+        // CONFIGURATION time, and Gradle configures everything before executing anything — so a
+        // switch performed during this build cannot give this node sources. GradleBuild starts a
+        // fresh invocation, which configures against the version the switch just wrote.
+        tasks.register<GradleBuild>("run$type$loader") {
             group = "project"
             description = "Runs the $loader $version $type, switching the active version if needed"
-            dependsOn("${node.hierarchy}:run$type")
-        }
-
-        // The old name, kept so existing muscle memory and docs keep working.
-        if (node.metadata == stonecutter.current) {
-            tasks.register("runActive$type$loader") {
-                group = "project"
-                description = "Alias for run$type$loader"
-                dependsOn("${node.hierarchy}:run$type")
-            }
+            dependsOn("Set active project to $version")
+            dir = rootDir
+            tasks = listOf("${node.hierarchy}:run$type")
         }
     }
 }

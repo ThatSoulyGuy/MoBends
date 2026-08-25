@@ -31,9 +31,9 @@ no Minecraft dependency, and is the only module with unit tests.
 ./gradlew runClientForge        # Forge 1.20.1
 ```
 
-There are matching `runServerNeoforge` / `runServerForge`. These always exist and work from any starting state —
-each switches Stonecutter's active version for you if it isn't already there, because only the active version has
-materialized sources.
+There are matching `runServerNeoforge` / `runServerForge`. These always exist and work from any starting state.
+Only the active Stonecutter version has materialized sources, and the active version has to be set before Gradle
+configures the build — so these switch it and then run the game as a second, nested invocation.
 
 > **Run one at a time, and name it.** A bare `./gradlew runClient` runs the task in *every* project that declares
 > one, which is both loaders at once — they need different active versions and share a single `run/` directory, so

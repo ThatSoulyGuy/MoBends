@@ -146,21 +146,28 @@ tasks.register<Copy>("buildAndCollect") {
     dependsOn("build")
 }
 
-// Stonecutter only materializes sources for the ACTIVE version, so a run on the other node used
-// to launch with nothing compiled -- loom pointed FML at a build/classes/java/main that was never
-// created, and it died with "Invalid paths argument, contained no existing paths".
+// Stonecutter decides which nodes have sources at CONFIGURATION time, and Gradle configures every
+// project before it executes anything. So switching the active version mid-build is too late: this
+// node was already configured with no usable output, and the launch dies with
+// "Invalid paths argument, contained no existing paths" before any mod loads.
 //
-// Rather than making that the developer's problem, the run tasks switch the active version
-// themselves. The switch rewrites sources in place, so it has to happen before anything in this
-// node compiles -- hence the mustRunAfter over the node's own tasks, not just a dependsOn.
-run {
+// The switch therefore has to happen in a SEPARATE Gradle invocation, which is what the root
+// runClient<Loader> / runServer<Loader> tasks do. Refuse here and point at them.
+tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+    val activeVersion = stonecutter.active.version
     val thisVersion = stonecutter.current.version
-    val switchTask = rootProject.tasks.named("Set active project to $thisVersion")
+    val loaderSuffix = loader.replaceFirstChar { it.uppercaseChar() }
+    val runType = if (name == "runClient") "Client" else "Server"
 
-    val runTasks = tasks.matching { it.name == "runClient" || it.name == "runServer" }
-    runTasks.configureEach { dependsOn(switchTask) }
-
-    tasks.configureEach {
-        if (name != "runClient" && name != "runServer") mustRunAfter(switchTask)
+    doFirst {
+        if (thisVersion != activeVersion) {
+            throw GradleException(
+                "Cannot run $thisVersion while Stonecutter's active version is $activeVersion.\n" +
+                    "Only the active version has sources, and the active version has to be set\n" +
+                    "before Gradle configures the build — so it cannot be switched from inside it.\n\n" +
+                    "Use the root task, which does the switch as its own invocation:\n" +
+                    "  ./gradlew run$runType$loaderSuffix\n"
+            )
+        }
     }
 }

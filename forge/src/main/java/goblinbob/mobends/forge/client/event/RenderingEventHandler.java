@@ -131,7 +131,12 @@ public class RenderingEventHandler
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    @SubscribeEvent
+    // LOWEST so any mod that cancels this event has already done so. A cancelled event is not
+    // delivered to later listeners, so we simply never push -- which matters because the matching
+    // popPose lives in the Post event, and Post is not fired for a cancelled Pre. Running at NORMAL
+    // meant a canceller at LOW or LOWEST left one or two unbalanced pushes on the shared level
+    // PoseStack for the rest of the frame, skewing every entity drawn afterwards.
+    @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.LOWEST)
     public void beforeLivingRender(RenderLivingEvent.Pre<?, ?> event)
     {
         LivingEntity entity = event.getEntity();
@@ -260,6 +265,17 @@ public class RenderingEventHandler
                 advanceAnimations(event.getPartialTick());
             }
             renderTickDrivenThisFrame = false;
+
+            // Start the frame with no pose debt recorded. Running beforeLivingRender at LOWEST should
+
+            // mean these are already empty, but a canceller registered at LOWEST after us could still
+
+            // beat us, and a stale id here would make the next frame pop a pose it never pushed.
+
+            entitiesWithPushedPose.clear();
+
+            ridersWithPushedPose.clear();
+
 
             goblinbob.mobends.core.client.TrailRenderQueue.clear();
         }
