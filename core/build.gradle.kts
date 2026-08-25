@@ -43,13 +43,22 @@ tasks.test {
  */
 val checkNoSplitPackages by tasks.registering {
     group = "verification"
-    description = "Fails if a package exists in both :core and the common mod sources"
+    description = "Fails if a package exists in two source roots that share a dev-run module layer"
 
+    // Every pair here co-exists on one classpath at runtime: :core is bundled into BOTH loader
+    // jars alongside the common sources. forge and neoforge are deliberately absent from each
+    // other's pairing -- they never load together, and they legitimately share three mixin
+    // packages by design.
     val coreRoot = file("src/main/java")
-    val commonRoot = rootProject.file("src/main/java")
+    val roots = mapOf(
+        "the common mod sources" to rootProject.file("src/main/java"),
+        "the Forge sources" to rootProject.file("forge/src/main/java"),
+        "the NeoForge sources" to rootProject.file("neoforge/src/main/java"),
+    )
+
     inputs.dir(coreRoot).withPathSensitivity(PathSensitivity.RELATIVE)
-    if (commonRoot.isDirectory) {
-        inputs.dir(commonRoot).withPathSensitivity(PathSensitivity.RELATIVE)
+    roots.values.filter { it.isDirectory }.forEach {
+        inputs.dir(it).withPathSensitivity(PathSensitivity.RELATIVE)
     }
     outputs.upToDateWhen { true }
 
@@ -61,17 +70,30 @@ val checkNoSplitPackages by tasks.registering {
                 .map { it.parentFile.relativeTo(root).path.replace(File.separatorChar, '.') }
                 .toSet()
 
-        val shared = packagesIn(coreRoot) intersect packagesIn(commonRoot)
-        if (shared.isNotEmpty()) {
+        val corePackages = packagesIn(coreRoot)
+        val offenders = roots.mapValues { (_, root) -> corePackages intersect packagesIn(root) }
+            .filterValues { it.isNotEmpty() }
+
+        if (offenders.isNotEmpty()) {
             throw GradleException(
-                "Split package(s) between :core and the common mod sources:\n" +
-                    shared.sorted().joinToString("\n") { "  $it" } +
-                    "\n\nEach package must live in exactly one module. This builds a working jar " +
-                    "(shadowJar merges the two) but crashes the NeoForge dev run with a module " +
-                    "ResolutionException. Move the offending class to a package owned by one module."
+                offenders.entries.joinToString("\n") { (label, shared) ->
+                    "Split package(s) between :core and $label:\n" +
+                        shared.sorted().joinToString("\n") { "  $it" }
+                } +
+                    "\n\nEach package must live in exactly one module. A split builds a working jar " +
+                    "(shadowJar merges the modules) but crashes the NeoForge dev run before the " +
+                    "window opens, with a module ResolutionException. Move the offending class to " +
+                    "a package owned by exactly one module."
             )
         }
     }
+}
+
+// Hung off compileJava, not just check: chiseledBuild, a per-node build and runClient all reach
+// compileJava, and none of them reach check -- so wiring this to check alone would mean the guard
+// never ran on any command that can actually reintroduce the bug.
+tasks.compileJava {
+    dependsOn(checkNoSplitPackages)
 }
 
 tasks.check {

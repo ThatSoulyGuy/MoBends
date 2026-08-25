@@ -3,12 +3,16 @@ package goblinbob.mobends.lib.time;
 /**
  * Supplies the animation clock, in ticks, to code in this module.
  *
- * <p>The mod installs {@code DataUpdateHandler::getTicks} into {@link Holder} during client setup;
- * unit tests install a hand-advanced fake. Until something installs a source the clock reads a
- * constant zero, so this never throws on an unwired holder — but note that a constant clock makes
- * every elapsed-time condition read zero elapsed ticks and therefore never fire. That fails
- * silently, which is why {@code DataUpdateHandler} installs itself from a static initialiser as
- * well as from each loader's setup.
+ * <p>There is exactly one production installer: {@code DataUpdateHandler}'s static initialiser.
+ * That is enough because nothing can read the clock without first having touched that class — the
+ * render path writes {@code DataUpdateHandler.ticksPerFrame} and {@code partialTicks} every frame,
+ * before any animation runs — but it is a class-initialisation-ordering guarantee rather than an
+ * explicit wiring step, so it is worth knowing about.
+ *
+ * <p>Until something installs a source the clock reads a constant zero. That fails SILENTLY rather
+ * than loudly: elapsed-time conditions see zero ticks elapsed and simply never fire, so a state
+ * machine waiting on one stalls with nothing in the log. Tests install a hand-advanced fake and
+ * should call {@link Holder#reset()} afterwards.
  *
  * <p>Returns {@code float} rather than {@code double} deliberately: it preserves the exact
  * arithmetic of the tick comparisons that consume it.

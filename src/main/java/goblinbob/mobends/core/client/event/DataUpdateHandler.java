@@ -5,10 +5,13 @@ import goblinbob.mobends.lib.time.ITickSource;
 public class DataUpdateHandler
 {
     // The animation runtime lives in the loader-independent core module and reads the clock
-    // through ITickSource. Installing the source here, as well as from each loader's client
-    // setup, guarantees it is live: a missing tick source fails SILENTLY -- every elapsed-time
-    // condition sees zero elapsed ticks and therefore never fires -- and this class is written
-    // every frame before any entity renders, so this initialiser always runs first.
+    // through ITickSource. This is its ONLY installer, and it is sufficient by class-init
+    // ordering rather than by explicit wiring: both loaders' render handlers write ticksPerFrame
+    // and partialTicks here every frame, before any entity renders, so this class is always
+    // initialised before anything can read the clock.
+    //
+    // Worth stating because the failure mode is silent: an uninstalled source reads a constant
+    // zero, so every elapsed-time condition sees zero ticks elapsed and simply never fires.
     static
     {
         ITickSource.Holder.setSource(DataUpdateHandler::getTicks);

@@ -80,14 +80,38 @@ public class GUtilTest
     }
 
     @Test
-    public void spiderLimbNearNeutralReportsASmallDeviation()
+    public void twoNearlyIdenticalAnglesStraddlingPiReportATinyDeviation()
     {
-        // Regression guard for the real symptom: limb 0's neutral yaw is PI + 1.3, and a limb
-        // pointing almost exactly at it used to report a deviation near PI, tripping the 0.9
-        // re-plant threshold on essentially every frame.
-        double neutralYaw = Math.PI + 1.3;
-        double almostNeutral = neutralYaw - 0.05;
-        assertEquals(0.05, GUtil.getRadianDifference(neutralYaw, almostNeutral), EPSILON);
-        assertTrue(GUtil.getRadianDifference(neutralYaw, almostNeutral) < 0.9);
+        // Regression guard for the real symptom. The old `% Math.PI` only diverged when the two
+        // angles landed on OPPOSITE sides of a multiple of PI -- and then it was off by exactly
+        // PI, so two limbs a hundredth of a radian apart reported a deviation of ~3.13 and
+        // tripped the spider's 0.9 re-plant threshold on essentially every frame.
+        //
+        // An earlier version of this test used PI+1.3 against PI+1.25, which sit on the SAME side
+        // and therefore passed with the bug fully reintroduced. Straddling is the whole point.
+        double justAbove = Math.PI + 0.02;
+        double justBelow = Math.PI - 0.02;
+
+        assertEquals(0.04, GUtil.getRadianDifference(justAbove, justBelow), EPSILON);
+        assertTrue(GUtil.getRadianDifference(justAbove, justBelow) < 0.9,
+                "a limb sitting almost exactly at its neutral yaw must not read as deviated");
+    }
+
+    @Test
+    public void deviationIsSmallOnBothSidesOfEverySpiderNeutralYaw()
+    {
+        // The spider's eight limbs sit at these neutral yaws; the even-index ones exceed PI,
+        // which is exactly why the fold was wrong for them.
+        double[] neutralYaws = { -0.929, -0.186, 0.557, 1.3, Math.PI + 1.3, Math.PI + 0.557, 2.956, 2.213 };
+
+        for (double neutral : neutralYaws)
+        {
+            for (double delta : new double[] { -0.02, 0.02 })
+            {
+                double d = GUtil.getRadianDifference(neutral, neutral + delta);
+                assertEquals(Math.abs(delta), d, EPSILON,
+                        "neutral=" + neutral + " delta=" + delta + " reported " + d);
+            }
+        }
     }
 }

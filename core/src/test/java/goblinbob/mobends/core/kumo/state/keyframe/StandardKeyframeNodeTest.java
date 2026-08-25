@@ -7,6 +7,7 @@ import goblinbob.mobends.lib.animation.keyframe.Keyframe;
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.Timeout.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -138,7 +139,10 @@ public class StandardKeyframeNodeTest
     }
 
     @Test
-    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    // SEPARATE_THREAD matters: the guard these protect is a tight arithmetic loop that ignores
+    // the cooperative interrupt JUnit schedules in the default same-thread mode, so a regression
+    // would hang the Gradle test task -- and CI -- instead of failing it.
+    @Timeout(value = 5, unit = TimeUnit.SECONDS, threadMode = ThreadMode.SEPARATE_THREAD)
     public void loopingASingleKeyframeDoesNotHang()
     {
         // duration - 1 == 0, so the wrap loop would subtract zero forever. This hung the client
@@ -149,7 +153,10 @@ public class StandardKeyframeNodeTest
     }
 
     @Test
-    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    // SEPARATE_THREAD matters: the guard these protect is a tight arithmetic loop that ignores
+    // the cooperative interrupt JUnit schedules in the default same-thread mode, so a regression
+    // would hang the Gradle test task -- and CI -- instead of failing it.
+    @Timeout(value = 5, unit = TimeUnit.SECONDS, threadMode = ThreadMode.SEPARATE_THREAD)
     public void loopingAnEmptyAnimationDoesNotHang()
     {
         StandardKeyframeNode n = node(0, true, 1.0f);

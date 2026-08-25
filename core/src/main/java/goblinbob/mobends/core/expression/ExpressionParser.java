@@ -250,7 +250,7 @@ public class ExpressionParser {
         // Left as a plain function call it would evaluate BOTH branches every time, which is
         // both wasteful and surprising -- and actively wrong once a branch calls random() or
         // divides by a guard the condition exists to check, as in if(len > 0, x / len, 0).
-        if (name.equals("if")) {
+        if (name.equalsIgnoreCase("if")) {
             return new TernaryNode(arguments.get(0), arguments.get(1), arguments.get(2));
         }
 

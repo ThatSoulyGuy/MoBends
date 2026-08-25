@@ -24,7 +24,6 @@ public class KeyframeLayerState implements ILayerState
 
     private List<INodeState> nodeStates = new ArrayList<>();
     private ArmatureMask mask;
-    private final boolean additive;
     private INodeState previousNode;
     private INodeState currentNode;
     private float transitionProgress = 0.0F;
@@ -34,7 +33,6 @@ public class KeyframeLayerState implements ILayerState
     public KeyframeLayerState(IKumoInstancingContext context, KeyframeLayerTemplate layerTemplate) throws MalformedKumoTemplateException
     {
         this.mask = layerTemplate.mask;
-        this.additive = layerTemplate.additive;
 
         for (KeyframeNodeTemplate nodeTemplate : layerTemplate.nodes)
         {
@@ -79,10 +77,7 @@ public class KeyframeLayerState implements ILayerState
 
             if (animation != null)
             {
-                if (!additive)
-                {
-                    applyRestPose(data, animation);
-                }
+                applyRestPose(data, animation);
 
                 if (previousNode != null)
                 {
@@ -114,10 +109,7 @@ public class KeyframeLayerState implements ILayerState
                         // previousNode is dropped, it stays wherever it accumulated to for the
                         // rest of the entity's life. Clearing here is idempotent for the bones the
                         // two animations share: they are simply zeroed twice before being written.
-                        if (!additive)
-                        {
-                            applyRestPose(data, previousAnimation);
-                        }
+                        applyRestPose(data, previousAnimation);
 
                         applyKeyframeAnimation(data, previousAnimation, previousNode.getProgress(), 1 - t);
                     }
