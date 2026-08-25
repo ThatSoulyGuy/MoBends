@@ -256,6 +256,9 @@ public class RenderingEventHandler
         }
         else if (event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS)
         {
+            goblinbob.mobends.standard.client.renderer.entity.ArrowTrailManager
+                    .renderExternalTrails(event.getPoseStack());
+
             goblinbob.mobends.core.client.TrailRenderQueue.flush();
         }
     }
