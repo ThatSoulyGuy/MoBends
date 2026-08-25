@@ -20,6 +20,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
@@ -853,11 +854,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return overlayGeometry.get(model) != null;
         }
 
-        AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(model, true, baseJointOverride());
-        if (geometry != null)
-        {
-            geometry.adoptRuntimePivots(model);
-        }
+        AdaptiveHumanoidGeometry geometry = buildOverlayGeometry(model);
 
         if (overlayGeometry.size() >= MAX_CACHED_OVERLAY_GEOMETRY)
         {
@@ -865,6 +862,69 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
         overlayGeometry.put(model, geometry);
         return geometry != null;
+    }
+
+    private AdaptiveHumanoidGeometry buildOverlayGeometry(HumanoidModel<?> model)
+    {
+        final ModelPart[] parts = {
+                model.head, model.hat, model.body,
+                model.leftArm, model.rightArm, model.leftLeg, model.rightLeg
+        };
+
+        final boolean restorePose = hasBakedRestPose(parts);
+        final PartPose[] saved = new PartPose[parts.length];
+        final boolean crouching = model.crouching;
+
+        if (restorePose)
+        {
+            for (int i = 0; i < parts.length; ++i)
+            {
+                if (parts[i] == null) continue;
+                saved[i] = parts[i].storePose();
+                parts[i].loadPose(parts[i].getInitialPose());
+            }
+            model.crouching = false;
+        }
+
+        try
+        {
+            AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(model, true, baseJointOverride());
+            if (geometry != null)
+            {
+                geometry.adoptRuntimePivots(model);
+            }
+            return geometry;
+        }
+        finally
+        {
+            if (restorePose)
+            {
+                for (int i = 0; i < parts.length; ++i)
+                {
+                    if (parts[i] != null && saved[i] != null)
+                    {
+                        parts[i].loadPose(saved[i]);
+                    }
+                }
+                model.crouching = crouching;
+            }
+        }
+    }
+
+    private static boolean hasBakedRestPose(ModelPart[] parts)
+    {
+        for (ModelPart part : parts)
+        {
+            if (part == null) continue;
+
+            final PartPose pose = part.getInitialPose();
+            if (pose.x != 0.0F || pose.y != 0.0F || pose.z != 0.0F)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void collectOverlayModels()
@@ -994,12 +1054,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         AdaptiveHumanoidGeometry geometry = overlayGeometry.get(model);
         if (geometry == null)
         {
-            geometry = AdaptiveHumanoidGeometry.build(model, true, baseJointOverride());
+            geometry = buildOverlayGeometry(model);
             if (geometry == null)
             {
                 return;
             }
-            geometry.adoptRuntimePivots(model);
             overlayGeometry.put(model, geometry);
         }
 
