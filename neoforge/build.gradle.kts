@@ -131,3 +131,27 @@ tasks.register<Copy>("buildAndCollect") {
     into(rootProject.layout.buildDirectory.file("libs/${mod.version}/$loader"))
     dependsOn("build")
 }
+
+// Stonecutter only materializes sources for the ACTIVE version, so every task on an inactive
+// node is NO-SOURCE. A runClient there does not fail cleanly: loom points FML at
+// build/classes/java/main, nothing ever created it, and the launch dies with
+// "Invalid paths argument, contained no existing paths" long before any mod loads.
+//
+// Refuse up front and say what to run instead.
+tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+    val activeVersion = stonecutter.active.version
+    val thisVersion = stonecutter.current.version
+    val loaderSuffix = loader.replaceFirstChar { it.uppercaseChar() }
+    val runType = if (name == "runClient") "Client" else "Server"
+
+    doFirst {
+        if (thisVersion != activeVersion) {
+            throw GradleException(
+                "Cannot run $thisVersion while Stonecutter's active version is $activeVersion.\n" +
+                    "Only the active version has sources, so this would launch with no mod loaded.\n\n" +
+                    "  ./gradlew \"Set active project to $thisVersion\"\n" +
+                    "  ./gradlew runActive$runType$loaderSuffix\n"
+            )
+        }
+    }
+}

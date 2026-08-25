@@ -51,3 +51,17 @@ tasks.build {
     group = "versioned"
     description = "Must run through 'chiseledBuild'"
 }
+
+// This is the COMMON node -- shared sources with no mod loader attached. Loom still generates
+// runClient/runServer here, and they launch plain vanilla Minecraft with none of the mod present.
+//
+// That matters more than it sounds, because an unqualified `./gradlew runClient` runs the task in
+// EVERY project that declares one. With these left enabled that is four projects: two common
+// (vanilla 1.20.1 and vanilla 1.21.1) and two loader. Four Minecraft windows, two of them useless.
+//
+// Disabled rather than deleted so the task still resolves and reports why.
+tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+    enabled = false
+    group = "versioned"
+    description = "Disabled: the common node has no mod loader. Use runActiveClient<Loader>."
+}
