@@ -61,6 +61,54 @@ public class KeyframeUtils
                 (w0 + (w1 - w0) * tween) * amount);
     }
 
+    /**
+     * Composes the tweened keyframe rotation ONTO the target, rather than adding its components.
+     *
+     * <p>This is what an additive layer needs, and it is not what
+     * {@link #tweenOrientationAdditive} does. That method sums raw quaternion components, which is
+     * only ever correct because the caller zeroed the target first — adding onto zero is the same
+     * as setting. Skip the zeroing and the sums stop being unit quaternions: two layers writing
+     * one bone leave {@code |q| = 2}, and the renderer scales geometry by {@code |q|^2}.
+     *
+     * <p>So the rotation is normalised, converted to axis-angle, and handed to
+     * {@link SmoothOrientation#rotateInstant}, which multiplies it onto the existing orientation
+     * the same way {@code ProceduralLayerState} composes its additive layers. Multiplying unit
+     * quaternions yields a unit quaternion, so the result stays valid however many layers write.
+     *
+     * <p>{@code amount} scales the ANGLE, giving a partial rotation from identity — the natural
+     * meaning for a cross-fade weight or a blend weight.
+     */
+    public static void tweenOrientationMultiplicative(SmoothOrientation target, float[] rotationA, float[] rotationB, float tween, float amount)
+    {
+        float x = rotationA[0] + (rotationB[0] - rotationA[0]) * tween;
+        float y = rotationA[1] + (rotationB[1] - rotationA[1]) * tween;
+        float z = rotationA[2] + (rotationB[2] - rotationA[2]) * tween;
+        float w = rotationA[3] + (rotationB[3] - rotationA[3]) * tween;
+
+        // Component-wise interpolation does not preserve unit length.
+        float length = (float) Math.sqrt(x * x + y * y + z * z + w * w);
+        if (length < 1.0e-6F)
+        {
+            return;
+        }
+        x /= length;
+        y /= length;
+        z /= length;
+        w /= length;
+
+        float halfAngle = (float) Math.acos(Math.max(-1.0F, Math.min(1.0F, w)));
+        float sinHalfAngle = (float) Math.sin(halfAngle);
+
+        // An identity rotation has no axis to speak of, and composing it is a no-op anyway.
+        if (Math.abs(sinHalfAngle) < 1.0e-6F)
+        {
+            return;
+        }
+
+        float angleDegrees = (float) Math.toDegrees(2.0F * halfAngle) * amount;
+        target.rotateInstant(angleDegrees, x / sinHalfAngle, y / sinHalfAngle, z / sinHalfAngle);
+    }
+
     public static void tweenOrientation(SmoothOrientation target, float[] rotationA, float[] rotationB, float tween)
     {
         float x0 = rotationA[0];

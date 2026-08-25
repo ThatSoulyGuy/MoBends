@@ -6,6 +6,7 @@ import goblinbob.mobends.lib.animation.keyframe.Keyframe;
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
 import goblinbob.mobends.lib.client.model.IAnimatedPart;
 import goblinbob.mobends.lib.data.IEntityAnimationData;
+import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.core.kumo.state.*;
 import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
@@ -24,6 +25,7 @@ public class KeyframeLayerState implements ILayerState
 
     private List<INodeState> nodeStates = new ArrayList<>();
     private ArmatureMask mask;
+    private final boolean additive;
     private INodeState previousNode;
     private INodeState currentNode;
     private float transitionProgress = 0.0F;
@@ -33,6 +35,7 @@ public class KeyframeLayerState implements ILayerState
     public KeyframeLayerState(IKumoInstancingContext context, KeyframeLayerTemplate layerTemplate) throws MalformedKumoTemplateException
     {
         this.mask = layerTemplate.mask;
+        this.additive = layerTemplate.additive;
 
         for (KeyframeNodeTemplate nodeTemplate : layerTemplate.nodes)
         {
@@ -77,7 +80,11 @@ public class KeyframeLayerState implements ILayerState
 
             if (animation != null)
             {
-                applyRestPose(data, animation);
+                // An additive layer composes onto what earlier layers wrote, so it must NOT clear.
+                if (!additive)
+                {
+                    applyRestPose(data, animation);
+                }
 
                 if (previousNode != null)
                 {
@@ -109,7 +116,10 @@ public class KeyframeLayerState implements ILayerState
                         // previousNode is dropped, it stays wherever it accumulated to for the
                         // rest of the entity's life. Clearing here is idempotent for the bones the
                         // two animations share: they are simply zeroed twice before being written.
-                        applyRestPose(data, previousAnimation);
+                        if (!additive)
+                        {
+                            applyRestPose(data, previousAnimation);
+                        }
 
                         applyKeyframeAnimation(data, previousAnimation, previousNode.getProgress(), 1 - t);
                     }
@@ -221,6 +231,31 @@ public class KeyframeLayerState implements ILayerState
         return keyframes.get(index);
     }
 
+    /**
+     * Writes a keyframe rotation onto a target, the right way round for this layer's mode.
+     *
+     * <p>A replacing layer zeroes the target in {@code applyRestPose} first, so summing raw
+     * quaternion components onto zero is equivalent to setting it, and cross-fade weights that
+     * sum to one produce the nlerp the transition wants.
+     *
+     * <p>An additive layer never zeroes, so the same sum would be wrong twice over: it is not
+     * rotation composition, and the result is not a unit quaternion — two layers writing one bone
+     * leave {@code |q| = 2}, which the renderer turns into a 4x scale because JOML scales a
+     * rotation matrix by {@code |q|^2}. It composes multiplicatively instead, matching what
+     * {@code ProceduralLayerState} does for its own additive layers.
+     */
+    private void composeRotation(SmoothOrientation target, float[] rotationA, float[] rotationB, float tween, float amount)
+    {
+        if (additive)
+        {
+            KeyframeUtils.tweenOrientationMultiplicative(target, rotationA, rotationB, tween, amount);
+        }
+        else
+        {
+            KeyframeUtils.tweenOrientationAdditive(target, rotationA, rotationB, tween, amount);
+        }
+    }
+
     public void applyKeyframeAnimation(IEntityAnimationData entityData, KeyframeAnimation animation, float keyframeIndex, float amount)
     {
         final int frameA = (int) keyframeIndex;
@@ -247,7 +282,7 @@ public class KeyframeLayerState implements ILayerState
 
             if (keyframe != null && nextFrame != null)
             {
-                KeyframeUtils.tweenOrientationAdditive(entityData.getCenterRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
+                composeRotation(entityData.getCenterRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
                 KeyframeUtils.tweenVectorAdditive(entityData.getGlobalOffset(), keyframe.position, nextFrame.position, tween, amount);
             }
         }
@@ -270,7 +305,7 @@ public class KeyframeLayerState implements ILayerState
                     {
                         if (part instanceof IAnimatedPart)
                         {
-                            KeyframeUtils.tweenOrientationAdditive(((IAnimatedPart) part).getRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
+                            composeRotation(((IAnimatedPart) part).getRotation(), keyframe.rotation, nextFrame.rotation, tween, amount);
                             KeyframeUtils.tweenVectorAdditive(((IAnimatedPart) part).getOffset(), keyframe.position, nextFrame.position, tween, -amount);
                         }
                     }

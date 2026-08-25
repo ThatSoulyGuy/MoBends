@@ -101,10 +101,53 @@ public class KeyframeLayerStateTest
     private static KeyframeLayerState layer(Ctx ctx, StandardKeyframeNodeTemplate... nodes)
             throws MalformedKumoTemplateException
     {
+        return layer(ctx, false, nodes);
+    }
+
+    private static KeyframeLayerState layer(Ctx ctx, boolean additive, StandardKeyframeNodeTemplate... nodes)
+            throws MalformedKumoTemplateException
+    {
         KeyframeLayerTemplate template = new KeyframeLayerTemplate();
         template.entryNode = 0;
+        template.additive = additive;
         template.nodes = new ArrayList<>(Arrays.asList(nodes));
         return new KeyframeLayerState(ctx, template);
+    }
+
+    /** An animation whose bones carry a real rotation, so composition is observable. */
+    private static KeyframeAnimation rotatedAnimation(int frames, float degreesAboutY, String... bones)
+    {
+        double half = Math.toRadians(degreesAboutY) / 2.0;
+        float qy = (float) Math.sin(half);
+        float qw = (float) Math.cos(half);
+
+        KeyframeAnimation animation = new KeyframeAnimation();
+        animation.bones = new HashMap<>();
+        for (String boneName : bones)
+        {
+            List<Keyframe> keyframes = new ArrayList<>();
+            for (int i = 0; i < frames; i++)
+            {
+                Keyframe k = new Keyframe();
+                k.position = new float[] { 0, 0, 0 };
+                k.rotation = new float[] { 0, qy, 0, qw };
+                k.scale = new float[] { 1, 1, 1 };
+                keyframes.add(k);
+            }
+            Bone bone = new Bone();
+            bone.keyframes = keyframes;
+            animation.bones.put(boneName, bone);
+        }
+        return animation;
+    }
+
+    /** Rotation about Y encoded in a unit quaternion, in degrees, in [0, 360). */
+    private static float yAngleDegrees(goblinbob.mobends.lib.math.SmoothOrientation orientation)
+    {
+        goblinbob.mobends.lib.math.Quaternion q = orientation.getSmooth();
+        double angle = 2.0 * Math.atan2(q.y, q.w);
+        double degrees = Math.toDegrees(angle);
+        return (float) ((degrees % 360.0 + 360.0) % 360.0);
     }
 
     // ---------- the pose write itself ----------
@@ -169,6 +212,79 @@ public class KeyframeLayerStateTest
     {
         goblinbob.mobends.lib.math.Quaternion q = orientation.getSmooth();
         return (float) Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+    }
+
+    // ---------- K6: additive layers compose, they do not wipe or inflate ----------
+
+    @Test
+    public void anAdditiveLayerComposesOntoWhatAnEarlierLayerWrote()
+    {
+        // The shipped wolf stacks a tongue/mouth overlay on a base layer. Additive means the
+        // overlay decorates the base pose; without it the overlay replaces it outright.
+        FakeAnimationData data = new FakeAnimationData().withBones("tongue");
+        Ctx ctx = new Ctx(data);
+        ctx.animations.put("base", rotatedAnimation(4, 30.0f, "tongue"));
+        ctx.animations.put("overlay", rotatedAnimation(4, 20.0f, "tongue"));
+
+        KeyframeLayerState base = assertDoesNotThrow(() -> layer(ctx, node("base", null, 0)));
+        KeyframeLayerState overlay = assertDoesNotThrow(() -> layer(ctx, true, node("overlay", null, 0)));
+        assertDoesNotThrow(() -> base.start(ctx));
+        assertDoesNotThrow(() -> overlay.start(ctx));
+
+        assertDoesNotThrow(() -> base.update(ctx, 1.0f));
+        assertEquals(30.0f, yAngleDegrees(data.part("tongue").getRotation()), 0.01f,
+                "the base layer should have posed the bone");
+
+        assertDoesNotThrow(() -> overlay.update(ctx, 1.0f));
+        assertEquals(50.0f, yAngleDegrees(data.part("tongue").getRotation()), 0.01f,
+                "an additive overlay must compose onto the base pose, not replace it");
+    }
+
+    @Test
+    public void anAdditiveLayerLeavesAUnitQuaternionAcrossManyFrames()
+    {
+        // The regression this replaces: defining additive as "skip the rest pose" summed raw
+        // quaternion components, so two layers over one bone left |q| = 2. The renderer scales
+        // geometry by |q|^2, which put the wolf's tongue and mouth at 4x.
+        FakeAnimationData data = new FakeAnimationData().withBones("tongue");
+        Ctx ctx = new Ctx(data);
+        ctx.animations.put("base", rotatedAnimation(4, 30.0f, "tongue"));
+        ctx.animations.put("overlay", rotatedAnimation(4, 20.0f, "tongue"));
+
+        KeyframeLayerState base = assertDoesNotThrow(() -> layer(ctx, node("base", null, 0)));
+        KeyframeLayerState overlay = assertDoesNotThrow(() -> layer(ctx, true, node("overlay", null, 0)));
+        assertDoesNotThrow(() -> base.start(ctx));
+        assertDoesNotThrow(() -> overlay.start(ctx));
+
+        for (int frame = 0; frame < 30; frame++)
+        {
+            assertDoesNotThrow(() -> base.update(ctx, 1.0f));
+            assertDoesNotThrow(() -> overlay.update(ctx, 1.0f));
+
+            assertEquals(1.0f, magnitude(data.part("tongue").getRotation()), EPSILON,
+                    "|q| left unit length on frame " + frame);
+            assertEquals(50.0f, yAngleDegrees(data.part("tongue").getRotation()), 0.01f,
+                    "the composed angle should be stable, not creeping, on frame " + frame);
+        }
+    }
+
+    @Test
+    public void anAdditiveLayerScalesItsRotationByTheBlendAmount()
+    {
+        // amount scales the ANGLE, giving a partial rotation from identity -- the meaning a
+        // cross-fade weight needs.
+        FakeAnimationData data = new FakeAnimationData().withBones("tongue");
+        Ctx ctx = new Ctx(data);
+        ctx.animations.put("overlay", rotatedAnimation(4, 40.0f, "tongue"));
+
+        KeyframeLayerState overlay = assertDoesNotThrow(() -> layer(ctx, true, node("overlay", null, 0)));
+        assertDoesNotThrow(() -> overlay.start(ctx));
+
+        overlay.applyKeyframeAnimation(data, ctx.animations.get("overlay"), 0.0f, 0.5f);
+
+        assertEquals(20.0f, yAngleDegrees(data.part("tongue").getRotation()), 0.01f,
+                "half the blend amount should apply half the angle");
+        assertEquals(1.0f, magnitude(data.part("tongue").getRotation()), EPSILON);
     }
 
     // ---------- K1: cross-fade must not leave outgoing-only bones accumulating ----------

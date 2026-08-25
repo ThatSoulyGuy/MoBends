@@ -14,21 +14,19 @@ public class KeyframeLayerTemplate extends LayerTemplate
     public List<KeyframeNodeTemplate> nodes;
     public ArmatureMask mask;
 
-    // NOTE: there is deliberately no `additive` field here, even though
-    // ProceduralLayerTemplate has one and assets/mobends/bends/animators/wolf.json sets
-    // "additive": true on its tongue/mouth overlay. Gson drops the unknown key, so that flag is
-    // inert — which is the correct behaviour until a real implementation exists.
-    //
-    // The obvious implementation is wrong. A keyframe layer's write step composes rotations with
-    // SmoothOrientation.add, which sums raw quaternion components without normalising, and
-    // applyRestPose is what guarantees exactly one unit quaternion lands on a bone per frame.
-    // Skipping the rest pose therefore leaves |q| = 2 where two layers write the same bone, and
-    // JOML scales a rotation matrix by |q|^2 — a 4x scale-up on the affected bones — while
-    // offsets simply double. Nothing renormalises between the Kumo write and the render read.
-    //
-    // A correct version has to mirror what ProceduralLayerState actually does for additive:
-    // compose rotations MULTIPLICATIVELY (rotateInstantX/Y/Z), not by component addition, and
-    // scale offsets by a blend weight rather than adding them raw.
+    /**
+     * When true, this layer composes onto whatever earlier layers already wrote for the bones it
+     * touches, instead of clearing them first.
+     *
+     * <p>Mirrors {@code ProceduralLayerTemplate.additive}. Rotations compose MULTIPLICATIVELY --
+     * see {@code KeyframeLayerState.composeRotation}. Summing raw quaternion components instead,
+     * which is what the replacing path does after zeroing, would leave a non-unit quaternion
+     * wherever two layers write the same bone, and the renderer scales geometry by its squared
+     * magnitude.
+     *
+     * <p>Populated by Gson and never written from Java, which is normal for a template field.
+     */
+    public boolean additive = false;
 
     @Override
     public void validate(IKumoValidationContext context) throws MalformedKumoTemplateException
