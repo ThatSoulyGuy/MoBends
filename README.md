@@ -26,21 +26,19 @@ The project builds one source tree into two jars along two axes: **Stonecutter**
 no Minecraft dependency, and is the only module with unit tests.
 
 ### Running the game
-Stonecutter only materializes sources for the **active** version, so the active version has to match the loader you
-want to run. Switch first, then run:
-
 ```bash
-# NeoForge 1.21.1
-./gradlew "Set active project to 1.21.1"
-./gradlew runActiveClientNeoforge
-
-# Forge 1.20.1
-./gradlew "Reset active project"
-./gradlew runActiveClientForge
+./gradlew runClientNeoforge     # NeoForge 1.21.1
+./gradlew runClientForge        # Forge 1.20.1
 ```
 
-`runActive*` tasks only exist for the branch of the currently active version, which is why the other loader's task
-looks like it is missing.
+There are matching `runServerNeoforge` / `runServerForge`. These always exist and work from any starting state —
+each switches Stonecutter's active version for you if it isn't already there, because only the active version has
+materialized sources.
+
+> **Run one at a time, and name it.** A bare `./gradlew runClient` runs the task in *every* project that declares
+> one, which is both loaders at once — they need different active versions and share a single `run/` directory, so
+> the build stops and tells you to pick. Watch for this in IntelliJ's Gradle panel especially: it groups tasks by
+> their `group`, so `neoforge > loom > runClient` looks project-scoped but is not.
 
 ### Building and testing
 ```bash
@@ -64,7 +62,7 @@ Run `./gradlew "Reset active project"`. Switching the active version rewrites th
 - Crashing on a NullPointerException inside FML.
     - Click "Download Sources" in the Gradle sidebar
 - `Invalid paths argument, contained no existing paths` when launching.
-    - The active version doesn't match the loader you're running. Switch it (see above).
+    - You launched a per-node `runClient` directly. Use `runClientNeoforge` / `runClientForge`, which switch for you.
 - `java.lang.module.ResolutionException: ... contains package ...` when launching.
     - A package exists in both `core` and `src/main`. The shipped jar merges them so it builds fine, but the dev run
       keeps them separate and rejects the overlap. `./gradlew :core:checkNoSplitPackages` names the offender.

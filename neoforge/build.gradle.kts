@@ -132,26 +132,21 @@ tasks.register<Copy>("buildAndCollect") {
     dependsOn("build")
 }
 
-// Stonecutter only materializes sources for the ACTIVE version, so every task on an inactive
-// node is NO-SOURCE. A runClient there does not fail cleanly: loom points FML at
-// build/classes/java/main, nothing ever created it, and the launch dies with
-// "Invalid paths argument, contained no existing paths" long before any mod loads.
+// Stonecutter only materializes sources for the ACTIVE version, so a run on the other node used
+// to launch with nothing compiled -- loom pointed FML at a build/classes/java/main that was never
+// created, and it died with "Invalid paths argument, contained no existing paths".
 //
-// Refuse up front and say what to run instead.
-tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
-    val activeVersion = stonecutter.active.version
+// Rather than making that the developer's problem, the run tasks switch the active version
+// themselves. The switch rewrites sources in place, so it has to happen before anything in this
+// node compiles -- hence the mustRunAfter over the node's own tasks, not just a dependsOn.
+run {
     val thisVersion = stonecutter.current.version
-    val loaderSuffix = loader.replaceFirstChar { it.uppercaseChar() }
-    val runType = if (name == "runClient") "Client" else "Server"
+    val switchTask = rootProject.tasks.named("Set active project to $thisVersion")
 
-    doFirst {
-        if (thisVersion != activeVersion) {
-            throw GradleException(
-                "Cannot run $thisVersion while Stonecutter's active version is $activeVersion.\n" +
-                    "Only the active version has sources, so this would launch with no mod loaded.\n\n" +
-                    "  ./gradlew \"Set active project to $thisVersion\"\n" +
-                    "  ./gradlew runActive$runType$loaderSuffix\n"
-            )
-        }
+    val runTasks = tasks.matching { it.name == "runClient" || it.name == "runServer" }
+    runTasks.configureEach { dependsOn(switchTask) }
+
+    tasks.configureEach {
+        if (name != "runClient" && name != "runServer") mustRunAfter(switchTask)
     }
 }
