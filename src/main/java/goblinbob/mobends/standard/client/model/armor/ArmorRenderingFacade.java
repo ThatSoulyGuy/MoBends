@@ -42,58 +42,6 @@ public class ArmorRenderingFacade
         this.tier2Renderer = new Tier2Renderer();
     }
 
-    public <T extends LivingEntity> boolean render(ArmorRenderContext<T> context, Model armorModel)
-    {
-        if (context == null || armorModel == null)
-        {
-            return false;
-        }
-
-        RenderTier tier = determineTier(armorModel);
-
-        if (debugMode)
-        {
-        }
-
-        boolean success = false;
-        try
-        {
-            success = renderWithTier(tier, context, armorModel);
-        }
-        catch (Exception e)
-        {
-            LOGGER.error("Error rendering armor with {}: {}", tier, e.getMessage());
-            if (debugMode)
-            {
-                e.printStackTrace();
-            }
-        }
-
-        updateStats(tier, success);
-
-        return success;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends LivingEntity> boolean renderWithTier(RenderTier tier, ArmorRenderContext<T> context, Model armorModel)
-    {
-        switch (tier)
-        {
-            case TIER_1_TRANSFORM_INJECTION:
-                if (armorModel instanceof HumanoidModel<?>)
-                {
-                    boolean result = tier1Renderer.render(context, (HumanoidModel<?>) armorModel);
-                    if (result)
-                    {
-                        return true;
-                    }
-                }
-
-            case TIER_2_MODEL_INTERCEPTION:
-            default:
-                return tier2Renderer.render(context, armorModel);
-        }
-    }
 
     private RenderTier determineTier(Model armorModel)
     {

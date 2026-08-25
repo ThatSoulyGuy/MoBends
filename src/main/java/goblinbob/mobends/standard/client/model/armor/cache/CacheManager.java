@@ -3,16 +3,20 @@ package goblinbob.mobends.standard.client.model.armor.cache;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Owns the armor render caches.
+ *
+ * <p>There used to be three: a structure cache, an assignment cache and a geometry cache. Only the
+ * structure cache was ever used — the other two were fully built, with LRU eviction, age limits and
+ * hit/miss statistics, and nothing ever called put() or get() on either. This class constructed
+ * them, sized them, cleared them and reported statistics for them, and that was the whole of their
+ * involvement in rendering.
+ */
 public class CacheManager
 {
     private static CacheManager instance;
 
     private final ArmorStructureCache structureCache;
-    private final ArmorAssignmentCache assignmentCache;
-    private final ArmorGeometryCache geometryCache;
-
-    private int maxGeometryCacheEntries = 100;
-    private long geometryCacheMaxAge = 60000;
 
     private long totalRenderCalls = 0;
     private long cacheAssistedRenders = 0;
@@ -20,10 +24,6 @@ public class CacheManager
     public CacheManager()
     {
         this.structureCache = new ArmorStructureCache();
-        this.assignmentCache = new ArmorAssignmentCache();
-        this.geometryCache = new ArmorGeometryCache();
-
-        applyConfiguration();
     }
 
     public static CacheManager getInstance()
@@ -44,32 +44,14 @@ public class CacheManager
         instance = null;
     }
 
-    private void applyConfiguration()
-    {
-        geometryCache.setMaxEntries(maxGeometryCacheEntries);
-        geometryCache.setMaxAge(geometryCacheMaxAge);
-    }
-
     public ArmorStructureCache getStructureCache()
     {
         return structureCache;
     }
 
-    public ArmorAssignmentCache getAssignmentCache()
-    {
-        return assignmentCache;
-    }
-
-    public ArmorGeometryCache getGeometryCache()
-    {
-        return geometryCache;
-    }
-
     public void clearAll()
     {
         structureCache.clear();
-        assignmentCache.clear();
-        geometryCache.clear();
         totalRenderCalls = 0;
         cacheAssistedRenders = 0;
     }
@@ -77,8 +59,6 @@ public class CacheManager
     public void invalidateForModel(Class<?> modelClass)
     {
         structureCache.remove(modelClass);
-        assignmentCache.removeForModel(modelClass);
-        geometryCache.invalidateForModel(modelClass);
     }
 
     public void recordCacheAssistedRender()
@@ -92,27 +72,15 @@ public class CacheManager
         totalRenderCalls++;
     }
 
-    public void setMaxGeometryCacheEntries(int max)
-    {
-        this.maxGeometryCacheEntries = max;
-        geometryCache.setMaxEntries(max);
-    }
-
-    public void setGeometryCacheMaxAge(long maxAge)
-    {
-        this.geometryCacheMaxAge = maxAge;
-        geometryCache.setMaxAge(maxAge);
-    }
-
     public int getTotalCachedEntries()
     {
-        return structureCache.size() + assignmentCache.size() + geometryCache.size();
+        return structureCache.size();
     }
 
     public float getCombinedHitRate()
     {
-        long totalHits = structureCache.getHits() + assignmentCache.getHits() + geometryCache.getHits();
-        long totalMisses = structureCache.getMisses() + assignmentCache.getMisses() + geometryCache.getMisses();
+        long totalHits = structureCache.getHits();
+        long totalMisses = structureCache.getMisses();
         long total = totalHits + totalMisses;
         return total > 0 ? (float) totalHits / total : 0.0f;
     }
@@ -127,8 +95,6 @@ public class CacheManager
         List<String> stats = new ArrayList<>();
         stats.add("=== Armor Cache Statistics ===");
         stats.add(structureCache.getStats());
-        stats.add(assignmentCache.getStats());
-        stats.add(geometryCache.getStats());
         stats.add(String.format("Total entries: %d", getTotalCachedEntries()));
         stats.add(String.format("Combined hit rate: %.1f%%", getCombinedHitRate() * 100));
         stats.add(String.format("Cache-assisted renders: %d/%d (%.1f%%)",
@@ -151,7 +117,5 @@ public class CacheManager
     public void onResourceReload()
     {
         structureCache.clear();
-        assignmentCache.clear();
-        geometryCache.clear();
     }
 }

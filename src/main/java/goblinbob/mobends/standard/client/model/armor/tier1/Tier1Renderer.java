@@ -35,8 +35,6 @@ import java.util.function.Function;
 
 public class Tier1Renderer
 {
-    private final TransformInjector transformInjector;
-    private final SplitLimbRenderer splitLimbRenderer;
     private final Tier2Renderer tier2Fallback;
 
     private final PartStateStorage partStateStorage = new PartStateStorage();
@@ -51,31 +49,12 @@ public class Tier1Renderer
 
     public Tier1Renderer()
     {
-        this.transformInjector = new TransformInjector();
-        this.splitLimbRenderer = new SplitLimbRenderer();
         this.tier2Fallback = new Tier2Renderer();
-    }
-
-    public Tier1Renderer(TransformInjector transformInjector, SplitLimbRenderer splitLimbRenderer, Tier2Renderer tier2Fallback)
-    {
-        this.transformInjector = transformInjector;
-        this.splitLimbRenderer = splitLimbRenderer;
-        this.tier2Fallback = tier2Fallback;
     }
 
     public RenderTier getTier()
     {
         return RenderTier.TIER_1_TRANSFORM_INJECTION;
-    }
-
-    public <E extends LivingEntity> boolean render(ArmorRenderContext<E> context, HumanoidModel<?> model)
-    {
-        if (context == null || model == null || context.getEntityData() == null)
-        {
-            return false;
-        }
-
-        return false;
     }
 
     public <E extends LivingEntity> boolean renderWithTexture(
@@ -489,13 +468,16 @@ public class Tier1Renderer
         List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
-        float vanillaLegXSliced = capturedX;
+        // Was `capturedX`, the scratch field resetPartToOrigin writes. That happened to hold the
+        // same value, but only because restorePartFromCapture writes it back without clearing it --
+        // so the read had to sit after the restore and could not be moved. The local read before
+        // the capture says the same thing without the ordering constraint.
 
         LimbInflation upperInflation = LimbInflation.of(vertices, LEG_INFLATION);
         LimbInflation lowerInflation = LimbInflation.of(vertices, LEG_INFLATION + LOWER_LIMB_INFLATION_STEP);
 
         poseStack.pushPose();
-        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegXSliced);
+        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
         ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor, upperInflation);
         poseStack.popPose();
 
@@ -503,7 +485,7 @@ public class Tier1Renderer
         float lowerLegOffsetY = -lowerLeg.position.y * ArmorPoseHelper.SCALE;
         float lowerLegOffsetZ = -lowerLeg.position.z * ArmorPoseHelper.SCALE;
         poseStack.pushPose();
-        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegXSliced);
+        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
         ArmorPoseHelper.applyPartTransform(poseStack, lowerLeg, true);
         ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, currentArmorColor, lowerInflation);
         poseStack.popPose();
@@ -698,16 +680,6 @@ public class Tier1Renderer
         );
 
         poseStack.popPose();
-    }
-
-    public TransformInjector getTransformInjector()
-    {
-        return transformInjector;
-    }
-
-    public SplitLimbRenderer getSplitLimbRenderer()
-    {
-        return splitLimbRenderer;
     }
 
     public Tier2Renderer getTier2Fallback()

@@ -4,7 +4,6 @@ import goblinbob.mobends.core.addon.AddonAnimationRegistry;
 import goblinbob.mobends.core.addon.IAddon;
 import goblinbob.mobends.standard.kumo.EquipmentNameCondition;
 import goblinbob.mobends.core.kumo.state.condition.TriggerConditionRegistry;
-import goblinbob.mobends.standard.client.model.armor.ArmorModelFactory;
 import goblinbob.mobends.standard.client.renderer.entity.ArrowTrailManager;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.*;
 import goblinbob.mobends.standard.data.*;
@@ -145,7 +144,8 @@ public class DefaultAddon implements IAddon
 	@Override
 	public void onRefresh()
 	{
-		ArmorModelFactory.refresh();
+		// Nothing to do. This used to call ArmorModelFactory.refresh(), which demutated cached
+		// armor wrappers -- but nothing ever populated those caches, so it looped over empty maps.
 	}
 
 	@Override

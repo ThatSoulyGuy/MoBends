@@ -38,16 +38,6 @@ public class Tier2Renderer
         return RenderTier.TIER_2_MODEL_INTERCEPTION;
     }
 
-    public <E extends LivingEntity> boolean render(ArmorRenderContext<E> context, Model model)
-    {
-        if (context == null || model == null || context.getEntityData() == null)
-        {
-            return false;
-        }
-
-        return false;
-    }
-
     public <E extends LivingEntity> boolean renderWithTexture(
             ArmorRenderContext<E> context,
             Model model,
