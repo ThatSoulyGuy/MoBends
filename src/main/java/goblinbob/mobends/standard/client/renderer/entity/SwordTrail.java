@@ -2,6 +2,7 @@ package goblinbob.mobends.standard.client.renderer.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import goblinbob.mobends.core.client.TrailRenderQueue;
+import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.lib.math.vector.Vec3f;
@@ -12,8 +13,11 @@ import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -54,6 +58,13 @@ public class SwordTrail
         protected float velocityX, velocityY, velocityZ;
         protected float ticksExisted = 0F;
 
+        protected float trailInner = 0F;
+        protected float trailOuter = WeaponTrailMetrics.VANILLA_SPAN;
+
+        protected double originX, originY, originZ;
+        protected float originYaw;
+        protected boolean anchored = false;
+
         public TrailPart(HumanoidArm primaryHand, IColorRead baseColor, float velocityX, float velocityY, float velocityZ)
         {
             this.body = new ModelPartTransform();
@@ -74,18 +85,52 @@ public class SwordTrail
             this.position.z += this.velocityZ * ticksPerFrame;
         }
 
+        public Vec3f[] getPoints(double currentX, double currentY, double currentZ, float currentYaw)
+        {
+            final Vec3f[] points = getPoints();
+
+            if (!anchored)
+            {
+                return points;
+            }
+
+            final float sinThen = (float) Math.sin(Math.toRadians(-originYaw));
+            final float cosThen = (float) Math.cos(Math.toRadians(-originYaw));
+            final float sinNow = (float) Math.sin(Math.toRadians(currentYaw));
+            final float cosNow = (float) Math.cos(Math.toRadians(currentYaw));
+
+            final float driftX = (float) ((originX - currentX) * 16.0);
+            final float driftY = (float) ((originY - currentY) * 16.0);
+            final float driftZ = (float) ((originZ - currentZ) * 16.0);
+
+            for (final Vec3f point : points)
+            {
+                final float worldX = point.x * cosThen + point.z * sinThen + driftX;
+                final float worldZ = -point.x * sinThen + point.z * cosThen + driftZ;
+                final float worldY = point.y + driftY;
+
+                point.x = worldX * cosNow + worldZ * sinNow;
+                point.z = -worldX * sinNow + worldZ * cosNow;
+                point.y = worldY;
+            }
+
+            return points;
+        }
+
         public Vec3f[] getPoints()
         {
             float alpha = ticksExisted / 5F;
             alpha = Math.min(alpha, 1F);
             alpha = 1F - alpha;
 
+            final float middle = (trailOuter + trailInner) * 0.5F;
+            final float reach = (trailOuter - trailInner) * 0.5F;
+
             final Vec3f[] points = new Vec3f[] {
-                    new Vec3f(0, 0, -8 + 8 * alpha),
-                    new Vec3f(0, 0, -8 - 8 * alpha)
+                    new Vec3f(0, 0, middle + reach * alpha),
+                    new Vec3f(0, 0, middle - reach * alpha)
             };
 
-            GUtil.translate(points, 0, 0, 16);
             GUtil.rotate(points, itemRotation);
             GUtil.translate(points, primaryHand == HumanoidArm.LEFT ? 1 : -1, -6, 0);
             GUtil.rotate(points, foreArm.rotation.getSmooth());
@@ -128,6 +173,12 @@ public class SwordTrail
         Matrix4f matrix = poseStack.last().pose();
         final float brightness = trailBrightness(entity);
 
+        final float partialTicks = DataUpdateHandler.partialTicks;
+        final double currentX = Mth.lerp(partialTicks, entity.xOld, entity.getX());
+        final double currentY = Mth.lerp(partialTicks, entity.yOld, entity.getY());
+        final double currentZ = Mth.lerp(partialTicks, entity.zOld, entity.getZ());
+        final float currentYaw = Mth.rotLerp(partialTicks, entity.yBodyRotO, entity.yBodyRot);
+
         Iterator<TrailPart> it = trailPartList.iterator();
         TrailPart prevPart = null;
         Vec3f[] prevTransformedPoints = null;
@@ -136,7 +187,7 @@ public class SwordTrail
         while (it.hasNext())
         {
             final TrailPart part = it.next();
-            final Vec3f[] points = part.getPoints();
+            final Vec3f[] points = part.getPoints(currentX, currentY, currentZ, currentYaw);
             final float alpha = part.getAlpha();
             final IColorRead color = part.baseColor;
 
@@ -208,6 +259,29 @@ public class SwordTrail
     {
         final HumanoidArm primaryHand = arm;
         final TrailPart newPart = new TrailPart(primaryHand, this.baseColor.get(), velocityX, velocityY, velocityZ);
+
+        final LivingEntity entity = entityData.getEntity();
+        if (entity != null)
+        {
+            final ItemStack weapon = arm == entity.getMainArm()
+                    ? entity.getMainHandItem()
+                    : entity.getOffhandItem();
+
+            final ItemDisplayContext displayContext = arm == HumanoidArm.RIGHT
+                    ? ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                    : ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+
+            final float[] extent = WeaponTrailMetrics.getTrailExtent(weapon, entity, displayContext);
+            newPart.trailInner = extent[0];
+            newPart.trailOuter = extent[1];
+
+            final float partialTicks = DataUpdateHandler.partialTicks;
+            newPart.originX = Mth.lerp(partialTicks, entity.xOld, entity.getX());
+            newPart.originY = Mth.lerp(partialTicks, entity.yOld, entity.getY());
+            newPart.originZ = Mth.lerp(partialTicks, entity.zOld, entity.getZ());
+            newPart.originYaw = Mth.rotLerp(partialTicks, entity.yBodyRotO, entity.yBodyRot);
+            newPart.anchored = true;
+        }
 
         newPart.body.syncUp(entityData.body);
 
