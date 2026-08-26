@@ -31,6 +31,17 @@ public class EntityBenderRegistry
         }
     }
 
+    public void setAnimateForKey(String key, boolean animate)
+    {
+        for (EntityBender<?> entityBender : entityClassToBenderMap.values())
+        {
+            if (entityBender.getKey().equals(key))
+            {
+                entityBender.setAnimate(animate);
+            }
+        }
+    }
+
     public Collection<EntityBender<?>> getRegistered()
     {
         return entityClassToBenderMap.values();
@@ -38,7 +49,13 @@ public class EntityBenderRegistry
 
     public Collection<EntityBender<?>> getRegistered(Filter filter)
     {
-        List<EntityBender<?>> benderList = new ArrayList<>(entityClassToBenderMap.values());
+        final Map<String, EntityBender<?>> uniqueByKey = new LinkedHashMap<>();
+        for (EntityBender<?> entityBender : entityClassToBenderMap.values())
+        {
+            uniqueByKey.putIfAbsent(entityBender.getKey(), entityBender);
+        }
+
+        List<EntityBender<?>> benderList = new ArrayList<>(uniqueByKey.values());
 
         if (filter.query != null)
         {

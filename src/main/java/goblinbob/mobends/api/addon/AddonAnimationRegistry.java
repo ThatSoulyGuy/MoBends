@@ -66,6 +66,15 @@ public class AddonAnimationRegistry
         return registerEntity(entityBender);
     }
 
+    public <T extends LivingEntity> String registerNewEntity(String key, String unlocalizedName, Class<T> entityClass,
+                                                             IEntityDataFactory<T> entityDataFactory, IMutatorFactory<T> mutatorFactory,
+                                                             MutatedRenderer<T> renderer, IPreviewer<?> previewer,
+                                                             String[] supportedAnimations, String... alterableParts)
+    {
+        EntityBender<T> entityBender = new DefaultEntityBender<T>(modId, key, unlocalizedName, entityClass, entityDataFactory, mutatorFactory, renderer, previewer, supportedAnimations, alterableParts);
+        return registerEntity(entityBender);
+    }
+
     public <T extends LivingEntity> String registerEntity(EntityBender<T> entityBender)
     {
         String key = entityBender.getKey();
