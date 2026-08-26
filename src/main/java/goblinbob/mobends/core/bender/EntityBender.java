@@ -202,6 +202,22 @@ public abstract class EntityBender<T extends LivingEntity>
         }
     }
 
+    /**
+     * Builds a throwaway entity for the settings screen's preview, or null when there is no world.
+     *
+     * <p>Previews do not work at the main menu, which is where this screen opens from the mod list.
+     * That is a known limitation rather than an oversight, and the widget says so instead of
+     * reporting a failure.
+     *
+     * <p>A synthetic {@code ClientLevel} was tried and does not work: its constructor dereferences
+     * its {@code ClientPacketListener} immediately, at {@code ClientLevel:171}
+     * ({@code connection.registryAccess()}), so the listener cannot be null and cannot be worked
+     * around by overriding {@code registryAccess()}. Building a real listener needs a live
+     * {@code Connection} plus collaborators whose constructors differ between 1.20.1 and 1.21.1
+     * ({@code Screen/ServerData/GameProfile/WorldSessionTelemetryManager} versus a
+     * {@code CommonListenerCookie}), and both of those need a {@code RegistryAccess} — which is
+     * the thing the fake level was trying to obtain in the first place.
+     */
     @SuppressWarnings("unchecked")
     public T createPreviewEntity()
     {
