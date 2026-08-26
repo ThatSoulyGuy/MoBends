@@ -71,10 +71,10 @@ public class McItemStack implements IItemStack
     public boolean isFood()
     {
         //? if >=1.21 {
-        /*return itemStack.has(net.minecraft.core.component.DataComponents.FOOD);
-        *///?} else {
-        return itemStack.isEdible();
-        //?}
+        return itemStack.has(net.minecraft.core.component.DataComponents.FOOD);
+        //?} else {
+        /*return itemStack.isEdible();
+        *///?}
     }
 
     @Override

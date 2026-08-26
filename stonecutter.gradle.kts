@@ -4,7 +4,7 @@ plugins {
     id("architectury-plugin") version "3.4-SNAPSHOT" apply false
     id("com.github.johnrengelman.shadow") version "8.1.1" apply false
 }
-stonecutter active "1.20.1" /* [SC] DO NOT EDIT */
+stonecutter active "1.21.1" /* [SC] DO NOT EDIT */
 
 // A bare `runClient` runs the task in EVERY project that declares one. The common nodes'
 // copies are disabled (they have no loader and would launch plain vanilla), but both LOADER
