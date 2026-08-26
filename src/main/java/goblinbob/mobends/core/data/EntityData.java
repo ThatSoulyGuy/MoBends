@@ -214,9 +214,6 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         return this.entity;
     }
 
-    // --- IEntityAnimationData ---------------------------------------------------------------
-    // These exist so the animation runtime, which lives in the loader-independent core module,
-    // never has to see a Minecraft type. getEntity() deliberately stays off that interface.
 
     @Override
     public SmoothVector3f getGlobalOffset()

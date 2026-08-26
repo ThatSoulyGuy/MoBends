@@ -1,11 +1,11 @@
 package goblinbob.mobends.standard.animation.bit.player;
 
-import goblinbob.mobends.standard.data.PlayerData;
+import goblinbob.mobends.standard.data.BipedEntityData;
 
-public class SprintAnimationBit extends goblinbob.mobends.standard.animation.bit.biped.SprintAnimationBit<PlayerData>
+public class SprintAnimationBit<T extends BipedEntityData<?>> extends goblinbob.mobends.standard.animation.bit.biped.SprintAnimationBit<T>
 {
 	@Override
-	public void perform(PlayerData data)
+	public void perform(T data)
 	{
 		super.perform(data);
 

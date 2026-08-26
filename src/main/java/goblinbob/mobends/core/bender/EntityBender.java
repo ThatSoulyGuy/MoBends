@@ -21,7 +21,6 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -224,22 +223,6 @@ public abstract class EntityBender<T extends LivingEntity>
         }
     }
 
-    /**
-     * Builds a throwaway entity for the settings screen's preview, or null when there is no world.
-     *
-     * <p>Previews do not work at the main menu, which is where this screen opens from the mod list.
-     * That is a known limitation rather than an oversight, and the widget says so instead of
-     * reporting a failure.
-     *
-     * <p>A synthetic {@code ClientLevel} was tried and does not work: its constructor dereferences
-     * its {@code ClientPacketListener} immediately, at {@code ClientLevel:171}
-     * ({@code connection.registryAccess()}), so the listener cannot be null and cannot be worked
-     * around by overriding {@code registryAccess()}. Building a real listener needs a live
-     * {@code Connection} plus collaborators whose constructors differ between 1.20.1 and 1.21.1
-     * ({@code Screen/ServerData/GameProfile/WorldSessionTelemetryManager} versus a
-     * {@code CommonListenerCookie}), and both of those need a {@code RegistryAccess} — which is
-     * the thing the fake level was trying to obtain in the first place.
-     */
     @SuppressWarnings("unchecked")
     public T createPreviewEntity()
     {
@@ -251,8 +234,9 @@ public abstract class EntityBender<T extends LivingEntity>
             EntityType<?> entityType = resolveEntityType();
             if (entityType == null) return null;
 
-            Mob entity = (Mob) this.entityClass.getConstructor(EntityType.class, Level.class)
-                .newInstance(entityType, level);
+            Mob entity = instantiatePreviewEntity(entityType, level);
+            if (entity == null) return null;
+
             entity.moveTo(0, 0, 0, 0, 0);
             IMobSpawnHelper helper = IMobSpawnHelper.Holder.getHelper();
             if (helper != null)
@@ -267,13 +251,37 @@ public abstract class EntityBender<T extends LivingEntity>
                     MobSpawnType.COMMAND
                 );
             }
+            goblinbob.mobends.compat.McaCompat.initializePreviewAppearance(entity);
             PreviewHelper.registerPreviewEntity(entity);
 
             return (T) entity;
         }
-        catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e)
+        catch (Exception e)
         {
             e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Nullable
+    private Mob instantiatePreviewEntity(EntityType<?> entityType, Level level)
+    {
+        try
+        {
+            return (Mob) this.entityClass.getConstructor(EntityType.class, Level.class)
+                .newInstance(entityType, level);
+        }
+        catch (Throwable ignored)
+        {
+        }
+
+        try
+        {
+            return entityType.create(level) instanceof Mob mob && this.entityClass.isInstance(mob) ? mob : null;
+        }
+        catch (Throwable ignored)
+        {
         }
 
         return null;

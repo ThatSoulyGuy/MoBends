@@ -35,10 +35,6 @@ public class SharedNetworkConfiguration extends NetworkConfiguration
         return limitMovement.getValue();
     }
 
-    // Server-side setters. The wire protocol was always complete -- the client asks, the server
-    // serialises this config to NBT and sends it back -- but nothing ever wrote these values, so
-    // the server serialised its defaults and the answer was the same whatever the server wanted.
-    // Each loader's SERVER config spec pushes its values in here when a world loads.
 
     public void setBendsPacksAllowed(boolean allowed)
     {

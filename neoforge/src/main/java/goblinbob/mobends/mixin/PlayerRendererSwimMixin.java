@@ -13,18 +13,6 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(PlayerRenderer.class)
 public abstract class PlayerRendererSwimMixin
 {
-    /**
-     * Suppresses vanilla's swim rotation while Mo' Bends is posing the player.
-     *
-     * <p>{@code @ModifyExpressionValue} rather than {@code @Redirect}: a redirect claims a call
-     * site exclusively, so a second mod touching this same {@code getSwimAmount} call would lose
-     * — and because the injector carries {@code require = 0}, it would lose <em>quietly</em>, as a
-     * warning in the log and a silently vanilla swim pose. This form stacks: each mod sees the
-     * previous one's value and returns its own.
-     *
-     * <p>{@code original} is the value vanilla computed; the trailing parameter captures the
-     * target method's first argument.
-     */
     @ModifyExpressionValue(
             method = "setupRotations",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/AbstractClientPlayer;getSwimAmount(F)F"),

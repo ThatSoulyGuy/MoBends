@@ -101,7 +101,6 @@ public class MoBendsForge
 
         Core.getInstance().onClientSetup();
 
-        // Any addon that registered before Core existed had its content dropped; replay it now.
         goblinbob.mobends.api.addon.Addons.flushPending();
 
         AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());
@@ -119,8 +118,6 @@ public class MoBendsForge
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
     {
-        // A SERVER config is per-world, so this is the first point at which its values are
-        // known. Without this the config packet would serialise defaults whatever the server set.
         ForgeServerConfig.sync();
     }
 

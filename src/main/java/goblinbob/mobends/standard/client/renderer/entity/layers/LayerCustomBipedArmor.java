@@ -146,7 +146,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             setPartVisibility(humanoidCustom, slot);
         }
 
-        boolean shouldUseBends = hasBendsAnimation && !ModConfig.shouldKeepArmorAsVanilla(armorItem);
+        boolean shouldUseBends = hasBendsAnimation && !ModConfig.shouldKeepArmorAsVanilla(armorItem)
+                && (mutator == null || mutator.shouldRenderCustom());
 
         if (palladiumArmor != null)
         {

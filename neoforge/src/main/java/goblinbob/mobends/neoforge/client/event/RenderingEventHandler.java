@@ -47,11 +47,6 @@ public class RenderingEventHandler
         if (mc.player == null || mc.isPaused())
             return;
 
-        // Modded mobs that derive from a supported one get their bender here, so they animate
-
-
-        // from world load rather than from whenever the settings screen is first opened.
-
 
         goblinbob.mobends.core.bender.BenderDiscovery.scanForDerivedBenders();
 
@@ -126,15 +121,7 @@ public class RenderingEventHandler
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    // LOWEST so any mod that cancels this event has already done so. A cancelled event is not
 
-    // delivered to later listeners, so we simply never push -- which matters because the matching
-
-    // popPose lives in the Post event, and Post is not fired for a cancelled Pre. Running at NORMAL
-
-    // meant a canceller at LOW or LOWEST left one or two unbalanced pushes on the shared level
-
-    // PoseStack for the rest of the frame, skewing every entity drawn afterwards.
 
     @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST)
     public void beforeLivingRender(RenderLivingEvent.Pre<?, ?> event)
@@ -266,11 +253,6 @@ public class RenderingEventHandler
             }
             renderTickDrivenThisFrame = false;
 
-            // Start the frame with no pose debt recorded. Running beforeLivingRender at LOWEST should
-
-            // mean these are already empty, but a canceller registered at LOWEST after us could still
-
-            // beat us, and a stale id here would make the next frame pop a pose it never pushed.
 
             entitiesWithPushedPose.clear();
 

@@ -30,26 +30,11 @@ public final class BenderDiscovery
     {
     }
 
-    /**
-     * Allows the scan to run again, on the next world with a level available.
-     *
-     * <p>Called on logout. The scan probes every registered entity type against its renderer, so
-     * its result depends on the loaded entity types and models — which can differ between a
-     * single-player world and a modded server.
-     */
     public static void reset()
     {
         scanned = false;
     }
 
-    /**
-     * Registers benders for modded mobs that derive from an already-supported one.
-     *
-     * <p>Cheap to call repeatedly: it returns immediately once it has run, and before a level
-     * exists. That is deliberate — it is driven from the client tick so modded mobs animate from
-     * the moment a world loads. It used to be reachable only from the mob-selection screen, so
-     * they stayed vanilla until the player happened to open Mo' Bends' settings.
-     */
     public static void scanForDerivedBenders()
     {
         if (scanned) return;

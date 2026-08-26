@@ -122,12 +122,6 @@ public class EntityPreviewWidget
             {
                 entityPreviewView.setVisibility(VanillaView.GONE);
 
-                // A preview entity needs a Level to be constructed in, so there are none at the
-                // main menu -- which is where this screen opens from the mod list. That is
-                // expected, not a failure, and it used to be reported as
-                // "Entity creation failed for: Zombie" in error red on every tile, which reads
-                // like a crash. The rest of the screen still works: mobs can be toggled here
-                // without a preview.
                 if (net.minecraft.client.Minecraft.getInstance().level == null)
                 {
                     statusView.setText(I18n.get("mobends.gui.preview.needs_world"));

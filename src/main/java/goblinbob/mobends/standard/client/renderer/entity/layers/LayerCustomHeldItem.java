@@ -197,7 +197,8 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
     private boolean isDrivenByMoBends(E entity)
     {
         return goblinbob.mobends.core.util.BenderHelper.isEntityAnimated(entity)
-                && !goblinbob.mobends.compat.ModCompatManager.shouldDeferAnimation(entity);
+                && !goblinbob.mobends.compat.ModCompatManager.shouldDeferAnimation(entity)
+                && (mutator == null || mutator.shouldRenderCustom());
     }
 
     private BendsModelPart getCustomForeArm(HumanoidArm arm)

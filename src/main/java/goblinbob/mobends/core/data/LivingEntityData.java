@@ -138,9 +138,6 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
                 : this.entity.getVehicle() instanceof net.minecraft.world.entity.LivingEntity;
     }
 
-    // --- ILivingEntityAnimationData -----------------------------------------------------------
-    // Plain-float views of the OverridableProperty fields above, so the override mechanism stays
-    // an implementation detail on this side of the module boundary.
 
     @Override
     public float getLimbSwing() { return this.limbSwing.get(); }

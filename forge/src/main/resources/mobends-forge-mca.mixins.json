@@ -1,0 +1,16 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "goblinbob.mobends.mixin.mca",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "mobends-forge.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+    "VillagerModelMcaMixin",
+    "VillagerModelMcaRelocatedMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

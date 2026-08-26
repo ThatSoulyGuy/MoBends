@@ -82,8 +82,6 @@ public class StandardKeyframeNode implements INodeState
         {
             if (this.looping)
             {
-                // A single-keyframe animation has a zero-length loop, and subtracting zero
-                // forever would hang the client with no crash log. Nothing to advance anyway.
                 if (this.animationDuration <= 1)
                 {
                     return;
@@ -98,11 +96,6 @@ public class StandardKeyframeNode implements INodeState
             }
             else
             {
-                // Clamps at the LAST keyframe (duration - 1), not one short of it. The previous
-                // bound of duration - 2 existed so that frameB = frameA + 1 stayed in range;
-                // KeyframeLayerState.frameAt now clamps past-the-end reads to the final keyframe
-                // instead, so the animation holds its authored final pose rather than freezing a
-                // frame early.
                 final int lastFrame = this.animationDuration - 1;
 
                 if (this.progress < lastFrame)
@@ -122,9 +115,6 @@ public class StandardKeyframeNode implements INodeState
     @Override
     public boolean isAnimationFinished()
     {
-        // Must match the clamp in update(), or the node either never reports finished (soft-
-        // locking any state machine waiting on core:animation_finished) or reports finished a
-        // frame before it actually stops moving.
         return this.animation == null || !this.looping && this.progress >= animationDuration - 1;
     }
 

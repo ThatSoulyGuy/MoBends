@@ -302,7 +302,6 @@ public class SwordTrail
                 entityData.globalOffset.getY(),
                 entityData.globalOffset.getZ());
         newPart.renderRotation.set(entityData.renderRotation.getSmooth());
-        // Inverse of the entity's render rotation, used to undo it when replaying the arm chain.
         newPart.renderRotation.conjugate();
 
         trailPartList.add(newPart);

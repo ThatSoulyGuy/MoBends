@@ -14,17 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Playback bounds for a keyframe node.
- *
- * <p>These could not be written before the Kumo runtime moved into this module — exercising a
- * node previously meant standing up a Minecraft entity.
- */
 public class StandardKeyframeNodeTest
 {
     private static final float EPSILON = 1e-5f;
 
-    /** An animation with one bone carrying {@code count} keyframes. */
     private static KeyframeAnimation animationOf(int count)
     {
         List<Keyframe> frames = new ArrayList<>();
@@ -51,7 +44,6 @@ public class StandardKeyframeNodeTest
         return new StandardKeyframeNode(animationOf(frameCount), 0, speed, looping);
     }
 
-    /** Advances by one tick at a time so the clamp is exercised, not jumped over. */
     private static void advance(StandardKeyframeNode node, int ticks)
     {
         for (int i = 0; i < ticks; i++)
@@ -60,12 +52,10 @@ public class StandardKeyframeNodeTest
         }
     }
 
-    // ---------- non-looping ----------
 
     @Test
     public void nonLoopingReachesItsFinalKeyframe()
     {
-        // The whole point of K4: a 10-frame animation must end on frame 9, not frame 8.
         StandardKeyframeNode n = node(10, false, 1.0f);
         advance(n, 40);
         assertEquals(9.0f, n.getProgress(), EPSILON,
@@ -99,8 +89,6 @@ public class StandardKeyframeNodeTest
     @Test
     public void finishedAgreesWithTheClampAcrossManyLengths()
     {
-        // The clamp in update() and the bound in isAnimationFinished() have to stay in step;
-        // this is what makes changing one of them in isolation fail loudly.
         for (int frames = 2; frames <= 24; frames++)
         {
             StandardKeyframeNode n = node(frames, false, 1.0f);
@@ -117,7 +105,6 @@ public class StandardKeyframeNodeTest
         assertTrue(n.isAnimationFinished());
     }
 
-    // ---------- looping ----------
 
     @Test
     public void loopingWrapsAndNeverReportsFinished()
@@ -139,23 +126,15 @@ public class StandardKeyframeNodeTest
     }
 
     @Test
-    // SEPARATE_THREAD matters: the guard these protect is a tight arithmetic loop that ignores
-    // the cooperative interrupt JUnit schedules in the default same-thread mode, so a regression
-    // would hang the Gradle test task -- and CI -- instead of failing it.
     @Timeout(value = 5, unit = TimeUnit.SECONDS, threadMode = ThreadMode.SEPARATE_THREAD)
     public void loopingASingleKeyframeDoesNotHang()
     {
-        // duration - 1 == 0, so the wrap loop would subtract zero forever. This hung the client
-        // with no crash log rather than throwing.
         StandardKeyframeNode n = node(1, true, 1.0f);
         advance(n, 5);
         assertEquals(0.0f, n.getProgress(), EPSILON);
     }
 
     @Test
-    // SEPARATE_THREAD matters: the guard these protect is a tight arithmetic loop that ignores
-    // the cooperative interrupt JUnit schedules in the default same-thread mode, so a regression
-    // would hang the Gradle test task -- and CI -- instead of failing it.
     @Timeout(value = 5, unit = TimeUnit.SECONDS, threadMode = ThreadMode.SEPARATE_THREAD)
     public void loopingAnEmptyAnimationDoesNotHang()
     {
@@ -163,7 +142,6 @@ public class StandardKeyframeNodeTest
         advance(n, 5);
     }
 
-    // ---------- start frame ----------
 
     @Test
     public void startResetsProgressToTheAuthoredStartFrame()

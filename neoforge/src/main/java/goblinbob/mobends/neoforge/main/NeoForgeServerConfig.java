@@ -3,16 +3,6 @@ package goblinbob.mobends.neoforge.main;
 import goblinbob.mobends.core.network.SharedNetworkConfiguration;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-/**
- * Server-side settings, sent to each client on login.
- *
- * <p>A SERVER config in NeoForge lives in the world's {@code serverconfig} folder and is loaded
- * when the world loads, which is why {@link #sync()} is driven from the server-starting event as
- * well as from config load and reload.
- *
- * <p>Clients connecting to a server without Mo' Bends installed simply never receive a response,
- * and {@code SharedNetworkConfiguration.resetToDefaults()} on login leaves them permissive.
- */
 public class NeoForgeServerConfig
 {
     public static final ModConfigSpec SPEC;
@@ -38,7 +28,6 @@ public class NeoForgeServerConfig
         SPEC = builder.build();
     }
 
-    /** Pushes the configured values into the structure the config packet serialises. */
     public static void sync()
     {
         SharedNetworkConfiguration.INSTANCE.setBendsPacksAllowed(ALLOW_BENDSPACKS.get());

@@ -12,7 +12,6 @@ public class Addons
 
     private final List<IAddon> addons = new ArrayList<>();
 
-    /** Addons that registered before Core existed, waiting for {@link #flushPending()}. */
     private final List<PendingRegistration> pending = new ArrayList<>();
 
     private record PendingRegistration(String modId, IAddon addon) {}
@@ -30,21 +29,10 @@ public class Addons
         }
         else
         {
-            // Core is not up yet. This used to drop the registration on the floor: the addon
-            // still received tick callbacks, so it looked registered, but none of its entities,
-            // trigger conditions or editors ever reached the registries. Mo' Bends' own addons
-            // are safe by construction -- both loaders create Core first -- but a third-party
-            // addon registering from its own setup event has no such guarantee.
             INSTANCE.pending.add(new PendingRegistration(modId, addon));
         }
     }
 
-    /**
-     * Registers the content of any addon that arrived before Core did.
-     *
-     * <p>Called once per loader immediately after Core is created. Safe to call again: the queue
-     * is drained, and anything registering afterwards takes the immediate path above.
-     */
     public static void flushPending()
     {
         if (Core.getInstance() == null || INSTANCE.pending.isEmpty())

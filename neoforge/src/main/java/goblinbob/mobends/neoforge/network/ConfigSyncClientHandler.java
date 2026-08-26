@@ -37,8 +37,6 @@ public class ConfigSyncClientHandler
     {
         SharedNetworkConfiguration.INSTANCE.resetToDefaults();
 
-        // Entity types and models can differ on the next world, so the derived-bender scan
-        // has to be allowed to run again.
         goblinbob.mobends.core.bender.BenderDiscovery.reset();
     }
 }

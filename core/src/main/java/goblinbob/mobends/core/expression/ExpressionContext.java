@@ -7,19 +7,6 @@ public interface ExpressionContext {
         return true;
     }
 
-    /**
-     * The context used while constant-folding at parse time, where by definition no variable may
-     * be read.
-     *
-     * <p>Folding previously passed {@code null} here. That was safe only by coincidence: every
-     * node that reads the context also reports {@code isConstant() == false}, so no folded
-     * subtree ever touched it. A new node type that was constant but consulted the context would
-     * have thrown a bare NullPointerException from inside the parser, pointing at the wrong
-     * thing entirely. This turns that into a message naming the variable and the reason.
-     *
-     * <p>Note this is only for folding — {@code evaluate(null)} remains valid for callers
-     * evaluating an expression already known to be constant.
-     */
     ExpressionContext CONSTANT_FOLDING = new ExpressionContext() {
         @Override
         public double getVariable(String name) {

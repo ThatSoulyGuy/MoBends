@@ -9,19 +9,10 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Covers the expression language used by procedural Kumo layers and {@code core:expression}
- * trigger conditions.
- *
- * <p>Nothing Mo' Bends ships reaches this engine — it is only exercised by user-authored packs
- * in {@code <gamedir>/bendspacks} — so playing the game proves nothing about it. These tests are
- * the only verification it has.
- */
 public class ExpressionTest
 {
     private static final double EPSILON = 1e-9;
 
-    /** Records which variables were actually read, so laziness can be asserted. */
     private static final class RecordingContext implements ExpressionContext
     {
         private final Map<String, Double> values = new HashMap<>();
@@ -64,7 +55,6 @@ public class ExpressionTest
         return eval(source, new RecordingContext());
     }
 
-    // ---------- tokenizer and parser ----------
 
     @Test
     public void parsesLiteralsAndArithmetic()
@@ -101,7 +91,6 @@ public class ExpressionTest
         assertThrows(ExpressionException.class, () -> eval("1 + 2 3"));
     }
 
-    // ---------- comparison and logic ----------
 
     @Test
     public void comparisonsYieldOneOrZero()
@@ -139,7 +128,6 @@ public class ExpressionTest
         assertEquals(0, ctx.readCount("other"), "ternary evaluated the branch it did not take");
     }
 
-    // ---------- constant folding ----------
 
     @Test
     public void foldsConstantSubtreesToLiterals()
@@ -164,7 +152,6 @@ public class ExpressionTest
         assertFalse(folded instanceof LiteralNode, "random() must not be folded to a constant");
     }
 
-    // ---------- functions ----------
 
     @Test
     public void mathFunctionsBehaveAsExpected()
@@ -199,8 +186,6 @@ public class ExpressionTest
     @Test
     public void stepTakesItsEdgeFirst()
     {
-        // step(edge, x) returns 1 when x >= edge. The argument order is the opposite way round
-        // from clamp's, which is a genuine trap when authoring packs.
         assertEquals(1.0, eval("step(1, 2)"), EPSILON);
         assertEquals(0.0, eval("step(2, 1)"), EPSILON);
     }
@@ -208,7 +193,6 @@ public class ExpressionTest
     @Test
     public void lerpAndMixAgreeDespiteDifferentFormulations()
     {
-        // Deliberate GLSL-style aliases: lerp is a + (b - a) * t, mix is a(1 - t) + b*t.
         for (double t = 0.0; t <= 1.0; t += 0.125)
         {
             assertEquals(eval("lerp(2, 10, " + t + ")"), eval("mix(2, 10, " + t + ")"), 1e-12,
@@ -228,13 +212,10 @@ public class ExpressionTest
         assertThrows(ExpressionException.class, () -> eval("sin(1, 2)"));
     }
 
-    // ---------- division by zero ----------
 
     @Test
     public void divisionAndModuloByZeroYieldZeroRatherThanNaN()
     {
-        // Deliberate: these values feed bone transforms, and a NaN there silently corrupts a
-        // whole skeleton for the rest of the session. Returning 0 keeps a bad pack survivable.
         assertEquals(0.0, eval("1 / 0"), EPSILON);
         assertEquals(0.0, eval("1 % 0"), EPSILON);
         assertEquals(0.0, eval("mod(1, 0)"), EPSILON);
@@ -251,7 +232,6 @@ public class ExpressionTest
         }
     }
 
-    // ---------- laziness of if() ----------
 
     @Test
     public void ifEvaluatesOnlyTheTakenBranch()
@@ -283,7 +263,6 @@ public class ExpressionTest
     @Test
     public void ifGuardsItsOwnBranchAgainstDivisionByZero()
     {
-        // The motivating case: the condition exists precisely to stop the other branch running.
         RecordingContext ctx = new RecordingContext().set("len", 0.0).set("x", 10.0);
         assertEquals(0.0, eval("if(len > 0, x / len, 0)", ctx), EPSILON);
         assertEquals(0, ctx.readCount("x"), "the guarded branch was evaluated anyway");
@@ -296,7 +275,6 @@ public class ExpressionTest
         assertThrows(ExpressionException.class, () -> eval("if(1, 2, 3, 4)"));
     }
 
-    // ---------- constant folding context ----------
 
     @Test
     public void constantFoldingContextRefusesVariableReads()
@@ -308,7 +286,6 @@ public class ExpressionTest
         assertFalse(ExpressionContext.CONSTANT_FOLDING.hasVariable("limb_swing"));
     }
 
-    // ---------- caching ----------
 
     @Test
     public void cacheReturnsTheSameCompiledExpression()

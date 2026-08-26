@@ -468,10 +468,6 @@ public class Tier1Renderer
         List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
 
-        // Was `capturedX`, the scratch field resetPartToOrigin writes. That happened to hold the
-        // same value, but only because restorePartFromCapture writes it back without clearing it --
-        // so the read had to sit after the restore and could not be moved. The local read before
-        // the capture says the same thing without the ordering constraint.
 
         LimbInflation upperInflation = LimbInflation.of(vertices, LEG_INFLATION);
         LimbInflation lowerInflation = LimbInflation.of(vertices, LEG_INFLATION + LOWER_LIMB_INFLATION_STEP);

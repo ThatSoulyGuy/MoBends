@@ -14,16 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Draws the bent model in place of vanilla, for every entity whose model extends
- * {@link HierarchicalModel}.
- *
- * <p>This used to be two mixins — one for illagers, one for spiders and squids — both targeting
- * this class, both injecting at the HEAD of {@code renderToBuffer}, and both naming their handler
- * {@code mobends$interceptRender}. Their instanceof guards were disjoint so only one could ever
- * act, but the apply order between them was undefined and nothing enforced that disjointness.
- * One mixin, one branch chain, no ambiguity.
- */
 @Mixin(HierarchicalModel.class)
 public abstract class HierarchicalModelMixin<E extends Entity> {
 

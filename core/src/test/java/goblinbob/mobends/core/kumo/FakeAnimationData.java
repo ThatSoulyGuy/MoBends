@@ -10,16 +10,8 @@ import goblinbob.mobends.lib.math.vector.Vec3f;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * An in-memory animation target, so layer and node behaviour can be driven without Minecraft.
- *
- * <p>Named bones are created on demand, which mirrors how a real skeleton behaves from the
- * runtime's point of view: it asks for a bone by name and either gets something animatable back
- * or does not.
- */
 public class FakeAnimationData implements ILivingEntityAnimationData
 {
-    /** A bone the animation runtime can write into. */
     public static final class FakePart implements IAnimatedPart
     {
         private final Vec3f offset = new Vec3f();
@@ -54,7 +46,6 @@ public class FakeAnimationData implements ILivingEntityAnimationData
         return this;
     }
 
-    /** Puts a non-animatable object under a bone name, as EntityData does for its raw orientations. */
     public FakeAnimationData withNonAnimatablePart(String name)
     {
         parts.put(name, new Object());

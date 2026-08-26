@@ -16,7 +16,7 @@ public final class MixinBridge {
     private MixinBridge() {}
 
     public static boolean shouldRenderBipedCustom() {
-        if (!MoBendsRenderContext.isInMainModelRender()) {
+        if (!MoBendsRenderContext.isInMainModelRender() || MoBendsRenderContext.isInArmorRender()) {
             return false;
         }
         BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();

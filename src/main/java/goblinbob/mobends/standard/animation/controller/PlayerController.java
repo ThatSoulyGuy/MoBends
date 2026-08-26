@@ -30,8 +30,8 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected AnimationBit<BipedEntityData<?>> bitRiding = new RidingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitSitting = new SittingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitFalling = new FallingAnimationBit();
-    protected AnimationBit<PlayerData> bitWalk = new goblinbob.mobends.standard.animation.bit.player.WalkAnimationBit();
-    protected AnimationBit<PlayerData> bitSprint = new goblinbob.mobends.standard.animation.bit.player.SprintAnimationBit();
+    protected AnimationBit<PlayerData> bitWalk = new goblinbob.mobends.standard.animation.bit.player.WalkAnimationBit<>();
+    protected AnimationBit<PlayerData> bitSprint = new goblinbob.mobends.standard.animation.bit.player.SprintAnimationBit<>();
     protected AnimationBit<PlayerData> bitSprintJump = new SprintJumpAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitTorchHolding = new TorchHoldingAnimationBit();
     protected FlyingAnimationBit bitFlying = new FlyingAnimationBit();

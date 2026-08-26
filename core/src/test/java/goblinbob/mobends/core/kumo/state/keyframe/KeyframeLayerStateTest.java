@@ -22,14 +22,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Layer-level behaviour: the per-bone pose write, cross-fades, and which nodes advance.
- */
 public class KeyframeLayerStateTest
 {
     private static final float EPSILON = 1e-4f;
 
-    /** Fires on the first evaluation, so a transition starts on a known tick. */
     private static final String ALWAYS = "test:always";
 
     static
@@ -38,7 +34,6 @@ public class KeyframeLayerStateTest
                 .register(ALWAYS, context -> true);
     }
 
-    // ---------- harness ----------
 
     private static final class Ctx implements IKumoContext, IKumoInstancingContext
     {
@@ -55,7 +50,6 @@ public class KeyframeLayerStateTest
         @Override public KeyframeAnimation getAnimation(String key) { return animations.get(key); }
     }
 
-    /** An animation holding every named bone at a constant pose, for `frames` keyframes. */
     private static KeyframeAnimation animation(int frames, float offsetX, String... bones)
     {
         KeyframeAnimation animation = new KeyframeAnimation();
@@ -114,7 +108,6 @@ public class KeyframeLayerStateTest
         return new KeyframeLayerState(ctx, template);
     }
 
-    /** An animation whose bones carry a real rotation, so composition is observable. */
     private static KeyframeAnimation rotatedAnimation(int frames, float degreesAboutY, String... bones)
     {
         double half = Math.toRadians(degreesAboutY) / 2.0;
@@ -141,7 +134,6 @@ public class KeyframeLayerStateTest
         return animation;
     }
 
-    /** Rotation about Y encoded in a unit quaternion, in degrees, in [0, 360). */
     private static float yAngleDegrees(goblinbob.mobends.lib.math.SmoothOrientation orientation)
     {
         goblinbob.mobends.lib.math.Quaternion q = orientation.getSmooth();
@@ -150,15 +142,10 @@ public class KeyframeLayerStateTest
         return (float) ((degrees % 360.0 + 360.0) % 360.0);
     }
 
-    // ---------- the pose write itself ----------
 
     @Test
     public void aSingleLayerWritesExactlyTheAuthoredPoseOnce()
     {
-        // Nothing pinned the magnitude or sign of the per-bone write, which is how an "additive"
-        // implementation that doubled every offset and left |q| = 2 on every shared bone passed
-        // the whole suite. A quaternion that is not unit length is not just a wrong rotation:
-        // the renderer scales geometry by its squared magnitude.
         FakeAnimationData data = new FakeAnimationData().withBones("body");
         Ctx ctx = new Ctx(data);
         ctx.animations.put("a", animation(4, 3.0f, "body"));
@@ -183,9 +170,6 @@ public class KeyframeLayerStateTest
     @Test
     public void twoLayersOverTheSameBoneStillLeaveAUnitRotation()
     {
-        // The shipped wolf animator stacks a masked overlay layer on top of a base layer, and
-        // both name tongue and mouth. Each layer rest-poses before it writes, so the second one
-        // replaces rather than compounds.
         FakeAnimationData data = new FakeAnimationData().withBones("tongue");
         Ctx ctx = new Ctx(data);
         ctx.animations.put("base", animation(4, 2.0f, "tongue"));
@@ -214,13 +198,10 @@ public class KeyframeLayerStateTest
         return (float) Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
     }
 
-    // ---------- K6: additive layers compose, they do not wipe or inflate ----------
 
     @Test
     public void anAdditiveLayerComposesOntoWhatAnEarlierLayerWrote()
     {
-        // The shipped wolf stacks a tongue/mouth overlay on a base layer. Additive means the
-        // overlay decorates the base pose; without it the overlay replaces it outright.
         FakeAnimationData data = new FakeAnimationData().withBones("tongue");
         Ctx ctx = new Ctx(data);
         ctx.animations.put("base", rotatedAnimation(4, 30.0f, "tongue"));
@@ -243,9 +224,6 @@ public class KeyframeLayerStateTest
     @Test
     public void anAdditiveLayerLeavesAUnitQuaternionAcrossManyFrames()
     {
-        // The regression this replaces: defining additive as "skip the rest pose" summed raw
-        // quaternion components, so two layers over one bone left |q| = 2. The renderer scales
-        // geometry by |q|^2, which put the wolf's tongue and mouth at 4x.
         FakeAnimationData data = new FakeAnimationData().withBones("tongue");
         Ctx ctx = new Ctx(data);
         ctx.animations.put("base", rotatedAnimation(4, 30.0f, "tongue"));
@@ -271,8 +249,6 @@ public class KeyframeLayerStateTest
     @Test
     public void anAdditiveLayerScalesItsRotationByTheBlendAmount()
     {
-        // amount scales the ANGLE, giving a partial rotation from identity -- the meaning a
-        // cross-fade weight needs.
         FakeAnimationData data = new FakeAnimationData().withBones("tongue");
         Ctx ctx = new Ctx(data);
         ctx.animations.put("overlay", rotatedAnimation(4, 40.0f, "tongue"));
@@ -287,31 +263,23 @@ public class KeyframeLayerStateTest
         assertEquals(1.0f, magnitude(data.part("tongue").getRotation()), EPSILON);
     }
 
-    // ---------- K1: cross-fade must not leave outgoing-only bones accumulating ----------
 
     @Test
     public void aBoneOnlyInTheOutgoingAnimationDoesNotAccumulate() throws Exception
     {
-        // "tail" exists in the outgoing animation and not the incoming one. The rest pose names
-        // only the incoming animation's bones, so before the fix this bone was written additively
-        // every frame of the fade and never cleared -- growing without bound and then freezing
-        // there for the rest of the entity's life.
         FakeAnimationData data = new FakeAnimationData().withBones("body", "tail");
         Ctx ctx = new Ctx(data);
         ctx.animations.put("outgoing", animation(4, 1.0f, "body", "tail"));
         ctx.animations.put("incoming", animation(4, 1.0f, "body"));
 
-        // Node 0 immediately transitions to node 1 over 10 ticks.
         KeyframeLayerState state = layer(ctx,
                 node("outgoing", 1, 10.0f),
                 node("incoming", null, 0));
         state.start(ctx);
 
-        // Steady state on the outgoing node writes exactly one unit.
         state.update(ctx, 1.0f);
         float steady = Math.abs(data.part("tail").getOffset().getX());
 
-        // Drive well past the end of the fade.
         for (int i = 0; i < 30; i++)
         {
             state.update(ctx, 1.0f);
@@ -325,8 +293,6 @@ public class KeyframeLayerStateTest
     @Test
     public void sharedBonesAreUnaffectedByTheExtraRestPose() throws Exception
     {
-        // Clearing the outgoing animation too is idempotent for bones both animations name --
-        // they are simply zeroed twice before being written. This pins that.
         FakeAnimationData data = new FakeAnimationData().withBones("body");
         Ctx ctx = new Ctx(data);
         ctx.animations.put("a", animation(4, 2.0f, "body"));
@@ -343,7 +309,6 @@ public class KeyframeLayerStateTest
         }
     }
 
-    // ---------- K5: only the sampled nodes advance ----------
 
     @Test
     public void inactiveNodesDoNotAdvance() throws Exception
@@ -353,7 +318,6 @@ public class KeyframeLayerStateTest
         ctx.animations.put("a", animation(8, 1.0f, "body"));
         ctx.animations.put("b", animation(8, 1.0f, "body"));
 
-        // No connections at all, so node 1 is never entered.
         KeyframeLayerState state = layer(ctx, node("a", null, 0), node("b", null, 0));
         state.start(ctx);
 
@@ -367,13 +331,10 @@ public class KeyframeLayerStateTest
                 "a node that was never entered should not have advanced");
     }
 
-    // ---------- robustness ----------
 
     @Test
     public void aNonAnimatablePartIsSkippedRatherThanCrashing() throws Exception
     {
-        // EntityData stores raw orientations in the same map as real bones; the runtime filters
-        // them out with instanceof.
         FakeAnimationData data = new FakeAnimationData().withBones("body");
         data.withNonAnimatablePart("centerRotation");
         Ctx ctx = new Ctx(data);

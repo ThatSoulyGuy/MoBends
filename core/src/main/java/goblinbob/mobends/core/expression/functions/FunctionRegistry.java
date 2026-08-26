@@ -98,10 +98,6 @@ public final class FunctionRegistry {
         register("degToRad", ExpressionFunction.of(1, args -> Math.toRadians(args[0])));
         register("radToDeg", ExpressionFunction.of(1, args -> Math.toDegrees(args[0])));
 
-        // ExpressionParser lowers if(...) to a TernaryNode so it short-circuits, so this lambda
-        // is never invoked. The registration still has to exist: the parser resolves the name
-        // here to validate that "if" is a known function and that it was given exactly 3
-        // arguments. Do not delete it as dead code.
         register("if", ExpressionFunction.of(3, args -> args[0] != 0.0 ? args[1] : args[2]));
 
         register("step", ExpressionFunction.of(2, args -> args[1] >= args[0] ? 1.0 : 0.0));

@@ -121,11 +121,7 @@ public class CoreClientConfig
         return isEntityEnabled(entity);
     }
 
-    // --- Per-item overrides -------------------------------------------------------------------
-    // Keyed by the item's registry id as a string ("minecraft:diamond_sword"), so this class stays
-    // free of item types and the JSON is hand-editable. ModConfig resolves the id and the enum.
 
-    /** Whether this item's armor should render as vanilla rather than bent. */
     public boolean isArmorKeptVanilla(String itemId)
     {
         return data.vanillaArmorItems.getOrDefault(itemId, false);
@@ -144,7 +140,6 @@ public class CoreClientConfig
         save();
     }
 
-    /** Name of the use animation for this item, or null to let the caller decide from the pose. */
     public String getItemUseAction(String itemId)
     {
         return data.itemUseActions.get(itemId);
@@ -163,7 +158,6 @@ public class CoreClientConfig
         save();
     }
 
-    /** Name of the attack animation for this item, or null to fall back to the item's class. */
     public String getItemAttackAction(String itemId)
     {
         return data.itemAttackActions.get(itemId);
@@ -195,18 +189,13 @@ public class CoreClientConfig
 
     private static class ConfigData
     {
-        // Fields here are populated by Gson, so a field with no Java writer is normal.
-        // A stale "enabled" key in an existing mobends-client.json is simply ignored on read.
         List<String> appliedPacks = new ArrayList<>();
         Map<String, Boolean> enabledEntities = new HashMap<>();
 
-        /** itemId -> true. Absent means "bend it", which is the default. */
         Map<String, Boolean> vanillaArmorItems = new HashMap<>();
 
-        /** itemId -> UseActionType name. Absent means "decide from the vanilla arm pose". */
         Map<String, String> itemUseActions = new HashMap<>();
 
-        /** itemId -> AttackActionType name. Absent means "decide from the item class". */
         Map<String, String> itemAttackActions = new HashMap<>();
         String previewSpinMode = "HOVER";
     }

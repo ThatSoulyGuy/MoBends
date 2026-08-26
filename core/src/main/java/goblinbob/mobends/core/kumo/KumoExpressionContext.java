@@ -56,9 +56,6 @@ public class KumoExpressionContext implements ExpressionContext {
 
             case "health" -> entityData.isLiving() ? entityData.getHealth() : 0.0;
             case "maxHealth" -> entityData.isLiving() ? entityData.getMaxHealth() : 0.0;
-            // Both guards are load-bearing. isLiving() reproduces the old instanceof gate, and
-            // the maxHealth check stops a living entity with zero max health yielding NaN, which
-            // would then poison every comparison the expression feeds.
             case "healthPercent" -> entityData.isLiving() && entityData.getMaxHealth() > 0F
                     ? entityData.getHealth() / entityData.getMaxHealth()
                     : 0.0;

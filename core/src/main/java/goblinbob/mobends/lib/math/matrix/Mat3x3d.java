@@ -3,10 +3,6 @@ package goblinbob.mobends.lib.math.matrix;
 public class Mat3x3d implements IMat3x3d
 {
 
-	/**
-	 * Returns a new identity matrix. See {@link Mat4x4d#identity()} for why this is a factory
-	 * rather than a shared constant.
-	 */
 	public static Mat3x3d identity()
 	{
 		return new Mat3x3d(new double[] {

@@ -68,15 +68,6 @@ public class Quaternion
 		}
 	}
 
-	/**
-	 * Negates the vector part, leaving w — i.e. the conjugate, which for a unit quaternion is
-	 * the inverse rotation.
-	 *
-	 * <p>This was previously called {@code negate()}, which was misleading in a way that invited
-	 * a wrong "fix": negating all four components yields the <em>same</em> rotation (q and -q are
-	 * the double cover of one rotation), so making the name literally true would have silently
-	 * broken the one caller, which wants the inverse.
-	 */
 	public void conjugate()
 	{
 		this.x = -this.x;

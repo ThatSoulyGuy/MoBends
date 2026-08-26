@@ -25,9 +25,6 @@ public class TriggerConditionRegistry
         register("core:state", StateCondition::new, StateCondition.Template.class);
         register("core:ticks_passed", TicksPassedCondition::new, TicksPassedCondition.Template.class);
         register("core:expression", ExpressionCondition::new, ExpressionCondition.Template.class);
-        // "core:equipment_name" is registered from the mod side, by
-        // goblinbob.mobends.standard.DefaultAddon. Its condition reads item stacks out of
-        // equipment slots, so it cannot live in this module.
         register("core:animation_finished", (context) -> {
             INodeState node = context.getCurrentNode();
             if (node != null)

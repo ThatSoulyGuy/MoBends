@@ -3,15 +3,6 @@ package goblinbob.mobends.standard.client.model.armor.cache;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Owns the armor render caches.
- *
- * <p>There used to be three: a structure cache, an assignment cache and a geometry cache. Only the
- * structure cache was ever used — the other two were fully built, with LRU eviction, age limits and
- * hit/miss statistics, and nothing ever called put() or get() on either. This class constructed
- * them, sized them, cleared them and reported statistics for them, and that was the whole of their
- * involvement in rendering.
- */
 public class CacheManager
 {
     private static CacheManager instance;

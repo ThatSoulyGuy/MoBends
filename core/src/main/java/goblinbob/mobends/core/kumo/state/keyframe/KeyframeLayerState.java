@@ -63,7 +63,6 @@ public class KeyframeLayerState implements ILayerState
         currentNode.start(context);
     }
 
-    /** Package-private, for tests that need to assert on a node the layer never entered. */
     List<INodeState> getNodeStates()
     {
         return nodeStates;
@@ -80,7 +79,6 @@ public class KeyframeLayerState implements ILayerState
 
             if (animation != null)
             {
-                // An additive layer composes onto what earlier layers wrote, so it must NOT clear.
                 if (!additive)
                 {
                     applyRestPose(data, animation);
@@ -108,14 +106,6 @@ public class KeyframeLayerState implements ILayerState
 
                     if (previousAnimation != null)
                     {
-                        // The OUTGOING animation's bones have to be cleared too. The rest pose
-                        // above only names what the INCOMING animation contains, so a bone that
-                        // exists only in the outgoing animation gets written additively below on
-                        // every frame of the cross-fade and never reset -- its offset and its raw
-                        // quaternion grow tick by tick. And because nothing writes that bone once
-                        // previousNode is dropped, it stays wherever it accumulated to for the
-                        // rest of the entity's life. Clearing here is idempotent for the bones the
-                        // two animations share: they are simply zeroed twice before being written.
                         if (!additive)
                         {
                             applyRestPose(data, previousAnimation);
@@ -141,11 +131,6 @@ public class KeyframeLayerState implements ILayerState
 
         context.setCurrentNode(currentNode);
 
-        // Only the nodes actually being sampled advance. Ticking every node in the layer was
-        // wasted work, and worse, it advanced the progress of nodes nobody was looking at -- so a
-        // node's progress on entry depended on how long the layer had been running rather than on
-        // its own start frame. previousNode is included because a cross-fade samples it, and the
-        // identity guard stops a self-transition ticking the same node twice in one frame.
         if (currentNode != null)
         {
             currentNode.update(context, deltaTime);
@@ -210,14 +195,6 @@ public class KeyframeLayerState implements ILayerState
         }
     }
 
-    /**
-     * Reads a keyframe, clamping a past-the-end index to the final keyframe.
-     *
-     * <p>The clamp is what lets a non-looping node run all the way to its last frame: at that
-     * point {@code frameB} is one past the end, and returning null there would leave the bone
-     * unwritten for that frame, so it would snap back to the rest pose instead of holding its
-     * authored final pose. Clamping makes the tween degenerate to the last keyframe.
-     */
     private static Keyframe frameAt(java.util.List<Keyframe> keyframes, int index)
     {
         if (keyframes == null || keyframes.isEmpty() || index < 0)
@@ -231,19 +208,6 @@ public class KeyframeLayerState implements ILayerState
         return keyframes.get(index);
     }
 
-    /**
-     * Writes a keyframe rotation onto a target, the right way round for this layer's mode.
-     *
-     * <p>A replacing layer zeroes the target in {@code applyRestPose} first, so summing raw
-     * quaternion components onto zero is equivalent to setting it, and cross-fade weights that
-     * sum to one produce the nlerp the transition wants.
-     *
-     * <p>An additive layer never zeroes, so the same sum would be wrong twice over: it is not
-     * rotation composition, and the result is not a unit quaternion — two layers writing one bone
-     * leave {@code |q| = 2}, which the renderer turns into a 4x scale because JOML scales a
-     * rotation matrix by {@code |q|^2}. It composes multiplicatively instead, matching what
-     * {@code ProceduralLayerState} does for its own additive layers.
-     */
     private void composeRotation(SmoothOrientation target, float[] rotationA, float[] rotationB, float tween, float amount)
     {
         if (additive)

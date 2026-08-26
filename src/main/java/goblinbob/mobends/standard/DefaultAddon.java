@@ -58,9 +58,6 @@ public class DefaultAddon implements IAddon
 				"head", "body", "leftArm", "rightArm", "leftForeArm", "rightForeArm",
 				"leftLeg", "rightLeg", "leftForeLeg", "rightForeLeg");
 
-		// Registered explicitly rather than left to BenderDiscovery's derived-bender scan, which
-		// only runs once the player opens the mob-selection screen. ZombieVillagerData/Mutator/
-		// Controller have always existed; they were simply never wired up here.
 		registry.registerNewEntity(ZombieVillager.class, ZombieVillagerData::new, ZombieVillagerMutator::new,
 				new ZombieRenderer<>(), new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
 
@@ -119,6 +116,8 @@ public class DefaultAddon implements IAddon
 
 		goblinbob.mobends.compat.VampirismCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
+		goblinbob.mobends.compat.McaCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_ANIMATIONS, BIPED_PARTS);
+
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,
 				"head", "body", "neck", "leg1", "leg2", "leg3", "leg4", "leg5", "leg6", "leg7", "leg8",
@@ -136,10 +135,6 @@ public class DefaultAddon implements IAddon
 
 		registry.registerTriggerCondition("wolf_state", WolfStateCondition::new, WolfStateCondition.Template.class);
 
-		// Registered directly rather than through registry.registerTriggerCondition, which would
-		// namespace it as "mobends:equipment_name" and break every pack that already uses
-		// "core:equipment_name". It lives here rather than in the core module because it reads
-		// item stacks out of equipment slots.
 		TriggerConditionRegistry.instance.register("core:equipment_name",
 				EquipmentNameCondition::new, EquipmentNameCondition.Template.class);
 
@@ -167,8 +162,6 @@ public class DefaultAddon implements IAddon
 	@Override
 	public void onRefresh()
 	{
-		// Nothing to do. This used to call ArmorModelFactory.refresh(), which demutated cached
-		// armor wrappers -- but nothing ever populated those caches, so it looped over empty maps.
 	}
 
 	@Override

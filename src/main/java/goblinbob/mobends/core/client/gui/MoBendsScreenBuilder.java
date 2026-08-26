@@ -594,8 +594,6 @@ public class MoBendsScreenBuilder
         );
         layout.addView(spacer, spacerParams);
 
-        // This used to render the "no editor installed" message unconditionally, so an addon that
-        // had registered an editor was still told none existed and given no way to open it.
         final IAnimationEditor editor = AnimationEditorRegistry.INSTANCE.getPrimaryEditor();
 
         if (editor == null)
@@ -620,8 +618,6 @@ public class MoBendsScreenBuilder
             }
             catch (Exception e)
             {
-                // The editor comes from a third-party addon, so a failure here is its bug, not a
-                // reason to take the settings screen down with it.
                 LOGGER.error("The registered animation editor failed to open", e);
             }
         });

@@ -172,11 +172,23 @@ public class EntityPreviewRenderer
     {
         if (previewEntity == null) return;
 
-        float extent = Math.max(previewEntity.getBbHeight(), previewEntity.getBbWidth());
+        float extent = Math.max(nominalHeight(previewEntity), previewEntity.getBbWidth());
         if (extent < 0.01F) return;
 
         float fitted = availablePixels / extent;
         setScale(Math.max(minFitScale, Math.min(maxFitScale, fitted)));
+    }
+
+    private static float nominalHeight(LivingEntity entity)
+    {
+        float override = goblinbob.mobends.compat.McaCompat.nominalHeightOf(entity);
+        return override > 0.01F ? override : entity.getBbHeight();
+    }
+
+    private static float renderScale(LivingEntity entity)
+    {
+        float override = goblinbob.mobends.compat.McaCompat.renderScaleOf(entity);
+        return override > 0.01F ? override : 1.0F;
     }
 
     public float getRotationX()
@@ -395,8 +407,8 @@ public class EntityPreviewRenderer
 
         float centerX = x + width / 2.0f;
         float centerY = y + height / 2.0f;
-        float entityHeight = previewEntity.getBbHeight();
-        float entityScale = previewEntity.getScale();
+        float entityRenderScale = renderScale(previewEntity);
+        float entityHeight = nominalHeight(previewEntity) * entityRenderScale;
 
         IPreviewer previewer = currentBender != null ? currentBender.getPreviewer() : null;
 
@@ -484,7 +496,7 @@ public class EntityPreviewRenderer
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(centerX, centerY, 50.0);
 
-        float adjustedScale = scale / entityScale;
+        float adjustedScale = scale / entityRenderScale;
         guiGraphics.pose().scale(adjustedScale, adjustedScale, -adjustedScale);
 
         Vector3f translation = new Vector3f(0, entityHeight / 2.0f, 0);

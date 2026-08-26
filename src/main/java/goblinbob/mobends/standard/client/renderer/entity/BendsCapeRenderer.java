@@ -44,8 +44,6 @@ public class BendsCapeRenderer
             float waveSpeed = 0.2f;
             float waveFrequency = 7.2f;
             float waveOffset = ((float) i) / SLAB_AMOUNT;
-            // The cast matters: i and SLAB_AMOUNT are both int, so without it this term is
-            // always 0 and every slab gets the same magnitude, flattening the wave.
             float magnitude = (80.0f / SLAB_AMOUNT * (0.7f + (float) i / SLAB_AMOUNT));
             this.slabs[i].setRotateAngle((float) (Math.cos((phase) * waveSpeed + waveOffset * waveFrequency) * magnitude));
         }

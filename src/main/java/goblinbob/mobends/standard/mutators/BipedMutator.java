@@ -289,6 +289,16 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return null;
     }
 
+    protected AdaptiveHumanoidGeometry.WearParts overlayWearParts(HumanoidModel<?> model)
+    {
+        return null;
+    }
+
+    protected void drawOverlayExtras(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer,
+                                     int packedLight, int packedOverlay, int color)
+    {
+    }
+
     protected AdaptiveHumanoidGeometry.CaptureMode adaptiveHeadCaptureMode()
     {
         return AdaptiveHumanoidGeometry.CaptureMode.OWN_CUBES;
@@ -888,7 +898,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         try
         {
-            AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(model, true, baseJointOverride());
+            AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(model, true, baseJointOverride(),
+                    overlayWearParts(model));
             if (geometry != null)
             {
                 geometry.adoptRuntimePivots(model);
@@ -1067,6 +1078,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         drawOverlay(poseStack, vertexConsumer, packedLight, packedOverlay, color,
                 model.body, body, geometry.bodyMesh, baseBody, overlayBody);
+        drawOverlay(poseStack, vertexConsumer, packedLight, packedOverlay, color,
+                model.body, body, geometry.bodyWearMesh, baseBody, overlayBody);
 
         final float[] baseHead = absoluteOf(baseBody, head);
         final float[] overlayHead = sum(overlayBody, geometry.headPivot);
@@ -1088,6 +1101,22 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         drawLimb(poseStack, vertexConsumer, packedLight, packedOverlay, color, model.rightLeg,
                 rightLeg, rightForeLeg, geometry.rightLegMesh, geometry.rightForeLegMesh,
                 null, null, geometry.rightLegPivot, geometry.rightForeLegPivot);
+
+        drawLimb(poseStack, vertexConsumer, packedLight, packedOverlay, color, model.leftArm,
+                leftArm, leftForeArm, geometry.leftArmWearMesh, geometry.leftForeArmWearMesh,
+                baseBody, overlayBody, geometry.leftArmPivot, geometry.leftForeArmPivot);
+        drawLimb(poseStack, vertexConsumer, packedLight, packedOverlay, color, model.rightArm,
+                rightArm, rightForeArm, geometry.rightArmWearMesh, geometry.rightForeArmWearMesh,
+                baseBody, overlayBody, geometry.rightArmPivot, geometry.rightForeArmPivot);
+
+        drawLimb(poseStack, vertexConsumer, packedLight, packedOverlay, color, model.leftLeg,
+                leftLeg, leftForeLeg, geometry.leftLegWearMesh, geometry.leftForeLegWearMesh,
+                null, null, geometry.leftLegPivot, geometry.leftForeLegPivot);
+        drawLimb(poseStack, vertexConsumer, packedLight, packedOverlay, color, model.rightLeg,
+                rightLeg, rightForeLeg, geometry.rightLegWearMesh, geometry.rightForeLegWearMesh,
+                null, null, geometry.rightLegPivot, geometry.rightForeLegPivot);
+
+        drawOverlayExtras(model, poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
 
     private void drawLimb(PoseStack poseStack, VertexConsumer vertexConsumer,

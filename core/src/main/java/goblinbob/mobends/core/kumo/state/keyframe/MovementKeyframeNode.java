@@ -27,7 +27,6 @@ public class MovementKeyframeNode implements INodeState
 
     private float progress;
 
-    /** One warning per JVM, not one per frame per entity. */
     private static volatile boolean warnedAboutNonLivingTarget = false;
 
     public MovementKeyframeNode(IKumoInstancingContext context, MovementKeyframeNodeTemplate nodeTemplate)
@@ -74,18 +73,6 @@ public class MovementKeyframeNode implements INodeState
         return progress;
     }
 
-    /**
-     * A movement node has no natural end, so this is only ever true when there is nothing to play.
-     *
-     * <p>Progress here is derived entirely from the entity's limb swing rather than from elapsed
-     * time — the animation is a loop indexed by how far the legs have travelled — so there is no
-     * final frame to arrive at. A {@code core:animation_finished} transition out of a
-     * {@code core:movement} node therefore never fires, and that is correct rather than an
-     * oversight: author the exit with a state condition instead.
-     *
-     * <p>The null case matches {@code StandardKeyframeNode}, so a node whose animation failed to
-     * resolve reports finished and lets a waiting state machine move on rather than stalling.
-     */
     @Override
     public boolean isAnimationFinished()
     {
@@ -122,10 +109,6 @@ public class MovementKeyframeNode implements INodeState
             return;
         }
 
-        // Limb swing only exists on a living entity. This used to be an unchecked cast, which
-        // would have thrown from inside the render loop where nothing catches it. Freezing the
-        // node is the milder failure: the animation holds its current frame instead of taking the
-        // client down, and the warning says why.
         if (!(context.getEntityData() instanceof ILivingEntityAnimationData data))
         {
             if (!warnedAboutNonLivingTarget)
