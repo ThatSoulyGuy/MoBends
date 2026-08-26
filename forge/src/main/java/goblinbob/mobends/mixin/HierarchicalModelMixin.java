@@ -7,6 +7,7 @@ import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.IllagerModel;
 import net.minecraft.client.model.SpiderModel;
 import net.minecraft.client.model.SquidModel;
+import net.minecraft.client.model.VillagerModel;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,7 +34,7 @@ public abstract class HierarchicalModelMixin<E extends Entity> {
                                          CallbackInfo ci) {
         Object model = this;
 
-        if (model instanceof IllagerModel<?>) {
+        if (model instanceof IllagerModel<?> || model instanceof VillagerModel<?>) {
             if (MixinBridge.shouldRenderBipedCustom()) {
                 MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
                 ci.cancel();

@@ -2,6 +2,7 @@ package goblinbob.mobends.forge.client.event;
 
 import goblinbob.mobends.standard.client.renderer.entity.RenderBendsSpectralArrow;
 import goblinbob.mobends.standard.client.renderer.entity.RenderBendsTippedArrow;
+import goblinbob.mobends.standard.client.renderer.entity.RenderBendsTrident;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -14,5 +15,6 @@ public class EntityRendererRegistrar
     {
         event.registerEntityRenderer(EntityType.ARROW, RenderBendsTippedArrow::new);
         event.registerEntityRenderer(EntityType.SPECTRAL_ARROW, RenderBendsSpectralArrow::new);
+        event.registerEntityRenderer(EntityType.TRIDENT, RenderBendsTrident::new);
     }
 }

@@ -2,13 +2,14 @@ package goblinbob.mobends.core.bender;
 
 import net.minecraft.world.entity.Entity;
 
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Set;
 
 public class PreviewHelper
 {
 
-    private static final Set<Entity> previewEntities = new HashSet<>();
+    private static final Set<Entity> previewEntities = Collections.newSetFromMap(new IdentityHashMap<>());
 
     public static void registerPreviewEntity(Entity entity)
     {

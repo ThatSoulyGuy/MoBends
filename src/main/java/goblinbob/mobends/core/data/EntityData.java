@@ -41,6 +41,9 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
     public Boolean onGroundOverride = null;
     public Boolean stillnessOverride = null;
 
+    private boolean detached = false;
+    private int unseenTicks = 0;
+
     public final PackAnimationState packAnimationState;
 
     public EntityData(E entity)
@@ -61,6 +64,26 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         this.packAnimationState = new PackAnimationState();
 
         this.initModelPose();
+    }
+
+    public boolean isDetached()
+    {
+        return this.detached;
+    }
+
+    public void setDetached(boolean detached)
+    {
+        this.detached = detached;
+    }
+
+    public void markSeen()
+    {
+        this.unseenTicks = 0;
+    }
+
+    public int trackUnseen()
+    {
+        return ++this.unseenTicks;
     }
 
     public void overrideOnGroundState(boolean state)
@@ -106,6 +129,9 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
     {
         if (this.onGroundOverride != null)
             return this.onGroundOverride;
+
+        if (this.detached)
+            return true;
 
         BlockPos position = new BlockPos(
             Mth.floor(entity.getX()),

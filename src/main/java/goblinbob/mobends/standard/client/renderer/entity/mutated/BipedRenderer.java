@@ -24,6 +24,7 @@ public class BipedRenderer<T extends LivingEntity> extends MutatedRenderer<T>
                 poseStack.pushPose();
                 poseStack.scale(trailScale, trailScale, trailScale);
                 bipedData.swordTrail.render(poseStack, entity);
+                bipedData.offHandSwordTrail.render(poseStack, entity);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 poseStack.popPose();
             }

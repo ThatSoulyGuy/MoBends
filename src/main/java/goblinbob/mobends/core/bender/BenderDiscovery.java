@@ -92,6 +92,9 @@ public final class BenderDiscovery
             {
                 if (!(probe instanceof LivingEntity living)) continue;
 
+                if (goblinbob.mobends.api.animation.MoBendsAnimationControl.isExcluded(entityType, living.getClass()))
+                    continue;
+
                 LivingEntityRenderer<?, ?> renderer = resolveRenderer(living);
                 String appearance = describeAppearance(living, renderer);
 

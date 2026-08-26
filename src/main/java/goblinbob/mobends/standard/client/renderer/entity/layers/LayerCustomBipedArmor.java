@@ -2,9 +2,9 @@ package goblinbob.mobends.standard.client.renderer.entity.layers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import goblinbob.mobends.api.armor.ArmorModelProviderHolder;
+import goblinbob.mobends.platform.armor.ArmorModelProviderHolder;
 import goblinbob.mobends.api.rendering.IArmorLayerProvider;
-import goblinbob.mobends.api.armor.IArmorTextureProvider;
+import goblinbob.mobends.platform.armor.IArmorTextureProvider;
 import goblinbob.mobends.api.rendering.IArmorHelper;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
 import goblinbob.mobends.core.data.EntityData;
@@ -110,6 +110,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         if (!(itemStack.getItem() instanceof ArmorItem armorItem)) return;
         if (armorItem.getEquipmentSlot() != slot) return;
 
+        if (goblinbob.mobends.compat.WearableBackpacksCompat.isBackpackItem(itemStack)) return;
+
         boolean usesInnerModel = usesInnerModel(slot);
         HumanoidModel<E> defaultModel = usesInnerModel ? getInnerModel() : getOuterModel();
         if (defaultModel == null)
@@ -125,6 +127,14 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         Model customModel = ArmorModelProviderHolder.getProvider()
                 .getCustomArmorModel(entity, itemStack, slot, defaultModel);
 
+        final goblinbob.mobends.standard.client.model.armor.PalladiumSupport.Armor palladiumArmor =
+                goblinbob.mobends.standard.client.model.armor.PalladiumSupport.resolve(itemStack, entity, slot);
+
+        if (palladiumArmor != null && palladiumArmor.model != null)
+        {
+            customModel = palladiumArmor.model;
+        }
+
         boolean isCustomModel = (customModel != null && customModel != defaultModel);
         Model armorModel = isCustomModel ? customModel : defaultModel;
 
@@ -137,6 +147,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
 
         boolean shouldUseBends = hasBendsAnimation && !ModConfig.shouldKeepArmorAsVanilla(armorItem);
+
+        if (palladiumArmor != null)
+        {
+            renderPalladiumArmor(poseStack, bufferSource, packedLight, entity, slot, itemStack,
+                    armorModel, palladiumArmor,
+                    shouldUseBends && entityData instanceof BipedEntityData<?>
+                            ? (BipedEntityData<?>) entityData
+                            : null);
+            return;
+        }
 
         if (isCustomModel && shouldUseBends && entityData instanceof BipedEntityData<?>
                 && isBendableGeoArmor(armorModel))
@@ -231,6 +251,28 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         return null;
     }
 
+    private static final float EMISSIVE_INFLATION = 0.03F;
+
+    private static java.util.List<CapturedVertex> inflateAlongNormals(
+            java.util.List<CapturedVertex> source, float amount)
+    {
+        final java.util.List<CapturedVertex> result = new java.util.ArrayList<>(source.size());
+
+        for (CapturedVertex v : source)
+        {
+            result.add(new CapturedVertex(
+                    v.x + v.normalX * amount,
+                    v.y + v.normalY * amount,
+                    v.z + v.normalZ * amount,
+                    v.red, v.green, v.blue, v.alpha,
+                    v.u, v.v,
+                    v.overlayUV, v.lightmapUV,
+                    v.normalX, v.normalY, v.normalZ));
+        }
+
+        return result;
+    }
+
     private static final float ELBOW_Y = 6.0F / 16.0F;
     private static final float KNEE_Y = 18.0F / 16.0F;
     private static final float JOINT_BLEND_BAND = 2.0F / 16.0F;
@@ -251,6 +293,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         {
             return false;
         }
+
+        goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.clearEmissive();
 
         float[] savedState = captureArmorPartState(defaultModel);
         boolean[] savedVisibility = captureArmorPartVisibility(defaultModel);
@@ -274,6 +318,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         restoreArmorPartVisibility(defaultModel, savedVisibility);
         restoreArmorPartState(defaultModel, savedState);
 
+        final java.util.List<RenderType> emissiveTypes =
+                goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.drainEmissive();
+
         if (vertices.isEmpty())
         {
             return false;
@@ -284,6 +331,18 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         rigidRenderer.renderTaggedVertices(poseStack, outputConsumer, packedLight, OverlayTexture.NO_OVERLAY,
                 bipedData, vertices, regions, blendRegions, blendWeights);
+
+        if (!emissiveTypes.isEmpty())
+        {
+            final java.util.List<CapturedVertex> emissiveVertices = inflateAlongNormals(vertices, EMISSIVE_INFLATION);
+
+            for (RenderType emissiveType : emissiveTypes)
+            {
+                rigidRenderer.renderTaggedVertices(poseStack, bufferSource.getBuffer(emissiveType),
+                        packedLight, OverlayTexture.NO_OVERLAY,
+                        bipedData, emissiveVertices, regions, blendRegions, blendWeights);
+            }
+        }
 
         return true;
     }
@@ -1083,6 +1142,66 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
     }
 
+    private void renderPalladiumArmor(PoseStack poseStack, MultiBufferSource bufferSource,
+                                      int packedLight, E entity, EquipmentSlot slot, ItemStack itemStack,
+                                      Model armorModel,
+                                      goblinbob.mobends.standard.client.model.armor.PalladiumSupport.Armor palladiumArmor,
+                                      @Nullable BipedEntityData<?> bipedData)
+    {
+        final java.util.function.Function<ResourceLocation, RenderType> renderTypeProvider =
+                RenderType::entityTranslucent;
+
+        final int tint = goblinbob.mobends.standard.client.model.armor.PalladiumSupport.getDyeColor(itemStack);
+
+        if (bipedData != null)
+        {
+            BipedEntityData<?> data = bipedData;
+
+            if (data instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
+            {
+                data = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
+            }
+
+            armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot,
+                    itemStack, armorModel, data, palladiumArmor.texture, tint, renderTypeProvider);
+
+            if (palladiumArmor.overlayTexture != null && overlayTextureExists(palladiumArmor.overlayTexture))
+            {
+                armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot,
+                        itemStack, armorModel, data, palladiumArmor.overlayTexture, 0xFFFFFFFF,
+                        renderTypeProvider);
+            }
+
+            return;
+        }
+
+        if (mutator != null && armorModel instanceof HumanoidModel<?> humanoidModel)
+        {
+            mutator.syncPosesToVanillaModel(humanoidModel);
+        }
+
+        renderPalladiumPass(poseStack, bufferSource, packedLight, itemStack, armorModel,
+                palladiumArmor.texture, renderTypeProvider, tint);
+
+        if (palladiumArmor.overlayTexture != null && overlayTextureExists(palladiumArmor.overlayTexture))
+        {
+            renderPalladiumPass(poseStack, bufferSource, packedLight, itemStack, armorModel,
+                    palladiumArmor.overlayTexture, renderTypeProvider, 0xFFFFFFFF);
+        }
+    }
+
+    private void renderPalladiumPass(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                     ItemStack itemStack, Model armorModel, ResourceLocation texture,
+                                     java.util.function.Function<ResourceLocation, RenderType> renderTypeProvider,
+                                     int color)
+    {
+        VertexConsumer vertexConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
+                bufferSource, renderTypeProvider.apply(texture), itemStack.hasFoil());
+
+        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer,
+                packedLight, OverlayTexture.NO_OVERLAY, color);
+    }
+
     private static void copyModelProperties(HumanoidModel<?> source, HumanoidModel<?> target)
     {
         target.young = source.young;
@@ -1273,7 +1392,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         boolean isInnerModel = usesInnerModel(slot);
 
         IArmorTextureProvider textureProvider = IArmorTextureProvider.Holder.getProvider();
-        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, layer, isInnerModel);
+        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, layer, overlay, isInnerModel);
 
         if (customTexture != null)
         {

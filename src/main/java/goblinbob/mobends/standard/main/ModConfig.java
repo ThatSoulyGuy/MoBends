@@ -20,6 +20,12 @@ public class ModConfig
 
     public static boolean arrowTrailFullBright = false;
 
+    public static boolean arrowTrailPotionColor = true;
+
+    public static boolean spectralArrowTrailEffect = true;
+
+    public static boolean tridentTrail = true;
+
     public static boolean newEnchantGlint = false;
 
     public static boolean performSpinAttack = true;

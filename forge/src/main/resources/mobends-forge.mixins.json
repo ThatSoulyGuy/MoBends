@@ -12,7 +12,8 @@
     "ItemRendererArmorFoilMixin",
     "HierarchicalModelMixin",
     "RenderLayerMixin",
-    "PlayerRendererSwimMixin"
+    "PlayerRendererSwimMixin",
+    "InventoryScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

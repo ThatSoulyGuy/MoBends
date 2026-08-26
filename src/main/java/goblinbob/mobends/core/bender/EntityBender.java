@@ -30,6 +30,7 @@ public abstract class EntityBender<T extends LivingEntity>
 {
     protected final String key;
     protected final String unlocalizedName;
+    protected final ResourceLocation entityTypeId;
 
     private final MutatedRenderer<T> renderer;
     public final Class<T> entityClass;
@@ -65,8 +66,23 @@ public abstract class EntityBender<T extends LivingEntity>
 
         this.key = modId + "-" + key;
         this.unlocalizedName = unlocalizedName;
+        this.entityTypeId = ResourceLocation.tryParse(key);
         this.entityClass = entityClass;
         this.renderer = renderer;
+    }
+
+    private EntityType<?> resolveEntityType()
+    {
+        if (this.entityTypeId != null)
+        {
+            EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(this.entityTypeId);
+            if (entityType != null && this.entityTypeId.equals(BuiltInRegistries.ENTITY_TYPE.getKey(entityType)))
+            {
+                return entityType;
+            }
+        }
+
+        return getEntityTypeForClass(entityClass);
     }
 
     @SuppressWarnings("unchecked")
@@ -135,6 +151,7 @@ public abstract class EntityBender<T extends LivingEntity>
     public void beforeRender(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
     {
         this.renderer.beforeRender(data, entity, partialTicks, poseStack);
+        goblinbob.mobends.api.event.MoBendsPoseEvents.dispatch(entity, partialTicks);
     }
 
     public void afterRender(T entity, float partialTicks, PoseStack poseStack)
@@ -159,7 +176,12 @@ public abstract class EntityBender<T extends LivingEntity>
 
         mutator.updateModel(entity, renderer, partialTicks);
         LivingEntityData<T> data = mutator.getOrMakeData(entity);
-        mutator.performAnimations(data, this.key, renderer, partialTicks);
+
+        if (!goblinbob.mobends.api.animation.MoBendsAnimationControl.isStaticallyPosed(entity))
+        {
+            mutator.performAnimations(data, this.key, renderer, partialTicks);
+        }
+
         mutator.syncUpWithData(data);
 
         return true;
@@ -226,8 +248,11 @@ public abstract class EntityBender<T extends LivingEntity>
             Level level = Minecraft.getInstance().level;
             if (level == null) return null;
 
+            EntityType<?> entityType = resolveEntityType();
+            if (entityType == null) return null;
+
             Mob entity = (Mob) this.entityClass.getConstructor(EntityType.class, Level.class)
-                .newInstance(getEntityTypeForClass(entityClass), level);
+                .newInstance(entityType, level);
             entity.moveTo(0, 0, 0, 0, 0);
             IMobSpawnHelper helper = IMobSpawnHelper.Holder.getHelper();
             if (helper != null)

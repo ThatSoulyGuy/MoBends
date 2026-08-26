@@ -4,8 +4,8 @@ import com.mojang.logging.LogUtils;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.core.Core;
-import goblinbob.mobends.core.addon.AddonHelper;
-import goblinbob.mobends.core.addon.Addons;
+import goblinbob.mobends.api.addon.AddonHelper;
+import goblinbob.mobends.api.addon.Addons;
 import goblinbob.mobends.core.animation.keyframe.AnimationLoader;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.data.EntityDatabase;
@@ -102,7 +102,7 @@ public class MoBendsForge
         Core.getInstance().onClientSetup();
 
         // Any addon that registered before Core existed had its content dropped; replay it now.
-        goblinbob.mobends.core.addon.Addons.flushPending();
+        goblinbob.mobends.api.addon.Addons.flushPending();
 
         AddonHelper.registerAddon(ModStatics.MODID, new DefaultAddon());
 

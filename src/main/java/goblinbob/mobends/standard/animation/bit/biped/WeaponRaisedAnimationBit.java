@@ -30,7 +30,7 @@ public class WeaponRaisedAnimationBit extends AnimationBit<BipedEntityData<?>>
         final float f = Mth.sin(swing * PI);
         final float f1 = Mth.sin((1.0F - (1.0F - swing) * (1.0F - swing)) * PI);
 
-        final boolean rightHanded = entity.getMainArm() == HumanoidArm.RIGHT;
+        final boolean rightHanded = AttackArms.attackingArm(data, entity) == HumanoidArm.RIGHT;
 
         final float raised = RAISED_PITCH + Mth.cos(age * 0.09F) * 0.15F + f * 2.2F - f1 * 0.4F;
         final float trailing = Mth.cos(age * 0.19F) * 0.5F + f * 1.2F - f1 * 0.4F;

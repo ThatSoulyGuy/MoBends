@@ -19,6 +19,9 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
 
     protected HumanoidArm punchingFist = HumanoidArm.LEFT;
     protected float lastTicksAfterAttack = 0;
+    protected float ticksSinceMove = 100.0F;
+
+    private static final float MIN_MOVE_INTERVAL = 4.0F;
 
     public PunchingAction(HumanoidArm ignoredHandSide)
     {
@@ -28,9 +31,16 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
     @Override
     public void perform(BipedEntityData<?> entityData)
     {
-        float ticksAfterAttack = entityData.getTicksAfterAttack();
-        if (ticksAfterAttack < lastTicksAfterAttack)
+        float ticksAfterAttack = entityData.getTicksAfterAnyAttack();
+
+        ticksSinceMove += goblinbob.mobends.core.client.event.DataUpdateHandler.ticksPerFrame;
+
+        final boolean canAdvance = !goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded()
+                || ticksSinceMove >= MIN_MOVE_INTERVAL;
+
+        if (ticksAfterAttack < lastTicksAfterAttack && canAdvance)
         {
+            ticksSinceMove = 0.0F;
             LivingEntity entity = entityData.getEntity();
             if (entity == Minecraft.getInstance().player)
             {

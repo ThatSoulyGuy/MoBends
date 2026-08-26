@@ -44,6 +44,23 @@ public class ArrowTrail
 
     public void render(PoseStack poseStack, float partialTicks)
     {
+        advanceNodes();
+
+        renderNodes(poseStack,
+                Mth.lerp(partialTicks, trackedArrow.xOld, trackedArrow.getX()),
+                Mth.lerp(partialTicks, trackedArrow.yOld, trackedArrow.getY()),
+                Mth.lerp(partialTicks, trackedArrow.zOld, trackedArrow.getZ()));
+    }
+
+    public void renderFrom(PoseStack poseStack, double originX, double originY, double originZ)
+    {
+        advanceNodes();
+
+        renderNodes(poseStack, originX, originY, originZ);
+    }
+
+    private void advanceNodes()
+    {
         if (this.spawnCooldown > 40)
         {
             this.spawnCooldown = 0;
@@ -59,8 +76,6 @@ public class ArrowTrail
             nodes[0].moveTo(trackedArrow);
             this.spawnCooldown -= SPAWN_INTERVAL;
         }
-
-        renderNodes(poseStack, partialTicks);
     }
 
     public void resetNodes()
@@ -69,12 +84,8 @@ public class ArrowTrail
             this.nodes[i] = new TrailNode(trackedArrow);
     }
 
-    public void renderNodes(PoseStack poseStack, float partialTicks)
+    public void renderNodes(PoseStack poseStack, double originX, double originY, double originZ)
     {
-        final double originX = Mth.lerp(partialTicks, trackedArrow.xOld, trackedArrow.getX());
-        final double originY = Mth.lerp(partialTicks, trackedArrow.yOld, trackedArrow.getY());
-        final double originZ = Mth.lerp(partialTicks, trackedArrow.zOld, trackedArrow.getZ());
-
         final Matrix4f matrix = poseStack.last().pose();
         final Level level = trackedArrow.level();
 
@@ -96,8 +107,8 @@ public class ArrowTrail
             final Vec3f up1 = node1.up;
             final Vec3f right1 = node1.right;
 
-            final int color0 = trailColor(level, node0);
-            final int color1 = trailColor(level, node1);
+            final int color0 = trailColor(level, node0, i - 1);
+            final int color1 = trailColor(level, node1, i);
 
             addVertex(matrix, pos0.x + (-right0.x) * scale0, pos0.y + (-right0.y) * scale0, pos0.z + (-right0.z) * scale0, color0);
             addVertex(matrix, pos0.x + (right0.x) * scale0, pos0.y + (right0.y) * scale0, pos0.z + (right0.z) * scale0, color0);
@@ -111,20 +122,79 @@ public class ArrowTrail
         }
     }
 
-    private static int trailColor(Level level, TrailNode node)
+    private static final int SPECTRAL_TINT = 0xFFC83C;
+    private static final float SPARKLE_SPEED = 0.9F;
+    private static final float SPARKLE_SPACING = 1.7F;
+    private static final float SPARKLE_DEPTH = 0.35F;
+
+    private int trailColor(Level level, TrailNode node, int nodeIndex)
     {
-        if (ModConfig.arrowTrailFullBright)
+        float brightness = 1.0F;
+
+        if (!ModConfig.arrowTrailFullBright)
         {
-            return 0x80FFFFFF;
+            final int packedLight = LevelRenderer.getLightColor(level, BlockPos.containing(node.x, node.y, node.z));
+            final int blockLight = LightTexture.block(packedLight);
+            final int skyLight = Math.max(0, LightTexture.sky(packedLight) - level.getSkyDarken());
+            brightness = 0.15F + 0.85F * (Math.max(blockLight, skyLight) / 15.0F);
         }
 
-        final int packedLight = LevelRenderer.getLightColor(level, BlockPos.containing(node.x, node.y, node.z));
-        final int blockLight = LightTexture.block(packedLight);
-        final int skyLight = Math.max(0, LightTexture.sky(packedLight) - level.getSkyDarken());
-        final float brightness = 0.15F + 0.85F * (Math.max(blockLight, skyLight) / 15.0F);
-        final int channel = (int) (brightness * 255.0F);
+        float red = brightness;
+        float green = brightness;
+        float blue = brightness;
 
-        return 0x80000000 | (channel << 16) | (channel << 8) | channel;
+        if (isSpectral())
+        {
+            final float phase = DataUpdateHandler.getTicks() * SPARKLE_SPEED + nodeIndex * SPARKLE_SPACING;
+            final float sparkle = 1.0F - SPARKLE_DEPTH + SPARKLE_DEPTH * Mth.sin(phase);
+            final float whiten = Math.max(0.0F, Mth.sin(phase)) * 0.4F;
+
+            red = tintChannel(SPECTRAL_TINT, 16, brightness * sparkle, whiten);
+            green = tintChannel(SPECTRAL_TINT, 8, brightness * sparkle, whiten);
+            blue = tintChannel(SPECTRAL_TINT, 0, brightness * sparkle, whiten);
+        }
+        else
+        {
+            final int effectColor = potionColor();
+
+            if (effectColor != -1)
+            {
+                red = tintChannel(effectColor, 16, brightness, 0.0F);
+                green = tintChannel(effectColor, 8, brightness, 0.0F);
+                blue = tintChannel(effectColor, 0, brightness, 0.0F);
+            }
+        }
+
+        return 0x80000000
+                | (channelOf(red) << 16)
+                | (channelOf(green) << 8)
+                | channelOf(blue);
+    }
+
+    private static float tintChannel(int color, int shift, float brightness, float whiten)
+    {
+        final float value = ((color >> shift) & 0xFF) / 255.0F;
+        return (value + (1.0F - value) * whiten) * brightness;
+    }
+
+    private static int channelOf(float value)
+    {
+        return Math.max(0, Math.min(255, (int) (value * 255.0F)));
+    }
+
+    private boolean isSpectral()
+    {
+        return ModConfig.spectralArrowTrailEffect && ArrowEffectColor.isSpectral(trackedArrow);
+    }
+
+    private int potionColor()
+    {
+        if (!ModConfig.arrowTrailPotionColor)
+        {
+            return ArrowEffectColor.NO_COLOR;
+        }
+
+        return ArrowEffectColor.getEffectColor(trackedArrow);
     }
 
     private static void addVertex(Matrix4f matrix, double x, double y, double z, int color)

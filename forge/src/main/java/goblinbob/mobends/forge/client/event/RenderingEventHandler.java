@@ -1,7 +1,7 @@
 package goblinbob.mobends.forge.client.event;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import goblinbob.mobends.core.addon.Addons;
+import goblinbob.mobends.api.addon.Addons;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
@@ -281,6 +281,9 @@ public class RenderingEventHandler
         }
         else if (event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS)
         {
+            goblinbob.mobends.standard.client.renderer.entity.ArrowTrailManager
+                    .renderExternalTrails(event.getPoseStack());
+
             goblinbob.mobends.core.client.TrailRenderQueue.flush();
         }
     }

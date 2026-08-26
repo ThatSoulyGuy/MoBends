@@ -14,10 +14,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 public class PlayerController implements IAnimationController<PlayerData>
 {
     protected HardAnimationLayer<BipedEntityData<?>> layerBase = new HardAnimationLayer<>();
@@ -42,12 +38,14 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected ElytraAnimationBit bitElytra = new ElytraAnimationBit();
     protected CapeAnimationBit bitCape = new CapeAnimationBit();
     protected SleepingAnimationBit bitSleeping = new SleepingAnimationBit();
+    protected AnimationBit<BipedEntityData<?>> bitExternalPose = new ExternalPoseAnimationBit();
 
     protected final BipedActionController actionController = new BipedActionController();
 
     public static boolean isCrawling(PlayerData data, AbstractClientPlayer player)
     {
-        return player.isVisuallySwimming() && !data.isInWater();
+        return (player.isVisuallySwimming() && !data.isInWater())
+                || goblinbob.mobends.compat.CrawlCompat.isCrawling(player);
     }
 
     public void performActionAnimations(PlayerData data, AbstractClientPlayer player)
@@ -76,6 +74,18 @@ public class PlayerController implements IAnimationController<PlayerData>
     public void perform(PlayerData data)
     {
         final AbstractClientPlayer player = data.getEntity();
+
+        if (goblinbob.mobends.compat.ModCompatManager.isExternallyPosed(player))
+        {
+            layerBase.playOrContinueBit(bitExternalPose, data);
+            layerSneak.clearAnimation();
+            layerTorch.clearAnimation();
+            layerCape.clearAnimation();
+            actionController.clearAction();
+
+            layerBase.perform(data);
+            return;
+        }
 
         layerCape.playOrContinueBit(bitCape, data);
 

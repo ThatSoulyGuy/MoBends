@@ -38,6 +38,7 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		data.unsetLedgeHeightOverride();
 		data.unsetInWaterOverride();
 		data.unsetRidingOverride();
+		data.unsetMovingAtSprintSpeedOverride();
 
 		previewYOffset = 0;
 
@@ -112,6 +113,7 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		data.overrideOnGroundState(true);
 		data.limbSwingAmount.override(1.5F);
 		data.overrideStillness(false);
+		data.overrideMovingAtSprintSpeed(true);
 	}
 
 	protected void prepareForFall(D data)

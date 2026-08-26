@@ -34,6 +34,20 @@ public class MoBendsRenderContext {
         return inMainModelRender.get();
     }
 
+    private static final ThreadLocal<Integer> guiEntityRenderDepth = ThreadLocal.withInitial(() -> 0);
+
+    public static void beginGuiEntityRender() {
+        guiEntityRenderDepth.set(guiEntityRenderDepth.get() + 1);
+    }
+
+    public static void endGuiEntityRender() {
+        guiEntityRenderDepth.set(Math.max(0, guiEntityRenderDepth.get() - 1));
+    }
+
+    public static boolean isInGuiEntityRender() {
+        return guiEntityRenderDepth.get() > 0;
+    }
+
     public static void setCurrentVanillaModel(net.minecraft.client.model.HumanoidModel<?> model) {
         currentVanillaModel.set(model);
     }

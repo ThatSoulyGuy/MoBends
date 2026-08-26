@@ -156,6 +156,10 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         }
     }
 
+    private static float guiHeldHeadYaw = 0.0F;
+    private static float guiHeldHeadPitch = 0.0F;
+    private static boolean guiHeldLookCaptured = false;
+
     public void updateModel(E entity, LivingEntityRenderer<E, M> renderer, float partialTicks)
     {
         boolean shouldSit = entity.isPassenger()
@@ -205,13 +209,27 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
             yaw = f1 - f;
         }
 
-        boolean suppressHead = ModConfig.disableMovementInGui
-                && Minecraft.getInstance().screen != null
-                && entity == Minecraft.getInstance().player;
-        if (!suppressHead)
+        final Minecraft mc = Minecraft.getInstance();
+        final boolean localPlayer = entity == mc.player;
+        final boolean screenOpen = mc.screen != null;
+
+        if (localPlayer && screenOpen && ModConfig.disableMovementInGui && guiHeldLookCaptured
+                && !goblinbob.mobends.core.client.MoBendsRenderContext.isInGuiEntityRender())
+        {
+            this.headYaw = guiHeldHeadYaw;
+            this.headPitch = guiHeldHeadPitch;
+        }
+        else
         {
             this.headYaw = yaw;
             this.headPitch = pitch;
+
+            if (localPlayer && !screenOpen)
+            {
+                guiHeldHeadYaw = yaw;
+                guiHeldHeadPitch = pitch;
+                guiHeldLookCaptured = true;
+            }
         }
         this.limbSwing = f6;
         this.limbSwingAmount = f5;

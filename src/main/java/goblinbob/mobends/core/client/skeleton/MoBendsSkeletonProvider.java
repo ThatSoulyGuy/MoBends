@@ -6,11 +6,11 @@ import goblinbob.mobends.api.skeleton.MoBendsAPI;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
+import goblinbob.mobends.core.data.EntityDatabase;
+import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.util.BenderHelper;
+import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.mutators.BipedMutator;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
 
 public class MoBendsSkeletonProvider implements ISkeletonProvider
@@ -46,28 +46,10 @@ public class MoBendsSkeletonProvider implements ISkeletonProvider
             return null;
         }
 
-        final Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.getEntityRenderDispatcher() == null)
+        final LivingEntityData<?> data = EntityDatabase.instance.get(entity);
+        if (data instanceof BipedEntityData<?> bipedData)
         {
-            return null;
-        }
-
-        final EntityRenderer<?> renderer = minecraft.getEntityRenderDispatcher().getRenderer(entity);
-        if (!(renderer instanceof LivingEntityRenderer<?, ?> livingEntityRenderer))
-        {
-            return null;
-        }
-
-        final EntityBender bender = EntityBenderRegistry.instance.getForEntity(entity);
-        if (bender == null)
-        {
-            return null;
-        }
-
-        final Object mutator = bender.getMutator(livingEntityRenderer);
-        if (mutator instanceof BipedMutator<?, ?, ?> bipedMutator)
-        {
-            return new BipedSkeleton(bipedMutator);
+            return BipedSkeleton.of(bipedData);
         }
         return null;
     }
@@ -80,6 +62,6 @@ public class MoBendsSkeletonProvider implements ISkeletonProvider
         {
             return null;
         }
-        return new BipedSkeleton(mutator);
+        return BipedSkeleton.of(mutator, MoBendsRenderContext.getCurrentEntity());
     }
 }

@@ -13,6 +13,7 @@
     "HierarchicalModelMixin",
     "RenderLayerMixin",
     "PlayerRendererSwimMixin",
+    "InventoryScreenMixin",
     "armor.HumanoidArmorLayerMixin"
   ],
   "injectors": {

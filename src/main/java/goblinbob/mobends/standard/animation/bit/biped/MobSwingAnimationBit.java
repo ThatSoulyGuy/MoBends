@@ -2,8 +2,11 @@ package goblinbob.mobends.standard.animation.bit.biped;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
+import goblinbob.mobends.standard.AttackActionType;
+import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +14,13 @@ import java.util.List;
 public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
     private static final String[] ACTIONS = new String[] { "attack" };
+
+    public static boolean canPerform(LivingEntity entity)
+    {
+        return entity != null
+                && BipedActionController.getItemAttackAction(entity.getMainHandItem().getItem())
+                        != AttackActionType.FISTS;
+    }
 
     private static final List<AnimationBit<BipedEntityData<?>>> SLASHES = Arrays.asList(
             new AttackSlashUpAnimationBit(),

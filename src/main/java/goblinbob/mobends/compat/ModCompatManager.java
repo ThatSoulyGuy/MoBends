@@ -1,5 +1,8 @@
 package goblinbob.mobends.compat;
 
+import goblinbob.mobends.api.animation.MoBendsAnimationControl;
+import net.minecraft.world.entity.LivingEntity;
+
 public class ModCompatManager
 {
     private static boolean initialized = false;
@@ -31,21 +34,56 @@ public class ModCompatManager
         ArtifactsCompat.init();
 
         NotEnoughAnimationsCompat.init();
+
+        WatutCompat.init();
+
+        EssentialCompat.init();
+
+        ParCoolCompat.init();
+
+        MonsterExpansionCompat.init();
+
+        CrawlCompat.init();
+
+        OffHandCombatCompat.init();
+
+        WearableBackpacksCompat.init();
+
+        UmapyoiCompat.init();
+
+        CorpseCompat.init();
+
+        ThirdPartyPoseCompat.init();
+
+        registerBuiltInAnimationControl();
     }
 
-    public static boolean shouldDeferAnimation(net.minecraft.world.entity.LivingEntity entity)
+    private static void registerBuiltInAnimationControl()
     {
-        if (PhysicsModCompat.hasActivePhysics(entity))
-            return true;
+        MoBendsAnimationControl.registerPoseOverride("essential", EssentialCompat::isPlayingEmote);
+        MoBendsAnimationControl.registerPoseOverride("parcool", ParCoolCompat::isAnimating);
+        MoBendsAnimationControl.registerPoseOverride("monsterexpansion", MonsterExpansionCompat::isAnimating);
+        MoBendsAnimationControl.registerPoseOverride("crawl", CrawlCompat::isPosingModel);
 
-        if (ThirdPartyPoseCompat.shouldYieldToHeldItem(entity))
-            return true;
+        MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
 
-        return false;
+        MoBendsAnimationControl.registerStaticPose("corpse", CorpseCompat::isCorpse);
+
+        MoBendsAnimationControl.registerExternalAnimation("playeranimator", PlayerAnimationLibCompat::hasActiveAnimation);
     }
 
-    public static boolean hasExternalAnimation(net.minecraft.world.entity.LivingEntity entity)
+    public static boolean isExternallyPosed(LivingEntity entity)
     {
-        return PlayerAnimationLibCompat.hasActiveAnimation(entity);
+        return MoBendsAnimationControl.isPoseOverridden(entity);
+    }
+
+    public static boolean shouldDeferAnimation(LivingEntity entity)
+    {
+        return MoBendsAnimationControl.isAnimationDeferred(entity);
+    }
+
+    public static boolean hasExternalAnimation(LivingEntity entity)
+    {
+        return MoBendsAnimationControl.hasExternalAnimation(entity);
     }
 }

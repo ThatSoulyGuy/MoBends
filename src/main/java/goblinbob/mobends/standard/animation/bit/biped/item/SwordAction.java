@@ -21,7 +21,10 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
     protected final AttackStanceSprintAnimationBit bitAttackStanceSprint = new AttackStanceSprintAnimationBit();
 
     protected float lastTicksAfterAttack = 0.0F;
+    protected float ticksSinceMove = 100.0F;
     protected int moveId = 0;
+
+    private static final float MIN_MOVE_INTERVAL = 4.0F;
 
     private static final List<AnimationBit<BipedEntityData<?>>> bits = Arrays.asList(
             new AttackSlashUpAnimationBit(),
@@ -34,6 +37,16 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
     public SwordAction(HumanoidArm ignoredHandSide)
     {
 
+    }
+
+    private boolean canStartNextMove()
+    {
+        if (!goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        {
+            return true;
+        }
+
+        return ticksSinceMove >= MIN_MOVE_INTERVAL;
     }
 
     private void nextMove(BipedEntityData<?> entityData)
@@ -73,10 +86,14 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
     @Override
     public void perform(BipedEntityData<?> entityData)
     {
-        float ticksAfterAttack = entityData.getTicksAfterAttack();
-        if (ticksAfterAttack < lastTicksAfterAttack)
+        float ticksAfterAttack = entityData.getTicksAfterAnyAttack();
+
+        ticksSinceMove += goblinbob.mobends.core.client.event.DataUpdateHandler.ticksPerFrame;
+
+        if (ticksAfterAttack < lastTicksAfterAttack && canStartNextMove())
         {
             nextMove(entityData);
+            ticksSinceMove = 0.0F;
         }
         lastTicksAfterAttack = ticksAfterAttack;
 

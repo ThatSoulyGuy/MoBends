@@ -64,6 +64,18 @@ public class ConfigOptions
                     () -> ModConfig.arrowTrailFullBright,
                     value -> ModConfig.arrowTrailFullBright = value),
 
+            new Option("arrowTrailPotionColor", "mobends.gui.config.arrow_trail_potion_color",
+                    () -> ModConfig.arrowTrailPotionColor,
+                    value -> ModConfig.arrowTrailPotionColor = value),
+
+            new Option("spectralArrowTrailEffect", "mobends.gui.config.spectral_arrow_trail_effect",
+                    () -> ModConfig.spectralArrowTrailEffect,
+                    value -> ModConfig.spectralArrowTrailEffect = value),
+
+            new Option("tridentTrail", "mobends.gui.config.trident_trail",
+                    () -> ModConfig.tridentTrail,
+                    value -> ModConfig.tridentTrail = value),
+
             new Option("newEnchantGlint", "mobends.gui.config.new_enchant_glint",
                     () -> ModConfig.newEnchantGlint,
                     value -> ModConfig.newEnchantGlint = value),

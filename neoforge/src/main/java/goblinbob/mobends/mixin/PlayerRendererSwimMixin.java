@@ -44,6 +44,7 @@ public abstract class PlayerRendererSwimMixin
     @Unique
     private static boolean mobends$isCrawling(AbstractClientPlayer entity)
     {
-        return entity.isVisuallySwimming() && !entity.isInWater();
+        return (entity.isVisuallySwimming() && !entity.isInWater())
+                || goblinbob.mobends.compat.CrawlCompat.isCrawling(entity);
     }
 }

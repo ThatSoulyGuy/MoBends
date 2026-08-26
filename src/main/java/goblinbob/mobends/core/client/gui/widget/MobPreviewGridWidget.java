@@ -264,7 +264,8 @@ public class MobPreviewGridWidget
 
     private void setBenderAnimated(MobCard card, boolean animated)
     {
-        card.bender.setAnimate(animated);
+        goblinbob.mobends.core.bender.EntityBenderRegistry.instance
+                .setAnimateForKey(card.bender.getKey(), animated);
         CoreClientConfig.getInstance().setEntityEnabled(card.bender.getKey(), animated);
         applyEnabledStyle(card, animated);
     }

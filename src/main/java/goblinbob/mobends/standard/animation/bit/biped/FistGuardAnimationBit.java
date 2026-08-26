@@ -14,7 +14,7 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 	public void perform(BipedEntityData<?> data)
 	{
 		LivingEntity living = data.getEntity();
-		HumanoidArm primaryHand = living.getMainArm();
+		HumanoidArm primaryHand = AttackArms.attackingArm(data, living);
 
 		boolean mainHandSwitch = primaryHand == HumanoidArm.RIGHT;
 		float handDirMtp = mainHandSwitch ? 1 : -1;

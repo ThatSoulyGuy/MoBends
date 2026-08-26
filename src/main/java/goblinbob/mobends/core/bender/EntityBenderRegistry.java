@@ -1,6 +1,7 @@
 package goblinbob.mobends.core.bender;
 
 import com.mojang.logging.LogUtils;
+import goblinbob.mobends.api.animation.MoBendsAnimationControl;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import org.slf4j.Logger;
 import net.minecraft.world.entity.LivingEntity;
@@ -50,6 +51,17 @@ public class EntityBenderRegistry
         }
     }
 
+    public void setAnimateForKey(String key, boolean animate)
+    {
+        for (EntityBender<?> entityBender : entityClassToBenderMap.values())
+        {
+            if (entityBender.getKey().equals(key))
+            {
+                entityBender.setAnimate(animate);
+            }
+        }
+    }
+
     public Collection<EntityBender<?>> getRegistered()
     {
         return entityClassToBenderMap.values();
@@ -57,7 +69,13 @@ public class EntityBenderRegistry
 
     public Collection<EntityBender<?>> getRegistered(Filter filter)
     {
-        List<EntityBender<?>> benderList = new ArrayList<>(entityClassToBenderMap.values());
+        final Map<String, EntityBender<?>> uniqueByKey = new LinkedHashMap<>();
+        for (EntityBender<?> entityBender : entityClassToBenderMap.values())
+        {
+            uniqueByKey.putIfAbsent(entityBender.getKey(), entityBender);
+        }
+
+        List<EntityBender<?>> benderList = new ArrayList<>(uniqueByKey.values());
 
         if (filter.query != null)
         {
@@ -82,6 +100,16 @@ public class EntityBenderRegistry
     @SuppressWarnings("unchecked")
     public <E extends LivingEntity> EntityBender<E> getForEntity(E entity)
     {
+        // Deliberately ahead of the cache rather than inside resolveBenderFor. Exclusion is keyed
+        // partly on EntityType, and nothing guarantees one Java class maps to one EntityType --
+        // a modded entity class reused across several types would get the wrong cached answer.
+        // The check is two lookups against sets that are empty unless another mod opted out, so
+        // it costs nothing in the common case and the registry scans stay cached either way.
+        if (MoBendsAnimationControl.isExcluded(entity))
+        {
+            return null;
+        }
+
         final Class<?> entityClass = entity.getClass();
 
         // containsKey, not get() != null: a cached null is a real answer ("no bender for this

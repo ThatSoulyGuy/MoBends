@@ -76,7 +76,8 @@ public class ZombieController implements IAnimationController<ZombieData>
 			this.layerSet.playOrContinueBit(bitAnimationSet[zombieData.getAnimationSet()], zombieData);
 		}
 
-		if (zombieData.getEntity().getAttackAnim(DataUpdateHandler.partialTicks) > 0)
+		if (zombieData.getEntity().getAttackAnim(DataUpdateHandler.partialTicks) > 0
+				&& MobSwingAnimationBit.canPerform(zombieData.getEntity()))
 		{
 			this.layerAction.playOrContinueBit(this.bitAttack, zombieData);
 		}

@@ -1,6 +1,6 @@
 package goblinbob.mobends.neoforge.platform;
 
-import goblinbob.mobends.api.armor.IArmorModelProvider;
+import goblinbob.mobends.platform.armor.IArmorModelProvider;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.world.entity.EquipmentSlot;

@@ -23,6 +23,12 @@ public class NeoForgeConfig
 
     public static final ModConfigSpec.BooleanValue SHOW_ARROW_TRAIL;
 
+    public static final ModConfigSpec.BooleanValue ARROW_TRAIL_POTION_COLOR;
+
+    public static final ModConfigSpec.BooleanValue SPECTRAL_ARROW_TRAIL_EFFECT;
+
+    public static final ModConfigSpec.BooleanValue TRIDENT_TRAIL;
+
     static
     {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -36,7 +42,7 @@ public class NeoForgeConfig
                 .define("mobsCanSpin", false);
 
         DISABLE_MOVEMENT_IN_GUI = builder
-                .comment("Disables head movement when inside a GUI.")
+                .comment("Disables movement when inside a GUI.")
                 .define("disableMovementInGui", false);
 
         ARROW_TRAIL_FULL_BRIGHT = builder
@@ -59,6 +65,18 @@ public class NeoForgeConfig
                 .comment("Show the trail when arrows are travelling")
                 .define("showArrowTrail", true);
 
+        ARROW_TRAIL_POTION_COLOR = builder
+                .comment("The color of an arrow trail will match the color of its potion effect.")
+                .define("arrowTrailPotionColor", true);
+
+        SPECTRAL_ARROW_TRAIL_EFFECT = builder
+                .comment("Enable the special golden trail effect for Spectral Arrows")
+                .define("spectralArrowTrailEffect", true);
+
+        TRIDENT_TRAIL = builder
+                .comment("Allow the Trident to have a trail")
+                .define("tridentTrail", true);
+
         SPEC = builder.build();
     }
 
@@ -74,6 +92,9 @@ public class NeoForgeConfig
             case "swordTrailFullBright": SWORD_TRAIL_FULL_BRIGHT.set(value); break;
             case "showSwordTrail": SHOW_SWORD_TRAIL.set(value); break;
             case "showArrowTrail": SHOW_ARROW_TRAIL.set(value); break;
+            case "arrowTrailPotionColor": ARROW_TRAIL_POTION_COLOR.set(value); break;
+            case "spectralArrowTrailEffect": SPECTRAL_ARROW_TRAIL_EFFECT.set(value); break;
+            case "tridentTrail": TRIDENT_TRAIL.set(value); break;
             default: return;
         }
 
@@ -91,5 +112,8 @@ public class NeoForgeConfig
         ModConfig.swordTrailFullBright = SWORD_TRAIL_FULL_BRIGHT.get();
         ModConfig.showSwordTrail = SHOW_SWORD_TRAIL.get();
         ModConfig.showArrowTrails = SHOW_ARROW_TRAIL.get();
+        ModConfig.arrowTrailPotionColor = ARROW_TRAIL_POTION_COLOR.get();
+        ModConfig.spectralArrowTrailEffect = SPECTRAL_ARROW_TRAIL_EFFECT.get();
+        ModConfig.tridentTrail = TRIDENT_TRAIL.get();
     }
 }

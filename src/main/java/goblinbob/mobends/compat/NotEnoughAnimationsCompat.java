@@ -229,17 +229,21 @@ public class NotEnoughAnimationsCompat
             return;
         }
 
+        final goblinbob.mobends.standard.data.BipedEntityData<?> data = mutator.getRenderData();
+
         final Quaternion bodyRotation = body.rotation.getSmooth();
         scratchParentInverse.set(-bodyRotation.x, -bodyRotation.y, -bodyRotation.z, bodyRotation.w);
 
         if (isHandAnimation(rightWinner))
         {
-            adoptArm(vanillaModel.rightArm, mutator.getRightArm(), mutator.getRightForeArm());
+            adoptArm(vanillaModel.rightArm, mutator.getRightArm(), data == null ? null : data.rightArm,
+                    mutator.getRightForeArm(), data == null ? null : data.rightForeArm);
         }
 
         if (isHandAnimation(leftWinner))
         {
-            adoptArm(vanillaModel.leftArm, mutator.getLeftArm(), mutator.getLeftForeArm());
+            adoptArm(vanillaModel.leftArm, mutator.getLeftArm(), data == null ? null : data.leftArm,
+                    mutator.getLeftForeArm(), data == null ? null : data.leftForeArm);
         }
     }
 
@@ -280,7 +284,10 @@ public class NotEnoughAnimationsCompat
         }
     }
 
-    private static void adoptArm(ModelPart source, BendsModelPart arm, BendsModelPart foreArm)
+    private static void adoptArm(ModelPart source, BendsModelPart arm,
+                                 goblinbob.mobends.core.client.model.ModelPartTransform dataArm,
+                                 BendsModelPart foreArm,
+                                 goblinbob.mobends.core.client.model.ModelPartTransform dataForeArm)
     {
         if (source == null || arm == null)
         {
@@ -294,11 +301,11 @@ public class NotEnoughAnimationsCompat
         scratchDesired.set(scratchOrientation.getSmooth());
 
         Quaternion.mul(scratchParentInverse, scratchDesired, scratchLocal);
-        arm.rotation.set(scratchLocal.x, scratchLocal.y, scratchLocal.z, scratchLocal.w);
+        BipedMutator.applyAdoptedRotation(arm, dataArm, scratchLocal);
 
-        if (foreArm != null)
+        if (foreArm != null || dataForeArm != null)
         {
-            foreArm.rotation.orientInstantX(0.0F);
+            BipedMutator.straightenJoint(foreArm, dataForeArm);
         }
     }
 }
