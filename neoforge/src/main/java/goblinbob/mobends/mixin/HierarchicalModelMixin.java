@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.neoforge.mixin.MixinBridge;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.IllagerModel;
+import net.minecraft.client.model.VillagerModel;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,7 +19,8 @@ public abstract class HierarchicalModelMixin<E extends Entity> {
     private void mobends$interceptRender(PoseStack poseStack, VertexConsumer vertexConsumer,
                                          int packedLight, int packedOverlay, int color,
                                          CallbackInfo ci) {
-        if ((Object) this instanceof IllagerModel<?> && MixinBridge.shouldRenderBipedCustom()) {
+        if (((Object) this instanceof IllagerModel<?> || (Object) this instanceof VillagerModel<?>)
+                && MixinBridge.shouldRenderBipedCustom()) {
             MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
             ci.cancel();
         }

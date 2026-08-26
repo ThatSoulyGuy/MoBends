@@ -32,7 +32,7 @@ public abstract class RenderLayerMixin {
         }
         BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
         if (mutator == null || !mutator.shouldRenderCustom()
-                || !(copyModel instanceof HumanoidModel<?>)
+                || (!(copyModel instanceof HumanoidModel<?>) && mutator.humanoidViewOf(copyModel) == null)
                 || !mutator.hasOuterParts()) {
             return;
         }
@@ -41,4 +41,48 @@ public abstract class RenderLayerMixin {
         mutator.renderOuter(poseStack, vc, packedLight, packedOverlay, color);
         ci.cancel();
     }
+
+    @Inject(method = "renderColoredCutoutModel", at = @At("HEAD"), cancellable = true)
+    private static <T extends LivingEntity> void mobends$redirectColoredModel(
+            EntityModel<T> model, ResourceLocation textureLocation,
+            PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+            T entity, int color,
+            CallbackInfo ci) {
+        if (mobends$renderOuterInstead(model, textureLocation, poseStack, bufferSource, packedLight, entity, color)) {
+            ci.cancel();
+        }
+    }
+
+    @org.spongepowered.asm.mixin.Unique
+    private static <T extends LivingEntity> boolean mobends$renderOuterInstead(
+            EntityModel<T> model, ResourceLocation textureLocation,
+            PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+            T entity, int color) {
+        if (entity.isInvisible()) {
+            return false;
+        }
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        if (mutator == null) {
+            return false;
+        }
+        if (!mutator.shouldRenderCustom()) {
+            return false;
+        }
+        if (mutator.shouldModelBeSkipped(model)) {
+            return false;
+        }
+        if (!mutator.hasOuterParts()) {
+            return false;
+        }
+        int packedOverlay = LivingEntityRenderer.getOverlayCoords(entity, 0.0F);
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.entityCutoutNoCull(textureLocation));
+        goblinbob.mobends.standard.client.VillagerOverlayContext.set(textureLocation);
+        try {
+            mutator.renderOuter(poseStack, vc, packedLight, packedOverlay, color);
+        } finally {
+            goblinbob.mobends.standard.client.VillagerOverlayContext.clear();
+        }
+        return true;
+    }
+
 }
