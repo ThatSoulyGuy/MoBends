@@ -121,8 +121,24 @@ public class EntityPreviewWidget
             else
             {
                 entityPreviewView.setVisibility(VanillaView.GONE);
-                statusView.setText("Entity creation failed for: " + bender.getLocalizedName());
-                statusView.setTextColor(MoBendsTheme.ACCENT_ERROR);
+
+                // A preview entity needs a Level to be constructed in, so there are none at the
+                // main menu -- which is where this screen opens from the mod list. That is
+                // expected, not a failure, and it used to be reported as
+                // "Entity creation failed for: Zombie" in error red on every tile, which reads
+                // like a crash. The rest of the screen still works: mobs can be toggled here
+                // without a preview.
+                if (net.minecraft.client.Minecraft.getInstance().level == null)
+                {
+                    statusView.setText(I18n.get("mobends.gui.preview.needs_world"));
+                    statusView.setTextColor(MoBendsTheme.TEXT_SECONDARY);
+                }
+                else
+                {
+                    statusView.setText(I18n.get("mobends.gui.preview.failed", bender.getLocalizedName()));
+                    statusView.setTextColor(MoBendsTheme.ACCENT_ERROR);
+                }
+
                 statusView.setVisibility(VanillaView.VISIBLE);
             }
             hintView.setVisibility(renderer.hasEntity() ? VanillaView.VISIBLE : VanillaView.GONE);

@@ -24,6 +24,8 @@ import java.util.Map;
 
 public class MoBendsScreenBuilder
 {
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
     private static final int TAB_SETTINGS = 0;
     private static final int TAB_PACKS = 1;
     private static final int TAB_CUSTOMIZE = 2;
@@ -592,13 +594,41 @@ public class MoBendsScreenBuilder
         );
         layout.addView(spacer, spacerParams);
 
-        VanillaTextView status = factory.createTextView(I18n.get("mobends.gui.customize.no_editor"));
-        status.setTextColor(MoBendsTheme.ACCENT_ERROR);
-        status.setTextSize(12);
-        status.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
-        layout.addView(status, factory.createLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
-                VanillaLayoutParams.WRAP_CONTENT
+        // This used to render the "no editor installed" message unconditionally, so an addon that
+        // had registered an editor was still told none existed and given no way to open it.
+        final IAnimationEditor editor = AnimationEditorRegistry.INSTANCE.getPrimaryEditor();
+
+        if (editor == null)
+        {
+            VanillaTextView status = factory.createTextView(I18n.get("mobends.gui.customize.no_editor"));
+            status.setTextColor(MoBendsTheme.ACCENT_ERROR);
+            status.setTextSize(12);
+            status.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+            layout.addView(status, factory.createLayoutParams(
+                    VanillaLayoutParams.MATCH_PARENT,
+                    VanillaLayoutParams.WRAP_CONTENT
+            ));
+
+            return layout;
+        }
+
+        VanillaButton openEditor = factory.createButton(I18n.get("mobends.gui.customize.open_editor"));
+        openEditor.setOnClickListener(() -> {
+            try
+            {
+                editor.openEditorGui();
+            }
+            catch (Exception e)
+            {
+                // The editor comes from a third-party addon, so a failure here is its bug, not a
+                // reason to take the settings screen down with it.
+                LOGGER.error("The registered animation editor failed to open", e);
+            }
+        });
+
+        layout.addView(openEditor, factory.createLayoutParams(
+                160,
+                MoBendsTheme.BUTTON_HEIGHT
         ));
 
         return layout;
