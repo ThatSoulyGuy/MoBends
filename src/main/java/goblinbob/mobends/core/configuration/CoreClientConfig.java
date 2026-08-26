@@ -121,6 +121,67 @@ public class CoreClientConfig
         return isEntityEnabled(entity);
     }
 
+    // --- Per-item overrides -------------------------------------------------------------------
+    // Keyed by the item's registry id as a string ("minecraft:diamond_sword"), so this class stays
+    // free of item types and the JSON is hand-editable. ModConfig resolves the id and the enum.
+
+    /** Whether this item's armor should render as vanilla rather than bent. */
+    public boolean isArmorKeptVanilla(String itemId)
+    {
+        return data.vanillaArmorItems.getOrDefault(itemId, false);
+    }
+
+    public void setArmorKeptVanilla(String itemId, boolean keepVanilla)
+    {
+        if (keepVanilla)
+        {
+            data.vanillaArmorItems.put(itemId, true);
+        }
+        else
+        {
+            data.vanillaArmorItems.remove(itemId);
+        }
+        save();
+    }
+
+    /** Name of the use animation for this item, or null to let the caller decide from the pose. */
+    public String getItemUseAction(String itemId)
+    {
+        return data.itemUseActions.get(itemId);
+    }
+
+    public void setItemUseAction(String itemId, String action)
+    {
+        if (action == null)
+        {
+            data.itemUseActions.remove(itemId);
+        }
+        else
+        {
+            data.itemUseActions.put(itemId, action);
+        }
+        save();
+    }
+
+    /** Name of the attack animation for this item, or null to fall back to the item's class. */
+    public String getItemAttackAction(String itemId)
+    {
+        return data.itemAttackActions.get(itemId);
+    }
+
+    public void setItemAttackAction(String itemId, String action)
+    {
+        if (action == null)
+        {
+            data.itemAttackActions.remove(itemId);
+        }
+        else
+        {
+            data.itemAttackActions.put(itemId, action);
+        }
+        save();
+    }
+
     public String getPreviewSpinMode()
     {
         return data.previewSpinMode;
@@ -138,6 +199,15 @@ public class CoreClientConfig
         // A stale "enabled" key in an existing mobends-client.json is simply ignored on read.
         List<String> appliedPacks = new ArrayList<>();
         Map<String, Boolean> enabledEntities = new HashMap<>();
+
+        /** itemId -> true. Absent means "bend it", which is the default. */
+        Map<String, Boolean> vanillaArmorItems = new HashMap<>();
+
+        /** itemId -> UseActionType name. Absent means "decide from the vanilla arm pose". */
+        Map<String, String> itemUseActions = new HashMap<>();
+
+        /** itemId -> AttackActionType name. Absent means "decide from the item class". */
+        Map<String, String> itemAttackActions = new HashMap<>();
         String previewSpinMode = "HOVER";
     }
 }
