@@ -101,6 +101,14 @@ public class DefaultAddon implements IAddon
 				WitchData::new, WitchMutator::new, new BipedRenderer<>(),
 				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
+		final Class<net.minecraft.world.entity.LivingEntity> guardClass =
+				goblinbob.mobends.compat.GuardVillagersCompat.getEntityClass();
+		if (guardClass != null)
+		{
+			registry.registerNewEntity(guardClass, HumanoidMobData::new, HumanoidMobMutator::new,
+					new BipedRenderer<>(), new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		}
+
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,
 				"head", "body", "neck", "leg1", "leg2", "leg3", "leg4", "leg5", "leg6", "leg7", "leg8",
