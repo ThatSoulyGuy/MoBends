@@ -91,11 +91,15 @@ public class DefaultAddon implements IAddon
 
 		registry.registerNewEntity(net.minecraft.world.entity.npc.Villager.class,
 				VillagerData::new, VillagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(net.minecraft.world.entity.npc.WanderingTrader.class,
 				VillagerData::new, VillagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), BIPED_ANIMATIONS, BIPED_PARTS);
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+
+		registry.registerNewEntity(net.minecraft.world.entity.monster.Witch.class,
+				WitchData::new, WitchMutator::new, new BipedRenderer<>(),
+				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,
