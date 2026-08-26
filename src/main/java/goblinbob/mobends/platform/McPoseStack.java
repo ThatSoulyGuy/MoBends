@@ -80,10 +80,10 @@ public class McPoseStack implements IPoseStack
         Matrix4f m = new Matrix4f();
         m.set(matrix);
         //? if >=1.21 {
-        poseStack.mulPose(m);
-        //?} else {
-        /*poseStack.mulPoseMatrix(m);
-        *///?}
+        /*poseStack.mulPose(m);
+        *///?} else {
+        poseStack.mulPoseMatrix(m);
+        //?}
     }
 
     @Override

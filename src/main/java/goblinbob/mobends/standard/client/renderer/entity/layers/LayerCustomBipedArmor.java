@@ -300,7 +300,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         CapturingVertexConsumer capture = rigidRenderer.getCaptureConsumer();
         PoseStack capturePoseStack = new PoseStack();
 
-        goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
+        final com.mojang.blaze3d.vertex.VertexConsumer previousCapture =
+                goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
         try
         {
             IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, capturePoseStack, capture,
@@ -311,7 +312,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
         finally
         {
-            goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end();
+            goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end(previousCapture);
         }
 
         java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured = capture.getVertices();
@@ -397,7 +398,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         CapturingVertexConsumer capture = rigidRenderer.getCaptureConsumer();
         PoseStack capturePoseStack = new PoseStack();
 
-        goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
+        final com.mojang.blaze3d.vertex.VertexConsumer previousCapture =
+                goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
         try
         {
             IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, capturePoseStack, capture,
@@ -408,7 +410,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         }
         finally
         {
-            goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end();
+            goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end(previousCapture);
         }
 
         java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured = capture.getVertices();
