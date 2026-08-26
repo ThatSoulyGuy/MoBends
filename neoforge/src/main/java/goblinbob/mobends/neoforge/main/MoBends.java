@@ -61,6 +61,7 @@ public class MoBends
         modEventBus.addListener(NetworkHandler::register);
 
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT, NeoForgeConfig.SPEC);
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER, NeoForgeServerConfig.SPEC);
         modEventBus.addListener((ModConfigEvent.Loading event) -> onModConfigEvent(event));
         modEventBus.addListener((ModConfigEvent.Reloading event) -> onModConfigEvent(event));
 
@@ -70,6 +71,14 @@ public class MoBends
     {
         goblinbob.mobends.core.network.SharedNetworkConfiguration.init();
 
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.event.server.ServerStartingEvent e) -> {
+                    // A SERVER config is per-world, so this is the first point at which its values
+                    // are known. Without this the config packet would serialise defaults whatever
+                    // the server set.
+                    NeoForgeServerConfig.sync();
+                });
+
     }
 
     private void onModConfigEvent(final ModConfigEvent event)
@@ -77,6 +86,10 @@ public class MoBends
         if (event.getConfig().getSpec() == NeoForgeConfig.SPEC)
         {
             NeoForgeConfig.sync();
+        }
+        else if (event.getConfig().getSpec() == NeoForgeServerConfig.SPEC)
+        {
+            NeoForgeServerConfig.sync();
         }
     }
 

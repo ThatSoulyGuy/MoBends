@@ -51,6 +51,7 @@ public class MoBendsForge
         modEventBus.addListener(this::commonSetup);
 
         ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.CLIENT, ForgeConfig.SPEC);
+        ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.SERVER, ForgeServerConfig.SPEC);
         modEventBus.addListener((ModConfigEvent.Loading event) -> onModConfigEvent(event));
         modEventBus.addListener((ModConfigEvent.Reloading event) -> onModConfigEvent(event));
 
@@ -84,6 +85,10 @@ public class MoBendsForge
         {
             ForgeConfig.sync();
         }
+        else if (event.getConfig().getSpec() == ForgeServerConfig.SPEC)
+        {
+            ForgeServerConfig.sync();
+        }
     }
 
     private void clientSetup(final FMLClientSetupEvent event)
@@ -114,6 +119,9 @@ public class MoBendsForge
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
     {
+        // A SERVER config is per-world, so this is the first point at which its values are
+        // known. Without this the config packet would serialise defaults whatever the server set.
+        ForgeServerConfig.sync();
     }
 
     public static void refreshSystems()
