@@ -124,11 +124,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     @SuppressWarnings("rawtypes")
     protected LayerCustomBipedArmor layerArmor;
-    @SuppressWarnings("rawtypes")
-    protected HumanoidArmorLayer layerArmorVanilla;
     protected RenderLayer<E, M> layerHeldItem;
-    @SuppressWarnings("rawtypes")
-    protected ItemInHandLayer layerHeldItemVanilla;
+    protected final java.util.Map<Integer, RenderLayer<E, M>> originalLayers = new java.util.HashMap<>();
     @SuppressWarnings("rawtypes")
     protected CustomHeadLayer layerCustomHead;
     @SuppressWarnings("rawtypes")
@@ -197,8 +194,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (layer instanceof HumanoidArmorLayer)
         {
             HumanoidArmorLayer vanillaArmor = (HumanoidArmorLayer) layer;
-            if (isModelVanilla)
-                this.layerArmorVanilla = vanillaArmor;
 
             this.layerArmor = new LayerCustomBipedArmor(renderer, this);
             this.layerArmor.setVanillaArmorLayer(vanillaArmor);
@@ -222,13 +217,13 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                         renderer.getClass().getName(), e);
             }
 
+            this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerArmor);
         }
         else if (layer instanceof ItemInHandLayer)
         {
             this.layerHeldItem = createHeldItemLayer(renderer);
-            if (isModelVanilla)
-                this.layerHeldItemVanilla = (ItemInHandLayer) layer;
+            this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerHeldItem);
         }
         else if (layer instanceof CustomHeadLayer)
@@ -247,15 +242,15 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public void deswapLayer(LivingEntityRenderer<E, M> renderer, int index)
     {
         RenderLayer<E, M> layer = layerRenderers.get(index);
-        if (layer instanceof LayerCustomBipedArmor && this.layerArmorVanilla != null)
+        RenderLayer<E, M> original = this.originalLayers.remove(index);
+
+        if (original != null && layer != original)
         {
-            layerRenderers.set(index, this.layerArmorVanilla);
+            layerRenderers.set(index, original);
+            return;
         }
-        else if (layer == this.layerHeldItem && this.layerHeldItemVanilla != null)
-        {
-            layerRenderers.set(index, this.layerHeldItemVanilla);
-        }
-        else if (layer == this.layerCustomHead && this.layerCustomHeadVanilla != null)
+
+        if (layer == this.layerCustomHead && this.layerCustomHeadVanilla != null)
         {
             layerRenderers.set(index, this.layerCustomHeadVanilla);
         }
