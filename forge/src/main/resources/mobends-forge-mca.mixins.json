@@ -8,7 +8,9 @@
   ],
   "client": [
     "VillagerModelMcaMixin",
-    "VillagerModelMcaRelocatedMixin"
+    "VillagerModelMcaRelocatedMixin",
+    "PlayerModelMcaMixin",
+    "PlayerModelMcaRelocatedMixin"
   ],
   "injectors": {
     "defaultRequire": 0
