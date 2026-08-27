@@ -128,6 +128,22 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         Model customModel = ArmorModelProviderHolder.getProvider()
                 .getCustomArmorModel(entity, itemStack, slot, defaultModel);
 
+        if (customModel == null || customModel == defaultModel)
+        {
+            Model geoModel = goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport
+                    .getArmorRenderer(entity, itemStack, slot, defaultModel);
+
+            if (geoModel != null)
+            {
+                customModel = geoModel;
+            }
+        }
+        else
+        {
+            goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport
+                    .prepare(customModel, entity, itemStack, slot, defaultModel);
+        }
+
         final goblinbob.mobends.standard.client.model.armor.PalladiumSupport.Armor palladiumArmor =
                 goblinbob.mobends.standard.client.model.armor.PalladiumSupport.resolve(itemStack, entity, slot);
 
@@ -159,6 +175,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                             : null);
             return;
         }
+
 
         if (isCustomModel && shouldUseBends && entityData instanceof BipedEntityData<?>
                 && isBendableGeoArmor(armorModel))
@@ -224,26 +241,64 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
     }
 
     @Nullable
-    private static ResourceLocation geoArmorTexture(Model armorModel)
+    private static Object invokeNoArg(Object target, String name)
     {
         try
         {
-            Class<?> geoClass = Class.forName("software.bernie.geckolib.renderer.GeoArmorRenderer");
-            Object animatable = geoClass.getMethod("getAnimatable").invoke(armorModel);
+            return target.getClass().getMethod(name).invoke(target);
+        }
+        catch (Throwable ignored)
+        {
+            return null;
+        }
+    }
+
+    @Nullable
+    private static ResourceLocation geoArmorTexture(Model armorModel, ItemStack itemStack, EquipmentSlot slot)
+    {
+        try
+        {
+            Object animatable = invokeNoArg(armorModel, "getAnimatable");
+
+            if (animatable == null)
+            {
+                Object current = invokeNoArg(armorModel, "getCurrentStack");
+                if (current instanceof ItemStack currentStack && !currentStack.isEmpty())
+                {
+                    animatable = currentStack.getItem();
+                }
+            }
+
+            if (animatable == null && itemStack != null && !itemStack.isEmpty())
+            {
+                animatable = itemStack.getItem();
+            }
+
             if (animatable == null)
             {
                 return null;
             }
 
-            for (java.lang.reflect.Method method : geoClass.getMethods())
+            for (java.lang.reflect.Method method : armorModel.getClass().getMethods())
             {
                 if ("getTextureLocation".equals(method.getName())
                         && method.getParameterCount() == 1
                         && method.getReturnType() == ResourceLocation.class)
                 {
-                    return (ResourceLocation) method.invoke(armorModel, animatable);
+                    try
+                    {
+                        ResourceLocation resolved = (ResourceLocation) method.invoke(armorModel, animatable);
+                        if (resolved != null)
+                        {
+                            return resolved;
+                        }
+                    }
+                    catch (Throwable ignored)
+                    {
+                    }
                 }
             }
+
         }
         catch (Exception e)
         {
@@ -290,7 +345,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                                            Model armorModel, HumanoidModel<E> defaultModel,
                                            ItemStack itemStack, BipedEntityData<?> bipedData, EquipmentSlot slot)
     {
-        ResourceLocation texture = geoArmorTexture(armorModel);
+        ResourceLocation texture = geoArmorTexture(armorModel, itemStack, slot);
         if (texture == null)
         {
             return false;
@@ -322,6 +377,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         final java.util.List<RenderType> emissiveTypes =
                 goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.drainEmissive();
+
 
         if (vertices.isEmpty())
         {
@@ -365,6 +421,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
         try
         {
+            goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport.reprepare(armorModel);
+
             IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, capturePoseStack, capture,
                     packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
         }
@@ -463,6 +521,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
         try
         {
+            goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport.reprepare(armorModel);
+
             IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, capturePoseStack, capture,
                     packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
         }
@@ -1043,6 +1103,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             java.util.List<goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.Layer> extendedLayers =
                     resolveExtendedArmorLayers(armorItem, slot);
 
+
             if (!extendedLayers.isEmpty())
             {
                 renderExtendedArmorLayers(poseStack, bufferSource, packedLight, entity,
@@ -1131,6 +1192,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                     tint = 0xFF000000 | dyed;
                 }
             }
+
 
             armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot,
                     itemStack, layer.model, bipedData, layer.texture, tint, renderTypeProvider);

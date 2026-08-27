@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorItem;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +20,8 @@ public final class ImmersiveArmorsSupport
 
     private static Class<?> materialClass;
     private static Class<?> layerPieceClass;
+    private static Class<?> extendedItemClass;
+    private static Method itemGetExtendedMaterial;
     private static Method materialGetPieces;
     private static Method pieceGetTexture;
     private static Method pieceIsTranslucent;
@@ -41,16 +44,26 @@ public final class ImmersiveArmorsSupport
 
             materialGetPieces = materialClass.getMethod("getPieces", EquipmentSlot.class);
             pieceGetTexture = pieceClass.getMethod("getTexture");
-            pieceIsTranslucent = pieceClass.getMethod("isTranslucent");
-            pieceIsGlowing = pieceClass.getMethod("isGlowing");
-            pieceIsColored = pieceClass.getMethod("isColored");
+            pieceIsTranslucent = optionalMethod(pieceClass, "isTranslucent");
+            pieceIsGlowing = optionalMethod(pieceClass, "isGlowing");
+            pieceIsColored = optionalMethod(pieceClass, "isColored");
 
             pieceGetModel = layerPieceClass.getDeclaredMethod("getModel");
             pieceGetModel.setAccessible(true);
 
+            try
+            {
+                extendedItemClass = Class.forName("immersive_armors.item.ExtendedArmorItem");
+                itemGetExtendedMaterial = extendedItemClass.getMethod("getExtendedMaterial");
+            }
+            catch (Throwable ignored)
+            {
+                itemGetExtendedMaterial = null;
+            }
+
             available = true;
         }
-        catch (Throwable ignored)
+        catch (Throwable t)
         {
         }
 
@@ -66,6 +79,58 @@ public final class ImmersiveArmorsSupport
         return AVAILABLE;
     }
 
+    @Nullable
+    private static Method optionalMethod(Class<?> owner, String name)
+    {
+        try
+        {
+            return owner.getMethod(name);
+        }
+        catch (Throwable ignored)
+        {
+            return null;
+        }
+    }
+
+    private static boolean flag(@Nullable Method method, Object piece)
+    {
+        if (method == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            return Boolean.TRUE.equals(method.invoke(piece));
+        }
+        catch (Throwable ignored)
+        {
+            return false;
+        }
+    }
+
+    @Nullable
+    private static Object resolveExtendedMaterial(ArmorItem armorItem)
+    {
+        if (itemGetExtendedMaterial != null && extendedItemClass.isInstance(armorItem))
+        {
+            try
+            {
+                Object extended = itemGetExtendedMaterial.invoke(armorItem);
+                if (materialClass.isInstance(extended))
+                {
+                    return extended;
+                }
+            }
+            catch (Throwable ignored)
+            {
+            }
+        }
+
+        Object material = armorItem.getMaterial();
+        return materialClass.isInstance(material) ? material : null;
+    }
+
     public static List<Layer> getLayers(ArmorItem armorItem, EquipmentSlot slot, String materialName)
     {
         if (!AVAILABLE || armorItem == null || materialName == null || materialName.isEmpty())
@@ -73,8 +138,8 @@ public final class ImmersiveArmorsSupport
             return Collections.emptyList();
         }
 
-        Object material = armorItem.getMaterial();
-        if (!materialClass.isInstance(material))
+        Object material = resolveExtendedMaterial(armorItem);
+        if (material == null)
         {
             return Collections.emptyList();
         }
@@ -140,9 +205,9 @@ public final class ImmersiveArmorsSupport
                 humanoidModel,
                 ResourceLocationFactory.create("immersive_armors", base + ".png"),
                 ResourceLocationFactory.create("immersive_armors", base + "_overlay.png"),
-                Boolean.TRUE.equals(pieceIsTranslucent.invoke(piece)),
-                Boolean.TRUE.equals(pieceIsGlowing.invoke(piece)),
-                Boolean.TRUE.equals(pieceIsColored.invoke(piece)));
+                flag(pieceIsTranslucent, piece),
+                flag(pieceIsGlowing, piece),
+                pieceIsColored == null || flag(pieceIsColored, piece));
     }
 
     public static final class Layer
