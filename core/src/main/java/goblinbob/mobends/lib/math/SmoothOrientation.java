@@ -254,10 +254,13 @@ public class SmoothOrientation
 
     public void updateSmooth()
     {
-        this.smooth.set(this.start.x + (this.end.x - this.start.x) * this.progress,
-                this.start.y + (this.end.y - this.start.y) * this.progress,
-                this.start.z + (this.end.z - this.start.z) * this.progress,
-                this.start.w + (this.end.w - this.start.w) * this.progress);
+        float sign = (this.start.x * this.end.x + this.start.y * this.end.y
+                + this.start.z * this.end.z + this.start.w * this.end.w) < 0F ? -1F : 1F;
+
+        this.smooth.set(this.start.x + (this.end.x * sign - this.start.x) * this.progress,
+                this.start.y + (this.end.y * sign - this.start.y) * this.progress,
+                this.start.z + (this.end.z * sign - this.start.z) * this.progress,
+                this.start.w + (this.end.w * sign - this.start.w) * this.progress);
         this.smooth.normalise();
     }
 

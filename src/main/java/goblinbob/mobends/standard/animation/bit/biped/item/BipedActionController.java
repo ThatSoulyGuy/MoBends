@@ -196,16 +196,19 @@ public class BipedActionController
         {
             this.currentAttackActionType = attackActionType;
 
-            ItemActionFactory<AnimationBit<BipedEntityData<?>>> factory = ITEM_ATTACK_ACTION_MAP.get(attackActionType);
-            if (factory == null)
+            if (this.currentUseActionType == null)
             {
-                this.actionBit = null;
-                this.layerAction.clearAnimation();
-            }
-            else
-            {
-                this.actionBit = factory.create(primaryHand);
-                this.layerAction.playOrContinueBit(this.actionBit, data);
+                ItemActionFactory<AnimationBit<BipedEntityData<?>>> factory = ITEM_ATTACK_ACTION_MAP.get(attackActionType);
+                if (factory == null)
+                {
+                    this.actionBit = null;
+                    this.layerAction.clearAnimation();
+                }
+                else
+                {
+                    this.actionBit = factory.create(primaryHand);
+                    this.layerAction.playOrContinueBit(this.actionBit, data);
+                }
             }
         }
 
@@ -239,5 +242,8 @@ public class BipedActionController
         layerAction.clearAnimation();
         layerUmbrella.clearAnimation();
         layerCrossbow.clearAnimation();
+        this.actionBit = null;
+        this.currentUseActionType = null;
+        this.currentAttackActionType = null;
     }
 }
