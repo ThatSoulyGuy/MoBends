@@ -41,7 +41,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
 
     private boolean canStartNextMove()
     {
-        if (!goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        if (!goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks())
         {
             return true;
         }

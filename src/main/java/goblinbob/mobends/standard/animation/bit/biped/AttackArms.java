@@ -21,7 +21,7 @@ public final class AttackArms
     {
         final HumanoidArm mainArm = living.getMainArm();
 
-        if (!goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        if (!goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks())
         {
             return mainArm;
         }
@@ -33,7 +33,7 @@ public final class AttackArms
 
     public static boolean isDualWielding(BipedEntityData<?> data)
     {
-        return goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded()
+        return goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks()
                 && data.isOffHandAttacking()
                 && data.getTicksAfterAttack() < 10.0F;
     }
@@ -77,7 +77,7 @@ public final class AttackArms
 
     public static float ticksAfterAttack(BipedEntityData<?> data, LivingEntity living, HumanoidArm arm)
     {
-        if (!goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        if (!goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks())
         {
             return data.getTicksAfterAttack();
         }

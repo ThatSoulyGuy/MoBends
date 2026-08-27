@@ -23,9 +23,13 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     protected float ticksAfterOffHandAttack;
     protected float climbingCycle = 0F;
     protected boolean alreadyAttacked = false;
+    protected boolean externalAttackDriven = false;
+    protected boolean betterCombatSuppressed = false;
     protected int lastMainSwingTime = -1;
     protected int lastOffHandSwingTime = -1;
     protected boolean climbing = false;
+
+    private static final float EXTERNAL_SWING_DURATION = 6.0F;
 
     protected Boolean climbingOverride = null;
     protected Boolean inWaterOverride = null;
@@ -194,6 +198,11 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
             this.climbing = false;
         }
 
+        if (goblinbob.mobends.compat.BetterCombatCompat.isModLoaded())
+        {
+            this.updateBetterCombatOverride();
+        }
+
         if (goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
         {
             this.updateHandAttack(InteractionHand.MAIN_HAND);
@@ -213,6 +222,36 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         {
             this.alreadyAttacked = false;
         }
+    }
+
+    private void updateBetterCombatOverride()
+    {
+        if (this != EntityDatabase.instance.get(this.entity))
+        {
+            return;
+        }
+
+        if (!goblinbob.mobends.core.util.BenderHelper.isEntityAnimated(this.entity))
+        {
+            if (this.betterCombatSuppressed)
+            {
+                this.betterCombatSuppressed = false;
+                goblinbob.mobends.compat.BetterCombatCompat.releaseAnimations(this.entity);
+            }
+            return;
+        }
+
+        this.betterCombatSuppressed = true;
+
+        final InteractionHand hand = goblinbob.mobends.compat.BetterCombatCompat.overrideAnimations(this.entity);
+
+        if (hand != null)
+        {
+            this.onExternalAttack(hand);
+        }
+
+        goblinbob.mobends.compat.BetterCombatCompat.updateFirstPersonTrigger(
+                this.entity, this.getTicksAfterAnyAttack());
     }
 
     private void updateHandAttack(InteractionHand hand)
@@ -295,11 +334,37 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         this.ticksAfterOffHandAttack = 0.0F;
     }
 
+    public void onExternalAttack(InteractionHand hand)
+    {
+        this.externalAttackDriven = true;
+
+        if (hand == InteractionHand.OFF_HAND)
+        {
+            this.onOffHandAttack();
+        }
+        else
+        {
+            this.onAttack();
+        }
+    }
+
+    public float getExternalSwingProgress()
+    {
+        if (!this.externalAttackDriven)
+        {
+            return 0.0F;
+        }
+
+        final float ticks = this.getTicksAfterAnyAttack();
+
+        return ticks < EXTERNAL_SWING_DURATION ? ticks / EXTERNAL_SWING_DURATION : 0.0F;
+    }
+
     public float getTicksAfterOffHandAttack() { return this.ticksAfterOffHandAttack; }
 
     public float getTicksAfterAnyAttack()
     {
-        if (!goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        if (!goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks())
         {
             return this.ticksAfterAttack;
         }
@@ -309,7 +374,7 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
 
     public boolean isOffHandAttacking()
     {
-        return goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded()
+        return goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks()
                 && this.ticksAfterOffHandAttack < 10.0F;
     }
 

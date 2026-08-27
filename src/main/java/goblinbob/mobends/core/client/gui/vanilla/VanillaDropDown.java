@@ -19,6 +19,7 @@ public class VanillaDropDown extends VanillaView implements GuiOverlay.Layer
 
     private String label;
     private final List<String> options = new ArrayList<>();
+    private final List<String> descriptions = new ArrayList<>();
     private int selectedIndex;
     private boolean expanded;
 
@@ -33,7 +34,13 @@ public class VanillaDropDown extends VanillaView implements GuiOverlay.Layer
 
     public void setLabel(String label) { this.label = label; }
 
-    public void addOption(String option) { options.add(option); }
+    public void addOption(String option) { addOption(option, null); }
+
+    public void addOption(String option, @Nullable String description)
+    {
+        options.add(option);
+        descriptions.add(description);
+    }
 
     public void setSelectedIndex(int selectedIndex)
     {
@@ -142,6 +149,12 @@ public class VanillaDropDown extends VanillaView implements GuiOverlay.Layer
             {
                 guiGraphics.fill(popupLeft + 1, optionTop, popupLeft + popupWidth - 1,
                         optionTop + OPTION_HEIGHT, MoBendsTheme.BG_LIST_ITEM_HOVER);
+
+                final String description = i < descriptions.size() ? descriptions.get(i) : null;
+                if (description != null)
+                {
+                    GuiTooltip.request(description);
+                }
             }
 
             int color = i == selectedIndex ? MoBendsTheme.TOGGLE_ON

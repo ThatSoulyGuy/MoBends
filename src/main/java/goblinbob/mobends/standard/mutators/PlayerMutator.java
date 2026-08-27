@@ -11,6 +11,8 @@ import goblinbob.mobends.standard.client.model.adaptive.AdaptiveHumanoidGeometry
 import goblinbob.mobends.standard.client.model.adaptive.HumanoidLayout;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomCape;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomElytra;
+import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldItem;
+import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomPlayerHeldItem;
 import goblinbob.mobends.standard.data.PlayerData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,6 +207,13 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             layerRenderers.set(index, this.layerElytra);
         }
 
+    }
+
+    @Override
+    protected RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> createHeldItemLayer(
+            LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer)
+    {
+        return new LayerCustomPlayerHeldItem<>(renderer, new LayerCustomHeldItem<>(renderer, this));
     }
 
     @Override
@@ -493,15 +502,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                                    LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer,
                                    float partialTicks)
     {
-        if (leftForeArmwear != null && leftArmwear != null)
-            leftForeArmwear.setVisible(leftArmwear.isShowing());
-        if (rightForeArmwear != null && rightArmwear != null)
-            rightForeArmwear.setVisible(rightArmwear.isShowing());
-        if (leftForeLegwear != null && leftLegwear != null)
-            leftForeLegwear.setVisible(leftLegwear.isShowing());
-        if (rightForeLegwear != null && rightLegwear != null)
-            rightForeLegwear.setVisible(rightLegwear.isShowing());
-
         super.performAnimations(data, animatedEntityKey, renderer, partialTicks);
     }
 

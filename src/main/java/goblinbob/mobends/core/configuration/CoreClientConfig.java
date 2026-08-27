@@ -187,6 +187,17 @@ public class CoreClientConfig
         save();
     }
 
+    public String getBetterCombatAnimations()
+    {
+        return data.betterCombatAnimations;
+    }
+
+    public void setBetterCombatAnimations(String mode)
+    {
+        data.betterCombatAnimations = mode;
+        save();
+    }
+
     private static class ConfigData
     {
         List<String> appliedPacks = new ArrayList<>();
@@ -198,5 +209,6 @@ public class CoreClientConfig
 
         Map<String, String> itemAttackActions = new HashMap<>();
         String previewSpinMode = "HOVER";
+        String betterCombatAnimations = null;
     }
 }

@@ -103,6 +103,11 @@ public class PlayerAnimationLibCompat
             return null;
         }
 
+        if (BetterCombatCompat.blocksAdoption(entity))
+        {
+            return null;
+        }
+
         try
         {
             Object stack = getPlayerAnimLayerMethod.invoke(null, player);

@@ -242,7 +242,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         data.headPitch.set(Mth.wrapDegrees(this.headPitch));
         data.limbSwing.set(this.limbSwing);
         data.limbSwingAmount.set(this.limbSwingAmount);
-        data.swingProgress.set(this.swingProgress);
+        data.swingProgress.set(Math.max(this.swingProgress, data.getExternalSwingProgress()));
         data.setRidingBodyYaw(this.ridingBodyYaw);
 
 

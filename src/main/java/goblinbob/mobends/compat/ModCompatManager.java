@@ -47,6 +47,8 @@ public class ModCompatManager
 
         OffHandCombatCompat.init();
 
+        BetterCombatCompat.init();
+
         WearableBackpacksCompat.init();
 
         UmapyoiCompat.init();
@@ -85,5 +87,10 @@ public class ModCompatManager
     public static boolean hasExternalAnimation(LivingEntity entity)
     {
         return MoBendsAnimationControl.hasExternalAnimation(entity);
+    }
+
+    public static boolean tracksPerHandAttacks()
+    {
+        return OffHandCombatCompat.isModLoaded() || BetterCombatCompat.isModLoaded();
     }
 }

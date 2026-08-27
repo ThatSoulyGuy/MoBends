@@ -81,7 +81,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         boolean hasBendsAnimation = entityData instanceof BipedEntityData
                 && goblinbob.mobends.core.util.BenderHelper.isEntityAnimated(entity)
-                && !goblinbob.mobends.compat.ModCompatManager.shouldDeferAnimation(entity);
+                && !goblinbob.mobends.compat.ModCompatManager.shouldDeferAnimation(entity)
+                && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity);
 
         goblinbob.mobends.core.client.MoBendsRenderContext.beginArmorRender();
         try
@@ -177,7 +178,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         if (isCustomModel && isSelfRenderingModel(armorModel))
         {
-            if (mutator != null)
+            if (mutator != null && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
             {
                 mutator.syncPosesToVanillaModel(
                         armorModel instanceof HumanoidModel<?> selfDrawn ? selfDrawn : defaultModel);
@@ -1322,7 +1323,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         VertexConsumer vertexConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
                 bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
 
-        if (mutator != null && armorModel instanceof HumanoidModel<?> humanoidModel)
+        if (mutator != null && armorModel instanceof HumanoidModel<?> humanoidModel
+                && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
         {
             mutator.syncPosesToVanillaModel(humanoidModel);
         }

@@ -126,7 +126,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected LayerCustomBipedArmor layerArmor;
     @SuppressWarnings("rawtypes")
     protected HumanoidArmorLayer layerArmorVanilla;
-    protected LayerCustomHeldItem<E, M> layerHeldItem;
+    protected RenderLayer<E, M> layerHeldItem;
     @SuppressWarnings("rawtypes")
     protected ItemInHandLayer layerHeldItemVanilla;
     @SuppressWarnings("rawtypes")
@@ -226,7 +226,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
         else if (layer instanceof ItemInHandLayer)
         {
-            this.layerHeldItem = new LayerCustomHeldItem<>(renderer, this);
+            this.layerHeldItem = createHeldItemLayer(renderer);
             if (isModelVanilla)
                 this.layerHeldItemVanilla = (ItemInHandLayer) layer;
             layerRenderers.set(index, this.layerHeldItem);
@@ -238,6 +238,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
     }
 
+    protected RenderLayer<E, M> createHeldItemLayer(LivingEntityRenderer<E, M> renderer)
+    {
+        return new LayerCustomHeldItem<>(renderer, this);
+    }
+
     @Override
     public void deswapLayer(LivingEntityRenderer<E, M> renderer, int index)
     {
@@ -246,7 +251,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             layerRenderers.set(index, this.layerArmorVanilla);
         }
-        else if (layer instanceof LayerCustomHeldItem && this.layerHeldItemVanilla != null)
+        else if (layer == this.layerHeldItem && this.layerHeldItemVanilla != null)
         {
             layerRenderers.set(index, this.layerHeldItemVanilla);
         }
@@ -1245,7 +1250,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     @Override
     public boolean shouldRenderCustom()
     {
-        return this.body != null;
+        return this.body != null && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel();
     }
 
     @Override

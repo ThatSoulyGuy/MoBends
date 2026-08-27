@@ -35,7 +35,7 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
 
         ticksSinceMove += goblinbob.mobends.core.client.event.DataUpdateHandler.ticksPerFrame;
 
-        final boolean canAdvance = !goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded()
+        final boolean canAdvance = !goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks()
                 || ticksSinceMove >= MIN_MOVE_INTERVAL;
 
         if (ticksAfterAttack < lastTicksAfterAttack && canAdvance)

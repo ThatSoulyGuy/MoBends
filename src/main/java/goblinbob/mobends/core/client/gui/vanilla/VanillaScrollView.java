@@ -13,6 +13,7 @@ public class VanillaScrollView extends VanillaViewGroup
     private boolean animatingScroll = false;
 
     private static final int SCROLLBAR_WIDTH = 4;
+    private static final int OUTSIDE_POINTER = Integer.MIN_VALUE / 2;
     private static final boolean SHOW_BORDER = true;
 
     public void scrollTo(int y)
@@ -147,9 +148,13 @@ public class VanillaScrollView extends VanillaViewGroup
         int clipRight = x + measuredWidth - paddingRight - (verticalScrollBarEnabled ? SCROLLBAR_WIDTH : 0);
         guiGraphics.enableScissor(x + paddingLeft, y + paddingTop, clipRight, y + measuredHeight - paddingBottom);
 
+        final boolean pointerInside = isInViewport(mouseX, mouseY);
+        final int childMouseX = pointerInside ? mouseX : OUTSIDE_POINTER;
+        final int childMouseY = pointerInside ? mouseY : OUTSIDE_POINTER;
+
         for (VanillaView child : children)
         {
-            child.render(guiGraphics, mouseX, mouseY, partialTick);
+            child.render(guiGraphics, childMouseX, childMouseY, partialTick);
         }
 
         guiGraphics.disableScissor();
@@ -210,11 +215,22 @@ public class VanillaScrollView extends VanillaViewGroup
         if (visibility != VISIBLE || !enabled) return false;
         if (!isInBounds(mouseX, mouseY)) return false;
 
-        for (int i = children.size() - 1; i >= 0; i--)
+        if (isInViewport(mouseX, mouseY))
         {
-            if (children.get(i).handleClick(mouseX, mouseY, button)) return true;
+            for (int i = children.size() - 1; i >= 0; i--)
+            {
+                if (children.get(i).handleClick(mouseX, mouseY, button)) return true;
+            }
         }
 
         return super.handleClick(mouseX, mouseY, button);
+    }
+
+    private boolean isInViewport(double pointerX, double pointerY)
+    {
+        int clipRight = x + measuredWidth - paddingRight - (verticalScrollBarEnabled ? SCROLLBAR_WIDTH : 0);
+
+        return pointerX >= x + paddingLeft && pointerX < clipRight
+                && pointerY >= y + paddingTop && pointerY < y + measuredHeight - paddingBottom;
     }
 }
