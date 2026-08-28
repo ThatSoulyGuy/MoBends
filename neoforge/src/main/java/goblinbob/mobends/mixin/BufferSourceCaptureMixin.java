@@ -16,6 +16,7 @@ public abstract class BufferSourceCaptureMixin {
     private void mobends$redirectBufferToCapture(RenderType renderType, CallbackInfoReturnable<VertexConsumer> cir) {
         VertexConsumer capture = ArmorCaptureContext.active();
         if (capture != null) {
+            ArmorCaptureContext.noteRenderType(renderType);
             cir.setReturnValue(capture);
         }
     }

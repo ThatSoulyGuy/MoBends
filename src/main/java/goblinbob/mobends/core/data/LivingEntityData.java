@@ -212,15 +212,20 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
 
         if (this.entity.swinging)
         {
-            if (!this.alreadyAttacked || this.ticksAfterAttack > 5.0F)
+            final int swingTime = this.entity.swingTime;
+
+            if (!this.alreadyAttacked || swingTime < this.lastMainSwingTime)
             {
                 this.onAttack();
                 this.alreadyAttacked = true;
             }
+
+            this.lastMainSwingTime = swingTime;
         }
         else
         {
             this.alreadyAttacked = false;
+            this.lastMainSwingTime = -1;
         }
     }
 

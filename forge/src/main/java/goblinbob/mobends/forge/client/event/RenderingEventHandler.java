@@ -125,6 +125,18 @@ public class RenderingEventHandler
         }
     }
 
+    @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.HIGHEST)
+    public void yieldLayersToEpicFight(RenderLivingEvent.Pre<?, ?> event)
+    {
+        goblinbob.mobends.compat.EpicFightCompat.suspendLayerSwap(event.getEntity(), event.getRenderer());
+    }
+
+    @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.LOWEST, receiveCanceled = true)
+    public void reclaimLayersFromEpicFight(RenderLivingEvent.Pre<?, ?> event)
+    {
+        goblinbob.mobends.compat.EpicFightCompat.resumeLayerSwap();
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.LOWEST)
     public void beforeLivingRender(RenderLivingEvent.Pre<?, ?> event)

@@ -106,6 +106,25 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         ItemStack itemStack = entity.getItemBySlot(slot);
         if (itemStack.isEmpty()) return;
 
+        final Object previousRuneColor =
+                goblinbob.mobends.compat.QuarkColorRunesCompat.beginItem(itemStack);
+
+        try
+        {
+            renderArmorPieceContents(poseStack, bufferSource, entity, slot, packedLight,
+                    hasBendsAnimation, entityData, itemStack);
+        }
+        finally
+        {
+            goblinbob.mobends.compat.QuarkColorRunesCompat.endItem(previousRuneColor);
+        }
+    }
+
+    private void renderArmorPieceContents(PoseStack poseStack, MultiBufferSource bufferSource,
+                                          E entity, EquipmentSlot slot, int packedLight,
+                                          boolean hasBendsAnimation, EntityData<?> entityData,
+                                          ItemStack itemStack)
+    {
         if (isHiddenByFirstPersonView(entity, slot)) return;
 
         if (!(itemStack.getItem() instanceof ArmorItem armorItem)) return;
@@ -358,18 +377,14 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         applyArmorRestPose(defaultModel);
 
-        java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> vertices = new java.util.ArrayList<>();
-        java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> regions = new java.util.ArrayList<>();
-        java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> blendRegions = new java.util.ArrayList<>();
-        java.util.List<Float> blendWeights = new java.util.ArrayList<>();
+        java.util.Map<RenderType, TypedGeometry> geometry = new java.util.LinkedHashMap<>();
 
         java.util.Set<String> alwaysDrawn = captureAlwaysDrawn(armorModel, defaultModel, packedLight,
-                savedVisibility, slot, vertices, regions, blendRegions, blendWeights);
+                savedVisibility, slot, geometry);
 
         for (GeoPart part : GeoPart.values())
         {
-            capturePart(armorModel, defaultModel, packedLight, part, savedVisibility, alwaysDrawn,
-                    vertices, regions, blendRegions, blendWeights);
+            capturePart(armorModel, defaultModel, packedLight, part, savedVisibility, alwaysDrawn, geometry);
         }
 
         restoreArmorPartVisibility(defaultModel, savedVisibility);
@@ -378,39 +393,69 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         final java.util.List<RenderType> emissiveTypes =
                 goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.drainEmissive();
 
+        TypedGeometry primary = null;
 
-        if (vertices.isEmpty())
+        for (TypedGeometry candidate : geometry.values())
+        {
+            if (!candidate.vertices.isEmpty())
+            {
+                primary = candidate;
+                break;
+            }
+        }
+
+        if (primary == null)
         {
             return false;
         }
 
-        VertexConsumer outputConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
-                bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
+        for (java.util.Map.Entry<RenderType, TypedGeometry> entry : geometry.entrySet())
+        {
+            final TypedGeometry bucket = entry.getValue();
 
-        rigidRenderer.renderTaggedVertices(poseStack, outputConsumer, packedLight, OverlayTexture.NO_OVERLAY,
-                bipedData, vertices, regions, blendRegions, blendWeights);
+            if (bucket.vertices.isEmpty())
+            {
+                continue;
+            }
+
+            final RenderType renderType = bucket == primary || entry.getKey() == null
+                    ? RenderType.armorCutoutNoCull(texture)
+                    : entry.getKey();
+
+            VertexConsumer outputConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
+                    bufferSource, renderType, itemStack.hasFoil());
+
+            rigidRenderer.renderTaggedVertices(poseStack, outputConsumer, packedLight, OverlayTexture.NO_OVERLAY,
+                    bipedData, bucket.vertices, bucket.regions, bucket.blendRegions, bucket.blendWeights);
+        }
 
         if (!emissiveTypes.isEmpty())
         {
-            final java.util.List<CapturedVertex> emissiveVertices = inflateAlongNormals(vertices, EMISSIVE_INFLATION);
+            final java.util.List<CapturedVertex> emissiveVertices =
+                    inflateAlongNormals(primary.vertices, EMISSIVE_INFLATION);
 
             for (RenderType emissiveType : emissiveTypes)
             {
                 rigidRenderer.renderTaggedVertices(poseStack, bufferSource.getBuffer(emissiveType),
                         packedLight, OverlayTexture.NO_OVERLAY,
-                        bipedData, emissiveVertices, regions, blendRegions, blendWeights);
+                        bipedData, emissiveVertices, primary.regions, primary.blendRegions, primary.blendWeights);
             }
         }
 
         return true;
     }
 
+    private static class TypedGeometry
+    {
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> vertices = new java.util.ArrayList<>();
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> regions = new java.util.ArrayList<>();
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> blendRegions = new java.util.ArrayList<>();
+        final java.util.List<Float> blendWeights = new java.util.ArrayList<>();
+    }
+
     private java.util.Set<String> captureAlwaysDrawn(Model armorModel, HumanoidModel<E> defaultModel,
                                                      int packedLight, boolean[] slotVisibility, EquipmentSlot slot,
-                                                     java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> outVertices,
-                                                     java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outRegions,
-                                                     java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outBlendRegions,
-                                                     java.util.List<Float> outBlendWeights)
+                                                     java.util.Map<RenderType, TypedGeometry> geometry)
     {
         applyOnlyVisible(defaultModel, null, slotVisibility);
 
@@ -434,14 +479,32 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end(previousCapture);
         }
 
-        java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured = capture.getVertices();
+        java.util.Map<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> capturedByType = capture.getVerticesByType();
 
-        if (captured.isEmpty())
+        if (capturedByType.isEmpty())
         {
             return java.util.Collections.emptySet();
         }
 
         java.util.Set<String> keys = new java.util.HashSet<>();
+
+        for (java.util.Map.Entry<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> entry : capturedByType.entrySet())
+        {
+            emitAlwaysDrawn(entry.getValue(), slot, keys,
+                    geometry.computeIfAbsent(entry.getKey(), key -> new TypedGeometry()));
+        }
+
+        return keys;
+    }
+
+    private void emitAlwaysDrawn(java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured, EquipmentSlot slot,
+                                 java.util.Set<String> keys, TypedGeometry out)
+    {
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> outVertices = out.vertices;
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outRegions = out.regions;
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outBlendRegions = out.blendRegions;
+        final java.util.List<Float> outBlendWeights = out.blendWeights;
+
         goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment assignment = new goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment();
 
         final boolean quadAligned = captured.size() % 4 == 0;
@@ -462,7 +525,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 outBlendWeights.add(0.0F);
             }
 
-            return keys;
+            return;
         }
 
         for (int q = 0; q + 3 < captured.size(); q += 4)
@@ -495,8 +558,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 outBlendWeights.add(0.0F);
             }
         }
-
-        return keys;
     }
 
     private static String vertexKey(goblinbob.mobends.standard.client.model.armor.CapturedVertex v)
@@ -507,10 +568,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
     private void capturePart(Model armorModel, HumanoidModel<E> defaultModel, int packedLight, GeoPart part,
                              boolean[] slotVisibility, java.util.Set<String> excluded,
-                             java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> outVertices,
-                             java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outRegions,
-                             java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outBlendRegions,
-                             java.util.List<Float> outBlendWeights)
+                             java.util.Map<RenderType, TypedGeometry> geometry)
     {
         applyOnlyVisible(defaultModel, part, slotVisibility);
 
@@ -534,12 +592,25 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end(previousCapture);
         }
 
-        java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured = capture.getVertices();
+        for (java.util.Map.Entry<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> entry : capture.getVerticesByType().entrySet())
+        {
+            emitPart(part, entry.getValue(), excluded,
+                    geometry.computeIfAbsent(entry.getKey(), key -> new TypedGeometry()));
+        }
+    }
 
+    private void emitPart(GeoPart part, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured,
+                          java.util.Set<String> excluded, TypedGeometry out)
+    {
         if (captured.isEmpty())
         {
             return;
         }
+
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> outVertices = out.vertices;
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outRegions = out.regions;
+        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outBlendRegions = out.blendRegions;
+        final java.util.List<Float> outBlendWeights = out.blendWeights;
 
         final boolean quadAligned = captured.size() % 4 == 0;
 

@@ -22,6 +22,18 @@ public class ArmorCaptureContext
         return name.startsWith("RenderType[eyes") || name.startsWith("RenderType[emissive");
     }
 
+    public static void noteRenderType(Object renderType)
+    {
+        final VertexConsumer active = ACTIVE.get();
+
+        if (active instanceof CapturingVertexConsumer capturing)
+        {
+            capturing.setCurrentRenderType(renderType instanceof net.minecraft.client.renderer.RenderType type
+                    ? type
+                    : null);
+        }
+    }
+
     public static VertexConsumer discard()
     {
         final CapturingVertexConsumer sink = DISCARD.get();

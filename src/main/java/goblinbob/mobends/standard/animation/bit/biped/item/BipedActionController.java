@@ -28,11 +28,13 @@ public class BipedActionController
     protected HardAnimationLayer<BipedEntityData<?>> layerAction = new HardAnimationLayer<>();
     protected HardAnimationLayer<BipedEntityData<?>> layerUmbrella = new HardAnimationLayer<>();
     protected HardAnimationLayer<BipedEntityData<?>> layerCrossbow = new HardAnimationLayer<>();
+    protected HardAnimationLayer<BipedEntityData<?>> layerSpear = new HardAnimationLayer<>();
     protected UseActionType currentUseActionType = null;
     protected AttackActionType currentAttackActionType = null;
     protected AnimationBit<BipedEntityData<?>> actionBit = null;
     protected final AnimationBit<BipedEntityData<?>> umbrellaBit = new UmbrellaHoldingAnimationBit();
     protected final AnimationBit<BipedEntityData<?>> crossbowHoldBit = new CrossbowHoldAnimationBit();
+    protected final AnimationBit<BipedEntityData<?>> spearThrowBit = new SpearThrowAnimationBit();
 
     private static final Map<Item, UseAnim> USE_ANIM_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -235,6 +237,18 @@ public class BipedActionController
         }
 
         this.layerCrossbow.perform(data);
+
+        if (this.currentUseActionType != UseActionType.SPEAR
+                && SpearThrowAnimationBit.getRaisedSpearArm(entity) != null)
+        {
+            this.layerSpear.playOrContinueBit(this.spearThrowBit, data);
+        }
+        else
+        {
+            this.layerSpear.clearAnimation();
+        }
+
+        this.layerSpear.perform(data);
     }
 
     public void clearAction()
@@ -242,6 +256,7 @@ public class BipedActionController
         layerAction.clearAnimation();
         layerUmbrella.clearAnimation();
         layerCrossbow.clearAnimation();
+        layerSpear.clearAnimation();
         this.actionBit = null;
         this.currentUseActionType = null;
         this.currentAttackActionType = null;

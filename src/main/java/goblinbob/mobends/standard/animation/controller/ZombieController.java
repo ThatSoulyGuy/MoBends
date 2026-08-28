@@ -8,6 +8,7 @@ import goblinbob.mobends.standard.animation.bit.biped.MobSwingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SpearThrowAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.WalkAnimationBit;
 import goblinbob.mobends.standard.animation.bit.zombie_base.ZombieLeanAnimationBit;
@@ -25,16 +26,20 @@ public class ZombieController implements IAnimationController<ZombieData>
 	protected HardAnimationLayer<ZombieData> layerBase;
 	protected HardAnimationLayer<ZombieData> layerSet;
 	protected HardAnimationLayer<BipedEntityData<?>> layerAction;
+	protected HardAnimationLayer<BipedEntityData<?>> layerSpear;
 	protected AnimationBit<ZombieData> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
 	protected AnimationBit<ZombieData>[] bitAnimationSet;
 	protected MobSwingAnimationBit bitAttack;
+	protected AnimationBit<BipedEntityData<?>> bitSpearThrow;
 
 	public ZombieController()
 	{
 		this.layerBase = new HardAnimationLayer<>();
 		this.layerSet = new HardAnimationLayer<>();
 		this.layerAction = new HardAnimationLayer<>();
+		this.layerSpear = new HardAnimationLayer<>();
 		this.bitAttack = new MobSwingAnimationBit();
+		this.bitSpearThrow = new SpearThrowAnimationBit();
 		this.bitStand = new StandAnimationBit<>();
 		this.bitWalk = new WalkAnimationBit<>();
 		this.bitJump = new JumpAnimationBit<>();
@@ -86,9 +91,19 @@ public class ZombieController implements IAnimationController<ZombieData>
 			this.layerAction.clearAnimation();
 		}
 
+		if (SpearThrowAnimationBit.getRaisedSpearArm(zombieData.getEntity()) != null)
+		{
+			this.layerSpear.playOrContinueBit(this.bitSpearThrow, zombieData);
+		}
+		else
+		{
+			this.layerSpear.clearAnimation();
+		}
+
 		this.layerBase.perform(zombieData);
 		this.layerSet.perform(zombieData);
 		this.layerAction.perform(zombieData);
+		this.layerSpear.perform(zombieData);
 	}
 
 }

@@ -48,8 +48,6 @@ public class MoBends
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(KeyboardEventHandler::registerKeyMappings);
             modEventBus.addListener(goblinbob.mobends.neoforge.client.event.EntityRendererRegistrar::registerRenderers);
-            modEventBus.addListener((net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent event) ->
-                    event.registerRenderBuffer(goblinbob.mobends.neoforge.client.MoBendsRenderTypes.ARMOR_SCALED_GLINT));
 
             container.registerExtensionPoint(
                     net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,

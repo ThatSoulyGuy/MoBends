@@ -3,7 +3,6 @@ package goblinbob.mobends.forge.platform;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
-import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -31,6 +30,6 @@ public class ForgeModelRenderHelper implements IModelRenderHelper
     {
         MultiBufferSource source = (MultiBufferSource) bufferSource;
         RenderType type = (RenderType) renderType;
-        return ItemRenderer.getArmorFoilBuffer(source, type, ModConfig.newEnchantGlint, hasFoil);
+        return ItemRenderer.getArmorFoilBuffer(source, type, false, hasFoil);
     }
 }

@@ -20,7 +20,12 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
     private static final double HOVER_MAX_SPREAD = 0.35D;
     private static final double CLIMB_MIN_RISE = 3.5D;
     private static final int TICKS_AIRBORNE_BEFORE_DETECTION = 14;
-    private static final int TICKS_FALLING_TO_RELEASE_FLIGHT = 3;
+    private static final int TICKS_FALLING_TO_RELEASE_FLIGHT = 4;
+    private static final int FALL_WINDOW_TICKS = 5;
+    private static final double FALL_ACCELERATION_THRESHOLD = 0.15D;
+    private static final double TICK_ACCELERATION_THRESHOLD = -0.02D;
+    private static final double CONTROLLED_DESCENT_MIN_SPEED = -0.12D;
+    private static final double CONTROLLED_DESCENT_MAX_DROP = 6.0D;
 
     protected boolean sprintJumpLeg = false;
     protected boolean sprintJumpLegSwitched = false;
@@ -130,7 +135,12 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
         this.altitudeHistory[this.airborneTicks % ALTITUDE_HISTORY_TICKS] = this.entity.getY();
         this.airborneTicks++;
         this.ticksSinceAltitudeHeld = this.motionY >= 0.0D ? 0 : this.ticksSinceAltitudeHeld + 1;
-        this.fallingTicks = this.motionY < FALLING_SPEED_THRESHOLD ? this.fallingTicks + 1 : 0;
+
+        final boolean acceleratingDownward = this.isAcceleratingDownward();
+
+        this.fallingTicks = this.motionY < FALLING_SPEED_THRESHOLD && acceleratingDownward
+                ? this.fallingTicks + 1
+                : 0;
 
         if (this.fallingTicks >= TICKS_FALLING_TO_RELEASE_FLIGHT)
         {
@@ -149,6 +159,27 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
         {
             this.flightDetected = true;
         }
+        else if (this.airborneTicks >= TICKS_AIRBORNE_BEFORE_DETECTION
+                && !acceleratingDownward
+                && this.motionY < CONTROLLED_DESCENT_MIN_SPEED
+                && this.altitudeAt(0) - this.altitudeAt(TICKS_AIRBORNE_BEFORE_DETECTION) > -CONTROLLED_DESCENT_MAX_DROP)
+        {
+            this.flightDetected = true;
+        }
+    }
+
+    private boolean isAcceleratingDownward()
+    {
+        if (this.airborneTicks <= FALL_WINDOW_TICKS * 2)
+        {
+            return this.motionY - this.prevMotionY < TICK_ACCELERATION_THRESHOLD;
+        }
+
+        final double recent = (this.altitudeAt(0) - this.altitudeAt(FALL_WINDOW_TICKS)) / FALL_WINDOW_TICKS;
+        final double earlier = (this.altitudeAt(FALL_WINDOW_TICKS)
+                - this.altitudeAt(FALL_WINDOW_TICKS * 2)) / FALL_WINDOW_TICKS;
+
+        return recent < earlier - FALL_ACCELERATION_THRESHOLD;
     }
 
     private double altitudeAt(int ticksAgo)

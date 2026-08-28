@@ -76,10 +76,6 @@ public class ConfigOptions
                     () -> ModConfig.tridentTrail,
                     value -> ModConfig.tridentTrail = value),
 
-            new Option("newEnchantGlint", "mobends.gui.config.new_enchant_glint",
-                    () -> ModConfig.newEnchantGlint,
-                    value -> ModConfig.newEnchantGlint = value),
-
             new Option("disableSpinSwing", "mobends.gui.config.disable_spin_swing",
                     () -> !ModConfig.performSpinAttack,
                     value -> ModConfig.performSpinAttack = !value),

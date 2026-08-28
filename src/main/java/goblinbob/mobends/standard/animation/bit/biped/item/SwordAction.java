@@ -25,6 +25,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
     protected int moveId = 0;
 
     private static final float MIN_MOVE_INTERVAL = 4.0F;
+    private static final float JUMP_AIRBORNE_TICKS = 14.0F;
 
     private static final List<AnimationBit<BipedEntityData<?>>> bits = Arrays.asList(
             new AttackSlashUpAnimationBit(),
@@ -109,13 +110,17 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
         if (ticksAfterAttack < 10)
         {
         }
-        else if (ticksAfterAttack < 60 && entityData.isOnGround())
+        else if (ticksAfterAttack < 60)
         {
-            if (entity.isSprinting())
+            final boolean grounded = entityData.isOnGround();
+            final boolean jumping = !grounded
+                    && entityData.getTicksInAir() <= JUMP_AIRBORNE_TICKS;
+
+            if (entity.isSprinting() && (grounded || jumping))
             {
                 this.layerBase.playOrContinueBit(this.bitAttackStanceSprint, entityData);
             }
-            else if (entityData.isStillHorizontally())
+            else if (grounded && entityData.isStillHorizontally())
             {
                 this.layerBase.playOrContinueBit(this.bitAttackStance, entityData);
             }

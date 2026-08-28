@@ -1,13 +1,20 @@
 package goblinbob.mobends.standard.client.model.armor;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.RenderType;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CapturingVertexConsumer implements VertexConsumer
 {
     private final List<CapturedVertex> vertices = new ArrayList<>();
+    private final Map<RenderType, List<CapturedVertex>> verticesByType = new LinkedHashMap<>();
+
+    private RenderType currentRenderType;
+    private List<CapturedVertex> currentBucket;
 
     private boolean hasCurrentVertex = false;
     private float x, y, z;
@@ -25,14 +32,33 @@ public class CapturingVertexConsumer implements VertexConsumer
     {
         if (hasCurrentVertex)
         {
-            vertices.add(new CapturedVertex(
+            CapturedVertex vertex = new CapturedVertex(
                     x, y, z,
                     red, green, blue, alpha,
                     u, v,
                     overlayUV, lightmapUV,
                     normalX, normalY, normalZ
-            ));
+            );
+
+            vertices.add(vertex);
+
+            if (currentBucket == null)
+            {
+                currentBucket = verticesByType.computeIfAbsent(currentRenderType, key -> new ArrayList<>());
+            }
+
+            currentBucket.add(vertex);
             hasCurrentVertex = false;
+        }
+    }
+
+    public void setCurrentRenderType(RenderType renderType)
+    {
+        if (renderType != currentRenderType)
+        {
+            flushCurrentVertex();
+            currentRenderType = renderType;
+            currentBucket = null;
         }
     }
 
@@ -42,9 +68,18 @@ public class CapturingVertexConsumer implements VertexConsumer
         return vertices;
     }
 
+    public Map<RenderType, List<CapturedVertex>> getVerticesByType()
+    {
+        flushCurrentVertex();
+        return verticesByType;
+    }
+
     public void clear()
     {
         vertices.clear();
+        verticesByType.clear();
+        currentRenderType = null;
+        currentBucket = null;
         hasCurrentVertex = false;
         red = green = blue = 1.0f;
         alpha = 1.0f;

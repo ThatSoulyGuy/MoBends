@@ -85,8 +85,20 @@ public class LayerCustomElytra extends RenderLayer<AbstractClientPlayer, PlayerM
             this.elytraModel.setupAnim(player, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
             IModelRenderHelper renderHelper = IModelRenderHelper.Holder.getHelper();
-            VertexConsumer vertexConsumer = (VertexConsumer) renderHelper.getArmorFoilBuffer(
-                    bufferSource, RenderType.armorCutoutNoCull(texture), itemstack.hasFoil());
+            final Object previousRuneColor =
+                    goblinbob.mobends.compat.QuarkColorRunesCompat.beginItem(itemstack);
+            VertexConsumer vertexConsumer;
+
+            try
+            {
+                vertexConsumer = (VertexConsumer) renderHelper.getArmorFoilBuffer(
+                        bufferSource, RenderType.armorCutoutNoCull(texture), itemstack.hasFoil());
+            }
+            finally
+            {
+                goblinbob.mobends.compat.QuarkColorRunesCompat.endItem(previousRuneColor);
+            }
+
             renderHelper.renderModelToBuffer(this.elytraModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY,
                     0xFFFFFFFF);
 

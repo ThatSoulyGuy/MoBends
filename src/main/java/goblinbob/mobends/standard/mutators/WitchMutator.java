@@ -2,15 +2,72 @@ package goblinbob.mobends.standard.mutators;
 
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.data.IEntityDataFactory;
+import goblinbob.mobends.standard.data.VillagerData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.WitchModel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
 public class WitchMutator<E extends LivingEntity> extends VillagerMutator<E>
 {
+    private static final float NOSE_PIVOT_Y = -2.0F;
+
+    private static final float NOSE_WIGGLE_SPEED = 0.01F;
+    private static final float NOSE_PITCH_AMOUNT = 4.5F;
+    private static final float NOSE_ROLL_AMOUNT = 2.5F;
+
+    private static final float DRINKING_NOSE_PITCH = -0.9F * 180.0F / (float) Math.PI;
+    private static final float DRINKING_NOSE_Y = 1.0F;
+    private static final float DRINKING_NOSE_Z = -1.5F;
+
+    private BendsModelPart nose, outerNose;
+
     public WitchMutator(IEntityDataFactory<E> dataFactory)
     {
         super(dataFactory);
+    }
+
+    @Override
+    public void syncUpWithData(VillagerData<E> data)
+    {
+        super.syncUpWithData(data);
+
+        final LivingEntity entity = data.getEntity();
+        if (entity == null)
+        {
+            return;
+        }
+
+        final boolean holdingItem = !entity.getMainHandItem().isEmpty();
+
+        final float wiggle = entity.tickCount * NOSE_WIGGLE_SPEED * (entity.getId() % 10);
+
+        final float pitch = holdingItem
+                ? DRINKING_NOSE_PITCH
+                : Mth.sin(wiggle) * NOSE_PITCH_AMOUNT;
+        final float roll = Mth.cos(wiggle) * NOSE_ROLL_AMOUNT;
+
+        poseNose(nose, holdingItem, pitch, roll);
+        poseNose(outerNose, holdingItem, pitch, roll);
+    }
+
+    private static void poseNose(BendsModelPart part, boolean holdingItem, float pitch, float roll)
+    {
+        if (part == null)
+        {
+            return;
+        }
+
+        if (holdingItem)
+        {
+            part.setPosition(0.0F, DRINKING_NOSE_Y, DRINKING_NOSE_Z);
+        }
+        else
+        {
+            part.setPosition(0.0F, NOSE_PIVOT_Y, 0.0F);
+        }
+
+        part.rotation.orientInstantX(pitch).rotateInstantZ(roll);
     }
 
     @Override
@@ -40,12 +97,33 @@ public class WitchMutator<E extends LivingEntity> extends VillagerMutator<E>
 
         part.addCube(-4.0F, -10.0F, -4.0F, 8, 10, 8, scaleFactor);
 
-        part.setTextureOffset(24, 0);
-        part.addCube(-1.0F, -3.0F, -6.0F, 2, 4, 2, scaleFactor);
-        part.setTextureOffset(0, 0);
-        part.addCube(0.0F, -1.0F, -6.75F, 1, 1, 1, scaleFactor - 0.25F);
+        final BendsModelPart nosePart = buildNose(scaleFactor);
+        part.addChild(nosePart);
+
+        if (outer)
+        {
+            outerNose = nosePart;
+        }
+        else
+        {
+            nose = nosePart;
+        }
 
         part.addChild(buildHat(scaleFactor));
+
+        return part;
+    }
+
+    private BendsModelPart buildNose(float scaleFactor)
+    {
+        final BendsModelPart part = new BendsModelPart(24, 0)
+                .setTextureSize(64, textureHeight())
+                .setPosition(0.0F, NOSE_PIVOT_Y, 0.0F);
+
+        part.addCube(-1.0F, -1.0F, -6.0F, 2, 4, 2, scaleFactor);
+
+        part.setTextureOffset(0, 0);
+        part.addCube(0.0F, 1.0F, -6.75F, 1, 1, 1, scaleFactor - 0.25F);
 
         return part;
     }

@@ -196,6 +196,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             this.layerCape = new LayerCustomCape((PlayerRenderer) renderer);
             if (isModelVanilla)
                 this.layerCapeVanilla = (CapeLayer) layer;
+            this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerCape);
         }
 
@@ -204,6 +205,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             this.layerElytra = new LayerCustomElytra(renderer, Minecraft.getInstance().getEntityModels());
             if (isModelVanilla)
                 this.layerElytraVanilla = layer;
+            this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerElytra);
         }
 

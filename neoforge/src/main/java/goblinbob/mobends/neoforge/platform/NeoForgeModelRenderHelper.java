@@ -2,9 +2,7 @@ package goblinbob.mobends.neoforge.platform;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
-import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -26,19 +24,6 @@ public class NeoForgeModelRenderHelper implements IModelRenderHelper
     {
         MultiBufferSource source = (MultiBufferSource) bufferSource;
         RenderType type = (RenderType) renderType;
-
-        if (!hasFoil)
-        {
-            return source.getBuffer(type);
-        }
-
-        if (!ModConfig.newEnchantGlint)
-        {
-            return ItemRenderer.getArmorFoilBuffer(source, type, true);
-        }
-
-        return VertexMultiConsumer.create(
-                source.getBuffer(goblinbob.mobends.neoforge.client.MoBendsRenderTypes.ARMOR_SCALED_GLINT),
-                source.getBuffer(type));
+        return ItemRenderer.getArmorFoilBuffer(source, type, hasFoil);
     }
 }

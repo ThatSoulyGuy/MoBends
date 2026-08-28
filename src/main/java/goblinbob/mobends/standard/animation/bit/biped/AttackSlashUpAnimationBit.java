@@ -26,6 +26,11 @@ public class AttackSlashUpAnimationBit extends AnimationBit<BipedEntityData<?>>
 		return Math.min((ticksAfterAttack / 10F) * 3F, 1F);
 	}
 
+	private static float itemInversion(float armSwing)
+	{
+		return 180F * (1F - armSwing);
+	}
+
 	@Override
 	public void perform(BipedEntityData<?> data)
 	{
@@ -71,7 +76,7 @@ public class AttackSlashUpAnimationBit extends AnimationBit<BipedEntityData<?>>
 			offArm.getRotation().setSmoothness(.9F).orientZ(110F * offArmSwing * -handDirMtp)
 					.rotateY((60F - offArmSwing * 180F) * -handDirMtp);
 			offForeArm.getRotation().setSmoothness(.3F).orientX(-20);
-			offItemRotation.setSmoothness(.9F).orientInstantX(180);
+			offItemRotation.setSmoothness(.9F).orientInstantX(itemInversion(offArmSwing));
 		}
 		else
 		{
@@ -97,7 +102,7 @@ public class AttackSlashUpAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.renderRotation.setSmoothness(.3F).orientY(0 * handDirMtp);
 		}
 
-		mainItemRotation.setSmoothness(.9F).orientInstantX(180);
+		mainItemRotation.setSmoothness(.9F).orientInstantX(itemInversion(armSwing));
 	}
 
 }

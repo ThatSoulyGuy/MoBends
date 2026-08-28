@@ -8,6 +8,7 @@ import goblinbob.mobends.standard.animation.bit.biped.MobSwingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SpearThrowAnimationBit;
 import goblinbob.mobends.standard.animation.bit.pigzombie.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.pigzombie.WalkAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
@@ -23,19 +24,23 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 
 	protected HardAnimationLayer<BipedEntityData<ZombifiedPiglin>> layerBase;
 	protected HardAnimationLayer<BipedEntityData<?>> layerAction;
+	protected HardAnimationLayer<BipedEntityData<?>> layerSpear;
 	protected AnimationBit<? extends BipedEntityData<ZombifiedPiglin>> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
 	protected MobSwingAnimationBit bitAttack;
+	protected AnimationBit<BipedEntityData<?>> bitSpearThrow;
 
 	public PigZombieController()
 	{
 		this.layerBase = new HardAnimationLayer<>();
 		this.layerAction = new HardAnimationLayer<>();
+		this.layerSpear = new HardAnimationLayer<>();
 		this.bitStand = new StandAnimationBit();
 		this.bitWalk = new WalkAnimationBit();
 		this.bitJump = new JumpAnimationBit<>();
 		this.bitRiding = new RidingAnimationBit<BipedEntityData<ZombifiedPiglin>>();
 		this.bitSitting = new SittingAnimationBit<BipedEntityData<ZombifiedPiglin>>();
 		this.bitAttack = new MobSwingAnimationBit();
+		this.bitSpearThrow = new SpearThrowAnimationBit();
 	}
 
 	@Override
@@ -74,9 +79,18 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 			this.layerAction.clearAnimation();
 		}
 
-		List<String> actions = new ArrayList<>();
+		if (SpearThrowAnimationBit.getRaisedSpearArm(pigZombie) != null)
+		{
+			this.layerSpear.playOrContinueBit(this.bitSpearThrow, pigZombieData);
+		}
+		else
+		{
+			this.layerSpear.clearAnimation();
+		}
+
 		this.layerBase.perform(pigZombieData);
 		this.layerAction.perform(pigZombieData);
+		this.layerSpear.perform(pigZombieData);
 	}
 
 }

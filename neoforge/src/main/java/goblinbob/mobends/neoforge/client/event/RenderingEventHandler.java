@@ -123,6 +123,18 @@ public class RenderingEventHandler
     @SuppressWarnings({"unchecked", "rawtypes"})
 
 
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
+    public void yieldLayersToEpicFight(RenderLivingEvent.Pre<?, ?> event)
+    {
+        goblinbob.mobends.compat.EpicFightCompat.suspendLayerSwap(event.getEntity(), event.getRenderer());
+    }
+
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST, receiveCanceled = true)
+    public void reclaimLayersFromEpicFight(RenderLivingEvent.Pre<?, ?> event)
+    {
+        goblinbob.mobends.compat.EpicFightCompat.resumeLayerSwap();
+    }
+
     @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.LOWEST)
     public void beforeLivingRender(RenderLivingEvent.Pre<?, ?> event)
     {

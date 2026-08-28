@@ -26,6 +26,7 @@ public abstract class BufferSourceCaptureMixin {
             return;
         }
 
+        ArmorCaptureContext.noteRenderType(renderType);
         cir.setReturnValue(capture);
     }
 

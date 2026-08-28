@@ -28,8 +28,6 @@
   "mobends.gui.config.spectral_arrow_trail_effect.desc": "Enable the special golden trail effect for Spectral Arrows",
   "mobends.gui.config.trident_trail": "Trident Trail",
   "mobends.gui.config.trident_trail.desc": "Allow the Trident to have a trail",
-  "mobends.gui.config.new_enchant_glint": "Upscale Armor Enchant Glint",
-  "mobends.gui.config.new_enchant_glint.desc": "Upscale the enchant glint texture for armor. This was originally a bug, but I thought it was cool, so I made it a feature.",
   "mobends.gui.config.disable_spin_swing": "Disable Spin Swing",
   "mobends.gui.config.disable_spin_swing.desc": "Disable spinning animation when swinging for players",
   "mobends.gui.config.mobs_can_spin": "Mobs Can Spin",

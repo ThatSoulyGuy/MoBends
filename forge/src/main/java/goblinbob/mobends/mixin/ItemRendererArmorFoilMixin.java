@@ -19,6 +19,7 @@ public abstract class ItemRendererArmorFoilMixin {
                                                            CallbackInfoReturnable<VertexConsumer> cir) {
         VertexConsumer capture = ArmorCaptureContext.active();
         if (capture != null) {
+            ArmorCaptureContext.noteRenderType(renderType);
             cir.setReturnValue(capture);
         }
     }

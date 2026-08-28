@@ -126,6 +126,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected LayerCustomBipedArmor layerArmor;
     protected RenderLayer<E, M> layerHeldItem;
     protected final java.util.Map<Integer, RenderLayer<E, M>> originalLayers = new java.util.HashMap<>();
+    private java.util.Map<Integer, RenderLayer<E, M>> suspendedLayers;
     @SuppressWarnings("rawtypes")
     protected CustomHeadLayer layerCustomHead;
     @SuppressWarnings("rawtypes")
@@ -236,6 +237,51 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected RenderLayer<E, M> createHeldItemLayer(LivingEntityRenderer<E, M> renderer)
     {
         return new LayerCustomHeldItem<>(renderer, this);
+    }
+
+    public void suspendLayerSwap()
+    {
+        if (this.layerRenderers == null || this.suspendedLayers != null || this.originalLayers.isEmpty())
+        {
+            return;
+        }
+
+        final java.util.Map<Integer, RenderLayer<E, M>> swapped = new java.util.HashMap<>();
+
+        for (java.util.Map.Entry<Integer, RenderLayer<E, M>> entry : this.originalLayers.entrySet())
+        {
+            final int index = entry.getKey();
+
+            if (index < 0 || index >= this.layerRenderers.size())
+            {
+                continue;
+            }
+
+            swapped.put(index, this.layerRenderers.get(index));
+            this.layerRenderers.set(index, entry.getValue());
+        }
+
+        this.suspendedLayers = swapped;
+    }
+
+    public void resumeLayerSwap()
+    {
+        if (this.layerRenderers == null || this.suspendedLayers == null)
+        {
+            return;
+        }
+
+        for (java.util.Map.Entry<Integer, RenderLayer<E, M>> entry : this.suspendedLayers.entrySet())
+        {
+            final int index = entry.getKey();
+
+            if (index >= 0 && index < this.layerRenderers.size())
+            {
+                this.layerRenderers.set(index, entry.getValue());
+            }
+        }
+
+        this.suspendedLayers = null;
     }
 
     @Override
@@ -730,6 +776,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 data, goblinbob.mobends.core.client.event.DataUpdateHandler.partialTicks);
 
         goblinbob.mobends.compat.CarryOnCompat.applyToPose(data);
+
+        goblinbob.mobends.compat.EpicFightCompat.registerLayerAliases(data.getEntity());
 
         settlePoseForGui(data);
 

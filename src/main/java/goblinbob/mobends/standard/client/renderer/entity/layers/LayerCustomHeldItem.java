@@ -28,10 +28,23 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
 
     private final BipedMutator<?, E, M> mutator;
 
+    private RenderLayer<E, M> fallbackLayer;
+
     public LayerCustomHeldItem(LivingEntityRenderer<E, M> renderer, BipedMutator<?, E, M> mutator)
     {
         super(renderer);
         this.mutator = mutator;
+    }
+
+    public void setFallbackLayer(RenderLayer<E, M> fallbackLayer)
+    {
+        this.fallbackLayer = fallbackLayer;
+    }
+
+    private boolean canPositionHands(E entity)
+    {
+        return this.getParentModel() instanceof ArmedModel
+                || (this.isDrivenByMoBends(entity) && this.getCustomForeArm(HumanoidArm.RIGHT) != null);
     }
 
     @Override
@@ -43,6 +56,17 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
                 && this.getParentModel() instanceof HumanoidModel<?> humanoidParent
                 && goblinbob.mobends.compat.FirstPersonModelCompat.showsVanillaHands(humanoidParent))
         {
+            return;
+        }
+
+        if (!this.canPositionHands(entity))
+        {
+            if (this.fallbackLayer != null)
+            {
+                this.fallbackLayer.render(poseStack, bufferSource, packedLight, entity, limbSwing, limbSwingAmount,
+                        partialTicks, ageInTicks, netHeadYaw, headPitch);
+            }
+
             return;
         }
 
@@ -264,7 +288,10 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
         }
 
         M model = this.getParentModel();
-        ((ArmedModel) model).translateToHand(arm, poseStack);
+        if (model instanceof ArmedModel armedModel)
+        {
+            armedModel.translateToHand(arm, poseStack);
+        }
 
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         if (entityData instanceof BipedEntityData<?> bipedData && this.isDrivenByMoBends(entity))

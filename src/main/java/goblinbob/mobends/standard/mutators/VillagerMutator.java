@@ -3,11 +3,17 @@ package goblinbob.mobends.standard.mutators;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
+import goblinbob.mobends.lib.math.Quaternion;
+import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldItem;
 import goblinbob.mobends.standard.data.VillagerData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.VillagerModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.layers.CrossedArmsItemLayer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Collections;
@@ -46,6 +52,19 @@ public class VillagerMutator<E extends LivingEntity>
     private static final boolean HAT_RIM_ENABLED = true;
     private static final int GLOVE_LENGTH = 4;
 
+    private static final int ROBE_TEX_U = 0;
+    private static final int ROBE_TEX_V = 38;
+    private static final int ROBE_WIDTH = 8;
+    private static final int ROBE_DEPTH = 6;
+    private static final int ROBE_TORSO_HEIGHT = 12;
+    private static final int SKIRT_OVERLAP = 3;
+    private static final int SKIRT_HEIGHT = 8 + SKIRT_OVERLAP;
+    private static final float SKIRT_TUCK = 0.05F;
+
+    private static final float SKIRT_FOLLOW = 1.0F;
+    private static final float SKIRT_MAX_FOLD = 90.0F;
+    private static final float SKIRT_MAX_LIFT = 20.0F;
+
     protected int textureHeight()
     {
         return 64;
@@ -72,12 +91,33 @@ public class VillagerMutator<E extends LivingEntity>
 
     private static BendsModelPart lastOuterHand;
     private static BendsModelPart lastWristTrim;
+    private static BendsModelPart lastSkirt;
     private BendsModelPart outerLeftHand, outerRightHand;
     private BendsModelPart leftWristTrim, rightWristTrim;
+    private BendsModelPart skirt, outerSkirt;
 
     public VillagerMutator(IEntityDataFactory<E> dataFactory)
     {
         super(dataFactory);
+    }
+
+    @Override
+    public void swapLayer(LivingEntityRenderer<E, VillagerModel<E>> renderer, int index, boolean isModelVanilla)
+    {
+        RenderLayer<E, VillagerModel<E>> layer = layerRenderers.get(index);
+
+        if (layer instanceof CrossedArmsItemLayer)
+        {
+            LayerCustomHeldItem<E, VillagerModel<E>> heldItem = new LayerCustomHeldItem<>(renderer, this);
+            heldItem.setFallbackLayer(layer);
+
+            this.layerHeldItem = heldItem;
+            this.originalLayers.put(index, layer);
+            layerRenderers.set(index, heldItem);
+            return;
+        }
+
+        super.swapLayer(renderer, index, isModelVanilla);
     }
 
     @Override
@@ -117,6 +157,7 @@ public class VillagerMutator<E extends LivingEntity>
     public boolean createParts(VillagerModel<E> original, float scaleFactor)
     {
         body = buildBody(scaleFactor);
+        skirt = lastSkirt;
         head = buildHead(scaleFactor, false);
         body.addChild(head);
 
@@ -153,6 +194,7 @@ public class VillagerMutator<E extends LivingEntity>
         final float outerOffset = 0.01F;
 
         outerBody = buildBody(scaleFactor + outerOffset);
+        outerSkirt = lastSkirt;
         outerHead = buildHead(scaleFactor + outerOffset, true);
         outerBody.addChild(outerHead);
 
@@ -184,10 +226,44 @@ public class VillagerMutator<E extends LivingEntity>
                 .setPosition(0.0F, 12.0F, 0.0F);
 
         part.addCube(-4.0F, -12.0F, -3.0F, 8, 12, 6, scaleFactor);
-        part.setTextureOffset(0, 38);
-        part.addCube(-4.0F, -12.0F, -3.0F, 8, 20, 6, scaleFactor + ROBE_INFLATE);
+
+        part.setTextureOffset(ROBE_TEX_U, ROBE_TEX_V);
+        part.addCube(-4.0F, -12.0F, -3.0F, ROBE_WIDTH, ROBE_TORSO_HEIGHT, ROBE_DEPTH,
+                     scaleFactor + ROBE_INFLATE);
+
+        part.addChild(buildSkirt(scaleFactor));
 
         return part;
+    }
+
+    protected BendsModelPart buildSkirt(float scaleFactor)
+    {
+        final int skirtTexV = ROBE_TEX_V + ROBE_TORSO_HEIGHT - SKIRT_OVERLAP;
+
+        final BendsModelPart part = new BendsModelPart(ROBE_TEX_U, skirtTexV)
+                .setTextureSize(64, textureHeight())
+                .setPosition(0.0F, 0.0F, 0.0F);
+
+        part.developBox(-4.0F, -SKIRT_OVERLAP, -3.0F, ROBE_WIDTH, SKIRT_HEIGHT, ROBE_DEPTH,
+                        scaleFactor + ROBE_INFLATE - SKIRT_TUCK)
+                .offsetTextureQuad(BoxSide.BOTTOM, 0, -(ROBE_TORSO_HEIGHT - SKIRT_OVERLAP))
+                .create();
+
+        lastSkirt = part;
+
+        return part;
+    }
+
+    private static float pitchOf(BendsModelPart part)
+    {
+        if (part == null)
+        {
+            return 0.0F;
+        }
+
+        final Quaternion rotation = part.rotation.getSmooth();
+
+        return (float) Math.toDegrees(2.0D * Math.atan2(rotation.x, rotation.w));
     }
 
 
@@ -328,6 +404,12 @@ public class VillagerMutator<E extends LivingEntity>
     public void syncUpWithData(VillagerData<E> data)
     {
         super.syncUpWithData(data);
+
+        final float fold = Mth.clamp((pitchOf(leftLeg) + pitchOf(rightLeg)) * 0.5F * SKIRT_FOLLOW,
+                -SKIRT_MAX_FOLD, SKIRT_MAX_LIFT);
+
+        if (skirt != null) skirt.rotation.orientInstantX(fold);
+        if (outerSkirt != null) outerSkirt.rotation.orientInstantX(fold);
 
         final net.minecraft.world.entity.LivingEntity current = data.getEntity();
 

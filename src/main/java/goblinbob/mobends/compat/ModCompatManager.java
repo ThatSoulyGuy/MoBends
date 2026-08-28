@@ -57,6 +57,10 @@ public class ModCompatManager
 
         ThirdPartyPoseCompat.init();
 
+        QuarkColorRunesCompat.init();
+
+        EpicFightCompat.init();
+
         registerBuiltInAnimationControl();
     }
 
