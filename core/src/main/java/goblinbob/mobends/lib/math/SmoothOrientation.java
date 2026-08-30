@@ -6,6 +6,8 @@ public class SmoothOrientation
 {
     public static final float PI = (float) Math.PI;
 
+    private static final float HALF_TURN_EPSILON = 1.0E-4F;
+
     protected Quaternion start;
     protected Quaternion end;
     protected Quaternion smooth;
@@ -254,8 +256,10 @@ public class SmoothOrientation
 
     public void updateSmooth()
     {
-        float sign = (this.start.x * this.end.x + this.start.y * this.end.y
-                + this.start.z * this.end.z + this.start.w * this.end.w) < 0F ? -1F : 1F;
+        final float dot = this.start.x * this.end.x + this.start.y * this.end.y
+                + this.start.z * this.end.z + this.start.w * this.end.w;
+
+        float sign = dot < -HALF_TURN_EPSILON ? -1F : 1F;
 
         this.smooth.set(this.start.x + (this.end.x * sign - this.start.x) * this.progress,
                 this.start.y + (this.end.y * sign - this.start.y) * this.progress,

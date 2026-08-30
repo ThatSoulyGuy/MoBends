@@ -96,6 +96,7 @@ public final class TrailRenderQueue
             return;
         }
 
+        RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(515);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -126,6 +127,7 @@ public final class TrailRenderQueue
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
+        RenderSystem.disableDepthTest();
 
         vertexCount = 0;
     }

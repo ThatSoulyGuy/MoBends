@@ -60,6 +60,14 @@ public final class JointDefinitions
         );
     }
 
+    public static JointPlane createWaistPlane(float waistY)
+    {
+        return new JointPlane(
+            new Vector3f(0, waistY * SCALE, 0),
+            new Vector3f(0, -1, 0)
+        );
+    }
+
     public static JointPlane createKneePlane(float kneeY)
     {
         return new JointPlane(

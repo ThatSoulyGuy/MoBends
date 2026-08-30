@@ -189,9 +189,12 @@ public class RigidArmorRenderer
                 continue;
             }
 
-            float localX = v.x - restPos.x;
+            final float clearedX = BodyClearance.clearX(region, v.x);
+            final float clearedZ = BodyClearance.clearZ(region, v.z);
+
+            float localX = clearedX - restPos.x;
             float localY = v.y - restPos.y;
-            float localZ = v.z - restPos.z;
+            float localZ = clearedZ - restPos.z;
 
             float tx = transform.m00 * localX + transform.m10 * localY + transform.m20 * localZ + transform.m30;
             float ty = transform.m01 * localX + transform.m11 * localY + transform.m21 * localZ + transform.m31;
@@ -210,9 +213,9 @@ public class RigidArmorRenderer
 
                 if (t2 != null && rest2 != null)
                 {
-                    float lx2 = v.x - rest2.x;
+                    float lx2 = clearedX - rest2.x;
                     float ly2 = v.y - rest2.y;
-                    float lz2 = v.z - rest2.z;
+                    float lz2 = clearedZ - rest2.z;
 
                     float bx = t2.m00 * lx2 + t2.m10 * ly2 + t2.m20 * lz2 + t2.m30;
                     float by = t2.m01 * lx2 + t2.m11 * ly2 + t2.m21 * lz2 + t2.m31;

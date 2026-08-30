@@ -45,6 +45,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             org.slf4j.LoggerFactory.getLogger("MoBends-BipedMutator");
 
     protected BendsModelPart body;
+    protected BendsModelPart skirt;
     protected BendsModelPart head;
     protected BendsModelPart headwear;
     protected BendsModelPart leftArm;
@@ -330,6 +331,23 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return true;
     }
 
+    protected boolean usesAdaptiveSkirt()
+    {
+        return false;
+    }
+
+    protected static float pitchOf(BendsModelPart part)
+    {
+        if (part == null)
+        {
+            return 0.0F;
+        }
+
+        final Quaternion rotation = part.rotation.getSmooth();
+
+        return (float) Math.toDegrees(2.0D * Math.atan2(rotation.x, rotation.w));
+    }
+
     protected AdaptiveHumanoidGeometry.WearParts adaptiveWearParts(M original)
     {
         return null;
@@ -385,13 +403,23 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         final AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(view,
                 adaptiveHeadCaptureMode(), adaptiveLimbCaptureMode(), null,
-                adaptiveWearParts(original));
+                adaptiveWearParts(original), usesAdaptiveSkirt());
         if (geometry == null)
         {
             return false;
         }
 
         body = boneAt(geometry.bodyPivot).addMesh(geometry.bodyMesh);
+
+        if (geometry.skirtMesh != null)
+        {
+            skirt = new BendsModelPart().addMesh(geometry.skirtMesh);
+            body.addChild(skirt);
+        }
+        else
+        {
+            skirt = null;
+        }
 
         head = boneAt(geometry.headPivot).addMesh(geometry.headMesh);
         body.addChild(head);

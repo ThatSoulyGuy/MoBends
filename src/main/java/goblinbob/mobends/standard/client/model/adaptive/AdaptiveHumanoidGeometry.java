@@ -18,6 +18,9 @@ public final class AdaptiveHumanoidGeometry
 
     private static final float DEFAULT_BODY_HEIGHT = 12.0F;
 
+    private static final float SKIRT_OVERLAP = 3.0F;
+    private static final float SKIRT_TUCK = 0.05F;
+
     private static final float CROUCH_HEAD_Y = 4.2F;
     private static final float CROUCH_BODY_Y = 3.2F;
     private static final float CROUCH_ARM_Y = 3.2F;
@@ -48,6 +51,9 @@ public final class AdaptiveHumanoidGeometry
     public BendsMesh rightLegMesh;
     public BendsMesh leftForeLegMesh;
     public BendsMesh rightForeLegMesh;
+
+    public BendsMesh skirtMesh;
+    public BendsMesh skirtWearMesh;
 
     public BendsMesh bodyWearMesh;
     public BendsMesh leftArmWearMesh;
@@ -101,6 +107,14 @@ public final class AdaptiveHumanoidGeometry
                                                  CaptureMode headMode, CaptureMode limbMode,
                                                  float[] jointOverride, WearParts wear)
     {
+        return build(model, headMode, limbMode, jointOverride, wear, false);
+    }
+
+    public static AdaptiveHumanoidGeometry build(HumanoidModel<?> model,
+                                                 CaptureMode headMode, CaptureMode limbMode,
+                                                 float[] jointOverride, WearParts wear,
+                                                 boolean splitSkirt)
+    {
         if (model == null || model.head == null || model.body == null
                 || model.leftArm == null || model.rightArm == null
                 || model.leftLeg == null || model.rightLeg == null)
@@ -132,7 +146,7 @@ public final class AdaptiveHumanoidGeometry
         geometry.headPivot[2] = head.pivotZ - geometry.bodyPivot[2];
 
         geometry.buildTorso(body, head, hat, torsoBottom,
-                capture(wear == null ? null : wear.body, limbMode));
+                capture(wear == null ? null : wear.body, limbMode), splitSkirt);
         geometry.buildArm(leftArm, capture(wear == null ? null : wear.leftArm, limbMode), true);
         geometry.buildArm(rightArm, capture(wear == null ? null : wear.rightArm, limbMode), false);
         geometry.buildLeg(leftLeg, capture(wear == null ? null : wear.leftLeg, limbMode), true);
@@ -179,19 +193,50 @@ public final class AdaptiveHumanoidGeometry
     }
 
     private void buildTorso(PartCapture body, PartCapture head, PartCapture hat, float torsoBottom,
-                            PartCapture bodyWear)
+                            PartCapture bodyWear, boolean splitSkirt)
     {
-        bodyMesh = meshOf(body.quads, 0.0F, -torsoBottom, 0.0F);
         headMesh = meshOf(head.quads, 0.0F, 0.0F, 0.0F);
         hatMesh = meshOf(hat.quads, 0.0F, 0.0F, 0.0F);
 
-        if (!bodyWear.isEmpty())
+        if (splitSkirt)
         {
-            bodyWearMesh = meshOf(bodyWear.quads,
-                    bodyWear.pivotX - body.pivotX,
-                    bodyWear.pivotY - body.pivotY - torsoBottom,
-                    bodyWear.pivotZ - body.pivotZ);
+            bodyMesh = slicedMesh(sliceAt(body.quads, JointDefinitions.createWaistPlane(torsoBottom)),
+                    true, 0.0F, -torsoBottom, 0.0F);
+
+            skirtMesh = tuckedMesh(
+                    sliceAt(body.quads, JointDefinitions.createWaistPlane(torsoBottom - SKIRT_OVERLAP)),
+                    0.0F, -torsoBottom, 0.0F,
+                    centreOf(body.minX, body.maxX), centreOf(body.minZ, body.maxZ));
         }
+        else
+        {
+            bodyMesh = meshOf(body.quads, 0.0F, -torsoBottom, 0.0F);
+        }
+
+        if (bodyWear.isEmpty())
+        {
+            return;
+        }
+
+        final float wearX = bodyWear.pivotX - body.pivotX;
+        final float wearY = bodyWear.pivotY - body.pivotY - torsoBottom;
+        final float wearZ = bodyWear.pivotZ - body.pivotZ;
+
+        if (splitSkirt)
+        {
+            final float wearWaist = torsoBottom - (bodyWear.pivotY - body.pivotY);
+
+            bodyWearMesh = slicedMesh(sliceAt(bodyWear.quads, JointDefinitions.createWaistPlane(wearWaist)),
+                    true, wearX, wearY, wearZ);
+
+            skirtWearMesh = tuckedMesh(
+                    sliceAt(bodyWear.quads, JointDefinitions.createWaistPlane(wearWaist - SKIRT_OVERLAP)),
+                    wearX, wearY, wearZ,
+                    centreOf(bodyWear.minX, bodyWear.maxX), centreOf(bodyWear.minZ, bodyWear.maxZ));
+            return;
+        }
+
+        bodyWearMesh = meshOf(bodyWear.quads, wearX, wearY, wearZ);
     }
 
     private void buildArm(PartCapture arm, PartCapture wear, boolean isLeft)
@@ -372,6 +417,13 @@ public final class AdaptiveHumanoidGeometry
     private static BendsMesh slicedMesh(List<SliceResult> slices, boolean upper,
                                         float offsetX, float offsetY, float offsetZ)
     {
+        return slicedMesh(slices, upper, offsetX, offsetY, offsetZ, null);
+    }
+
+    private static BendsMesh slicedMesh(List<SliceResult> slices, boolean upper,
+                                        float offsetX, float offsetY, float offsetZ,
+                                        float[] tuckCentre)
+    {
         final BendsMesh.Builder builder = new BendsMesh.Builder();
         final float dx = offsetX * SCALE;
         final float dy = offsetY * SCALE;
@@ -393,27 +445,60 @@ public final class AdaptiveHumanoidGeometry
             {
                 for (SliceResult.SlicedVertex vertex : vertices)
                 {
-                    addVertex(builder, vertex, dx, dy, dz);
+                    addVertex(builder, vertex, dx, dy, dz, tuckCentre);
                 }
                 continue;
             }
 
             for (int i = 1; i < count - 1; ++i)
             {
-                addVertex(builder, vertices.get(0), dx, dy, dz);
-                addVertex(builder, vertices.get(i), dx, dy, dz);
-                addVertex(builder, vertices.get(i + 1), dx, dy, dz);
-                addVertex(builder, vertices.get(i + 1), dx, dy, dz);
+                addVertex(builder, vertices.get(0), dx, dy, dz, tuckCentre);
+                addVertex(builder, vertices.get(i), dx, dy, dz, tuckCentre);
+                addVertex(builder, vertices.get(i + 1), dx, dy, dz, tuckCentre);
+                addVertex(builder, vertices.get(i + 1), dx, dy, dz, tuckCentre);
             }
         }
 
         return builder.isEmpty() ? null : builder.build();
     }
 
-    private static void addVertex(BendsMesh.Builder builder, SliceResult.SlicedVertex vertex,
-                                  float dx, float dy, float dz)
+    private static float centreOf(float min, float max)
     {
-        builder.addVertex(vertex.x + dx, vertex.y + dy, vertex.z + dz,
+        return (min + max) * 0.5F * SCALE;
+    }
+
+    private static float tuck(float value, float centre)
+    {
+        final float offset = value - centre;
+
+        if (Math.abs(offset) <= SKIRT_TUCK * SCALE)
+        {
+            return value;
+        }
+
+        return offset < 0.0F ? value + SKIRT_TUCK * SCALE : value - SKIRT_TUCK * SCALE;
+    }
+
+    private static BendsMesh tuckedMesh(List<SliceResult> slices,
+                                        float offsetX, float offsetY, float offsetZ,
+                                        float centreX, float centreZ)
+    {
+        return slicedMesh(slices, false, offsetX, offsetY, offsetZ, new float[] { centreX, centreZ });
+    }
+
+    private static void addVertex(BendsMesh.Builder builder, SliceResult.SlicedVertex vertex,
+                                  float dx, float dy, float dz, float[] tuckCentre)
+    {
+        float x = vertex.x + dx;
+        float z = vertex.z + dz;
+
+        if (tuckCentre != null)
+        {
+            x = tuck(x, tuckCentre[0]);
+            z = tuck(z, tuckCentre[1]);
+        }
+
+        builder.addVertex(x, vertex.y + dy, z,
                 vertex.u, vertex.v,
                 vertex.normalX, vertex.normalY, vertex.normalZ);
     }

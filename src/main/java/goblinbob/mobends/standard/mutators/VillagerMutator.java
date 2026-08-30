@@ -3,7 +3,6 @@ package goblinbob.mobends.standard.mutators;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
-import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldItem;
 import goblinbob.mobends.standard.data.VillagerData;
 import net.minecraft.client.model.EntityModel;
@@ -94,7 +93,7 @@ public class VillagerMutator<E extends LivingEntity>
     private static BendsModelPart lastSkirt;
     private BendsModelPart outerLeftHand, outerRightHand;
     private BendsModelPart leftWristTrim, rightWristTrim;
-    private BendsModelPart skirt, outerSkirt;
+    private BendsModelPart outerSkirt;
 
     public VillagerMutator(IEntityDataFactory<E> dataFactory)
     {
@@ -253,19 +252,6 @@ public class VillagerMutator<E extends LivingEntity>
 
         return part;
     }
-
-    private static float pitchOf(BendsModelPart part)
-    {
-        if (part == null)
-        {
-            return 0.0F;
-        }
-
-        final Quaternion rotation = part.rotation.getSmooth();
-
-        return (float) Math.toDegrees(2.0D * Math.atan2(rotation.x, rotation.w));
-    }
-
 
     protected BendsModelPart buildHead(float scaleFactor, boolean outer)
     {

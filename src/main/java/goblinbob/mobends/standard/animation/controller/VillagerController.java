@@ -10,6 +10,7 @@ import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SprintAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.TradeOfferAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.UnhappyAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.WalkAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.VillagerData;
@@ -26,9 +27,11 @@ public class VillagerController implements IAnimationController<VillagerData<?>>
     protected AnimationBit<VillagerData<?>> bitStand, bitWalk, bitSprint, bitJump, bitRiding, bitSitting;
 
     protected final HardAnimationLayer<BipedEntityData<?>> layerHandAction = new HardAnimationLayer<>();
+    protected final HardAnimationLayer<BipedEntityData<?>> layerHead = new HardAnimationLayer<>();
 
     protected final AnimationBit<BipedEntityData<?>> bitTradeOffer = new TradeOfferAnimationBit();
     protected final AnimationBit<BipedEntityData<?>> bitDrink = new EatingAnimationBit(HumanoidArm.RIGHT);
+    protected final AnimationBit<BipedEntityData<?>> bitUnhappy = new UnhappyAnimationBit();
 
     public VillagerController()
     {
@@ -67,6 +70,21 @@ public class VillagerController implements IAnimationController<VillagerData<?>>
 
         this.layerBase.perform(data);
         performActionAnimations(data);
+        performHeadAnimations(data);
+    }
+
+    protected void performHeadAnimations(VillagerData<?> data)
+    {
+        if (UnhappyAnimationBit.isUnhappy(data.getEntity()))
+        {
+            this.layerHead.playOrContinueBit(this.bitUnhappy, data);
+        }
+        else
+        {
+            this.layerHead.clearAnimation();
+        }
+
+        this.layerHead.perform(data);
     }
 
     protected void performActionAnimations(VillagerData<?> data)

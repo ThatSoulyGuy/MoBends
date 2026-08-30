@@ -85,12 +85,23 @@ public class SwordTrail
             this.position.z += this.velocityZ * ticksPerFrame;
         }
 
-        public Vec3f[] getPoints(double currentX, double currentY, double currentZ, float currentYaw)
+        public Vec3f[] getPoints(double currentX, double currentY, double currentZ, float currentYaw,
+                                 float modelScale)
         {
             final Vec3f[] points = getPoints();
 
             if (!anchored)
             {
+                if (modelScale != 1.0F)
+                {
+                    for (final Vec3f point : points)
+                    {
+                        point.x *= modelScale;
+                        point.y *= modelScale;
+                        point.z *= modelScale;
+                    }
+                }
+
                 return points;
             }
 
@@ -105,9 +116,13 @@ public class SwordTrail
 
             for (final Vec3f point : points)
             {
-                final float worldX = point.x * cosThen + point.z * sinThen + driftX;
-                final float worldZ = -point.x * sinThen + point.z * cosThen + driftZ;
-                final float worldY = point.y + driftY;
+                final float localX = point.x * modelScale;
+                final float localY = point.y * modelScale;
+                final float localZ = point.z * modelScale;
+
+                final float worldX = localX * cosThen + localZ * sinThen + driftX;
+                final float worldZ = -localX * sinThen + localZ * cosThen + driftZ;
+                final float worldY = localY + driftY;
 
                 point.x = worldX * cosNow + worldZ * sinNow;
                 point.z = -worldX * sinNow + worldZ * cosNow;
@@ -158,7 +173,7 @@ public class SwordTrail
         }
     }
 
-    public void render(PoseStack poseStack, LivingEntity entity)
+    public void render(PoseStack poseStack, LivingEntity entity, float modelScale)
     {
         if (trailPartList.isEmpty())
         {
@@ -187,7 +202,7 @@ public class SwordTrail
         while (it.hasNext())
         {
             final TrailPart part = it.next();
-            final Vec3f[] points = part.getPoints(currentX, currentY, currentZ, currentYaw);
+            final Vec3f[] points = part.getPoints(currentX, currentY, currentZ, currentYaw, modelScale);
             final float alpha = part.getAlpha();
             final IColorRead color = part.baseColor;
 

@@ -19,6 +19,7 @@ import goblinbob.mobends.standard.main.ModConfig;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
 import goblinbob.mobends.standard.data.PlayerData;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
@@ -36,12 +37,12 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
-public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidModel<E>> extends RenderLayer<E, M>
+public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel<E>> extends RenderLayer<E, M>
 {
     private static final java.util.Map<Class<?>, Boolean> SELF_RENDERING_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     private final BipedMutator<?, E, M> mutator;
-    private HumanoidArmorLayer<E, M, ?> vanillaArmorLayer;
+    private HumanoidArmorLayer<?, ?, ?> vanillaArmorLayer;
 
     private HumanoidModel<E> innerModel;
     private HumanoidModel<E> outerModel;
@@ -57,9 +58,41 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         this.mutator = mutator;
     }
 
-    public void setVanillaArmorLayer(HumanoidArmorLayer<E, M, ?> vanillaLayer)
+    public void setVanillaArmorLayer(HumanoidArmorLayer<?, ?, ?> vanillaLayer)
     {
         this.vanillaArmorLayer = vanillaLayer;
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    private HumanoidModel<E> getHumanoidParentModel()
+    {
+        final M parentModel = getParentModel();
+
+        if (parentModel instanceof HumanoidModel<?>)
+        {
+            return (HumanoidModel<E>) parentModel;
+        }
+
+        return mutator != null ? (HumanoidModel<E>) mutator.humanoidViewOf(parentModel) : null;
+    }
+
+    private void copyParentProperties(HumanoidModel<E> target)
+    {
+        final HumanoidModel<E> humanoidParent = getHumanoidParentModel();
+
+        if (humanoidParent != null)
+        {
+            humanoidParent.copyPropertiesTo(target);
+            return;
+        }
+
+        final M parentModel = getParentModel();
+
+        if (parentModel != null)
+        {
+            parentModel.copyPropertiesTo(target);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -139,8 +172,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             return;
         }
 
-        M parentModel = getParentModel();
-        parentModel.copyPropertiesTo(defaultModel);
+        copyParentProperties(defaultModel);
         defaultModel.young = false;
         setPartVisibility(defaultModel, slot);
 
@@ -177,7 +209,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         if (isCustomModel && armorModel instanceof HumanoidModel<?>)
         {
             HumanoidModel<E> humanoidCustom = (HumanoidModel<E>) armorModel;
-            parentModel.copyPropertiesTo(humanoidCustom);
+            copyParentProperties(humanoidCustom);
             humanoidCustom.young = false;
             setPartVisibility(humanoidCustom, slot);
         }
@@ -623,7 +655,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                     continue;
                 }
 
-                emitVertex(part, v, outVertices, outRegions, outBlendRegions, outBlendWeights);
+                emitVertex(part, v, jointBlend(part, v.y), outVertices, outRegions, outBlendRegions, outBlendWeights);
             }
 
             return;
@@ -647,13 +679,13 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
             if (!Float.isNaN(joint))
             {
-                polys = clipAll(polys, AXIS_Y, joint - JOINT_BLEND_BAND);
-                polys = clipAll(polys, AXIS_Y, joint + JOINT_BLEND_BAND);
+                polys = clipAll(polys, AXIS_Y, joint);
             }
 
             for (java.util.List<CapturedVertex> poly : polys)
             {
-                emitPoly(part, poly, outVertices, outRegions, outBlendRegions, outBlendWeights);
+                emitPoly(part, poly, pieceJointBlend(joint, poly),
+                        outVertices, outRegions, outBlendRegions, outBlendWeights);
             }
         }
 
@@ -849,7 +881,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 a.normalZ + (b.normalZ - a.normalZ) * t);
     }
 
-    private void emitPoly(GeoPart part, java.util.List<CapturedVertex> poly,
+    private void emitPoly(GeoPart part, java.util.List<CapturedVertex> poly, float weight,
                           java.util.List<CapturedVertex> outVertices,
                           java.util.List<BoneRegion> outRegions,
                           java.util.List<BoneRegion> outBlendRegions,
@@ -866,7 +898,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         {
             for (int i = 0; i < 4; ++i)
             {
-                emitVertex(part, poly.get(i), outVertices, outRegions, outBlendRegions, outBlendWeights);
+                emitVertex(part, poly.get(i), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
             }
 
             return;
@@ -874,14 +906,31 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
 
         for (int k = 1; k + 1 < n; ++k)
         {
-            emitVertex(part, poly.get(0), outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitVertex(part, poly.get(k), outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitVertex(part, poly.get(k + 1), outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitVertex(part, poly.get(k + 1), outVertices, outRegions, outBlendRegions, outBlendWeights);
+            emitVertex(part, poly.get(0), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
+            emitVertex(part, poly.get(k), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
+            emitVertex(part, poly.get(k + 1), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
+            emitVertex(part, poly.get(k + 1), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
         }
     }
 
-    private void emitVertex(GeoPart part, CapturedVertex v,
+    private static float pieceJointBlend(float joint, java.util.List<CapturedVertex> poly)
+    {
+        if (Float.isNaN(joint) || poly.isEmpty())
+        {
+            return 0.0F;
+        }
+
+        float centroidY = 0.0F;
+
+        for (CapturedVertex v : poly)
+        {
+            centroidY += v.y;
+        }
+
+        return centroidY / poly.size() > joint ? 1.0F : 0.0F;
+    }
+
+    private void emitVertex(GeoPart part, CapturedVertex v, float weight,
                             java.util.List<CapturedVertex> outVertices,
                             java.util.List<BoneRegion> outRegions,
                             java.util.List<BoneRegion> outBlendRegions,
@@ -890,7 +939,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
         outVertices.add(v);
         outRegions.add(upperRegionFor(part));
         outBlendRegions.add(lowerRegionFor(part));
-        outBlendWeights.add(jointBlend(part, v.y));
+        outBlendWeights.add(weight);
     }
 
     private static goblinbob.mobends.standard.client.model.armor.BoneRegion upperRegionFor(GeoPart part)
@@ -937,8 +986,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
                 return 0.0F;
         }
 
-        float t = (y - (joint - JOINT_BLEND_BAND)) / (2.0F * JOINT_BLEND_BAND);
-        return Math.max(0.0F, Math.min(1.0F, t));
+        return y > joint ? 1.0F : 0.0F;
     }
 
     private static goblinbob.mobends.standard.client.model.armor.BoneRegion regionFor(GeoPart part, float y)
@@ -1101,7 +1149,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends HumanoidMod
             return true;
         }
 
-        return goblinbob.mobends.compat.FirstPersonModelCompat.showsVanillaHands(getParentModel());
+        return goblinbob.mobends.compat.FirstPersonModelCompat.showsVanillaHands(getHumanoidParentModel());
     }
 
     private void renderRigidArmor(PoseStack poseStack, MultiBufferSource bufferSource,

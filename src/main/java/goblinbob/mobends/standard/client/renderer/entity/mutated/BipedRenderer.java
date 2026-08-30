@@ -24,12 +24,13 @@ public class BipedRenderer<T extends LivingEntity> extends MutatedRenderer<T>
             BipedEntityData<?> bipedData = (BipedEntityData<?>) data;
             if (ModConfig.showSwordTrail)
             {
-                final float trailScale = scale * (entity.isBaby() ? getChildScale() : 1.0F);
+                final float modelScale = (entity.isBaby() ? getChildScale() : 1.0F)
+                        * goblinbob.mobends.core.util.EntityScaleHelper.getRenderScale(entity);
 
                 poseStack.pushPose();
-                poseStack.scale(trailScale, trailScale, trailScale);
-                bipedData.swordTrail.render(poseStack, entity);
-                bipedData.offHandSwordTrail.render(poseStack, entity);
+                poseStack.scale(scale, scale, scale);
+                bipedData.swordTrail.render(poseStack, entity, modelScale);
+                bipedData.offHandSwordTrail.render(poseStack, entity, modelScale);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 poseStack.popPose();
             }
