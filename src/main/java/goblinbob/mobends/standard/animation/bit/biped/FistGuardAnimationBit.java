@@ -7,7 +7,6 @@ import net.minecraft.world.entity.HumanoidArm;
 
 public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-	private static final String[] ACTIONS = new String[] { "fist_guard" };
 
 
 	@Override

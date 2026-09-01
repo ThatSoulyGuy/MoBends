@@ -4,6 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class ArrowTrailManager
 {
@@ -18,15 +20,12 @@ public class ArrowTrailManager
 
     public static ArrowTrail getOrMake(AbstractArrow arrow)
     {
-        ArrowTrail trail;
-        if (!trailMap.containsKey(arrow))
+        ArrowTrail trail = trailMap.get(arrow);
+
+        if (trail == null)
         {
             trail = new ArrowTrail(arrow);
             trailMap.put(arrow, trail);
-        }
-        else
-        {
-            trail = trailMap.get(arrow);
         }
 
         return trail;
@@ -72,18 +71,32 @@ public class ArrowTrailManager
                 || type == net.minecraft.world.entity.EntityType.TRIDENT;
     }
 
-    public static void cleanup()
-    {
-        trailMap.entrySet().removeIf(e -> e.getValue().shouldBeRemoved());
-    }
-
     public static void onRenderTick()
     {
-        for (final ArrowTrail trail : trailMap.values())
+        if (trailMap.isEmpty())
         {
-            trail.onRenderTick();
+            return;
         }
 
-        cleanup();
+        final Iterator<Map.Entry<AbstractArrow, ArrowTrail>> iterator = trailMap.entrySet().iterator();
+
+        while (iterator.hasNext())
+        {
+            final ArrowTrail trail = iterator.next().getValue();
+
+            if (trail.shouldBeRemoved())
+            {
+                iterator.remove();
+            }
+            else
+            {
+                trail.onRenderTick();
+            }
+        }
+
+        if (trailMap.isEmpty())
+        {
+            trailMap = new HashMap<>();
+        }
     }
 }

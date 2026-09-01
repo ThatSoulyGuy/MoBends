@@ -60,16 +60,6 @@ public class AssetModels
         return bakedModelMap.get(location);
     }
 
-    private AssetLocation resolveTextureName(String name)
-    {
-        if (name.equals("missingno") || name.startsWith("#"))
-        {
-            return null;
-        }
-
-        return new AssetLocation("textures/" + name);
-    }
-
     private BakedModel parseAndBakeModel(JsonObject modelJson, AssetLocation modelLocation) throws IOException
     {
         LOGGER.warn("Custom model baking not implemented for this platform: {}", modelLocation);

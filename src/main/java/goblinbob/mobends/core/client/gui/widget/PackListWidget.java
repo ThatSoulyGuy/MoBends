@@ -20,7 +20,6 @@ public class PackListWidget
 {
     private static final Logger LOG = LogUtils.getLogger();
     private static final int ITEM_HEIGHT = 34;
-    private static final int THUMBNAIL_SIZE = 24;
 
     private final VanillaViewFactory factory;
     private final VanillaScrollView scrollView;

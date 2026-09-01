@@ -8,8 +8,6 @@ import net.minecraft.util.Mth;
 public class SleepingAnimationBit extends AnimationBit<PlayerData>
 {
 
-    private static final String[] ACTIONS = new String[] { "sleeping" };
-
 
     @Override
     public void perform(PlayerData data)

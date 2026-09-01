@@ -10,12 +10,9 @@ import net.minecraft.util.Mth;
 public class FlyingAnimationBit extends AnimationBit<PlayerData>
 {
 
-	private static final String[] ACTIONS = new String[] { "flying" };
 	private static final float PI = (float) Math.PI;
 	private static final float PI_2 = PI * 2;
 	private static final double STILL_MOTION_THRESHOLD = 0.1;
-
-	private float transformTransition = 0F;
 
 
 	@Override

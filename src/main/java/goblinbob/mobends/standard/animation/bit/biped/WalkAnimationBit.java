@@ -6,7 +6,6 @@ import net.minecraft.util.Mth;
 
 public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
-	private static final String[] ACTIONS = new String[] { "walk" };
 
 	protected final float KNEEL_DURATION = 0.15F;
 

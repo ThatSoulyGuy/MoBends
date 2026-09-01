@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexSorting;
 import goblinbob.mobends.core.bender.EntityBender;
-import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.bender.IPreviewer;
 import goblinbob.mobends.core.bender.PreviewHelper;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;

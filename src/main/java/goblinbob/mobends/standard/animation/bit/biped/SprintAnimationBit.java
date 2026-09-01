@@ -6,7 +6,6 @@ import net.minecraft.util.Mth;
 
 public class SprintAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
-	private static String[] ACTIONS = new String[] { "sprint" };
 
 
 	@Override

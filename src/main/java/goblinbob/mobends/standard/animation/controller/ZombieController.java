@@ -16,9 +16,6 @@ import goblinbob.mobends.standard.animation.bit.zombie_base.ZombieStumblingAnima
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.ZombieData;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class ZombieController implements IAnimationController<ZombieData>
 {

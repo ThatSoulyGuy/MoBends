@@ -1,16 +1,13 @@
 package goblinbob.mobends.core.bender;
 
-import com.mojang.logging.LogUtils;
 import goblinbob.mobends.api.animation.MoBendsAnimationControl;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
-import org.slf4j.Logger;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.*;
 
 public class EntityBenderRegistry
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final EntityBenderRegistry instance = new EntityBenderRegistry();
 

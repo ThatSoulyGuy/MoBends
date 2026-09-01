@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 
 public class TradeOfferAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "trade_offer" };
 
     private static final float OFFER_PITCH = -72.0F;
     private static final float PITCH_INFLUENCE = 0.35F;

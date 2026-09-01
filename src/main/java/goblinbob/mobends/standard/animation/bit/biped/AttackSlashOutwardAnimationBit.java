@@ -12,7 +12,6 @@ import net.minecraft.util.Mth;
 
 public class AttackSlashOutwardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-	private static final String[] ACTIONS = new String[] { "attack", "attack_slash_down" };
 
 	private float ticksPlayed;
 

@@ -8,7 +8,6 @@ import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.util.Mth;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 
 public class SquidController implements IAnimationController<SquidData>
 {

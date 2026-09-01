@@ -15,9 +15,6 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PigZombieData;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class PigZombieController implements IAnimationController<PigZombieData>
 {

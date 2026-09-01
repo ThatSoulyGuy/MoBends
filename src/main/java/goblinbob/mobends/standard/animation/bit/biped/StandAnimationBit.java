@@ -7,7 +7,6 @@ import net.minecraft.util.Mth;
 
 public class StandAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
-	private static final String[] ACTIONS = new String[] { "stand" };
 
 	protected final float kneelDuration = 0.15F;
 

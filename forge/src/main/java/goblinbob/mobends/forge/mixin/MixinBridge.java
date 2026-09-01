@@ -3,13 +3,10 @@ package goblinbob.mobends.forge.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
-import goblinbob.mobends.core.data.EntityDatabase;
-import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.SpiderMutator;
 import goblinbob.mobends.standard.mutators.SquidMutator;
 import goblinbob.mobends.standard.mutators.WolfMutator;
-import net.minecraft.world.entity.LivingEntity;
 
 public final class MixinBridge {
 

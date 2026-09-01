@@ -7,8 +7,6 @@ import net.minecraft.util.Mth;
 public class ElytraAnimationBit extends AnimationBit<PlayerData>
 {
 
-    private static final String[] ACTIONS = new String[] { "elytra" };
-
 
     @Override
     public void perform(PlayerData data)

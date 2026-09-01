@@ -9,7 +9,6 @@ public class SpiderDeathAnimationBit extends AnimationBit<SpiderData>
 {
 
     protected static final float PI = (float) Math.PI;
-    protected static final String[] ACTIONS = new String[] { "death" };
 
     protected float wiggleSpeedMultiplier = 1.0F;
     protected float wigglePhase = 0.0F;

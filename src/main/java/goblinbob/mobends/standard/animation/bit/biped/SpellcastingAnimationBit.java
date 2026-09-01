@@ -7,7 +7,6 @@ import net.minecraft.util.Mth;
 
 public class SpellcastingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "spellcasting" };
 
     private static final float TO_DEGREES = 180F / (float) Math.PI;
 

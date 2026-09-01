@@ -20,9 +20,6 @@ import net.minecraft.world.entity.monster.piglin.PiglinArmPose;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class PiglinController implements IAnimationController<PiglinData<?>>
 {

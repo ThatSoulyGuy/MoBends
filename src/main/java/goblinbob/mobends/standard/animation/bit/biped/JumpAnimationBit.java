@@ -5,7 +5,6 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.util.Mth;
 
 public class JumpAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T> {
-    private static final String[] ACTIONS = new String[]{"jump"};
 
 
     @Override

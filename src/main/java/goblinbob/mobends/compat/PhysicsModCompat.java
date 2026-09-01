@@ -2,14 +2,11 @@ package goblinbob.mobends.compat;
 
 import net.minecraft.world.entity.LivingEntity;
 import dev.architectury.platform.Platform;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
 public class PhysicsModCompat
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger("MoBends-PhysicsModCompat");
     private static final String MOD_ID = "physicsmod";
 
     private static boolean initialized = false;

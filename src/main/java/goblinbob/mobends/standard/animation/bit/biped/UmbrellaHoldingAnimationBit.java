@@ -11,8 +11,6 @@ import net.minecraft.world.entity.LivingEntity;
 public class UmbrellaHoldingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 
-	private static final String[] ACTIONS = new String[] { "umbrella_holding" };
-
 	private static final float RAISE_PITCH = -180.0F;
 	private static final float ELBOW_BEND = 20.0F;
 

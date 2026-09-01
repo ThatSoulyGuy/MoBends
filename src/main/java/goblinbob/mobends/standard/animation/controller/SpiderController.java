@@ -8,9 +8,6 @@ import goblinbob.mobends.standard.animation.bit.spider.*;
 import goblinbob.mobends.standard.data.SpiderData;
 import net.minecraft.world.entity.monster.Spider;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class SpiderController implements IAnimationController<SpiderData>
 {

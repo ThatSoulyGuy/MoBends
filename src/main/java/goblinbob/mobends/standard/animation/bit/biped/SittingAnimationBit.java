@@ -5,7 +5,6 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 
 public class SittingAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
-	private static final String[] ACTIONS = new String[] { "sitting" };
 
 
 	@Override

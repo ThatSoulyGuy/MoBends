@@ -49,7 +49,6 @@ public class VillagerMutator<E extends LivingEntity>
     private static final float TRIM_INFLATE = 0.02F;
 
     private static final boolean HAT_RIM_ENABLED = true;
-    private static final int GLOVE_LENGTH = 4;
 
     private static final int ROBE_TEX_U = 0;
     private static final int ROBE_TEX_V = 38;

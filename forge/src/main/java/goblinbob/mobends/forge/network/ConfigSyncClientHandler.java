@@ -1,16 +1,13 @@
 package goblinbob.mobends.forge.network;
 
-import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.network.SharedNetworkConfiguration;
 import goblinbob.mobends.forge.network.msg.MessageConfigRequest;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import org.slf4j.Logger;
 
 public class ConfigSyncClientHandler
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     @SubscribeEvent
     public void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event)

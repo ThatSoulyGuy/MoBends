@@ -10,7 +10,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class SpyglassAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "spyglass" };
 
     private static final float ARM_PITCH_OFFSET = 110.0F;
     private static final float ARM_YAW_OFFSET = 15.0F;

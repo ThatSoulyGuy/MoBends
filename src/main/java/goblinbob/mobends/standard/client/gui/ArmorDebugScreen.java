@@ -38,7 +38,6 @@ public class ArmorDebugScreen extends Screen
         }
     }
 
-    private int selectedBone = 0;
     private boolean dragging = false;
     private double lastMouseX, lastMouseY;
 

@@ -12,8 +12,6 @@ import net.minecraft.world.item.Items;
 public class TorchHoldingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 
-	private static final String[] ACTIONS = new String[] { "torch_holding" };
-
 
 	private HumanoidArm getTorchHand(LivingEntity living)
 	{

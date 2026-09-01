@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 
 public class CrossbowHoldAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "crossbow_hold" };
 
     private static final float TO_DEGREES = 180F / (float) Math.PI;
 

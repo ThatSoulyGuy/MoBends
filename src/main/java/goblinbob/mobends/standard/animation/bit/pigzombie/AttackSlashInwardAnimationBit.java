@@ -13,8 +13,6 @@ import org.joml.Vector3f;
 public class AttackSlashInwardAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 
-	private static final String[] ACTIONS = new String[] { "attack", "attack_slash_inward" };
-
 
 	@Override
 	public void onPlay(BipedEntityData<?> data)

@@ -4,15 +4,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.data.IEntityDataFactory;
-import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.core.mutators.Mutator;
-import goblinbob.mobends.core.util.GlHelper;
 import goblinbob.mobends.standard.data.SpiderData;
-import com.mojang.math.Axis;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.SpiderModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.monster.Spider;
 
 public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spider>>
@@ -24,7 +20,6 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
     public BendsModelPart[] spiderUpperLimbs;
     public BendsModelPart[] spiderLowerLimbs;
 
-    private static final float SPIDER_MODEL_CENTER_Y = 15.0F / 16.0F;
     private SpiderData currentData;
 
     public SpiderMutator(IEntityDataFactory<Spider> dataFactory)

@@ -1,6 +1,5 @@
 package goblinbob.mobends.forge;
 
-import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.Core;
 import goblinbob.mobends.core.asset.AssetsModule;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
@@ -9,14 +8,12 @@ import goblinbob.mobends.core.env.EnvironmentModule;
 import goblinbob.mobends.core.pack.PackManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 
 @OnlyIn(Dist.CLIENT)
 public class ForgeCore extends Core
 {
-    private static final Logger LOGGER = LogUtils.getLogger();
     private static ForgeCore INSTANCE;
 
     private CoreClientConfig configuration;

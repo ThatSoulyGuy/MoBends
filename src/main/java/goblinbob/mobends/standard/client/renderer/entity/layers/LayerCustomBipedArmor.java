@@ -989,26 +989,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return y > joint ? 1.0F : 0.0F;
     }
 
-    private static goblinbob.mobends.standard.client.model.armor.BoneRegion regionFor(GeoPart part, float y)
-    {
-        switch (part)
-        {
-            case HEAD:
-                return goblinbob.mobends.standard.client.model.armor.BoneRegion.HEAD;
-            case LEFT_ARM:
-                return y <= ELBOW_Y ? goblinbob.mobends.standard.client.model.armor.BoneRegion.LEFT_ARM_UPPER : goblinbob.mobends.standard.client.model.armor.BoneRegion.LEFT_ARM_LOWER;
-            case RIGHT_ARM:
-                return y <= ELBOW_Y ? goblinbob.mobends.standard.client.model.armor.BoneRegion.RIGHT_ARM_UPPER : goblinbob.mobends.standard.client.model.armor.BoneRegion.RIGHT_ARM_LOWER;
-            case LEFT_LEG:
-                return y <= KNEE_Y ? goblinbob.mobends.standard.client.model.armor.BoneRegion.LEFT_LEG_UPPER : goblinbob.mobends.standard.client.model.armor.BoneRegion.LEFT_LEG_LOWER;
-            case RIGHT_LEG:
-                return y <= KNEE_Y ? goblinbob.mobends.standard.client.model.armor.BoneRegion.RIGHT_LEG_UPPER : goblinbob.mobends.standard.client.model.armor.BoneRegion.RIGHT_LEG_LOWER;
-            case BODY:
-            default:
-                return goblinbob.mobends.standard.client.model.armor.BoneRegion.BODY;
-        }
-    }
-
     private static void applyOnlyVisible(HumanoidModel<?> model, GeoPart part, boolean[] slotVisibility)
     {
         setVisible(model.head, part == GeoPart.HEAD && slotVisibility[0]);

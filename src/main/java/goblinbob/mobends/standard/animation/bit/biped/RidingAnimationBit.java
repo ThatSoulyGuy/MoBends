@@ -9,7 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class RidingAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
-	private static final String[] ACTIONS = new String[] { "riding" };
 
 	private static final float PI = (float) Math.PI;
 

@@ -7,7 +7,6 @@ import net.minecraft.util.Mth;
 public class SpiderMoveAnimationBit extends SpiderAnimationBitBase
 {
 
-    protected static final String[] ACTIONS = new String[] { "move" };
     protected static final float KNEEL_DURATION = 10F;
 
 

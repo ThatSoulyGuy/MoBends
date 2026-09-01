@@ -8,8 +8,6 @@ import net.minecraft.util.Mth;
 
 public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-	private static final String[] ACTIONS = new String[] { "swimming", "swimming_surface" };
-	private static final String[] ACTIONS_UNDERWATER = new String[] { "swimming", "swimming_deep" };
 	private static final float PI = (float) Math.PI;
 	private static final float PI_2 = PI*2;
 	private static final float MAX_HEAD_PITCH = 90F;

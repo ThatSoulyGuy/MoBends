@@ -9,8 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 public class LadderClimbAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 
-    private static final String[] ACTIONS = new String[] { "ladder_climb" };
-
 
     @Override
     public void perform(BipedEntityData<?> data)

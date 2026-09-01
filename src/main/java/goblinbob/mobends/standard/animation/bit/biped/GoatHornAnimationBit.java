@@ -9,7 +9,6 @@ import net.minecraft.world.entity.HumanoidArm;
 
 public class GoatHornAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "goat_horn" };
 
     private static final float ARM_PITCH_OFFSET = 85.0F;
     private static final float ARM_YAW_OFFSET = 30.0F;

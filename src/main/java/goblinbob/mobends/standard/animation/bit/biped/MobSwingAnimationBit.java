@@ -13,7 +13,6 @@ import java.util.List;
 
 public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "attack" };
 
     public static boolean canPerform(LivingEntity entity)
     {

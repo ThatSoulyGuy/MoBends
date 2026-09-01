@@ -8,7 +8,6 @@ import net.minecraft.world.entity.HumanoidArm;
 
 public class ShieldAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "shield" };
 
     protected final HumanoidArm actionHand;
 

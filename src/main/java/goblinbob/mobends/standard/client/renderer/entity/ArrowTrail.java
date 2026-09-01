@@ -206,7 +206,9 @@ public class ArrowTrail
 
     public boolean shouldBeRemoved()
     {
-        return mc.level == null || trackedArrow.isRemoved();
+        return mc.level == null
+                || trackedArrow.isRemoved()
+                || mc.level.getEntity(trackedArrow.getId()) != trackedArrow;
     }
 
     static class TrailNode

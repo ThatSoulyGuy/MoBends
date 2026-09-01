@@ -4,13 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 import goblinbob.mobends.core.client.model.IModelPart;
-import goblinbob.mobends.lib.math.Quaternion;
-import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.lib.math.vector.IVec3f;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -313,35 +310,6 @@ public class RigidArmorRenderer
         }
     }
 
-    private Quaternionf getAccumulatedRotation(IModelPart part)
-    {
-        Quaternionf result = new Quaternionf();
-
-        java.util.ArrayList<IModelPart> hierarchy = new java.util.ArrayList<>();
-        IModelPart current = part;
-        while (current != null)
-        {
-            hierarchy.add(0, current);
-            current = current.getParent();
-        }
-
-        for (IModelPart p : hierarchy)
-        {
-            SmoothOrientation orientation = p.getRotation();
-            if (orientation != null)
-            {
-                Quaternion q = orientation.getSmooth();
-                if (q != null && !q.isIdentity())
-                {
-                    Quaternionf jomlQ = new Quaternionf(q.x, q.y, q.z, q.w);
-                    result.mul(jomlQ);
-                }
-            }
-        }
-
-        return result;
-    }
-
     private IModelPart getBoneModelPart(BoneRegion region, BipedEntityData<?> data)
     {
         switch (region)
@@ -410,15 +378,6 @@ public class RigidArmorRenderer
         out[0] += position.getX() + offset.getX();
         out[1] += position.getY() + offset.getY();
         out[2] += position.getZ() + offset.getZ();
-    }
-
-    private void setRestPosition(BoneRegion region, float x, float y, float z)
-    {
-        RestPosePosition pos = new RestPosePosition();
-        pos.x = x * SCALE;
-        pos.y = y * SCALE;
-        pos.z = z * SCALE;
-        restPosePositions.put(region, pos);
     }
 
     private static class BoneTransform

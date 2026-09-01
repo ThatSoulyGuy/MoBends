@@ -10,7 +10,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class WeaponRaisedAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "weapon_raised" };
 
     private static final float PI = (float) Math.PI;
     private static final float TO_DEGREES = 180F / PI;

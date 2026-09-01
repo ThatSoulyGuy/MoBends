@@ -2,7 +2,6 @@ package goblinbob.mobends.forge.network.msg;
 
 import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.network.SharedNetworkConfiguration;
-import goblinbob.mobends.core.network.SharedProperty;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;

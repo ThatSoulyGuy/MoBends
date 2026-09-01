@@ -18,6 +18,7 @@ import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldI
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -1713,6 +1714,15 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             model.hat.xRot = model.head.xRot;
             model.hat.yRot = model.head.yRot;
             model.hat.zRot = model.head.zRot;
+        }
+
+        if (model instanceof PlayerModel<?> playerModel)
+        {
+            playerModel.leftSleeve.copyFrom(model.leftArm);
+            playerModel.rightSleeve.copyFrom(model.rightArm);
+            playerModel.leftPants.copyFrom(model.leftLeg);
+            playerModel.rightPants.copyFrom(model.rightLeg);
+            playerModel.jacket.copyFrom(model.body);
         }
     }
 

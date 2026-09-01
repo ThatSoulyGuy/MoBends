@@ -37,8 +37,6 @@ public class Tier1Renderer
 {
     private final Tier2Renderer tier2Fallback;
 
-    private final PartStateStorage partStateStorage = new PartStateStorage();
-
     private final CapturingVertexConsumer limbCapture = new CapturingVertexConsumer();
     private final QuadSlicer quadSlicer = new QuadSlicer();
 

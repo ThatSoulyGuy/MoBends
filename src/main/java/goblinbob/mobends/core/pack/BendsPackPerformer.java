@@ -4,8 +4,6 @@ import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
 
 public class BendsPackPerformer
 {

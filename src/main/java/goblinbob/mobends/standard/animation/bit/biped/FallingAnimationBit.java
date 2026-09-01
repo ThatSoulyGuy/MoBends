@@ -7,7 +7,6 @@ import net.minecraft.util.Mth;
 
 public class FallingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-	private static final String[] ACTIONS = new String[] { "falling" };
 	public static final float TICKS_BEFORE_FALLING = 10;
 	public static final float FALLING_TRANSITION_TICKS = 80;
 

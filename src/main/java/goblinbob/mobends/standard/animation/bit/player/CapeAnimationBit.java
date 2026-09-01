@@ -2,6 +2,7 @@ package goblinbob.mobends.standard.animation.bit.player;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
+import goblinbob.mobends.standard.animation.controller.PlayerController;
 import goblinbob.mobends.standard.data.PlayerData;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
@@ -44,9 +45,15 @@ public class CapeAnimationBit extends AnimationBit<PlayerData>
 
         if (data.isFlying() && player.isSprinting())
         {
-            data.cape.rotation.setSmoothness(0.5F).orientX(0.0F);
+            data.cape.rotation.setSmoothness(0.5F).orientX(6.0F);
 
             data.setCapeWaveSpeed(4.0F);
+        }
+        else if (PlayerController.isCrawling(data, player))
+        {
+            data.cape.rotation.setSmoothness(0.5F).orientX(6.0F);
+
+            data.setCapeWaveSpeed(1.0F);
         }
         else
         {

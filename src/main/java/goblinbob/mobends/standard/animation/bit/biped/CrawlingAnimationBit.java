@@ -6,7 +6,6 @@ import net.minecraft.util.Mth;
 
 public class CrawlingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-	private static final String[] ACTIONS = new String[] { "crawling" };
 
 	private static final float PI = (float) Math.PI;
 

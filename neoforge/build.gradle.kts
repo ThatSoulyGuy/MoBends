@@ -108,6 +108,7 @@ tasks.named<Jar>("sourcesJar") {
 }
 
 tasks.shadowJar {
+    from(rootProject.file("LICENSE"))
     configurations = listOf(shadowBundle)
     archiveClassifier = "dev-shadow"
     exclude("fabric.mod.json", "architectury.common.json")

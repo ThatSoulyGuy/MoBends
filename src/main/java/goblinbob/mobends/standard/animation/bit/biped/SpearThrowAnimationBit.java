@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 
 public class SpearThrowAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
-    private static final String[] ACTIONS = new String[] { "spear_throw" };
 
     private static final float THROW_PITCH = -180.0F;
     private static final float PITCH_INFLUENCE = 0.25F;
