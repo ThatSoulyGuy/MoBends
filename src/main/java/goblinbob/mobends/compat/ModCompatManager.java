@@ -41,6 +41,8 @@ public class ModCompatManager
 
         ParCoolCompat.init();
 
+        ParagliderCompat.init();
+
         MonsterExpansionCompat.init();
 
         CrawlCompat.init();

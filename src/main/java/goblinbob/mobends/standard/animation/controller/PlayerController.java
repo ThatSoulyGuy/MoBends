@@ -29,6 +29,7 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected AnimationBit<BipedEntityData<?>> bitRiding = new RidingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitSitting = new SittingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitFalling = new FallingAnimationBit();
+    protected AnimationBit<BipedEntityData<?>> bitParagliding = new ParaglidingAnimationBit();
     protected AnimationBit<PlayerData> bitWalk = new goblinbob.mobends.standard.animation.bit.player.WalkAnimationBit<>();
     protected AnimationBit<PlayerData> bitSprint = new goblinbob.mobends.standard.animation.bit.player.SprintAnimationBit<>();
     protected AnimationBit<PlayerData> bitSprintJump = new SprintJumpAnimationBit();
@@ -56,6 +57,12 @@ public class PlayerController implements IAnimationController<PlayerData>
         }
 
         if (isCrawling(data, player))
+        {
+            actionController.clearAction();
+            return;
+        }
+
+        if (goblinbob.mobends.compat.ParagliderCompat.isParagliding(player))
         {
             actionController.clearAction();
             return;
@@ -107,7 +114,13 @@ public class PlayerController implements IAnimationController<PlayerData>
         }
         else
         {
-            if (player.getFallFlyingTicks() > 4)
+            if (goblinbob.mobends.compat.ParagliderCompat.isParagliding(player))
+            {
+                layerBase.playOrContinueBit(bitParagliding, data);
+                layerSneak.clearAnimation();
+                layerTorch.clearAnimation();
+            }
+            else if (player.getFallFlyingTicks() > 4)
             {
                 layerBase.playOrContinueBit(bitElytra, data);
                 layerSneak.clearAnimation();
