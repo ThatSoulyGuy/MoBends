@@ -45,6 +45,20 @@ public final class MixinBridge {
         }
     }
 
+    public static void syncPosesBeforeLayers() {
+        if (!MoBendsRenderContext.isInMainModelRender()) {
+            return;
+        }
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        if (mutator == null || !mutator.shouldRenderCustom()) {
+            return;
+        }
+        net.minecraft.client.model.HumanoidModel<?> vanillaModel = MoBendsRenderContext.getCurrentVanillaModel();
+        if (vanillaModel != null) {
+            mutator.syncPosesToVanillaModel(vanillaModel);
+        }
+    }
+
     public static void compensateScaledPivot(Object part, PoseStack poseStack) {
         if (MoBendsRenderContext.isInMainModelRender()) {
             return;

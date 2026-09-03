@@ -1182,10 +1182,22 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     private static boolean carriesSyncedPivot(HumanoidModel<?> vanilla, ModelPart part)
     {
+        if (ownsPart(vanilla, part))
+        {
+            return false;
+        }
+
         return copiesPivot(vanilla.body, part) || copiesPivot(vanilla.head, part)
                 || copiesPivot(vanilla.hat, part)
                 || copiesPivot(vanilla.leftArm, part) || copiesPivot(vanilla.rightArm, part)
                 || copiesPivot(vanilla.leftLeg, part) || copiesPivot(vanilla.rightLeg, part);
+    }
+
+    private static boolean ownsPart(HumanoidModel<?> vanilla, ModelPart part)
+    {
+        return vanilla.body == part || vanilla.head == part || vanilla.hat == part
+                || vanilla.leftArm == part || vanilla.rightArm == part
+                || vanilla.leftLeg == part || vanilla.rightLeg == part;
     }
 
     private static boolean copiesPivot(ModelPart source, ModelPart part)
