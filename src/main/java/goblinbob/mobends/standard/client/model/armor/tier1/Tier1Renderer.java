@@ -576,7 +576,11 @@ public class Tier1Renderer
             );
         }
 
+        ArmorPoseHelper.applyPreRotationScale(poseStack, body);
+
         GlHelper.rotate(poseStack, body.rotation.getSmooth());
+
+        ArmorPoseHelper.applyOwnScale(poseStack, body);
 
         poseStack.translate(
             -body.position.x * scale * offsetScale,

@@ -155,10 +155,8 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
 
         poseStack.pushPose();
 
-        poseStack.translate(body.position.x * scale, body.position.y * scale, body.position.z * scale);
-        GlHelper.rotate(poseStack, body.rotation.getSmooth());
-        poseStack.translate(head.position.x * scale, head.position.y * scale, head.position.z * scale);
-        GlHelper.rotate(poseStack, head.rotation.getSmooth());
+        applyBoneTransform(poseStack, body, scale, false);
+        applyBoneTransform(poseStack, head, scale, false);
 
         poseStack.translate(0.0F, -0.25F, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
@@ -238,6 +236,29 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
         return armPart != null && foreArm != null ? foreArm : null;
     }
 
+    private static void applyBoneTransform(PoseStack poseStack, BendsModelPart bone, float scale,
+                                           boolean includeOffset)
+    {
+        poseStack.translate(bone.position.x * scale, bone.position.y * scale, bone.position.z * scale);
+
+        if (includeOffset && (bone.offset.x != 0 || bone.offset.y != 0 || bone.offset.z != 0))
+        {
+            poseStack.translate(bone.offset.x * scale, bone.offset.y * scale, bone.offset.z * scale);
+        }
+
+        if (bone.preRotationScale.x != 1.0F || bone.preRotationScale.y != 1.0F || bone.preRotationScale.z != 1.0F)
+        {
+            poseStack.scale(bone.preRotationScale.x, bone.preRotationScale.y, bone.preRotationScale.z);
+        }
+
+        GlHelper.rotate(poseStack, bone.rotation.getSmooth());
+
+        if (bone.scale.x != 1.0F || bone.scale.y != 1.0F || bone.scale.z != 1.0F)
+        {
+            poseStack.scale(bone.scale.x, bone.scale.y, bone.scale.z);
+        }
+    }
+
     protected void translateToHand(HumanoidArm arm, E entity, PoseStack poseStack)
     {
         BendsModelPart foreArm = this.isDrivenByMoBends(entity) ? this.getCustomForeArm(arm) : null;
@@ -249,26 +270,9 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
 
             float scale = 1.0F / 16.0F;
 
-            poseStack.translate(body.position.x * scale, body.position.y * scale, body.position.z * scale);
-            if (body.offset.x != 0 || body.offset.y != 0 || body.offset.z != 0)
-            {
-                poseStack.translate(body.offset.x * scale, body.offset.y * scale, body.offset.z * scale);
-            }
-            GlHelper.rotate(poseStack, body.rotation.getSmooth());
-
-            poseStack.translate(armPart.position.x * scale, armPart.position.y * scale, armPart.position.z * scale);
-            if (armPart.offset.x != 0 || armPart.offset.y != 0 || armPart.offset.z != 0)
-            {
-                poseStack.translate(armPart.offset.x * scale, armPart.offset.y * scale, armPart.offset.z * scale);
-            }
-            GlHelper.rotate(poseStack, armPart.rotation.getSmooth());
-
-            poseStack.translate(foreArm.position.x * scale, foreArm.position.y * scale, foreArm.position.z * scale);
-            if (foreArm.offset.x != 0 || foreArm.offset.y != 0 || foreArm.offset.z != 0)
-            {
-                poseStack.translate(foreArm.offset.x * scale, foreArm.offset.y * scale, foreArm.offset.z * scale);
-            }
-            GlHelper.rotate(poseStack, foreArm.rotation.getSmooth());
+            applyBoneTransform(poseStack, body, scale, true);
+            applyBoneTransform(poseStack, armPart, scale, true);
+            applyBoneTransform(poseStack, foreArm, scale, true);
 
             poseStack.translate(0, -4.0F * scale, -2.0F * scale);
 

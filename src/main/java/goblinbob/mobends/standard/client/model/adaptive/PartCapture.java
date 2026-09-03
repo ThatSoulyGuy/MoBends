@@ -178,6 +178,8 @@ public final class PartCapture
         final CapturingVertexConsumer consumer = new CapturingVertexConsumer();
         List<CapturedVertex> vertices;
 
+        goblinbob.mobends.compat.MorePlayerModelsCompat.beginNeutralCapture();
+
         try
         {
             part.render(new PoseStack(), consumer, 0, OverlayTexture.NO_OVERLAY);
@@ -189,6 +191,8 @@ public final class PartCapture
         }
         finally
         {
+            goblinbob.mobends.compat.MorePlayerModelsCompat.endNeutralCapture();
+
             ArmorPoseHelper.restorePartFromStorage(part, storage);
 
             for (int i = 0; i < subtree.size(); ++i)

@@ -51,6 +51,7 @@ public interface IModelPart extends goblinbob.mobends.lib.client.model.IAnimated
 	void setVisible(boolean showModel);
 	IVec3f getPosition();
 	IVec3f getScale();
+	default IVec3f getPreRotationScale() { return null; }
 	IVec3f getOffset();
 	SmoothOrientation getRotation();
 	float getOffsetScale();

@@ -132,6 +132,16 @@ public class SwordTrail
             return points;
         }
 
+        private static void applyBoneScale(Vec3f[] points, ModelPartTransform bone, boolean own)
+        {
+            final Vec3f value = own ? bone.scale : bone.preRotationScale;
+
+            if (value.x != 1.0F || value.y != 1.0F || value.z != 1.0F)
+            {
+                GUtil.scale(points, value.x, value.y, value.z);
+            }
+        }
+
         public Vec3f[] getPoints()
         {
             float alpha = ticksExisted / 5F;
@@ -148,11 +158,17 @@ public class SwordTrail
 
             GUtil.rotate(points, itemRotation);
             GUtil.translate(points, primaryHand == HumanoidArm.LEFT ? 1 : -1, -6, 0);
+            applyBoneScale(points, foreArm, true);
             GUtil.rotate(points, foreArm.rotation.getSmooth());
+            applyBoneScale(points, foreArm, false);
             GUtil.translate(points, 0, -6 + 2, 0);
+            applyBoneScale(points, arm, true);
             GUtil.rotate(points, arm.rotation.getSmooth());
+            applyBoneScale(points, arm, false);
             GUtil.translate(points, arm.position.x, 10, 0);
+            applyBoneScale(points, body, true);
             GUtil.rotate(points, body.rotation.getSmooth());
+            applyBoneScale(points, body, false);
             GUtil.translate(points, 0, 12, 0);
             GUtil.rotate(points, renderRotation);
             GUtil.translate(points, renderOffset.x, renderOffset.y, renderOffset.z);

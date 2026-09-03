@@ -21,6 +21,26 @@ public final class ArmorPoseHelper
     {
     }
 
+    public static void applyPreRotationScale(PoseStack poseStack, ModelPartTransform transform)
+    {
+        if (transform.preRotationScale.x != 1.0F
+                || transform.preRotationScale.y != 1.0F
+                || transform.preRotationScale.z != 1.0F)
+        {
+            poseStack.scale(transform.preRotationScale.x,
+                    transform.preRotationScale.y,
+                    transform.preRotationScale.z);
+        }
+    }
+
+    public static void applyOwnScale(PoseStack poseStack, ModelPartTransform transform)
+    {
+        if (transform.scale.x != 1.0F || transform.scale.y != 1.0F || transform.scale.z != 1.0F)
+        {
+            poseStack.scale(transform.scale.x, transform.scale.y, transform.scale.z);
+        }
+    }
+
     public static void applyPartTransform(PoseStack poseStack, ModelPartTransform transform, boolean isChildPart)
     {
         if (transform == null)
@@ -57,7 +77,11 @@ public final class ArmorPoseHelper
             );
         }
 
+        applyPreRotationScale(poseStack, transform);
+
         GlHelper.rotate(poseStack, transform.rotation.getSmooth());
+
+        applyOwnScale(poseStack, transform);
     }
 
     public static void applyLegTransform(PoseStack poseStack, ModelPartTransform transform, float vanillaLegX)
@@ -93,7 +117,11 @@ public final class ArmorPoseHelper
             );
         }
 
+        applyPreRotationScale(poseStack, transform);
+
         GlHelper.rotate(poseStack, transform.rotation.getSmooth());
+
+        applyOwnScale(poseStack, transform);
     }
 
     public static void applyBodyTransformWithPivot(PoseStack poseStack, BipedEntityData<?> entityData)
@@ -130,7 +158,11 @@ public final class ArmorPoseHelper
             );
         }
 
+        applyPreRotationScale(poseStack, body);
+
         GlHelper.rotate(poseStack, body.rotation.getSmooth());
+
+        applyOwnScale(poseStack, body);
 
         poseStack.translate(
             -body.position.x * SCALE * offsetScale,

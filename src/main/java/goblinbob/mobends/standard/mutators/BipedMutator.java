@@ -810,6 +810,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         settlePoseForGui(data);
 
+        goblinbob.mobends.compat.MorePlayerModelsCompat.applyModelScaling(data.getEntity(), data);
+
         head.syncUp(data.head);
         body.syncUp(data.body);
         leftArm.syncUp(data.leftArm);
@@ -1680,9 +1682,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     protected void applyBabyHeadScale()
     {
-        if (head != null)
+        if (head != null && babyHeadScale != 1.0F)
         {
-            head.scale.set(babyHeadScale, babyHeadScale, babyHeadScale);
+            head.scale.set(head.scale.x * babyHeadScale,
+                           head.scale.y * babyHeadScale,
+                           head.scale.z * babyHeadScale);
         }
     }
 

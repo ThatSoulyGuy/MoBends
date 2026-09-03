@@ -23,6 +23,8 @@ public class BendsModelPart implements IModelPart
 
     public Vec3f globalOffset = new Vec3f();
 
+    public Vec3f preRotationScale = new Vec3f(1, 1, 1);
+
     protected int textureOffsetX;
     protected int textureOffsetY;
     protected float textureWidth = 64.0F;
@@ -175,6 +177,11 @@ public class BendsModelPart implements IModelPart
                                offset.z * scale * offsetScale);
         }
 
+        if (preRotationScale.x != 1.0F || preRotationScale.y != 1.0F || preRotationScale.z != 1.0F)
+        {
+            poseStack.scale(preRotationScale.x, preRotationScale.y, preRotationScale.z);
+        }
+
         GlHelper.rotate(poseStack, rotation.getSmooth());
 
         if (this.scale.x != 1.0F || this.scale.y != 1.0F || this.scale.z != 1.0F)
@@ -216,6 +223,11 @@ public class BendsModelPart implements IModelPart
             poseStack.translate(offset.x * scale * offsetScale,
                                offset.y * scale * offsetScale,
                                offset.z * scale * offsetScale);
+        }
+
+        if (preRotationScale.x != 1.0F || preRotationScale.y != 1.0F || preRotationScale.z != 1.0F)
+        {
+            poseStack.scale(preRotationScale.x, preRotationScale.y, preRotationScale.z);
         }
 
         GlHelper.rotate(poseStack, rotation.getSmooth());
@@ -288,7 +300,16 @@ public class BendsModelPart implements IModelPart
         scale.set(part.getScale());
         offsetScale = part.getOffsetScale();
         globalOffset.set(part.getGlobalOffset());
+
+        final IVec3f otherPreRotationScale = part.getPreRotationScale();
+        if (otherPreRotationScale != null)
+        {
+            preRotationScale.set(otherPreRotationScale);
+        }
     }
+
+    @Override
+    public IVec3f getPreRotationScale() { return this.preRotationScale; }
 
     @Override
     public void setVisible(boolean showModel)

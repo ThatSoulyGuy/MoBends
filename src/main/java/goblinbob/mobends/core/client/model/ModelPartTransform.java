@@ -12,6 +12,7 @@ public class ModelPartTransform implements IModelPart
 {
 	public Vec3f position;
 	public Vec3f scale;
+	public Vec3f preRotationScale = new Vec3f(1, 1, 1);
 	public Vec3f offset;
 	public SmoothOrientation rotation;
 	public float offsetScale = 1.0F;
@@ -75,7 +76,14 @@ public class ModelPartTransform implements IModelPart
 		this.offset.set(part.getOffset());
 		this.scale.set(part.getScale());
 		this.offsetScale = part.getOffsetScale();
+
+		final IVec3f otherPreRotationScale = part.getPreRotationScale();
+		if (otherPreRotationScale != null)
+			this.preRotationScale.set(otherPreRotationScale);
 	}
+
+	@Override
+	public IVec3f getPreRotationScale() { return this.preRotationScale; }
 
 	@Override
 	public boolean isShowing()
@@ -105,6 +113,9 @@ public class ModelPartTransform implements IModelPart
 
 		if (this.offset.x != 0.0F || this.offset.y != 0.0F || this.offset.z != 0.0F)
 			poseStack.translate(this.offset.x * scale * offsetScale, this.offset.y * scale * offsetScale, this.offset.z * scale * offsetScale);
+
+		if (this.preRotationScale.x != 1.0F || this.preRotationScale.y != 1.0F || this.preRotationScale.z != 1.0F)
+			poseStack.scale(this.preRotationScale.x, this.preRotationScale.y, this.preRotationScale.z);
 
 		GlHelper.rotate(poseStack, this.rotation.getSmooth());
 

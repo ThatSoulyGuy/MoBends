@@ -47,6 +47,8 @@ public class ModCompatManager
 
         BossesRiseCompat.init();
 
+        MorePlayerModelsCompat.init();
+
         CrawlCompat.init();
 
         OffHandCombatCompat.init();
