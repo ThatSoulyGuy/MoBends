@@ -45,6 +45,16 @@ public final class MixinBridge {
         }
     }
 
+    public static void compensateScaledPivot(Object part, PoseStack poseStack) {
+        if (MoBendsRenderContext.isInMainModelRender()) {
+            return;
+        }
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        if (mutator != null && part instanceof net.minecraft.client.model.geom.ModelPart modelPart) {
+            mutator.compensateScaledPivot(modelPart, poseStack);
+        }
+    }
+
     public static boolean mayRenderBipedOverlay() {
         if (MoBendsRenderContext.isInMainModelRender()) {
             return false;

@@ -560,6 +560,8 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         syncConcealmentFromVanillaModel();
         adoptExternalArmPose();
 
+        captureMainRenderPose(poseStack);
+
         captureRenderAnchorPose(poseStack);
 
         if (body != null)

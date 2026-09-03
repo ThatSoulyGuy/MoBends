@@ -958,6 +958,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 model.leftArm, model.rightArm, model.leftLeg, model.rightLeg
         };
 
+        final VanillaPartState[] hostRest = {
+                vanillaHeadState, vanillaHatState, vanillaBodyState,
+                vanillaLeftArmState, vanillaRightArmState, vanillaLeftLegState, vanillaRightLegState
+        };
+
         final boolean restorePose = hasBakedRestPose(parts);
         final PartPose[] saved = new PartPose[parts.length];
         final boolean crouching = model.crouching;
@@ -968,7 +973,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             {
                 if (parts[i] == null) continue;
                 saved[i] = parts[i].storePose();
-                parts[i].loadPose(parts[i].getInitialPose());
+                parts[i].loadPose(overlayRestPose(parts[i], hostRest[i]));
             }
             model.crouching = false;
         }
@@ -997,6 +1002,19 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 model.crouching = crouching;
             }
         }
+    }
+
+    private static PartPose overlayRestPose(ModelPart part, VanillaPartState hostRest)
+    {
+        final PartPose pose = part.getInitialPose();
+
+        if (hostRest == null || pose.x != 0.0F || pose.y != 0.0F || pose.z != 0.0F)
+        {
+            return pose;
+        }
+
+        return PartPose.offsetAndRotation(hostRest.x, hostRest.y, hostRest.z,
+                pose.xRot, pose.yRot, pose.zRot);
     }
 
     private static boolean hasBakedRestPose(ModelPart[] parts)
@@ -1109,6 +1127,18 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 
+    protected void captureMainRenderPose(PoseStack poseStack)
+    {
+        if (!MoBendsRenderContext.isInMainModelRender())
+        {
+            return;
+        }
+
+        mainRenderPose.set(poseStack.last().pose());
+        mainRenderNormal.set(poseStack.last().normal());
+        mainRenderPoseValid = true;
+    }
+
     protected void captureRenderAnchorPose(PoseStack poseStack)
     {
         if (!MoBendsRenderContext.isInMainModelRender())
@@ -1118,6 +1148,61 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         renderAnchorPose.set(poseStack.last().pose());
         renderAnchorPoseValid = true;
+    }
+
+    public void compensateScaledPivot(ModelPart part, PoseStack poseStack)
+    {
+        if (part == null || poseStack == null || !mainRenderPoseValid)
+        {
+            return;
+        }
+        if (part.x == 0.0F && part.y == 0.0F && part.z == 0.0F)
+        {
+            return;
+        }
+
+        final HumanoidModel<?> vanilla = MoBendsRenderContext.getCurrentVanillaModel();
+        if (vanilla == null || vanilla.young || !carriesSyncedPivot(vanilla, part))
+        {
+            return;
+        }
+
+        final float scale = poseScaleAgainstMainRender(poseStack);
+        if (scale <= 0.0F || Math.abs(scale - 1.0F) < 1.0e-4F)
+        {
+            return;
+        }
+
+        final float correction = (1.0F / scale - 1.0F) / 16.0F;
+        poseStack.translate(part.x * correction, part.y * correction, part.z * correction);
+    }
+
+    private static boolean carriesSyncedPivot(HumanoidModel<?> vanilla, ModelPart part)
+    {
+        return copiesPivot(vanilla.body, part) || copiesPivot(vanilla.head, part)
+                || copiesPivot(vanilla.hat, part)
+                || copiesPivot(vanilla.leftArm, part) || copiesPivot(vanilla.rightArm, part)
+                || copiesPivot(vanilla.leftLeg, part) || copiesPivot(vanilla.rightLeg, part);
+    }
+
+    private static boolean copiesPivot(ModelPart source, ModelPart part)
+    {
+        return source != null && source != part
+                && source.x == part.x && source.y == part.y && source.z == part.z;
+    }
+
+    private float poseScaleAgainstMainRender(PoseStack poseStack)
+    {
+        final float base = axisScaleOf(mainRenderPose);
+        return base == 0.0F ? 1.0F : axisScaleOf(poseStack.last().pose()) / base;
+    }
+
+    private static float axisScaleOf(org.joml.Matrix4f matrix)
+    {
+        final float x = matrix.m00();
+        final float y = matrix.m01();
+        final float z = matrix.m02();
+        return (float) Math.sqrt(x * x + y * y + z * z);
     }
 
     private void applyMainRenderPose(PoseStack poseStack)
@@ -1334,12 +1419,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         syncConcealmentFromVanillaModel();
         adoptExternalArmPose();
 
-        if (MoBendsRenderContext.isInMainModelRender())
-        {
-            mainRenderPose.set(poseStack.last().pose());
-            mainRenderNormal.set(poseStack.last().normal());
-            mainRenderPoseValid = true;
-        }
+        captureMainRenderPose(poseStack);
 
         captureRenderAnchorPose(poseStack);
 

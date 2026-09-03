@@ -8,6 +8,7 @@
   ],
   "client": [
     "AgeableListModelMixin",
+    "ModelPartMixin",
     "BufferSourceCaptureMixin",
     "ItemRendererArmorFoilMixin",
     "HierarchicalModelMixin",

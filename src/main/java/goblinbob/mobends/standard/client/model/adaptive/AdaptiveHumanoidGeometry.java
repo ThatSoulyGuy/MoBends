@@ -21,6 +21,8 @@ public final class AdaptiveHumanoidGeometry
     private static final float SKIRT_OVERLAP = 3.0F;
     private static final float SKIRT_TUCK = 0.05F;
 
+    private static final float OVERLAY_LIMB_SEPARATION = 0.01F;
+
     private static final float CROUCH_HEAD_Y = 4.2F;
     private static final float CROUCH_BODY_Y = 3.2F;
     private static final float CROUCH_ARM_Y = 3.2F;
@@ -66,6 +68,8 @@ public final class AdaptiveHumanoidGeometry
     public BendsMesh rightForeLegWearMesh;
 
     private float[] jointOverride = null;
+
+    private float limbSeparation = 0.0F;
 
     public boolean limbSubtreesBaked = false;
 
@@ -133,6 +137,7 @@ public final class AdaptiveHumanoidGeometry
         final AdaptiveHumanoidGeometry geometry = new AdaptiveHumanoidGeometry();
         geometry.jointOverride = jointOverride;
         geometry.limbSubtreesBaked = limbMode == CaptureMode.SUBTREE;
+        geometry.limbSeparation = limbMode == CaptureMode.OVERLAY ? OVERLAY_LIMB_SEPARATION : 0.0F;
 
         final float torsoBottom = body.isEmpty() ? DEFAULT_BODY_HEIGHT : body.baseMaxY;
         geometry.torsoBottom = torsoBottom;
@@ -254,7 +259,7 @@ public final class AdaptiveHumanoidGeometry
         forePivot[1] = splitY;
         forePivot[2] = hingeZ;
 
-        final List<SliceResult> slices = sliceAt(arm.quads, JointDefinitions.createElbowPlane(splitY));
+        final List<SliceResult> slices = sliceAt(separated(arm), JointDefinitions.createElbowPlane(splitY));
         final List<SliceResult> wearSlices = wear.isEmpty() ? null
                 : sliceAt(shiftOnto(wear, arm), JointDefinitions.createElbowPlane(splitY));
 
@@ -297,7 +302,7 @@ public final class AdaptiveHumanoidGeometry
         forePivot[1] = splitY;
         forePivot[2] = hingeZ;
 
-        final List<SliceResult> slices = sliceAt(leg.quads, JointDefinitions.createKneePlane(splitY));
+        final List<SliceResult> slices = sliceAt(separated(leg), JointDefinitions.createKneePlane(splitY));
         final List<SliceResult> wearSlices = wear.isEmpty() ? null
                 : sliceAt(shiftOnto(wear, leg), JointDefinitions.createKneePlane(splitY));
 
@@ -323,6 +328,47 @@ public final class AdaptiveHumanoidGeometry
                 rightForeLegWearMesh = slicedMesh(wearSlices, false, 0.0F, -splitY, -hingeZ);
             }
         }
+    }
+
+    private List<CapturedVertex[]> separated(PartCapture capture)
+    {
+        if (limbSeparation == 0.0F || capture.isEmpty())
+        {
+            return capture.quads;
+        }
+
+        final float amount = limbSeparation * SCALE;
+        final float centreX = (capture.minX + capture.maxX) * 0.5F * SCALE;
+        final float centreY = (capture.minY + capture.maxY) * 0.5F * SCALE;
+        final float centreZ = (capture.minZ + capture.maxZ) * 0.5F * SCALE;
+
+        final List<CapturedVertex[]> displaced = new ArrayList<>(capture.quads.size());
+
+        for (CapturedVertex[] quad : capture.quads)
+        {
+            final CapturedVertex[] moved = new CapturedVertex[quad.length];
+
+            for (int i = 0; i < quad.length; ++i)
+            {
+                final CapturedVertex vertex = quad[i];
+                moved[i] = new CapturedVertex(pushOut(vertex.x, centreX, amount),
+                        pushOut(vertex.y, centreY, amount),
+                        pushOut(vertex.z, centreZ, amount),
+                        vertex.red, vertex.green, vertex.blue, vertex.alpha,
+                        vertex.u, vertex.v,
+                        vertex.overlayUV, vertex.lightmapUV,
+                        vertex.normalX, vertex.normalY, vertex.normalZ);
+            }
+
+            displaced.add(moved);
+        }
+
+        return displaced;
+    }
+
+    private static float pushOut(float value, float centre, float amount)
+    {
+        return value + Math.signum(value - centre) * amount;
     }
 
     private static List<CapturedVertex[]> shiftOnto(PartCapture wear, PartCapture base)
