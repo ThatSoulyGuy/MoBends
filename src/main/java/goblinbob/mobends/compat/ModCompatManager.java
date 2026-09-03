@@ -45,6 +45,8 @@ public class ModCompatManager
 
         MonsterExpansionCompat.init();
 
+        BossesRiseCompat.init();
+
         CrawlCompat.init();
 
         OffHandCombatCompat.init();
