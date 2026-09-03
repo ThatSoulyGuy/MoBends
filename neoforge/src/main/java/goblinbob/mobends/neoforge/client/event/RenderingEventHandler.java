@@ -177,6 +177,13 @@ public class RenderingEventHandler
 
         if (bender.isAnimated())
         {
+            if (goblinbob.mobends.compat.CustomNpcsCompat.routeRender(entity, renderer, partialTicks, poseStack,
+                    event.getMultiBufferSource(), event.getPackedLight())
+                    != goblinbob.mobends.compat.CustomNpcsCompat.RenderRoute.OWN_MODEL)
+            {
+                return;
+            }
+
             boolean mutationApplied = bender.applyMutation(renderer, entity, partialTicks);
 
             if (mutationApplied)

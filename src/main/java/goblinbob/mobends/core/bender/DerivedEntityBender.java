@@ -98,6 +98,7 @@ public class DerivedEntityBender<T extends LivingEntity> extends EntityBender<T>
             if (!entityClass.isInstance(entity)) return null;
 
             entity.moveTo(0, 0, 0, 0, 0);
+            entity.refreshDimensions();
 
             IMobSpawnHelper helper = IMobSpawnHelper.Holder.getHelper();
             if (helper != null && entity instanceof Mob mob)

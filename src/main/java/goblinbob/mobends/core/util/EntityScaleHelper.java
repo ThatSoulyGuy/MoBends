@@ -15,6 +15,12 @@ public final class EntityScaleHelper
             return 1.0F;
         }
 
+        final float npcScale = goblinbob.mobends.compat.CustomNpcsCompat.renderScaleOf(entity);
+        if (npcScale != 1.0F)
+        {
+            return npcScale;
+        }
+
         //? if >=1.21 {
         /*return entity.getScale();
         *///?} else {

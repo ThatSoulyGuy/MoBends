@@ -1130,6 +1130,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         goblinbob.mobends.compat.BossesRiseCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.CustomNpcsCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 
     protected void captureMainRenderPose(PoseStack poseStack)
@@ -1823,6 +1826,12 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             playerModel.rightPants.copyFrom(model.rightLeg);
             playerModel.jacket.copyFrom(model.body);
         }
+
+        onPosesSyncedToVanillaModel(model);
+    }
+
+    protected void onPosesSyncedToVanillaModel(HumanoidModel<?> model)
+    {
     }
 
     @SuppressWarnings("unchecked")

@@ -18,10 +18,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -31,17 +32,36 @@ public final class WeaponTrailMetrics
 {
     public static final float VANILLA_SPAN = 16.0F;
 
+    private static final float UNITS_PER_BLOCK = 16.0F;
     private static final float SPAN_GROWTH = 0.5F;
     private static final float MAX_SPAN = 24.0F;
-    private static final float MIN_LENGTH_RATIO = 0.5F;
-    private static final float MAX_LENGTH_RATIO = 6.0F;
-    private static final int MAX_CACHED_REACHES = 256;
+    private static final float MIN_LENGTH = VANILLA_SPAN * 0.25F;
+    private static final float MAX_LENGTH = VANILLA_SPAN * 6.0F;
+    private static final float TIP_TIE_TOLERANCE = 0.1F;
+    private static final int MAX_CACHED_SEGMENTS = 256;
 
-    private static final Map<BakedModel, Float> REACH_CACHE = new IdentityHashMap<>();
+    public static final class Segment
+    {
+        public final float startX, startY, startZ;
+        public final float endX, endY, endZ;
+
+        public Segment(float startX, float startY, float startZ, float endX, float endY, float endZ)
+        {
+            this.startX = startX;
+            this.startY = startY;
+            this.startZ = startZ;
+            this.endX = endX;
+            this.endY = endY;
+            this.endZ = endZ;
+        }
+    }
+
+    public static final Segment FALLBACK = new Segment(0.0F, 0.0F, 0.0F, 0.0F, VANILLA_SPAN, 0.0F);
+
+    private static final Map<BakedModel, Segment> RIGHT_HAND_CACHE = new IdentityHashMap<>();
+    private static final Map<BakedModel, Segment> LEFT_HAND_CACHE = new IdentityHashMap<>();
     private static final Map<Item, Float> GEOMETRY_REACH_CACHE = new HashMap<>();
     private static final RandomSource RANDOM = RandomSource.create();
-
-    private static float referenceReach = -1.0F;
 
     private WeaponTrailMetrics()
     {
@@ -49,69 +69,18 @@ public final class WeaponTrailMetrics
 
     public static void clearCache()
     {
-        REACH_CACHE.clear();
+        RIGHT_HAND_CACHE.clear();
+        LEFT_HAND_CACHE.clear();
         GEOMETRY_REACH_CACHE.clear();
-        referenceReach = -1.0F;
     }
 
-    public static float[] getTrailExtent(ItemStack itemStack, LivingEntity entity, ItemDisplayContext displayContext)
+    public static Segment getTrailSegment(ItemStack itemStack, LivingEntity entity, ItemDisplayContext displayContext)
     {
-        final float[] fallback = { 0.0F, VANILLA_SPAN };
-
         if (itemStack == null || itemStack.isEmpty() || entity == null)
         {
-            return fallback;
+            return FALLBACK;
         }
 
-        float outer;
-
-        final float geometryUnits = geometryUnitsOf(itemStack, entity, displayContext);
-
-        if (geometryUnits > 0.0F)
-        {
-            outer = geometryUnits;
-        }
-        else
-        {
-            final float reference = referenceReach(entity);
-            if (reference <= 0.0F)
-            {
-                return fallback;
-            }
-
-            final float reach = reachOf(itemStack, entity, displayContext);
-            if (reach <= 0.0F)
-            {
-                return fallback;
-            }
-
-            outer = VANILLA_SPAN * Math.max(MIN_LENGTH_RATIO,
-                    Math.min(MAX_LENGTH_RATIO, reach / reference));
-        }
-
-        outer = Math.max(VANILLA_SPAN * MIN_LENGTH_RATIO,
-                Math.min(VANILLA_SPAN * MAX_LENGTH_RATIO, outer));
-
-        float span = VANILLA_SPAN + (outer - VANILLA_SPAN) * SPAN_GROWTH;
-        span = Math.min(span, MAX_SPAN);
-        span = Math.min(span, outer);
-
-        return new float[] { outer - span, outer };
-    }
-
-    private static float referenceReach(LivingEntity entity)
-    {
-        if (referenceReach < 0.0F)
-        {
-            referenceReach = reachOf(new ItemStack(Items.IRON_SWORD), entity,
-                    ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
-        }
-
-        return referenceReach;
-    }
-
-    private static float reachOf(ItemStack itemStack, LivingEntity entity, ItemDisplayContext displayContext)
-    {
         try
         {
             final BakedModel model = Minecraft.getInstance().getItemRenderer()
@@ -119,29 +88,51 @@ public final class WeaponTrailMetrics
 
             if (model == null)
             {
-                return 0.0F;
+                return FALLBACK;
             }
 
             if (model.isCustomRenderer())
             {
-                return 0.0F;
+                return geometrySegment(itemStack, model, displayContext);
             }
 
-            final Float cached = REACH_CACHE.get(model);
-            if (cached != null)
+            final boolean leftHand = displayContext == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+            final Map<BakedModel, Segment> cache = leftHand ? LEFT_HAND_CACHE : RIGHT_HAND_CACHE;
+
+            Segment segment = cache.get(model);
+            if (segment == null)
             {
-                return cached;
+                segment = measureSegment(model, displayContext, leftHand);
+
+                if (cache.size() >= MAX_CACHED_SEGMENTS)
+                {
+                    cache.clear();
+                }
+                cache.put(model, segment);
             }
 
-            final float reach = measureReach(model, displayContext);
+            return segment;
+        }
+        catch (Throwable t)
+        {
+            return FALLBACK;
+        }
+    }
 
-            if (REACH_CACHE.size() >= MAX_CACHED_REACHES)
-            {
-                REACH_CACHE.clear();
-            }
-            REACH_CACHE.put(model, reach);
+    public static float displayOffsetX(ItemStack itemStack, LivingEntity entity, ItemDisplayContext displayContext)
+    {
+        if (itemStack == null || itemStack.isEmpty() || entity == null)
+        {
+            return 0.0F;
+        }
 
-            return reach;
+        try
+        {
+            final BakedModel model = Minecraft.getInstance().getItemRenderer()
+                    .getModel(itemStack, entity.level(), entity, entity.getId());
+
+            return model == null ? 0.0F
+                    : model.getTransforms().getTransform(displayContext).translation.x() * UNITS_PER_BLOCK;
         }
         catch (Throwable t)
         {
@@ -149,24 +140,26 @@ public final class WeaponTrailMetrics
         }
     }
 
-    private static float geometryUnitsOf(ItemStack itemStack, LivingEntity entity, ItemDisplayContext displayContext)
+    private static float spanFor(float length)
     {
-        try
-        {
-            final BakedModel model = Minecraft.getInstance().getItemRenderer()
-                    .getModel(itemStack, entity.level(), entity, entity.getId());
+        float span = VANILLA_SPAN + Math.max(0.0F, length - VANILLA_SPAN) * SPAN_GROWTH;
+        span = Math.min(span, MAX_SPAN);
+        return Math.min(span, length);
+    }
 
-            if (model == null || !model.isCustomRenderer())
-            {
-                return 0.0F;
-            }
-
-            return geometryReach(itemStack, model, displayContext);
-        }
-        catch (Throwable t)
+    private static Segment geometrySegment(ItemStack itemStack, BakedModel model, ItemDisplayContext displayContext)
+    {
+        float outer = geometryReach(itemStack, model, displayContext);
+        if (outer <= 0.0F)
         {
-            return 0.0F;
+            return FALLBACK;
         }
+
+        outer = Math.max(MIN_LENGTH, Math.min(MAX_LENGTH, outer));
+
+        final float span = spanFor(outer);
+
+        return new Segment(0.0F, outer - span, 0.0F, 0.0F, outer, 0.0F);
     }
 
     private static float geometryReach(ItemStack itemStack, BakedModel model, ItemDisplayContext displayContext)
@@ -178,7 +171,7 @@ public final class WeaponTrailMetrics
         {
             cached = measureGeometryModel(item);
 
-            if (GEOMETRY_REACH_CACHE.size() >= MAX_CACHED_REACHES)
+            if (GEOMETRY_REACH_CACHE.size() >= MAX_CACHED_SEGMENTS)
             {
                 GEOMETRY_REACH_CACHE.clear();
             }
@@ -235,7 +228,7 @@ public final class WeaponTrailMetrics
             return 0.0F;
         }
 
-        float maxDistanceSq = 0.0F;
+        float maxExtent = 0.0F;
 
         for (final JsonElement geometryElement : geometry)
         {
@@ -284,16 +277,16 @@ public final class WeaponTrailMetrics
                         final float extent = Math.max(Math.abs(origin[axis]),
                                 Math.abs(origin[axis] + size[axis]));
 
-                        if (extent > maxDistanceSq)
+                        if (extent > maxExtent)
                         {
-                            maxDistanceSq = extent;
+                            maxExtent = extent;
                         }
                     }
                 }
             }
         }
 
-        return maxDistanceSq;
+        return maxExtent;
     }
 
     private static float[] readVector(JsonObject object, String key)
@@ -311,46 +304,107 @@ public final class WeaponTrailMetrics
         };
     }
 
-    private static float measureReach(BakedModel model, ItemDisplayContext displayContext)
+    private static Segment measureSegment(BakedModel model, ItemDisplayContext displayContext, boolean leftHand)
     {
         final ItemTransform transform = model.getTransforms().getTransform(displayContext);
 
         final PoseStack poseStack = new PoseStack();
-        transform.apply(false, poseStack);
+        transform.apply(leftHand, poseStack);
         poseStack.translate(-0.5F, -0.5F, -0.5F);
         final Matrix4f matrix = poseStack.last().pose();
 
-        float outlineSq = measureQuads(model, matrix, true);
-
-        if (outlineSq <= 0.0F)
+        List<Vector3f> vertices = collectVertices(model, matrix, true);
+        if (vertices.size() < 2)
         {
-            outlineSq = measureQuads(model, matrix, false);
+            vertices = collectVertices(model, matrix, false);
+        }
+        if (vertices.size() < 2)
+        {
+            return FALLBACK;
         }
 
-        return (float) Math.sqrt(outlineSq);
+        final Vector3f centroid = new Vector3f();
+        for (final Vector3f vertex : vertices)
+        {
+            centroid.add(vertex);
+        }
+        centroid.div(vertices.size());
+
+        Vector3f first = farthestFrom(vertices, centroid);
+        Vector3f second = farthestFrom(vertices, first);
+        first = farthestFrom(vertices, second);
+        second = farthestFrom(vertices, first);
+
+        final float firstDistanceSq = first.lengthSquared();
+        final float secondDistanceSq = second.lengthSquared();
+
+        final Vector3f tip;
+        if (Math.abs(firstDistanceSq - secondDistanceSq) > TIP_TIE_TOLERANCE * Math.max(firstDistanceSq, secondDistanceSq))
+        {
+            tip = firstDistanceSq > secondDistanceSq ? first : second;
+        }
+        else
+        {
+            tip = first.y() >= second.y() ? first : second;
+        }
+        final Vector3f base = tip == first ? second : first;
+
+        final Vector3f axis = new Vector3f(tip).sub(base);
+        final float length = axis.length() * UNITS_PER_BLOCK;
+        if (!(length >= MIN_LENGTH) || length > MAX_LENGTH)
+        {
+            return FALLBACK;
+        }
+        axis.normalize();
+
+        final float span = spanFor(length);
+
+        final float endX = tip.x() * UNITS_PER_BLOCK;
+        final float endY = tip.y() * UNITS_PER_BLOCK;
+        final float endZ = tip.z() * UNITS_PER_BLOCK;
+
+        return new Segment(endX - axis.x() * span, endY - axis.y() * span, endZ - axis.z() * span,
+                endX, endY, endZ);
     }
 
-    private static float measureQuads(BakedModel model, Matrix4f matrix, boolean outlineOnly)
+    private static Vector3f farthestFrom(List<Vector3f> vertices, Vector3f origin)
     {
-        float maxDistanceSq = farthestVertexSq(model.getQuads(null, null, RANDOM), matrix, outlineOnly);
+        Vector3f farthest = vertices.get(0);
+        float farthestDistanceSq = -1.0F;
+
+        for (final Vector3f vertex : vertices)
+        {
+            final float distanceSq = vertex.distanceSquared(origin);
+            if (distanceSq > farthestDistanceSq)
+            {
+                farthestDistanceSq = distanceSq;
+                farthest = vertex;
+            }
+        }
+
+        return farthest;
+    }
+
+    private static List<Vector3f> collectVertices(BakedModel model, Matrix4f matrix, boolean outlineOnly)
+    {
+        final List<Vector3f> vertices = new ArrayList<>();
+
+        appendVertices(model.getQuads(null, null, RANDOM), matrix, outlineOnly, vertices);
 
         for (final Direction direction : Direction.values())
         {
-            maxDistanceSq = Math.max(maxDistanceSq,
-                    farthestVertexSq(model.getQuads(null, direction, RANDOM), matrix, outlineOnly));
+            appendVertices(model.getQuads(null, direction, RANDOM), matrix, outlineOnly, vertices);
         }
 
-        return maxDistanceSq;
+        return vertices;
     }
 
-    private static float farthestVertexSq(List<BakedQuad> quads, Matrix4f matrix, boolean outlineOnly)
+    private static void appendVertices(List<BakedQuad> quads, Matrix4f matrix, boolean outlineOnly, List<Vector3f> out)
     {
         if (quads == null || quads.isEmpty())
         {
-            return 0.0F;
+            return;
         }
-
-        float maxDistanceSq = 0.0F;
 
         for (final BakedQuad quad : quads)
         {
@@ -363,39 +417,30 @@ public final class WeaponTrailMetrics
                 }
             }
 
-            final int[] vertices = quad.getVertices();
-            if (vertices.length < 4)
+            final int[] data = quad.getVertices();
+            if (data.length < 4)
             {
                 continue;
             }
 
-            final int stride = vertices.length / 4;
+            final int stride = data.length / 4;
             if (stride < 3)
             {
                 continue;
             }
 
-            for (int index = 0; index + 2 < vertices.length; index += stride)
+            for (int index = 0; index + 2 < data.length; index += stride)
             {
                 final Vector4f vertex = new Vector4f(
-                        Float.intBitsToFloat(vertices[index]),
-                        Float.intBitsToFloat(vertices[index + 1]),
-                        Float.intBitsToFloat(vertices[index + 2]),
+                        Float.intBitsToFloat(data[index]),
+                        Float.intBitsToFloat(data[index + 1]),
+                        Float.intBitsToFloat(data[index + 2]),
                         1.0F);
 
                 vertex.mul(matrix);
 
-                final float distanceSq = vertex.x() * vertex.x()
-                        + vertex.y() * vertex.y()
-                        + vertex.z() * vertex.z();
-
-                if (distanceSq > maxDistanceSq)
-                {
-                    maxDistanceSq = distanceSq;
-                }
+                out.add(new Vector3f(vertex.x(), vertex.y(), vertex.z()));
             }
         }
-
-        return maxDistanceSq;
     }
 }

@@ -238,6 +238,7 @@ public abstract class EntityBender<T extends LivingEntity>
             if (entity == null) return null;
 
             entity.moveTo(0, 0, 0, 0, 0);
+            entity.refreshDimensions();
             IMobSpawnHelper helper = IMobSpawnHelper.Holder.getHelper();
             if (helper != null)
             {

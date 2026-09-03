@@ -67,6 +67,8 @@ public class ModCompatManager
 
         EpicFightCompat.init();
 
+        CustomNpcsCompat.init();
+
         registerBuiltInAnimationControl();
     }
 
@@ -76,6 +78,7 @@ public class ModCompatManager
         MoBendsAnimationControl.registerPoseOverride("parcool", ParCoolCompat::isAnimating);
         MoBendsAnimationControl.registerPoseOverride("monsterexpansion", MonsterExpansionCompat::isAnimating);
         MoBendsAnimationControl.registerPoseOverride("crawl", CrawlCompat::isPosingModel);
+        MoBendsAnimationControl.registerPoseOverride("customnpcs", CustomNpcsCompat::isExternallyPosed);
 
         MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
 
@@ -102,5 +105,10 @@ public class ModCompatManager
     public static boolean tracksPerHandAttacks()
     {
         return OffHandCombatCompat.isModLoaded() || BetterCombatCompat.isModLoaded();
+    }
+
+    public static boolean isAttachedProxyEntity(LivingEntity entity)
+    {
+        return CustomNpcsCompat.isAttachedDisplayEntity(entity);
     }
 }

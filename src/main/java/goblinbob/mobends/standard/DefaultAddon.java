@@ -37,6 +37,8 @@ public class DefaultAddon implements IAddon
 {
 	protected static final String[] BIPED_ANIMATIONS = {"walk", "jump", "fall", "attack", "ride"};
 	protected static final String[] SPRINTING_BIPED_ANIMATIONS = {"walk", "sprint", "jump", "fall", "attack", "ride"};
+	protected static final String[] PLAYER_LIKE_ANIMATIONS = {
+			"walk", "sprint", "jump", "fall", "sneak", "swim", "attack", "ride", "climb"};
 	private static final String[] SPIDER_ANIMATIONS = {"walk", "jump"};
 	private static final String[] SQUID_ANIMATIONS = {"swim"};
 	private static final String[] WOLF_ANIMATIONS = {"walk", "sit"};
@@ -117,6 +119,8 @@ public class DefaultAddon implements IAddon
 		goblinbob.mobends.compat.VampirismCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		goblinbob.mobends.compat.McaCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_ANIMATIONS, BIPED_PARTS);
+
+		goblinbob.mobends.compat.CustomNpcsCompat.register(registry, PLAYER_LIKE_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,

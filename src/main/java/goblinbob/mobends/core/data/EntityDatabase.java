@@ -76,7 +76,8 @@ public class EntityDatabase
             LivingEntity entity = entry.getKey();
             LivingEntityData<?> entityData = entry.getValue();
 
-            if (level.getEntity(entity.getId()) == entity)
+            if (level.getEntity(entity.getId()) == entity
+                    || goblinbob.mobends.compat.ModCompatManager.isAttachedProxyEntity(entity))
             {
                 entityData.setDetached(false);
                 entityData.markSeen();
