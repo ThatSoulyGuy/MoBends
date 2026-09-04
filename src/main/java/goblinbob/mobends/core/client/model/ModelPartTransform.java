@@ -76,6 +76,7 @@ public class ModelPartTransform implements IModelPart
 		this.offset.set(part.getOffset());
 		this.scale.set(part.getScale());
 		this.offsetScale = part.getOffsetScale();
+		this.globalOffset.set(part.getGlobalOffset());
 
 		final IVec3f otherPreRotationScale = part.getPreRotationScale();
 		if (otherPreRotationScale != null)

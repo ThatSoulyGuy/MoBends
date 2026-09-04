@@ -582,6 +582,13 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     }
 
     @Override
+    protected void onPosesSyncedToVanillaModel(HumanoidModel<?> model)
+    {
+        goblinbob.mobends.compat.MorePlayerModelsCompat.compensateSyncedPivots(
+                goblinbob.mobends.core.client.MoBendsRenderContext.getCurrentEntity(), model);
+    }
+
+    @Override
     protected void clearConcealment()
     {
         super.clearConcealment();

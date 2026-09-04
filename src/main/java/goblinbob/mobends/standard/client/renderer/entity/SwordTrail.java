@@ -160,9 +160,9 @@ public class SwordTrail
             GUtil.rotate(points, bone.rotation.getSmooth());
             applyBoneScale(points, bone, false);
             GUtil.translate(points,
-                    bone.position.x + bone.offset.x,
-                    -(bone.position.y + bone.offset.y),
-                    -(bone.position.z + bone.offset.z));
+                    bone.position.x + bone.offset.x + bone.globalOffset.x,
+                    -(bone.position.y + bone.offset.y + bone.globalOffset.y),
+                    -(bone.position.z + bone.offset.z + bone.globalOffset.z));
         }
 
         public Vec3f[] getPoints()

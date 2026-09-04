@@ -239,6 +239,11 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
     private static void applyBoneTransform(PoseStack poseStack, BendsModelPart bone, float scale,
                                            boolean includeOffset)
     {
+        if (bone.globalOffset.x != 0 || bone.globalOffset.y != 0 || bone.globalOffset.z != 0)
+        {
+            poseStack.translate(bone.globalOffset.x * scale, bone.globalOffset.y * scale, bone.globalOffset.z * scale);
+        }
+
         poseStack.translate(bone.position.x * scale, bone.position.y * scale, bone.position.z * scale);
 
         if (includeOffset && (bone.offset.x != 0 || bone.offset.y != 0 || bone.offset.z != 0))
