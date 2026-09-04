@@ -242,6 +242,18 @@ public class CustomNpcMutator<E extends LivingEntity>
     @Override
     protected void onPosesSyncedToVanillaModel(HumanoidModel<?> model)
     {
-        CustomNpcsCompat.compensateSyncedPivots(MoBendsRenderContext.getCurrentEntity(), model);
+        CustomNpcsCompat.removeRenderTranslation(MoBendsRenderContext.getCurrentEntity(), model);
+    }
+
+    @Override
+    protected void beforeAdoptingPoseFromVanillaModel(HumanoidModel<?> model)
+    {
+        CustomNpcsCompat.restoreRenderTranslation(MoBendsRenderContext.getCurrentEntity(), model);
+    }
+
+    @Override
+    protected void afterAdoptingPoseFromVanillaModel(HumanoidModel<?> model)
+    {
+        CustomNpcsCompat.removeRenderTranslation(MoBendsRenderContext.getCurrentEntity(), model);
     }
 }

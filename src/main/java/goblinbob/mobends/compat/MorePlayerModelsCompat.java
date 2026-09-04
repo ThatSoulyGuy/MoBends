@@ -5,6 +5,7 @@ import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
@@ -33,6 +34,10 @@ public class MorePlayerModelsCompat
     private static Field scaleYField;
     private static Field scaleZField;
 
+    private static Field transXField;
+    private static Field transYField;
+    private static Field transZField;
+
     private static int captureDepth = 0;
     private static boolean captureRestoreValue = false;
 
@@ -40,6 +45,7 @@ public class MorePlayerModelsCompat
 
     private static final float[] scratchScale = new float[3];
     private static final float[] bodyScale = new float[3];
+    private static final float[] scratchTranslation = new float[3];
 
     public static void init()
     {
@@ -83,6 +89,9 @@ public class MorePlayerModelsCompat
         scaleXField = configClass.getField("scaleX");
         scaleYField = configClass.getField("scaleY");
         scaleZField = configClass.getField("scaleZ");
+        transXField = configClass.getField("transX");
+        transYField = configClass.getField("transY");
+        transZField = configClass.getField("transZ");
     }
 
     public static boolean isModLoaded()
@@ -169,9 +178,20 @@ public class MorePlayerModelsCompat
         applyPart(data.rightLeg, modelData, rightLegField, null, 0.0F, legsDrop);
     }
 
-    public static void compensateSyncedPivots(LivingEntity entity, HumanoidModel<?> model)
+    public static void removeRenderTranslation(LivingEntity entity, HumanoidModel<?> model)
     {
-        if (model == null || !isModLoaded() || !(entity instanceof Player player))
+        offsetSyncedPivots(entity, model, -16.0F);
+    }
+
+    public static void restoreRenderTranslation(LivingEntity entity, HumanoidModel<?> model)
+    {
+        offsetSyncedPivots(entity, model, 16.0F);
+    }
+
+    private static void offsetSyncedPivots(LivingEntity entity, HumanoidModel<?> model, float scale)
+    {
+        if (!(model instanceof PlayerModel<?> playerModel) || !isModLoaded()
+                || !(entity instanceof Player player) || !isTranslatingParts())
         {
             return;
         }
@@ -182,27 +202,44 @@ public class MorePlayerModelsCompat
             return;
         }
 
-        final float legsDrop = legsDropOf(modelData);
-        if (legsDrop == 0.0F)
+        offsetPart(model.head, modelData, headField, scale);
+        offsetPart(model.hat, modelData, headField, scale);
+        offsetPart(model.body, modelData, bodyField, scale);
+        offsetPart(model.leftArm, modelData, leftArmField, scale);
+        offsetPart(model.rightArm, modelData, rightArmField, scale);
+        offsetPart(model.leftLeg, modelData, leftLegField, scale);
+        offsetPart(model.rightLeg, modelData, rightLegField, scale);
+
+        playerModel.jacket.copyFrom(model.body);
+        playerModel.leftSleeve.copyFrom(model.leftArm);
+        playerModel.rightSleeve.copyFrom(model.rightArm);
+        playerModel.leftPants.copyFrom(model.leftLeg);
+        playerModel.rightPants.copyFrom(model.rightLeg);
+    }
+
+    private static boolean isTranslatingParts()
+    {
+        try
+        {
+            return !compatibilityField.getBoolean(null);
+        }
+        catch (Exception e)
+        {
+            isLoaded = false;
+            return false;
+        }
+    }
+
+    private static void offsetPart(ModelPart part, Object modelData, Field configField, float scale)
+    {
+        if (part == null || !readTranslation(modelData, configField, scratchTranslation))
         {
             return;
         }
 
-        model.head.y -= legsDrop;
-        if (model.hat != null)
-        {
-            model.hat.y -= legsDrop;
-        }
-        model.body.y -= legsDrop;
-        model.leftArm.y -= legsDrop;
-        model.rightArm.y -= legsDrop;
-
-        if (model instanceof PlayerModel<?> playerModel)
-        {
-            playerModel.jacket.copyFrom(model.body);
-            playerModel.leftSleeve.copyFrom(model.leftArm);
-            playerModel.rightSleeve.copyFrom(model.rightArm);
-        }
+        part.x += scratchTranslation[0] * scale;
+        part.y += scratchTranslation[1] * scale;
+        part.z += scratchTranslation[2] * scale;
     }
 
     private static Object modelDataOf(Player player)
@@ -264,6 +301,28 @@ public class MorePlayerModelsCompat
         }
     }
 
+    private static boolean readTranslation(Object data, Field configField, float[] translation)
+    {
+        try
+        {
+            final Object config = configField.get(data);
+            if (config == null)
+            {
+                return false;
+            }
+
+            translation[0] = transXField.getFloat(config);
+            translation[1] = transYField.getFloat(config);
+            translation[2] = transZField.getFloat(config);
+            return true;
+        }
+        catch (Exception e)
+        {
+            isLoaded = false;
+            return false;
+        }
+    }
+
     private static void applyToBone(ModelPartTransform bone, float[] scale, float[] parentScale,
                                     float pivotGap, float rootDrop)
     {
@@ -285,7 +344,7 @@ public class MorePlayerModelsCompat
                 divide(1.0F, parentScale[1]),
                 divide(1.0F, parentScale[2]));
 
-        bone.globalOffset.set(0.0F, divide(-pivotGap * (parentScale[1] - 1.0F), parentScale[1]), 0.0F);
+        bone.globalOffset.set(0.0F, divide(pivotGap * (scale[1] - parentScale[1]), parentScale[1]), 0.0F);
     }
 
     private static float divide(float value, float divisor)

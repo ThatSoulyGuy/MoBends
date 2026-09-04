@@ -101,6 +101,10 @@ public final class CustomNpcsCompat
     private static Field scaleYField;
     private static Field scaleZField;
 
+    private static Field transXField;
+    private static Field transYField;
+    private static Field transZField;
+
     private static Field ownModelField;
     private static Field borrowedModelField;
     private static Field ownLayersField;
@@ -111,6 +115,7 @@ public final class CustomNpcsCompat
 
     private static final float[] bodyScale = new float[3];
     private static final float[] scratchScale = new float[3];
+    private static final float[] scratchTranslation = new float[3];
 
     private CustomNpcsCompat()
     {
@@ -170,6 +175,9 @@ public final class CustomNpcsCompat
         scaleXField = configClass.getField("scaleX");
         scaleYField = configClass.getField("scaleY");
         scaleZField = configClass.getField("scaleZ");
+        transXField = configClass.getField("transX");
+        transYField = configClass.getField("transY");
+        transZField = configClass.getField("transZ");
 
         ownModelField = rendererClass.getField("npcmodel");
         borrowedModelField = rendererClass.getField("otherModel");
@@ -494,9 +502,19 @@ public final class CustomNpcsCompat
         return divisor == 0.0F ? value : value / divisor;
     }
 
-    public static void compensateSyncedPivots(LivingEntity entity, HumanoidModel<?> model)
+    public static void removeRenderTranslation(LivingEntity entity, HumanoidModel<?> model)
     {
-        if (model == null || !isNpc(entity))
+        offsetSyncedPivots(entity, model, -16.0F);
+    }
+
+    public static void restoreRenderTranslation(LivingEntity entity, HumanoidModel<?> model)
+    {
+        offsetSyncedPivots(entity, model, 16.0F);
+    }
+
+    private static void offsetSyncedPivots(LivingEntity entity, HumanoidModel<?> model, float scale)
+    {
+        if (!(model instanceof PlayerModel<?> playerModel) || !isNpc(entity))
         {
             return;
         }
@@ -507,26 +525,52 @@ public final class CustomNpcsCompat
             return;
         }
 
-        final float drop = legsDropOf(modelData);
-        if (drop == 0.0F)
+        offsetPart(model.head, modelData, headField, scale);
+        offsetPart(model.hat, modelData, headField, scale);
+        offsetPart(model.body, modelData, bodyField, scale);
+        offsetPart(model.leftArm, modelData, leftArmField, scale);
+        offsetPart(model.rightArm, modelData, rightArmField, scale);
+        offsetPart(model.leftLeg, modelData, leftLegField, scale);
+        offsetPart(model.rightLeg, modelData, rightLegField, scale);
+
+        playerModel.jacket.copyFrom(model.body);
+        playerModel.leftSleeve.copyFrom(model.leftArm);
+        playerModel.rightSleeve.copyFrom(model.rightArm);
+        playerModel.leftPants.copyFrom(model.leftLeg);
+        playerModel.rightPants.copyFrom(model.rightLeg);
+    }
+
+    private static void offsetPart(net.minecraft.client.model.geom.ModelPart part, Object modelData,
+                                   Field configField, float scale)
+    {
+        if (part == null || !readTranslation(modelData, configField, scratchTranslation))
         {
             return;
         }
 
-        model.head.y -= drop;
-        if (model.hat != null)
-        {
-            model.hat.y -= drop;
-        }
-        model.body.y -= drop;
-        model.leftArm.y -= drop;
-        model.rightArm.y -= drop;
+        part.x += scratchTranslation[0] * scale;
+        part.y += scratchTranslation[1] * scale;
+        part.z += scratchTranslation[2] * scale;
+    }
 
-        if (model instanceof PlayerModel<?> playerModel)
+    private static boolean readTranslation(Object modelData, Field configField, float[] translation)
+    {
+        try
         {
-            playerModel.jacket.copyFrom(model.body);
-            playerModel.leftSleeve.copyFrom(model.leftArm);
-            playerModel.rightSleeve.copyFrom(model.rightArm);
+            final Object config = configField.get(modelData);
+            if (config == null)
+            {
+                return false;
+            }
+
+            translation[0] = transXField.getFloat(config);
+            translation[1] = transYField.getFloat(config);
+            translation[2] = transZField.getFloat(config);
+            return true;
+        }
+        catch (Throwable t)
+        {
+            return false;
         }
     }
 

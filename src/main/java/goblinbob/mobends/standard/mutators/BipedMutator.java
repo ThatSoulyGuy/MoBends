@@ -1778,7 +1778,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         float bodyPivotY = body.globalOffset.y + (body.position.y + body.offset.y) * body.offsetScale;
         float bodyPivotZ = body.globalOffset.z + (body.position.z + body.offset.z) * body.offsetScale;
 
-        float[] bodyNeck = rotateVectorByQuaternion(bodyRotation, 0.0F, -12.0F, 0.0F, scratchVec);
+        float[] bodyNeck = rotateVectorByQuaternion(bodyRotation, 0.0F, -12.0F * body.scale.y, 0.0F, scratchVec);
         model.body.x = bodyPivotX + bodyNeck[0];
         model.body.y = bodyPivotY + bodyNeck[1];
         model.body.z = bodyPivotZ + bodyNeck[2];
@@ -1834,6 +1834,14 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     {
     }
 
+    protected void beforeAdoptingPoseFromVanillaModel(HumanoidModel<?> model)
+    {
+    }
+
+    protected void afterAdoptingPoseFromVanillaModel(HumanoidModel<?> model)
+    {
+    }
+
     @SuppressWarnings("unchecked")
     public BipedEntityData<?> getRenderData()
     {
@@ -1850,9 +1858,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         final BipedEntityData<?> data = getRenderData();
 
+        beforeAdoptingPoseFromVanillaModel(model);
+
         readModelRotation(model.body, adoptedBodyRotation);
 
-        float[] neck = rotateVectorByQuaternion(adoptedBodyRotation, 0.0F, -12.0F, 0.0F, scratchVec);
+        float[] neck = rotateVectorByQuaternion(adoptedBodyRotation, 0.0F, -12.0F * body.scale.y, 0.0F, scratchVec);
         final float bodyPivotX = model.body.x - neck[0];
         final float bodyPivotY = model.body.y - neck[1];
         final float bodyPivotZ = model.body.z - neck[2];
@@ -1885,6 +1895,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         straightenJoint(leftForeLeg, data == null ? null : data.leftForeLeg);
         straightenJoint(rightForeLeg, data == null ? null : data.rightForeLeg);
 
+        afterAdoptingPoseFromVanillaModel(model);
+
         if (data != null)
         {
             data.externalPoseAdopted = true;
@@ -1914,6 +1926,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         float[] local = rotateVectorByQuaternion(adoptedParentInverse,
                 modelPart.x - bodyPivotX, modelPart.y - bodyPivotY, modelPart.z - bodyPivotZ, scratchPivot);
+        local[0] = divideByScale(local[0], body.scale.x);
+        local[1] = divideByScale(local[1], body.scale.y);
+        local[2] = divideByScale(local[2], body.scale.z);
 
         solveOffset(child, local[0] - child.globalOffset.x,
                 local[1] - child.globalOffset.y,
@@ -1936,9 +1951,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         if (restPivot != null)
         {
-            final float dx = modelPart.x - restPivot[0];
-            final float dy = modelPart.y - restPivot[1];
-            final float dz = modelPart.z - restPivot[2];
+            final float dx = modelPart.x - restPivot[0] - part.globalOffset.x;
+            final float dy = modelPart.y - restPivot[1] - part.globalOffset.y;
+            final float dz = modelPart.z - restPivot[2] - part.globalOffset.z;
 
             part.offset.set(dx, dy, dz);
             if (dataPart != null)
@@ -1960,6 +1975,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             dataPart.rotation.identity();
             dataPart.offset.set(0.0F, 0.0F, 0.0F);
         }
+    }
+
+    private static float divideByScale(float value, float scale)
+    {
+        return scale == 0.0F ? value : value / scale;
     }
 
     private static void solveOffset(BendsModelPart part, float localX, float localY, float localZ)
@@ -2023,9 +2043,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         if (vanillaPos != null)
         {
-            modelPart.x = vanillaPos[0] + bendsPart.offset.x;
-            modelPart.y = vanillaPos[1] + bendsPart.offset.y;
-            modelPart.z = vanillaPos[2] + bendsPart.offset.z;
+            modelPart.x = vanillaPos[0] + bendsPart.globalOffset.x + bendsPart.offset.x;
+            modelPart.y = vanillaPos[1] + bendsPart.globalOffset.y + bendsPart.offset.y;
+            modelPart.z = vanillaPos[2] + bendsPart.globalOffset.z + bendsPart.offset.z;
         }
 
         Quaternion q = bendsPart.rotation.getSmooth();
@@ -2042,16 +2062,18 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                                           Quaternion bodyRotation)
     {
         if (child == null || modelPart == null) return;
-        Quaternion rotation = composeChildWorld(bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation, child, scratchPivot);
+        Quaternion rotation = composeChildWorld(bodyPivotX, bodyPivotY, bodyPivotZ, bodyRotation, body.scale,
+                child, scratchPivot);
         setEndModelPart(modelPart, scratchPivot, rotation, modelPart.visible && child.isShowingIgnoringConcealment());
     }
 
     private Quaternion composeChildWorld(float parentPivotX, float parentPivotY, float parentPivotZ,
-                                        Quaternion parentRotation, BendsModelPart child, float[] outPivot)
+                                        Quaternion parentRotation, goblinbob.mobends.lib.math.vector.Vec3f parentScale,
+                                        BendsModelPart child, float[] outPivot)
     {
-        float lx = (child.position.x + child.offset.x) * child.offsetScale;
-        float ly = (child.position.y + child.offset.y) * child.offsetScale;
-        float lz = (child.position.z + child.offset.z) * child.offsetScale;
+        float lx = (child.globalOffset.x + (child.position.x + child.offset.x) * child.offsetScale) * parentScale.x;
+        float ly = (child.globalOffset.y + (child.position.y + child.offset.y) * child.offsetScale) * parentScale.y;
+        float lz = (child.globalOffset.z + (child.position.z + child.offset.z) * child.offsetScale) * parentScale.z;
         float[] rotated = rotateVectorByQuaternion(parentRotation, lx, ly, lz, scratchVec);
         outPivot[0] = parentPivotX + rotated[0];
         outPivot[1] = parentPivotY + rotated[1];
