@@ -43,6 +43,8 @@ public class ModCompatManager
 
         ParagliderCompat.init();
 
+        ZiplineCompat.init();
+
         MonsterExpansionCompat.init();
 
         BossesRiseCompat.init();

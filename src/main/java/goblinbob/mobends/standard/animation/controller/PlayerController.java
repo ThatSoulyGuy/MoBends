@@ -39,6 +39,9 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected CapeAnimationBit bitCape = new CapeAnimationBit();
     protected SleepingAnimationBit bitSleeping = new SleepingAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitExternalPose = new ExternalPoseAnimationBit();
+    protected HardAnimationLayer<BipedEntityData<?>> layerZipline = new HardAnimationLayer<>();
+    protected AnimationBit<BipedEntityData<?>> bitZiplineHang = new ZiplineHangAnimationBit();
+    protected AnimationBit<BipedEntityData<?>> bitZiplineArm = new ZiplineArmAnimationBit();
 
     protected final BipedActionController actionController = new BipedActionController();
 
@@ -63,6 +66,12 @@ public class PlayerController implements IAnimationController<PlayerData>
         }
 
         if (goblinbob.mobends.compat.ParagliderCompat.isParagliding(player))
+        {
+            actionController.clearAction();
+            return;
+        }
+
+        if (goblinbob.mobends.compat.ZiplineCompat.isZiplining(player))
         {
             actionController.clearAction();
             return;
@@ -146,7 +155,11 @@ public class PlayerController implements IAnimationController<PlayerData>
             }
             else if ((!data.isOnGround() && !data.isInWater()) || data.getTicksAfterTouchdown() < 1)
             {
-                if (data.isFlying())
+                if (goblinbob.mobends.compat.ZiplineCompat.isZiplining(player))
+                {
+                    layerBase.playOrContinueBit(bitZiplineHang, data);
+                }
+                else if (data.isFlying())
                 {
                     layerBase.playOrContinueBit(bitFlying, data);
                 }
@@ -199,10 +212,13 @@ public class PlayerController implements IAnimationController<PlayerData>
         data.renderLeftItemRotation.orientZero();
         data.renderRightItemRotation.orientZero();
 
+        layerZipline.playOrContinueBit(bitZiplineArm, data);
+
         layerBase.perform(data);
         layerSneak.perform(data);
         layerTorch.perform(data);
         this.performActionAnimations(data, player);
+        layerZipline.perform(data);
         layerCape.perform(data);
     }
 }
