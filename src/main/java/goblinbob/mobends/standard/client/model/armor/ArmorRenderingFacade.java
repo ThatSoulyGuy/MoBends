@@ -205,7 +205,7 @@ public class ArmorRenderingFacade
             LOGGER.error("Error rendering armor with texture: {}", e.getMessage());
             if (debugMode)
             {
-                e.printStackTrace();
+                LOGGER.error("Armor rendering failure", e);
             }
         }
 

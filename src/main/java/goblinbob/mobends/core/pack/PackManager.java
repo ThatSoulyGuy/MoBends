@@ -49,7 +49,7 @@ public class PackManager
         }
         catch (InvalidPackFormatException e)
         {
-            e.printStackTrace();
+            LOGGER.error("Failed to load the local bends packs", e);
             ErrorReporter.showErrorToPlayer(e);
         }
     }

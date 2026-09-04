@@ -27,6 +27,8 @@ import java.util.Map.Entry;
 
 public abstract class EntityBender<T extends LivingEntity>
 {
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
     protected final String key;
     protected final String unlocalizedName;
     protected final ResourceLocation entityTypeId;
@@ -259,7 +261,7 @@ public abstract class EntityBender<T extends LivingEntity>
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            LOGGER.error("Failed to create the preview entity for {}", getLocalizedName(), e);
         }
 
         return null;

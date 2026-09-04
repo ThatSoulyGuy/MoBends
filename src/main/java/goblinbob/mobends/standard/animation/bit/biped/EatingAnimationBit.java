@@ -46,8 +46,8 @@ public class EatingAnimationBit extends AnimationBit<BipedEntityData<?>>
 					.rotateY(15.0F * handDirMtp);
 		}
 
-		mainArm.rotation.orientX(bringUpAnimation * -80.0F)
+		mainArm.rotation.setSmoothness(0.5F).orientX(bringUpAnimation * -80.0F)
 						.rotateZ(45.0F * bringUpAnimation * handDirMtp);
-		mainForeArm.rotation.orientX(bringUpAnimation * -45.0F);
+		mainForeArm.rotation.setSmoothness(0.5F).orientX(bringUpAnimation * -45.0F);
 	}
 }

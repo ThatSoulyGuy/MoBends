@@ -8,7 +8,6 @@ import goblinbob.mobends.api.rendering.IVertexConsumer;
 import goblinbob.mobends.lib.math.physics.AABBox;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 public class BendsCube
 {
@@ -288,6 +287,7 @@ public class BendsCube
     {
         Matrix4f matrix = pose.pose();
         Matrix3f normalMatrix = pose.normal();
+        IEntityVertexHelper vertexHelper = IEntityVertexHelper.Holder.getHelper();
 
         byte tempFlag = this.faceVisibilityFlag;
 
@@ -295,8 +295,13 @@ public class BendsCube
         {
             if ((tempFlag & 1) == 1)
             {
-                Vector3f normal = new Vector3f(quad.normalX, quad.normalY, quad.normalZ);
-                normal.mul(normalMatrix);
+                float nx = quad.normalX;
+                float ny = quad.normalY;
+                float nz = quad.normalZ;
+
+                float tnx = normalMatrix.m00() * nx + normalMatrix.m10() * ny + normalMatrix.m20() * nz;
+                float tny = normalMatrix.m01() * nx + normalMatrix.m11() * ny + normalMatrix.m21() * nz;
+                float tnz = normalMatrix.m02() * nx + normalMatrix.m12() * ny + normalMatrix.m22() * nz;
 
                 for (BendsVertex vertex : quad.vertices)
                 {
@@ -308,12 +313,12 @@ public class BendsCube
                     float ty = matrix.m01() * x + matrix.m11() * y + matrix.m21() * z + matrix.m31();
                     float tz = matrix.m02() * x + matrix.m12() * y + matrix.m22() * z + matrix.m32();
 
-                    IEntityVertexHelper.Holder.getHelper().emitVertex(vertexConsumer,
+                    vertexHelper.emitVertex(vertexConsumer,
                             tx, ty, tz,
                             color,
                             vertex.u, vertex.v,
                             packedOverlay, packedLight,
-                            normal.x(), normal.y(), normal.z());
+                            tnx, tny, tnz);
                 }
             }
             tempFlag >>= 1;

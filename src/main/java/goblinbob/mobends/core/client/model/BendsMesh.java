@@ -33,6 +33,7 @@ public class BendsMesh
     {
         final Matrix4f matrix = pose.pose();
         final Matrix3f normalMatrix = pose.normal();
+        final IEntityVertexHelper vertexHelper = IEntityVertexHelper.Holder.getHelper();
 
         for (int i = 0; i < vertexCount; ++i)
         {
@@ -55,7 +56,7 @@ public class BendsMesh
             final float tny = normalMatrix.m01() * nx + normalMatrix.m11() * ny + normalMatrix.m21() * nz;
             final float tnz = normalMatrix.m02() * nx + normalMatrix.m12() * ny + normalMatrix.m22() * nz;
 
-            IEntityVertexHelper.Holder.getHelper().emitVertex(vertexConsumer,
+            vertexHelper.emitVertex(vertexConsumer,
                     tx, ty, tz,
                     color,
                     uvs[t], uvs[t + 1],

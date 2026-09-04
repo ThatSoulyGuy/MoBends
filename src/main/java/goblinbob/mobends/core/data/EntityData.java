@@ -41,6 +41,7 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
 
     private boolean detached = false;
     private int unseenTicks = 0;
+    private boolean animatedSinceUpdate = false;
 
     public final PackAnimationState packAnimationState;
 
@@ -77,6 +78,11 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
     public void markSeen()
     {
         this.unseenTicks = 0;
+    }
+
+    public void markAnimated()
+    {
+        this.animatedSinceUpdate = true;
     }
 
     public int trackUnseen()
@@ -201,9 +207,10 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
 
     public void update(float partialTicks)
     {
-        if (this.entity == null)
+        if (this.entity == null || !this.animatedSinceUpdate)
             return;
 
+        this.animatedSinceUpdate = false;
         this.updateParts(DataUpdateHandler.ticksPerFrame);
     }
 

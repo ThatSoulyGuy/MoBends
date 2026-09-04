@@ -254,24 +254,21 @@ public class BendsCapeRenderer
             this.normalZ = normal.z;
         }
 
+        private static final Vector3f transformedNormal = new Vector3f();
+        private static final Vector3f transformedPosition = new Vector3f();
+
         public void render(Matrix4f matrix, Matrix3f normalMatrix, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float scale)
         {
-            Vector3f transformedNormal = new Vector3f(normalX, normalY, normalZ);
-            transformedNormal.mul(normalMatrix);
+            transformedNormal.set(normalX, normalY, normalZ).mul(normalMatrix);
 
             IEntityVertexHelper vertexHelper = IEntityVertexHelper.Holder.getHelper();
 
             for (CapeVertex vertex : this.vertices)
             {
-                float x = vertex.x * scale;
-                float y = vertex.y * scale;
-                float z = vertex.z * scale;
-
-                Vector3f pos = new Vector3f(x, y, z);
-                pos.mulPosition(matrix);
+                transformedPosition.set(vertex.x * scale, vertex.y * scale, vertex.z * scale).mulPosition(matrix);
 
                 int color = 0xFFFFFFFF;
-                vertexHelper.emitVertex(vertexConsumer, pos.x, pos.y, pos.z,
+                vertexHelper.emitVertex(vertexConsumer, transformedPosition.x, transformedPosition.y, transformedPosition.z,
                         color, vertex.u, vertex.v,
                         packedOverlay, packedLight,
                         transformedNormal.x, transformedNormal.y, transformedNormal.z);

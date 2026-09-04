@@ -95,7 +95,7 @@ public class SpearThrowAnimationBit extends AnimationBit<BipedEntityData<?>>
 
         final float armPitch = THROW_PITCH + data.headPitch.get() * PITCH_INFLUENCE;
 
-        mainArm.rotation.orientX((armPitch + ELBOW_BEND) * windUp);
-        mainForeArm.rotation.orientX(-ELBOW_BEND * windUp);
+        mainArm.rotation.setSmoothness(0.5F).orientX((armPitch + ELBOW_BEND) * windUp);
+        mainForeArm.rotation.setSmoothness(0.5F).orientX(-ELBOW_BEND * windUp);
     }
 }

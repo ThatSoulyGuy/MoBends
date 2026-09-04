@@ -31,7 +31,7 @@ public class PublicDatabase
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            LOGGER.error("Failed to download the public bends pack database", e);
         }
         return null;
     }

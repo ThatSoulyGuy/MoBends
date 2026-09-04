@@ -41,6 +41,7 @@ public class EntityDatabase
         }
 
         data.markSeen();
+        data.markAnimated();
 
         return data;
     }

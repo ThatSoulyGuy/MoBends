@@ -56,8 +56,7 @@ public class AssetReloadListener implements ResourceManagerReloadListener
                 }
                 catch (IOException | JsonSyntaxException e)
                 {
-                    LOGGER.error("Couldn't register asset model: {}", location.toString());
-                    e.printStackTrace();
+                    LOGGER.error("Couldn't register asset model: {}", location, e);
                 }
             }
         }

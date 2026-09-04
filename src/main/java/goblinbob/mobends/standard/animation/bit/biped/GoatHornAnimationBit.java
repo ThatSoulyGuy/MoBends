@@ -49,8 +49,8 @@ public class GoatHornAnimationBit extends AnimationBit<BipedEntityData<?>>
         final float armPitch = Mth.clamp(data.headPitch.get(), -HEAD_PITCH_LIMIT, HEAD_PITCH_LIMIT) - ARM_PITCH_OFFSET;
         final float armYaw = data.headYaw.get() - ARM_YAW_OFFSET * handDirMtp;
 
-        mainArm.rotation.orientX((armPitch + ELBOW_BEND) * bringUpAnimation)
+        mainArm.rotation.setSmoothness(0.5F).orientX((armPitch + ELBOW_BEND) * bringUpAnimation)
                         .rotateY(armYaw * bringUpAnimation);
-        mainForeArm.rotation.orientX(-ELBOW_BEND * bringUpAnimation);
+        mainForeArm.rotation.setSmoothness(0.5F).orientX(-ELBOW_BEND * bringUpAnimation);
     }
 }

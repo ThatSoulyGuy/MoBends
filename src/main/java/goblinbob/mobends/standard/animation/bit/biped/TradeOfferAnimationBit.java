@@ -68,10 +68,10 @@ public class TradeOfferAnimationBit extends AnimationBit<BipedEntityData<?>>
         final float bob = Mth.cos(DataUpdateHandler.getTicks() * BOB_SPEED) * BOB_AMOUNT;
         final float pitch = OFFER_PITCH + data.headPitch.get() * PITCH_INFLUENCE + bob;
 
-        arm.rotation.orientX(pitch * bringUp)
+        arm.rotation.setSmoothness(0.5F).orientX(pitch * bringUp)
                 .rotateY(data.headYaw.get() * YAW_INFLUENCE * bringUp)
                 .rotateZ(INWARD_ROLL * handDirection * bringUp);
 
-        foreArm.rotation.orientX(ELBOW_BEND * bringUp);
+        foreArm.rotation.setSmoothness(0.5F).orientX(ELBOW_BEND * bringUp);
     }
 }

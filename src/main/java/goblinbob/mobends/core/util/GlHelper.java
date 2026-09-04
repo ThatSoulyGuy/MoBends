@@ -10,20 +10,15 @@ import org.joml.Quaternionf;
 
 public class GlHelper
 {
+    private static final Quaternionf ROTATION_SCRATCH = new Quaternionf();
+
     public static void rotate(PoseStack poseStack, Quaternion quaternionIn)
     {
         if (quaternionIn == null) return;
 
         if (quaternionIn.lengthSquared() < 1.0E-6F) return;
 
-        Quaternionf jomlQuat = new Quaternionf(
-                quaternionIn.x,
-                quaternionIn.y,
-                quaternionIn.z,
-                quaternionIn.w
-        );
-
-        poseStack.mulPose(jomlQuat);
+        poseStack.mulPose(ROTATION_SCRATCH.set(quaternionIn.x, quaternionIn.y, quaternionIn.z, quaternionIn.w));
     }
 
     public static void rotate(PoseStack poseStack, Quaternionf quaternionIn)

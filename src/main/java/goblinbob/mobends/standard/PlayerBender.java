@@ -18,6 +18,8 @@ import goblinbob.mobends.standard.previewer.PreviewPlayer;
 
 public class PlayerBender extends EntityBender<AbstractClientPlayer>
 {
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
 
     private PlayerPreviewer previewer;
     private String[] alterableParts = {
@@ -50,7 +52,7 @@ public class PlayerBender extends EntityBender<AbstractClientPlayer>
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            LOGGER.error("Failed to create the player preview entity", e);
             return null;
         }
     }

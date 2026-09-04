@@ -16,6 +16,8 @@ import java.util.*;
 
 public class PackDataProvider
 {
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
 
     public static final PackDataProvider INSTANCE = new PackDataProvider();
 
@@ -76,12 +78,12 @@ public class PackDataProvider
             }
             catch (IOException ex)
             {
-                ex.printStackTrace();
+                LOGGER.error("Data for pack '{}' couldn't be fetched", bendsPack.getKey(), ex);
                 throw new InvalidPackFormatException(bendsPack.getDisplayName(), String.format("Data for pack '%s' couldn't be fetched", bendsPack.getKey()));
             }
             catch (JsonSyntaxException | MalformedKumoTemplateException ex)
             {
-                ex.printStackTrace();
+                LOGGER.error("The '{}' pack isn't in a correct format", bendsPack.getKey(), ex);
                 throw new InvalidPackFormatException(bendsPack.getDisplayName(), String.format("The '%s' pack isn't in a correct format.", bendsPack.getKey()));
             }
         }
@@ -106,7 +108,7 @@ public class PackDataProvider
                 }
                 catch (IOException e)
                 {
-                    e.printStackTrace();
+                    LOGGER.error("Couldn't load animation '{}'", animationKey, e);
                     return false;
                 }
             }

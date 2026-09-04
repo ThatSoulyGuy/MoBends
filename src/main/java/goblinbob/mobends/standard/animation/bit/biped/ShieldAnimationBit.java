@@ -39,10 +39,10 @@ public class ShieldAnimationBit extends AnimationBit<BipedEntityData<?>>
             bringUpAnimation = Math.min(bringUpAnimation, 1F);
         }
 
-        mainArm.rotation.orientX(bringUpAnimation * 0.0F)
+        mainArm.rotation.setSmoothness(0.5F).orientX(bringUpAnimation * 0.0F)
                         .rotateY(-45.0F * bringUpAnimation * handDirMtp);
 
-        mainForeArm.rotation.orientX(bringUpAnimation * -45.0F);
+        mainForeArm.rotation.setSmoothness(0.5F).orientX(bringUpAnimation * -45.0F);
     }
 
 }

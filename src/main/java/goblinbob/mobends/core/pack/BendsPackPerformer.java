@@ -7,6 +7,8 @@ import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException
 
 public class BendsPackPerformer
 {
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
 
     public static final BendsPackPerformer INSTANCE = new BendsPackPerformer();
 
@@ -24,7 +26,7 @@ public class BendsPackPerformer
         }
         catch (MalformedKumoTemplateException e)
         {
-            e.printStackTrace();
+            LOGGER.error("Malformed bends pack animator; resetting the applied packs", e);
             PackManager.INSTANCE.resetAppliedPacks(true);
         }
     }
