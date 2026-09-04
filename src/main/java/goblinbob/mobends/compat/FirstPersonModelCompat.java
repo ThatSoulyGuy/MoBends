@@ -27,6 +27,7 @@ public class FirstPersonModelCompat
     private static final float ENTITY_SCALE = 1.0F / 16.0F;
     private static final float DEGREES_TO_RADIANS = (float) Math.PI / 180.0F;
     private static final double MAX_COMPENSATION = 1.5D;
+    private static final float MAX_HEAD_DISPLACEMENT = 48.0F;
 
     private static boolean initialized = false;
     private static boolean isLoaded = false;
@@ -189,6 +190,11 @@ public class FirstPersonModelCompat
 
         float headX = bodyPivotX + neck[0];
         float headZ = bodyPivotZ + neck[2];
+
+        if (Math.abs(headX) > MAX_HEAD_DISPLACEMENT || Math.abs(headZ) > MAX_HEAD_DISPLACEMENT)
+        {
+            return current;
+        }
 
         float entityX = data.globalOffset.getX() + data.localOffset.getX();
         float entityZ = data.globalOffset.getZ() + data.localOffset.getZ();

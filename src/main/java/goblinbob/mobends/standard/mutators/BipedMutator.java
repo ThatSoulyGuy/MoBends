@@ -87,6 +87,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     private Set<ModelPart> overlayRenderedParts = null;
 
+    private static final float HIDDEN_PART_DISPLACEMENT = 1000.0F;
+
     private final float[] scratchVec = new float[3];
     private final float[] scratchPivot = new float[3];
     private final float[] scratchEuler = new float[3];
@@ -1924,6 +1926,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         Quaternion.mul(adoptedParentInverse, adoptedRotation, scratchRotation);
         applyAdoptedRotation(child, dataChild, scratchRotation);
 
+        if (isHiddenByDisplacement(modelPart)) return;
+
         float[] local = rotateVectorByQuaternion(adoptedParentInverse,
                 modelPart.x - bodyPivotX, modelPart.y - bodyPivotY, modelPart.z - bodyPivotZ, scratchPivot);
         local[0] = divideByScale(local[0], body.scale.x);
@@ -1949,7 +1953,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         readModelRotation(modelPart, adoptedRotation);
         applyAdoptedRotation(part, dataPart, adoptedRotation);
 
-        if (restPivot != null)
+        if (restPivot != null && !isHiddenByDisplacement(modelPart))
         {
             final float dx = modelPart.x - restPivot[0] - part.globalOffset.x;
             final float dy = modelPart.y - restPivot[1] - part.globalOffset.y;
@@ -1980,6 +1984,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     private static float divideByScale(float value, float scale)
     {
         return scale == 0.0F ? value : value / scale;
+    }
+
+    private static boolean isHiddenByDisplacement(ModelPart modelPart)
+    {
+        return Math.abs(modelPart.z) >= HIDDEN_PART_DISPLACEMENT;
     }
 
     private static void solveOffset(BendsModelPart part, float localX, float localY, float localZ)
