@@ -209,6 +209,12 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             layerRenderers.set(index, this.layerElytra);
         }
 
+        if (goblinbob.mobends.compat.MorePlayerModelsCompat.isPartsLayer(layer))
+        {
+            this.originalLayers.put(index, layer);
+            layerRenderers.set(index, new goblinbob.mobends.compat.MorePlayerModelsPartsLayer(renderer, layer));
+        }
+
     }
 
     @Override

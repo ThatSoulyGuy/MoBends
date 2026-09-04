@@ -1,13 +1,20 @@
 package goblinbob.mobends.compat;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.architectury.platform.Platform;
+import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
+import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.standard.data.BipedEntityData;
+import goblinbob.mobends.standard.mutators.BipedMutator;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,14 +45,26 @@ public class MorePlayerModelsCompat
     private static Field transYField;
     private static Field transZField;
 
+    private static Class<?> partsLayerClass;
+
     private static int captureDepth = 0;
     private static boolean captureRestoreValue = false;
 
     private static final float SHOULDER_DROP = 2.0F;
 
+    private static final float[] FOREARM_ANCHOR = {0.0F, -4.0F, -2.0F};
+    private static final float[] FORELEG_ANCHOR = {0.0F, -6.0F, 2.0F};
+
     private static final float[] scratchScale = new float[3];
     private static final float[] bodyScale = new float[3];
     private static final float[] scratchTranslation = new float[3];
+
+    private static final PoseStack limbStack = new PoseStack();
+    private static final Vector3f limbPivot = new Vector3f();
+    private static final Quaternionf limbRotation = new Quaternionf();
+    private static final Quaternion limbOrientation = new Quaternion();
+    private static final float[][] savedLimbs = new float[4][6];
+    private static boolean limbsPosed = false;
 
     public static void init()
     {
@@ -92,6 +111,131 @@ public class MorePlayerModelsCompat
         transXField = configClass.getField("transX");
         transYField = configClass.getField("transY");
         transZField = configClass.getField("transZ");
+
+        partsLayerClass = Class.forName("noppes.mpm.client.layer.LayerParts");
+    }
+
+    public static boolean isPartsLayer(Object layer)
+    {
+        return layer != null && isModLoaded() && partsLayerClass != null && partsLayerClass.isInstance(layer);
+    }
+
+    public static void beginPartsRender(LivingEntity entity, BipedMutator<?, ?, ?> mutator, PlayerModel<?> model)
+    {
+        if (limbsPosed || model == null || mutator == null || !isModLoaded() || !(entity instanceof Player player))
+        {
+            return;
+        }
+
+        final Object modelData = modelDataOf(player);
+        if (modelData == null)
+        {
+            return;
+        }
+
+        saveLimb(model.rightArm, savedLimbs[0]);
+        saveLimb(model.leftArm, savedLimbs[1]);
+        saveLimb(model.rightLeg, savedLimbs[2]);
+        saveLimb(model.leftLeg, savedLimbs[3]);
+        limbsPosed = true;
+
+        poseAsLowerLimb(model.rightArm, mutator.getRightForeArm(), FOREARM_ANCHOR, modelData, rightArmField, true);
+        poseAsLowerLimb(model.leftArm, mutator.getLeftForeArm(), FOREARM_ANCHOR, modelData, leftArmField, true);
+        poseAsLowerLimb(model.rightLeg, mutator.getRightForeLeg(), FORELEG_ANCHOR, modelData, rightLegField, false);
+        poseAsLowerLimb(model.leftLeg, mutator.getLeftForeLeg(), FORELEG_ANCHOR, modelData, leftLegField, false);
+    }
+
+    public static void endPartsRender(PlayerModel<?> model)
+    {
+        if (!limbsPosed)
+        {
+            return;
+        }
+        limbsPosed = false;
+
+        if (model == null)
+        {
+            return;
+        }
+
+        restoreLimb(model.rightArm, savedLimbs[0]);
+        restoreLimb(model.leftArm, savedLimbs[1]);
+        restoreLimb(model.rightLeg, savedLimbs[2]);
+        restoreLimb(model.leftLeg, savedLimbs[3]);
+    }
+
+    private static void poseAsLowerLimb(ModelPart part, BendsModelPart bone, float[] anchor, Object modelData,
+                                        Field configField, boolean arm)
+    {
+        if (part == null || bone == null)
+        {
+            return;
+        }
+
+        limbStack.pushPose();
+        bone.applyCharacterTransformPoseStack(limbStack);
+        final Matrix4f pose = limbStack.last().pose();
+        limbPivot.set(anchor[0] / 16.0F, anchor[1] / 16.0F, anchor[2] / 16.0F);
+        pose.transformPosition(limbPivot);
+        pose.getNormalizedRotation(limbRotation);
+        limbStack.popPose();
+
+        if (!readTranslation(modelData, configField, scratchTranslation))
+        {
+            scratchTranslation[0] = 0.0F;
+            scratchTranslation[1] = 0.0F;
+            scratchTranslation[2] = 0.0F;
+        }
+        if (!readConfig(modelData, configField, scratchScale))
+        {
+            scratchScale[0] = 1.0F;
+            scratchScale[1] = 1.0F;
+            scratchScale[2] = 1.0F;
+        }
+
+        final float lift = arm
+                ? scratchTranslation[1] + (1.0F - scratchScale[1]) * 0.125F
+                : scratchTranslation[1] * 2.0F;
+
+        part.x = divide(limbPivot.x() * 16.0F, scratchScale[0]);
+        part.y = divide((limbPivot.y() - lift) * 16.0F, scratchScale[1]);
+        part.z = divide(limbPivot.z() * 16.0F, scratchScale[2]);
+
+        limbOrientation.set(limbRotation.x(), limbRotation.y(), limbRotation.z(), limbRotation.w());
+        final float[] euler = BipedMutator.eulerAnglesOf(limbOrientation);
+        part.xRot = euler[0];
+        part.yRot = euler[1];
+        part.zRot = euler[2];
+    }
+
+    private static void saveLimb(ModelPart part, float[] dest)
+    {
+        if (part == null)
+        {
+            return;
+        }
+
+        dest[0] = part.x;
+        dest[1] = part.y;
+        dest[2] = part.z;
+        dest[3] = part.xRot;
+        dest[4] = part.yRot;
+        dest[5] = part.zRot;
+    }
+
+    private static void restoreLimb(ModelPart part, float[] src)
+    {
+        if (part == null)
+        {
+            return;
+        }
+
+        part.x = src[0];
+        part.y = src[1];
+        part.z = src[2];
+        part.xRot = src[3];
+        part.yRot = src[4];
+        part.zRot = src[5];
     }
 
     public static boolean isModLoaded()
