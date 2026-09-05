@@ -14,11 +14,6 @@ public class BipedRenderer<T extends LivingEntity> extends MutatedRenderer<T>
     @Override
     protected void renderLocalAccessories(T entity, EntityData<?> data, float partialTicks, PoseStack poseStack)
     {
-        if (goblinbob.mobends.compat.BetterCombatCompat.suppressesTrail(entity))
-        {
-            return;
-        }
-
         if (data instanceof BipedEntityData)
         {
             BipedEntityData<?> bipedData = (BipedEntityData<?>) data;

@@ -28,6 +28,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.Iterator;
@@ -37,9 +38,16 @@ import java.util.function.Supplier;
 public class SwordTrail
 {
     private static final float MODEL_HEIGHT = 24.0F;
+    private static final float WORLD_TRAIL_START_SPEED = 0.45F;
+    private static final float WORLD_TRAIL_STOP_SPEED = 0.15F;
 
     protected final Supplier<IColorRead> baseColor;
     protected LinkedList<TrailPart> trailPartList = new LinkedList<>();
+
+    private double lastTipX, lastTipY, lastTipZ;
+    private float lastTipTicks;
+    private boolean hasLastTip = false;
+    private boolean emitting = false;
 
     public SwordTrail(Supplier<IColorRead> baseColor)
     {
@@ -49,6 +57,62 @@ public class SwordTrail
     public void reset()
     {
         trailPartList.clear();
+    }
+
+    public void stopTracking()
+    {
+        this.hasLastTip = false;
+        this.emitting = false;
+    }
+
+    public void trackWorldBlade(double startX, double startY, double startZ,
+                                double endX, double endY, double endZ)
+    {
+        final float now = DataUpdateHandler.getTicks();
+
+        if (this.hasLastTip)
+        {
+            final float elapsed = now - this.lastTipTicks;
+            if (elapsed <= 0.0F)
+            {
+                return;
+            }
+
+            final double dx = endX - this.lastTipX;
+            final double dy = endY - this.lastTipY;
+            final double dz = endZ - this.lastTipZ;
+            final double speed = Math.sqrt(dx * dx + dy * dy + dz * dz) / elapsed;
+            final boolean fast = speed > (this.emitting ? WORLD_TRAIL_STOP_SPEED : WORLD_TRAIL_START_SPEED);
+
+            if (fast)
+            {
+                if (!this.emitting)
+                {
+                    reset();
+                }
+                this.emitting = true;
+
+                final TrailPart part = new TrailPart(HumanoidArm.RIGHT, this.baseColor.get(), 0.0F, 0.0F, 0.0F);
+                part.worldAnchored = true;
+                part.worldStartX = startX;
+                part.worldStartY = startY;
+                part.worldStartZ = startZ;
+                part.worldEndX = endX;
+                part.worldEndY = endY;
+                part.worldEndZ = endZ;
+                trailPartList.add(part);
+            }
+            else
+            {
+                this.emitting = false;
+            }
+        }
+
+        this.lastTipX = endX;
+        this.lastTipY = endY;
+        this.lastTipZ = endZ;
+        this.lastTipTicks = now;
+        this.hasLastTip = true;
     }
 
     protected static class TrailPart
@@ -76,6 +140,10 @@ public class SwordTrail
         protected float originYaw;
         protected boolean anchored = false;
 
+        protected boolean worldAnchored = false;
+        protected double worldStartX, worldStartY, worldStartZ;
+        protected double worldEndX, worldEndY, worldEndZ;
+
         public TrailPart(HumanoidArm primaryHand, IColorRead baseColor, float velocityX, float velocityY, float velocityZ)
         {
             this.body = new ModelPartTransform();
@@ -95,6 +163,26 @@ public class SwordTrail
             this.position.x += this.velocityX * ticksPerFrame;
             this.position.y += this.velocityY * ticksPerFrame;
             this.position.z += this.velocityZ * ticksPerFrame;
+        }
+
+        public Vec3f[] getViewPoints()
+        {
+            final float alpha = getAlpha();
+
+            final double middleX = (worldEndX + worldStartX) * 0.5;
+            final double middleY = (worldEndY + worldStartY) * 0.5;
+            final double middleZ = (worldEndZ + worldStartZ) * 0.5;
+            final double reachX = (worldEndX - worldStartX) * 0.5 * alpha;
+            final double reachY = (worldEndY - worldStartY) * 0.5 * alpha;
+            final double reachZ = (worldEndZ - worldStartZ) * 0.5 * alpha;
+
+            final Vector3f tip = TrailRenderQueue.worldToView(middleX + reachX, middleY + reachY, middleZ + reachZ, new Vector3f());
+            final Vector3f base = TrailRenderQueue.worldToView(middleX - reachX, middleY - reachY, middleZ - reachZ, new Vector3f());
+
+            return new Vec3f[] {
+                    new Vec3f(tip.x, tip.y, tip.z),
+                    new Vec3f(base.x, base.y, base.z)
+            };
         }
 
         public Vec3f[] getPoints(double currentX, double currentY, double currentZ, float currentYaw,
@@ -248,11 +336,12 @@ public class SwordTrail
         while (it.hasNext())
         {
             final TrailPart part = it.next();
-            final Vec3f[] points = part.getPoints(currentX, currentY, currentZ, currentYaw, modelScale);
             final float alpha = part.getAlpha();
             final IColorRead color = part.baseColor;
 
-            Vec3f[] transformedPoints = transformPoints(points, matrix);
+            Vec3f[] transformedPoints = part.worldAnchored
+                    ? part.getViewPoints()
+                    : transformPoints(part.getPoints(currentX, currentY, currentZ, currentYaw, modelScale), matrix);
 
             if (prevPart != null && prevTransformedPoints != null)
             {
@@ -318,10 +407,15 @@ public class SwordTrail
 
     public void add(BipedEntityData<?> entityData, HumanoidArm arm, float velocityX, float velocityY, float velocityZ)
     {
+        final LivingEntity entity = entityData.getEntity();
+
+        if (entity != null && goblinbob.mobends.compat.BetterCombatCompat.suppressesTrail(entity))
+        {
+            return;
+        }
+
         final HumanoidArm primaryHand = arm;
         final TrailPart newPart = new TrailPart(primaryHand, this.baseColor.get(), velocityX, velocityY, velocityZ);
-
-        final LivingEntity entity = entityData.getEntity();
         ItemStack weapon = ItemStack.EMPTY;
         ItemDisplayContext displayContext = arm == HumanoidArm.RIGHT
                 ? ItemDisplayContext.THIRD_PERSON_RIGHT_HAND

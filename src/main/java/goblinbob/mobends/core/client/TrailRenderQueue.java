@@ -6,6 +6,8 @@ import goblinbob.mobends.api.rendering.DrawMode;
 import goblinbob.mobends.api.rendering.IBufferBuilder;
 import goblinbob.mobends.api.rendering.ITesselator;
 import goblinbob.mobends.api.rendering.VertexFormatType;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public final class TrailRenderQueue
 {
@@ -16,8 +18,44 @@ public final class TrailRenderQueue
     private static int[] colors = new int[INITIAL_CAPACITY];
     private static int vertexCount = 0;
 
+    private static final Matrix4f levelView = new Matrix4f();
+    private static final Matrix4f levelViewInverse = new Matrix4f();
+    private static final Vector3f scratch = new Vector3f();
+    private static double cameraX, cameraY, cameraZ;
+    private static boolean frameReady = false;
+
     private TrailRenderQueue()
     {
+    }
+
+    public static void beginFrame(Matrix4f pose, double camX, double camY, double camZ)
+    {
+        levelView.set(pose);
+        levelViewInverse.set(pose).invert();
+        cameraX = camX;
+        cameraY = camY;
+        cameraZ = camZ;
+        frameReady = true;
+    }
+
+    public static boolean hasFrame()
+    {
+        return frameReady;
+    }
+
+    public static Vector3f worldToView(double x, double y, double z, Vector3f dest)
+    {
+        dest.set((float) (x - cameraX), (float) (y - cameraY), (float) (z - cameraZ));
+        return levelView.transformPosition(dest);
+    }
+
+    public static void viewToWorld(float x, float y, float z, double[] dest)
+    {
+        scratch.set(x, y, z);
+        levelViewInverse.transformPosition(scratch);
+        dest[0] = cameraX + scratch.x;
+        dest[1] = cameraY + scratch.y;
+        dest[2] = cameraZ + scratch.z;
     }
 
     public static void vertex(float x, float y, float z, int color)

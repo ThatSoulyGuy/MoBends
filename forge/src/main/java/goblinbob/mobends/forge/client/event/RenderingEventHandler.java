@@ -282,6 +282,11 @@ public class RenderingEventHandler
 
 
             goblinbob.mobends.core.client.TrailRenderQueue.clear();
+
+            final net.minecraft.world.phys.Vec3 cameraPosition =
+                    net.minecraft.client.Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+            goblinbob.mobends.core.client.TrailRenderQueue.beginFrame(event.getPoseStack().last().pose(),
+                    cameraPosition.x, cameraPosition.y, cameraPosition.z);
         }
         else if (event.getStage() == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS)
         {
