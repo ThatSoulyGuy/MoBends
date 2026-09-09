@@ -77,6 +77,27 @@ public class Tier1Renderer
         }
     }
 
+    public <E extends LivingEntity> boolean renderWithConsumer(
+            ArmorRenderContext<E> context,
+            HumanoidModel<?> model,
+            VertexConsumer vertexConsumer)
+    {
+        if (context == null || model == null || vertexConsumer == null || context.getEntityData() == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            renderInternal(context, model, vertexConsumer);
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+    }
+
     private <E extends LivingEntity> void renderWithFoil(
             ArmorRenderContext<E> context,
             HumanoidModel<?> model,

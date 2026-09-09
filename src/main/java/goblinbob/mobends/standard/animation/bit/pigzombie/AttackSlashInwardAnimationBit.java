@@ -5,7 +5,7 @@ import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.SwordItem;
+import goblinbob.mobends.core.util.HeldItemHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import org.joml.Vector3f;
@@ -37,7 +37,7 @@ public class AttackSlashInwardAnimationBit extends AnimationBit<BipedEntityData<
 		SmoothOrientation mainItemRotation = mainHandSwitch ? data.renderRightItemRotation : data.renderLeftItemRotation;
 
 		if (data.getTicksAfterAttack() < 4F
-				&& living.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof SwordItem)
+				&& HeldItemHelper.isSword(living.getItemInHand(InteractionHand.MAIN_HAND)))
 		{
 			data.swordTrail.add(data);
 		}

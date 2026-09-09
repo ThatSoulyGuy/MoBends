@@ -2,6 +2,7 @@ package goblinbob.mobends.platform;
 
 import goblinbob.mobends.api.entity.IItemStack;
 import goblinbob.mobends.api.resource.IResourcePath;
+import goblinbob.mobends.core.util.HeldItemHelper;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
@@ -40,31 +41,25 @@ public class McItemStack implements IItemStack
     @Override
     public boolean isTool()
     {
-        Item item = itemStack.getItem();
-        return item instanceof SwordItem ||
-               item instanceof AxeItem ||
-               item instanceof PickaxeItem ||
-               item instanceof ShovelItem ||
-               item instanceof HoeItem ||
-               item instanceof TridentItem;
+        return HeldItemHelper.isTool(itemStack.getItem());
     }
 
     @Override
     public boolean isBow()
     {
-        return itemStack.getItem() instanceof BowItem;
+        return HeldItemHelper.isBow(itemStack.getItem());
     }
 
     @Override
     public boolean isCrossbow()
     {
-        return itemStack.getItem() instanceof CrossbowItem;
+        return HeldItemHelper.isCrossbow(itemStack.getItem());
     }
 
     @Override
     public boolean isShield()
     {
-        return itemStack.getItem() instanceof ShieldItem;
+        return HeldItemHelper.isShield(itemStack.getItem());
     }
 
     @Override

@@ -5,13 +5,13 @@ import goblinbob.mobends.compat.BetterCombatCompat;
 import goblinbob.mobends.core.client.TrailRenderQueue;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.data.LivingEntityData;
+import goblinbob.mobends.core.util.HeldItemHelper;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -34,7 +34,7 @@ public final class WeaponTrailCapture
             return;
         }
 
-        if (!(itemStack.getItem() instanceof SwordItem))
+        if (!HeldItemHelper.isSword(itemStack))
         {
             return;
         }

@@ -3,6 +3,7 @@ package goblinbob.mobends.standard.animation.bit.biped.item;
 import goblinbob.mobends.api.item.IItemCapabilityProvider;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
+import goblinbob.mobends.core.util.HeldItemHelper;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.UseActionType;
 import goblinbob.mobends.standard.animation.bit.biped.CrossbowHoldAnimationBit;
@@ -103,7 +104,7 @@ public class BipedActionController
         if (capabilityProvider != null && capabilityProvider.isFood(item))
             return UseActionType.FOOD;
 
-        if (item instanceof BowItem || item instanceof CrossbowItem ||
+        if (HeldItemHelper.isBow(item) || HeldItemHelper.isCrossbow(item) ||
                 armPoseMain == HumanoidModel.ArmPose.BOW_AND_ARROW || armPoseOff == HumanoidModel.ArmPose.BOW_AND_ARROW ||
                 armPoseMain == HumanoidModel.ArmPose.CROSSBOW_HOLD || armPoseOff == HumanoidModel.ArmPose.CROSSBOW_HOLD)
             return UseActionType.BOW;
@@ -141,7 +142,7 @@ public class BipedActionController
 
     public static AttackActionType getBuiltInItemAttackAction(Item item)
     {
-        if (item instanceof SwordItem)
+        if (HeldItemHelper.isSword(item))
             return AttackActionType.SWORD;
 
         if (item == Items.AIR)

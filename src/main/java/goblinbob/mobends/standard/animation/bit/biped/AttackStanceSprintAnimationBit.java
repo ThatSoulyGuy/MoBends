@@ -4,7 +4,7 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.model.IModelPart;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.SwordItem;
+import goblinbob.mobends.core.util.HeldItemHelper;
 import net.minecraft.world.entity.HumanoidArm;
 
 public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData<?>>
@@ -24,7 +24,7 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 
-		if (living.getItemInHand(AttackArms.handOf(living, primaryHand)).getItem() instanceof SwordItem)
+		if (HeldItemHelper.isSword(living.getItemInHand(AttackArms.handOf(living, primaryHand))))
 		{
 			data.swordTrail.add(data, primaryHand, 0.0F, 0.0F, -10.0F);
 		}

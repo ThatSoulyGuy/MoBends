@@ -167,6 +167,41 @@ public class ArmorRenderingFacade
         }
     }
 
+    public <T extends LivingEntity> boolean renderArmorIntoConsumer(
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            com.mojang.blaze3d.vertex.VertexConsumer vertexConsumer,
+            int packedLight,
+            int packedOverlay,
+            T entity,
+            EquipmentSlot slot,
+            ItemStack armorStack,
+            HumanoidModel<?> armorModel,
+            BipedEntityData<?> entityData,
+            @Nullable Integer colorOverride)
+    {
+        if (armorModel == null || entityData == null || vertexConsumer == null)
+        {
+            return false;
+        }
+
+        ArmorRenderContext<T> context = ArmorRenderContext.<T>builder()
+                .colorOverride(colorOverride)
+                .entity(entity)
+                .entityData(entityData)
+                .slot(slot)
+                .armorStack(armorStack)
+                .poseStack(poseStack)
+                .bufferSource(bufferSource)
+                .packedLight(packedLight)
+                .packedOverlay(packedOverlay)
+                .partialTicks(0)
+                .armorModel(armorModel)
+                .build();
+
+        return tier1Renderer.renderWithConsumer(context, armorModel, vertexConsumer);
+    }
+
     private <T extends LivingEntity> boolean renderWithTexture(
             ArmorRenderContext<T> context,
             Model armorModel,

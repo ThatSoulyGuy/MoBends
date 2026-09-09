@@ -49,6 +49,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
     private final ArmorRenderingFacade armorFacade = new ArmorRenderingFacade();
 
+    private final goblinbob.mobends.standard.client.model.armor.TinkersArmorProxyModel tinkersProxy =
+            new goblinbob.mobends.standard.client.model.armor.TinkersArmorProxyModel();
+
+    private net.minecraft.client.model.ElytraModel<E> tinkersWings;
+
     @Deprecated
     private final RigidArmorRenderer rigidRenderer = new RigidArmorRenderer();
 
@@ -244,6 +249,25 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             }
         }
 
+        final boolean isTinkersArmor = isCustomModel
+                && goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.isTinkersArmorModel(armorModel);
+
+        if (isTinkersArmor && slot != EquipmentSlot.HEAD && shouldUseBends && entityData instanceof BipedEntityData<?>)
+        {
+            BipedEntityData<?> tinkersData = (BipedEntityData<?>) entityData;
+
+            if (tinkersData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
+            {
+                tinkersData = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
+            }
+
+            if (renderTinkersArmor(poseStack, bufferSource, packedLight, entity, slot, itemStack,
+                    armorModel, defaultModel, tinkersData))
+            {
+                return;
+            }
+        }
+
         if (isCustomModel && isSelfRenderingModel(armorModel))
         {
             if (mutator != null && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
@@ -252,7 +276,44 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                         armorModel instanceof HumanoidModel<?> selfDrawn ? selfDrawn : defaultModel);
             }
 
-            renderSelfDrawnArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
+            BipedEntityData<?> skullData = null;
+
+            if (isTinkersArmor && shouldUseBends && entityData instanceof BipedEntityData<?>)
+            {
+                skullData = (BipedEntityData<?>) entityData;
+
+                if (skullData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
+                {
+                    skullData = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
+                }
+            }
+
+            final net.minecraft.client.model.SkullModelBase skull = skullData != null
+                    ? goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.getSkullModel(armorModel)
+                    : null;
+
+            if (skull != null)
+            {
+                goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.setSkullModel(armorModel, null);
+            }
+
+            try
+            {
+                renderSelfDrawnArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
+            }
+            finally
+            {
+                if (skull != null)
+                {
+                    goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.setSkullModel(armorModel, skull);
+                }
+            }
+
+            if (skull != null)
+            {
+                renderTinkersSkull(poseStack, bufferSource, packedLight, itemStack, armorModel, skull, skullData);
+            }
+
             return;
         }
 
@@ -271,6 +332,153 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         {
             renderVanillaArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
         }
+    }
+
+    private boolean renderTinkersArmor(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                       E entity, EquipmentSlot slot, ItemStack itemStack,
+                                       Model tinkersModel, HumanoidModel<E> defaultModel,
+                                       BipedEntityData<?> bipedData)
+    {
+        final java.util.List<?> layers =
+                goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.getLayers(tinkersModel);
+
+        if (layers.isEmpty())
+        {
+            return false;
+        }
+
+        final Object registryAccess =
+                goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.getRegistryAccess(tinkersModel);
+        final Object armorType =
+                goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.textureTypeFor(slot);
+        final Object wingsType =
+                goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.wingsTextureType();
+        final boolean drawWings = slot == EquipmentSlot.CHEST
+                && goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.hasWings(tinkersModel);
+
+        boolean armorGlint = itemStack.hasFoil();
+        boolean wingGlint = armorGlint;
+        boolean rendered = false;
+
+        for (Object supplier : layers)
+        {
+            final Object texture = goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport
+                    .getArmorTexture(supplier, itemStack, armorType, registryAccess);
+
+            if (texture != null)
+            {
+                tinkersProxy.bind((ps, vertexConsumer, light, overlay, color) ->
+                        armorFacade.renderArmorIntoConsumer(ps, bufferSource, vertexConsumer, light, overlay,
+                                entity, slot, itemStack, defaultModel, bipedData, color));
+
+                if (goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.renderTexture(
+                        texture, tinkersProxy, poseStack, bufferSource, packedLight,
+                        OverlayTexture.NO_OVERLAY, armorGlint))
+                {
+                    rendered = true;
+                    armorGlint = false;
+                }
+            }
+
+            if (!drawWings)
+            {
+                continue;
+            }
+
+            final Object wingTexture = goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport
+                    .getArmorTexture(supplier, itemStack, wingsType, registryAccess);
+
+            if (wingTexture == null)
+            {
+                continue;
+            }
+
+            final net.minecraft.client.model.ElytraModel<E> wingsModel = getTinkersWings(entity);
+
+            tinkersProxy.bind((ps, vertexConsumer, light, overlay, color) ->
+                    renderTinkersWings(ps, vertexConsumer, wingsModel, bipedData, light, overlay, color));
+
+            if (goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.renderTexture(
+                    wingTexture, tinkersProxy, poseStack, bufferSource, packedLight,
+                    OverlayTexture.NO_OVERLAY, wingGlint))
+            {
+                rendered = true;
+                wingGlint = false;
+            }
+        }
+
+        tinkersProxy.bind(null);
+
+        return rendered;
+    }
+
+    private net.minecraft.client.model.ElytraModel<E> getTinkersWings(E entity)
+    {
+        if (tinkersWings == null)
+        {
+            tinkersWings = new net.minecraft.client.model.ElytraModel<>(
+                    net.minecraft.client.Minecraft.getInstance().getEntityModels()
+                            .bakeLayer(net.minecraft.client.model.geom.ModelLayers.ELYTRA));
+        }
+
+        tinkersWings.young = false;
+        tinkersWings.riding = false;
+        tinkersWings.attackTime = 0.0F;
+        tinkersWings.setupAnim(entity, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+
+        return tinkersWings;
+    }
+
+    private void renderTinkersWings(PoseStack poseStack, VertexConsumer vertexConsumer,
+                                    net.minecraft.client.model.ElytraModel<E> wingsModel,
+                                    BipedEntityData<?> bipedData, int packedLight, int packedOverlay, int color)
+    {
+        poseStack.pushPose();
+
+        bipedData.body.applyCharacterTransform(poseStack, 0.0625F);
+        poseStack.translate(0.0F, -0.75F, 0.125F);
+
+        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(wingsModel, poseStack, vertexConsumer,
+                packedLight, packedOverlay, color);
+
+        poseStack.popPose();
+    }
+
+    private void renderTinkersSkull(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                    ItemStack itemStack, Model tinkersModel,
+                                    net.minecraft.client.model.SkullModelBase skull,
+                                    BipedEntityData<?> bipedData)
+    {
+        final ResourceLocation texture =
+                goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.getSkullTexture(tinkersModel);
+
+        if (texture == null)
+        {
+            return;
+        }
+
+        final int color =
+                goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.getSkullColor(tinkersModel);
+
+        poseStack.pushPose();
+
+        goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper
+                .applyPartTransform(poseStack, bipedData.body, true);
+        goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper
+                .applyPartTransform(poseStack, bipedData.head, true);
+        poseStack.scale(1.115F, 1.115F, 1.115F);
+
+        skull.setupAnim(goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport
+                .getSkullWalkAnimation(tinkersModel), 0.0F, 0.0F);
+
+        final IModelRenderHelper renderHelper = IModelRenderHelper.Holder.getHelper();
+        final VertexConsumer vertexConsumer = (VertexConsumer) renderHelper.getArmorFoilBuffer(
+                bufferSource, RenderType.entityCutoutNoCullZOffset(texture), itemStack.hasFoil());
+
+        renderHelper.renderModelToBuffer(skull, poseStack, vertexConsumer, packedLight,
+                OverlayTexture.NO_OVERLAY, color == -1 ? 0xFFFFFFFF : color);
+
+        poseStack.popPose();
     }
 
     private static boolean isBendableGeoArmor(Model armorModel)

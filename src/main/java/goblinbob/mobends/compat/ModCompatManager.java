@@ -71,6 +71,8 @@ public class ModCompatManager
 
         CustomNpcsCompat.init();
 
+        TinkersConstructCompat.init();
+
         registerBuiltInAnimationControl();
     }
 
