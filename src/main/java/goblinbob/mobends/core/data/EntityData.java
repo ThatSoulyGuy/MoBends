@@ -137,6 +137,9 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         if (this.detached)
             return true;
 
+        if (goblinbob.mobends.compat.SableCompat.isStandingOnSubLevel(this.entity))
+            return true;
+
         BlockPos position = new BlockPos(
             Mth.floor(entity.getX()),
             Mth.floor(entity.getY()),
@@ -348,9 +351,21 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         this.prevMotionY = this.motionY;
         this.prevMotionZ = this.motionZ;
 
-        this.motionX = this.entity.getX() - this.positionX;
-        this.motionY = this.entity.getY() - this.positionY;
-        this.motionZ = this.entity.getZ() - this.positionZ;
+        final Vec3 subLevelMotion = goblinbob.mobends.compat.SableCompat.getSubLevelLocalMotion(
+                this.entity, this.positionX, this.positionY, this.positionZ);
+
+        if (subLevelMotion != null)
+        {
+            this.motionX = subLevelMotion.x;
+            this.motionY = subLevelMotion.y;
+            this.motionZ = subLevelMotion.z;
+        }
+        else
+        {
+            this.motionX = this.entity.getX() - this.positionX;
+            this.motionY = this.entity.getY() - this.positionY;
+            this.motionZ = this.entity.getZ() - this.positionZ;
+        }
 
         this.positionX = this.entity.getX();
         this.positionY = this.entity.getY();

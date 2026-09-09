@@ -73,6 +73,8 @@ public class ModCompatManager
 
         TinkersConstructCompat.init();
 
+        SableCompat.init();
+
         registerBuiltInAnimationControl();
     }
 
