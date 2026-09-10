@@ -77,6 +77,8 @@ public class ModCompatManager
 
         CreateCompat.init();
 
+        IWannaSkateCompat.init();
+
         registerBuiltInAnimationControl();
     }
 
@@ -87,6 +89,7 @@ public class ModCompatManager
         MoBendsAnimationControl.registerPoseOverride("monsterexpansion", MonsterExpansionCompat::isAnimating);
         MoBendsAnimationControl.registerPoseOverride("crawl", CrawlCompat::isPosingModel);
         MoBendsAnimationControl.registerPoseOverride("customnpcs", CustomNpcsCompat::isExternallyPosed);
+        MoBendsAnimationControl.registerPoseOverride("iwannaskate", IWannaSkateCompat::isPosingModel);
 
         MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
 

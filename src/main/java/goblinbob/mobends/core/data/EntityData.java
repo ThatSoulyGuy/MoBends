@@ -140,6 +140,9 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         if (goblinbob.mobends.compat.SableCompat.isStandingOnSubLevel(this.entity))
             return true;
 
+        if (this.entity.onGround())
+            return true;
+
         BlockPos position = new BlockPos(
             Mth.floor(entity.getX()),
             Mth.floor(entity.getY()),
