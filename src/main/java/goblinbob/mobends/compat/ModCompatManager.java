@@ -75,6 +75,8 @@ public class ModCompatManager
 
         SableCompat.init();
 
+        CreateCompat.init();
+
         registerBuiltInAnimationControl();
     }
 

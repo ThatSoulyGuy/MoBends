@@ -42,8 +42,15 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected HardAnimationLayer<BipedEntityData<?>> layerZipline = new HardAnimationLayer<>();
     protected AnimationBit<BipedEntityData<?>> bitZiplineHang = new ZiplineHangAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitZiplineArm = new ZiplineArmAnimationBit();
+    protected AnimationBit<BipedEntityData<?>> bitChainConveyorHang = new ChainConveyorHangAnimationBit();
 
     protected final BipedActionController actionController = new BipedActionController();
+
+    public static boolean isHangingOnChain(AbstractClientPlayer player)
+    {
+        return !goblinbob.mobends.standard.previewer.PlayerPreviewer.isPreviewInProgress()
+                && goblinbob.mobends.compat.CreateCompat.isHangingOnChain(player);
+    }
 
     public static boolean isCrawling(PlayerData data, AbstractClientPlayer player)
     {
@@ -72,6 +79,12 @@ public class PlayerController implements IAnimationController<PlayerData>
         }
 
         if (goblinbob.mobends.compat.ZiplineCompat.isZiplining(player))
+        {
+            actionController.clearAction();
+            return;
+        }
+
+        if (isHangingOnChain(player))
         {
             actionController.clearAction();
             return;
@@ -123,7 +136,13 @@ public class PlayerController implements IAnimationController<PlayerData>
         }
         else
         {
-            if (goblinbob.mobends.compat.ParagliderCompat.isParagliding(player))
+            if (isHangingOnChain(player))
+            {
+                layerBase.playOrContinueBit(bitChainConveyorHang, data);
+                layerSneak.clearAnimation();
+                layerTorch.clearAnimation();
+            }
+            else if (goblinbob.mobends.compat.ParagliderCompat.isParagliding(player))
             {
                 layerBase.playOrContinueBit(bitParagliding, data);
                 layerSneak.clearAnimation();
