@@ -10,7 +10,11 @@
     "VillagerModelMcaMixin",
     "VillagerModelMcaRelocatedMixin",
     "PlayerModelMcaMixin",
-    "PlayerModelMcaRelocatedMixin"
+    "PlayerModelMcaRelocatedMixin",
+    "VillagerModelMcaRebornMixin",
+    "VillagerModelMcaRebornRelocatedMixin",
+    "PlayerModelMcaRebornMixin",
+    "PlayerModelMcaRebornRelocatedMixin"
   ],
   "injectors": {
     "defaultRequire": 0

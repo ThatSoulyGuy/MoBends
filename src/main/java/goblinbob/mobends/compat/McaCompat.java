@@ -29,8 +29,13 @@ public final class McaCompat
 
     private static final String[] PACKAGE_PREFIXES = {"", "forge.", "neoforge.", "fabric.", "quilt."};
 
-    private static final String VILLAGER_CLASS = "net.mca.entity.VillagerEntityMCA";
-    private static final String ZOMBIE_VILLAGER_CLASS = "net.mca.entity.ZombieVillagerEntityMCA";
+    private static final String[] PACKAGE_ROOTS = {"net.conczin.mca.", "net.mca."};
+
+    private static final String VILLAGER_CLASS = "entity.VillagerEntityMCA";
+    private static final String ZOMBIE_VILLAGER_CLASS = "entity.ZombieVillagerEntityMCA";
+
+    private static final String BASE_MODEL_SUFFIX = ".mca.client.model.VillagerEntityBaseModelMCA";
+    private static final String PLAYER_MODEL_SUFFIX = ".mca.client.model.PlayerEntityExtendedModel";
 
     private static final String[] WEAR_FIELDS = {
             "bodyWear", "leftArmwear", "rightArmwear", "leftLegwear", "rightLegwear"};
@@ -204,18 +209,21 @@ public final class McaCompat
 
     private static Class<?> resolve(String className)
     {
-        for (final String prefix : PACKAGE_PREFIXES)
+        for (final String root : PACKAGE_ROOTS)
         {
-            try
+            for (final String prefix : PACKAGE_PREFIXES)
             {
-                final Class<?> candidate = Class.forName(prefix + className);
-                if (LivingEntity.class.isAssignableFrom(candidate))
+                try
                 {
-                    return candidate;
+                    final Class<?> candidate = Class.forName(prefix + root + className);
+                    if (LivingEntity.class.isAssignableFrom(candidate))
+                    {
+                        return candidate;
+                    }
                 }
-            }
-            catch (Throwable ignored)
-            {
+                catch (Throwable ignored)
+                {
+                }
             }
         }
 
@@ -268,8 +276,8 @@ public final class McaCompat
         return MCA_MODELS.computeIfAbsent(model.getClass(), type -> {
             for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass())
             {
-                if (current.getName().endsWith("net.mca.client.model.VillagerEntityBaseModelMCA")
-                        || current.getName().endsWith("net.mca.client.model.PlayerEntityExtendedModel"))
+                if (current.getName().endsWith(BASE_MODEL_SUFFIX)
+                        || current.getName().endsWith(PLAYER_MODEL_SUFFIX))
                 {
                     return true;
                 }
