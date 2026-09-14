@@ -232,6 +232,17 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             return;
         }
 
+        if (isCustomModel
+                && goblinbob.mobends.standard.client.model.armor.LegendsArmorSupport.isSuitModel(armorModel)
+                && goblinbob.mobends.standard.client.model.armor.LegendsArmorSupport.isSuitItem(itemStack))
+        {
+            renderLegendsArmor(poseStack, bufferSource, packedLight, entity, slot, itemStack, armorItem, armorModel,
+                    shouldUseBends && entityData instanceof BipedEntityData<?>
+                            ? (BipedEntityData<?>) entityData
+                            : null);
+            return;
+        }
+
 
         if (isCustomModel && shouldUseBends && entityData instanceof BipedEntityData<?>
                 && isBendableGeoArmor(armorModel))
@@ -1559,6 +1570,65 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             renderPalladiumPass(poseStack, bufferSource, packedLight, itemStack, armorModel,
                     palladiumArmor.overlayTexture, renderTypeProvider, 0xFFFFFFFF);
         }
+    }
+
+    private final goblinbob.mobends.standard.client.model.armor.CapturingVertexConsumer legendsVisibilityPass =
+            new goblinbob.mobends.standard.client.model.armor.CapturingVertexConsumer(true);
+
+    private void renderLegendsArmor(PoseStack poseStack, MultiBufferSource bufferSource,
+                                    int packedLight, E entity, EquipmentSlot slot, ItemStack itemStack,
+                                    ArmorItem armorItem, Model armorModel,
+                                    @Nullable BipedEntityData<?> bipedData)
+    {
+        final ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
+        if (texture == null)
+        {
+            return;
+        }
+
+        final boolean shiny = goblinbob.mobends.standard.client.model.armor.LegendsArmorSupport.isShiny(itemStack);
+
+        final java.util.function.Function<ResourceLocation, RenderType> renderTypeProvider = shiny
+                ? goblinbob.mobends.standard.client.model.armor.LegendsArmorSupport::shinyRenderType
+                : RenderType::entityCutoutNoCull;
+
+        final int tint = shiny
+                ? goblinbob.mobends.standard.client.model.armor.LegendsArmorSupport.getShinyColor(itemStack)
+                : 0xFFFFFFFF;
+
+        if (bipedData != null)
+        {
+            BipedEntityData<?> data = bipedData;
+
+            if (data instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
+            {
+                data = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
+            }
+
+            refreshLegendsPartVisibility(armorModel, packedLight);
+
+            armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot,
+                    itemStack, armorModel, data, texture, tint, renderTypeProvider);
+            return;
+        }
+
+        if (mutator != null && armorModel instanceof HumanoidModel<?> humanoidModel)
+        {
+            mutator.syncPosesToVanillaModel(humanoidModel);
+        }
+
+        renderPalladiumPass(poseStack, bufferSource, packedLight, itemStack, armorModel,
+                texture, renderTypeProvider, tint);
+    }
+
+    private void refreshLegendsPartVisibility(Model armorModel, int packedLight)
+    {
+        legendsVisibilityPass.clear();
+
+        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, new PoseStack(),
+                legendsVisibilityPass, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+
+        legendsVisibilityPass.clear();
     }
 
     private void renderPalladiumPass(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,

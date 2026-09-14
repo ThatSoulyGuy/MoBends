@@ -79,6 +79,8 @@ public class ModCompatManager
 
         IWannaSkateCompat.init();
 
+        LegendsModCompat.init();
+
         registerBuiltInAnimationControl();
     }
 
@@ -90,8 +92,10 @@ public class ModCompatManager
         MoBendsAnimationControl.registerPoseOverride("crawl", CrawlCompat::isPosingModel);
         MoBendsAnimationControl.registerPoseOverride("customnpcs", CustomNpcsCompat::isExternallyPosed);
         MoBendsAnimationControl.registerPoseOverride("iwannaskate", IWannaSkateCompat::isPosingModel);
+        MoBendsAnimationControl.registerPoseOverride("legendsmod", LegendsModCompat::isPosingModel);
 
         MoBendsAnimationControl.registerAnimationDeferral("physicsmod", PhysicsModCompat::hasActivePhysics);
+        MoBendsAnimationControl.registerAnimationDeferral("legendsmod", LegendsModCompat::usesCustomModel);
 
         MoBendsAnimationControl.registerStaticPose("corpse", CorpseCompat::isCorpse);
 

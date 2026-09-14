@@ -113,6 +113,7 @@ public class MoBendsForge
 
         ModCompatManager.init();
 
+        goblinbob.mobends.forge.compat.LegendsEventBridge.register();
     }
 
     @SubscribeEvent

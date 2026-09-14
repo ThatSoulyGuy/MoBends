@@ -14,12 +14,14 @@ import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import goblinbob.mobends.core.pack.IBendsPack;
 import goblinbob.mobends.core.network.NetworkConfiguration;
+import goblinbob.mobends.core.util.CustomWeapons;
 import goblinbob.mobends.core.util.ResourceLocationFactory;
 import goblinbob.mobends.standard.main.ConfigOptions;
 import net.minecraft.client.resources.language.I18n;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MoBendsScreenBuilder
@@ -33,6 +35,7 @@ public class MoBendsScreenBuilder
     private static final int SUB_CHOOSER = 0;
     private static final int SUB_ANIMATIONS = 1;
     private static final int SUB_CONFIG = 2;
+    private static final int SUB_WEAPONS = 3;
 
     private static final int COGWHEEL_TEXTURE_SIZE = 512;
     private static final long CHOOSER_CYCLE_MS = 2500L;
@@ -41,6 +44,13 @@ public class MoBendsScreenBuilder
     private static final int CONFIG_ROW_HEIGHT = 46;
     private static final int CONFIG_TOGGLE_WIDTH = 40;
     private static final int CONFIG_TOGGLE_HEIGHT = 20;
+
+    private static final int WEAPONS_BUTTON_WIDTH = 70;
+    private static final int CONFIG_SEARCH_FIELD_WIDTH = 140;
+    private static final int WEAPON_ADD_WIDTH = 50;
+    private static final int WEAPON_REMOVE_WIDTH = 60;
+    private static final int WEAPON_ROW_HEIGHT = 24;
+    private static final int WEAPON_ROW_BUTTON_HEIGHT = 16;
 
     private static final int SEARCH_FIELD_WIDTH = 90;
     private static final int CHIP_WIDTH = 54;
@@ -66,6 +76,12 @@ public class MoBendsScreenBuilder
     private VanillaView settingsChooser;
     private VanillaView animationsContent;
     private VanillaView configContent;
+    private VanillaView weaponsContent;
+    private VanillaViewFactory weaponFactory;
+    private VanillaLinearLayout weaponList;
+    private VanillaTextField weaponField;
+    private VanillaTextField configSearchField;
+    private final java.util.List<ConfigRow> configRows = new java.util.ArrayList<>();
     private EntityPreviewWidget chooserPreview;
     private int chooserBenderIndex;
     private boolean chooserStarted;
@@ -279,11 +295,14 @@ public class MoBendsScreenBuilder
         VanillaView animations = buildAnimationsContent(factory);
         animationsContent = withBackHeader(factory, animations, buildSpinDropDown());
 
-        configContent = withBackHeader(factory, buildConfigContent(factory));
+        configContent = withBackHeader(factory, buildConfigContent(factory), buildWeaponsButton(factory));
+
+        weaponsContent = withBackHeader(factory, buildWeaponsContent(factory), null, SUB_CONFIG);
 
         settingsFrame.addView(settingsChooser, factory.createMatchParent());
         settingsFrame.addView(animationsContent, factory.createMatchParent());
         settingsFrame.addView(configContent, factory.createMatchParent());
+        settingsFrame.addView(weaponsContent, factory.createMatchParent());
 
         showSettingsSubView(SUB_CHOOSER);
 
@@ -389,12 +408,42 @@ public class MoBendsScreenBuilder
 
     private VanillaView buildConfigContent(VanillaViewFactory factory)
     {
+        configRows.clear();
+
+        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        layout.setLayoutParams(factory.createMatchParent());
+
+        VanillaLinearLayout toolbar = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        toolbar.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+
+        configSearchField = factory.createTextField(I18n.get("mobends.gui.search"));
+        configSearchField.setOnTextChangedListener(this::onConfigSearchTextChanged);
+        VanillaLayoutParams searchParams = factory.createLayoutParams(
+                CONFIG_SEARCH_FIELD_WIDTH,
+                MoBendsTheme.BUTTON_HEIGHT
+        );
+        searchParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
+        toolbar.addView(configSearchField, searchParams);
+
+        VanillaTextView hint = factory.createTextView(I18n.get("mobends.gui.config.search.hint"));
+        hint.setTextColor(MoBendsTheme.TEXT_HINT);
+        hint.setTextSize(10);
+        toolbar.addView(hint, factory.createLayoutParams(
+                0, VanillaLayoutParams.WRAP_CONTENT, 1.0f));
+
+        VanillaLayoutParams toolbarParams = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT,
+                MoBendsTheme.BUTTON_HEIGHT
+        );
+        toolbarParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.SPACING);
+        layout.addView(toolbar, toolbarParams);
+
         VanillaScrollView scrollView = factory.createScrollView();
         scrollView.setLayoutParams(factory.createMatchParent());
 
         VanillaLinearLayout list = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         list.setLayoutParams(factory.createMatchParent());
-        list.setPadding(MoBendsTheme.PADDING, MoBendsTheme.SPACING, MoBendsTheme.PADDING, 0);
+        list.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
         if (goblinbob.mobends.compat.BetterCombatCompat.isModLoaded())
         {
@@ -402,7 +451,11 @@ public class MoBendsScreenBuilder
                     VanillaLayoutParams.MATCH_PARENT,
                     CONFIG_ROW_HEIGHT);
             params.setMargins(0, 0, 0, MoBendsTheme.SPACING);
-            list.addView(buildBetterCombatDropDown(), params);
+            VanillaDropDown betterCombat = buildBetterCombatDropDown();
+            list.addView(betterCombat, params);
+            configRows.add(new ConfigRow(betterCombat,
+                    I18n.get("mobends.gui.config.better_combat_animations") + " "
+                            + I18n.get("mobends.gui.config.better_combat_animations.desc")));
         }
 
         for (ConfigOptions.Option option : ConfigOptions.all())
@@ -420,12 +473,39 @@ public class MoBendsScreenBuilder
                     CONFIG_ROW_HEIGHT);
             params.setMargins(0, 0, 0, MoBendsTheme.SPACING);
             list.addView(toggle, params);
+            configRows.add(new ConfigRow(toggle,
+                    I18n.get(option.getTranslationKey()) + " " + I18n.get(option.getDescriptionKey())));
         }
 
         scrollView.addView(list, factory.createLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
 
-        return scrollView;
+        layout.addView(scrollView, factory.createMatchParent());
+
+        return layout;
+    }
+
+    private void onConfigSearchTextChanged(String query)
+    {
+        final String needle = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+
+        for (ConfigRow row : configRows)
+        {
+            final boolean matches = needle.isEmpty() || row.searchText.contains(needle);
+            row.view.setVisibility(matches ? VanillaView.VISIBLE : VanillaView.GONE);
+        }
+    }
+
+    private static final class ConfigRow
+    {
+        private final VanillaView view;
+        private final String searchText;
+
+        private ConfigRow(VanillaView view, String searchText)
+        {
+            this.view = view;
+            this.searchText = searchText.toLowerCase(java.util.Locale.ROOT);
+        }
     }
 
     private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content)
@@ -436,6 +516,12 @@ public class MoBendsScreenBuilder
     private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content,
                                        @Nullable VanillaView trailingControl)
     {
+        return withBackHeader(factory, content, trailingControl, SUB_CHOOSER);
+    }
+
+    private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content,
+                                       @Nullable VanillaView trailingControl, int backTarget)
+    {
         VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
         layout.setLayoutParams(factory.createMatchParent());
 
@@ -443,7 +529,7 @@ public class MoBendsScreenBuilder
         header.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
 
         VanillaButton backButton = factory.createButton(I18n.get("mobends.gui.back"));
-        backButton.setOnClickListener(() -> showSettingsSubView(SUB_CHOOSER));
+        backButton.setOnClickListener(() -> showSettingsSubView(backTarget));
 
         VanillaLayoutParams backParams = factory.createLayoutParams(60, MoBendsTheme.BUTTON_HEIGHT);
         backParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
@@ -463,6 +549,134 @@ public class MoBendsScreenBuilder
         layout.addView(content, factory.createMatchParent());
 
         return layout;
+    }
+
+    private VanillaButton buildWeaponsButton(VanillaViewFactory factory)
+    {
+        VanillaButton button = factory.createButton(I18n.get("mobends.gui.weapons"));
+        button.setMinimumWidth(WEAPONS_BUTTON_WIDTH);
+        button.setOnClickListener(() -> showSettingsSubView(SUB_WEAPONS));
+        return button;
+    }
+
+    private VanillaView buildWeaponsContent(VanillaViewFactory factory)
+    {
+        weaponFactory = factory;
+
+        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        layout.setLayoutParams(factory.createMatchParent());
+        layout.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
+
+        VanillaLinearLayout toolbar = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        toolbar.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+
+        weaponField = factory.createTextField("");
+        weaponField.setOnSubmitListener(this::addWeaponFromField);
+        VanillaLayoutParams fieldParams = factory.createLayoutParams(
+                0, MoBendsTheme.BUTTON_HEIGHT, 1.0f);
+        fieldParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
+        toolbar.addView(weaponField, fieldParams);
+
+        VanillaButton addButton = factory.createButton(I18n.get("mobends.gui.weapons.add"));
+        addButton.setOnClickListener(this::addWeaponFromField);
+        toolbar.addView(addButton, factory.createLayoutParams(WEAPON_ADD_WIDTH, MoBendsTheme.BUTTON_HEIGHT));
+
+        VanillaLayoutParams toolbarParams = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT,
+                MoBendsTheme.BUTTON_HEIGHT
+        );
+        toolbarParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
+        layout.addView(toolbar, toolbarParams);
+
+        VanillaTextView hint = factory.createTextView(I18n.get("mobends.gui.weapons.hint"));
+        hint.setTextColor(MoBendsTheme.TEXT_HINT);
+        hint.setTextSize(10);
+        VanillaLayoutParams hintParams = factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
+        hintParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
+        layout.addView(hint, hintParams);
+
+        VanillaScrollView scrollView = factory.createScrollView();
+        weaponList = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        weaponList.setLayoutParams(factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
+        scrollView.addView(weaponList, factory.createLayoutParams(
+                VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
+        layout.addView(scrollView, factory.createMatchParent());
+
+        refreshWeaponList();
+
+        return layout;
+    }
+
+    private void addWeaponFromField()
+    {
+        if (weaponField == null) return;
+
+        String itemId = CustomWeapons.normalize(weaponField.getText());
+        if (itemId == null) return;
+
+        if (CoreClientConfig.getInstance().addCustomWeapon(itemId))
+        {
+            CustomWeapons.invalidate();
+            weaponField.setText("");
+            net.minecraft.client.Minecraft.getInstance().tell(this::refreshWeaponList);
+        }
+    }
+
+    private void removeWeapon(String itemId)
+    {
+        if (CoreClientConfig.getInstance().removeCustomWeapon(itemId))
+        {
+            CustomWeapons.invalidate();
+            net.minecraft.client.Minecraft.getInstance().tell(this::refreshWeaponList);
+        }
+    }
+
+    private void refreshWeaponList()
+    {
+        if (weaponList == null || weaponFactory == null) return;
+
+        weaponList.removeAllViews();
+
+        List<String> weapons = CoreClientConfig.getInstance().getCustomWeapons();
+
+        if (weapons.isEmpty())
+        {
+            VanillaTextView empty = weaponFactory.createTextView(I18n.get("mobends.gui.weapons.empty"));
+            empty.setTextColor(MoBendsTheme.TEXT_SECONDARY);
+            empty.setTextSize(10);
+            empty.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING,
+                             MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING);
+            weaponList.addView(empty, weaponFactory.createLayoutParams(
+                    VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
+            return;
+        }
+
+        for (String weapon : weapons)
+        {
+            VanillaLinearLayout row = weaponFactory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+            row.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+            row.setBackgroundColor(MoBendsTheme.BG_LIST);
+            row.setPadding(MoBendsTheme.PADDING_LARGE, 0, MoBendsTheme.PADDING, 0);
+
+            VanillaTextView label = weaponFactory.createTextView(weapon);
+            label.setTextColor(MoBendsTheme.TEXT_PRIMARY);
+            label.setTextSize(11);
+            label.setMaxLines(1);
+            row.addView(label, weaponFactory.createLayoutParams(
+                    0, VanillaLayoutParams.WRAP_CONTENT, 1.0f));
+
+            VanillaButton remove = weaponFactory.createButton(I18n.get("mobends.gui.weapons.remove"));
+            remove.setTextSize(10);
+            remove.setOnClickListener(() -> removeWeapon(weapon));
+            row.addView(remove, weaponFactory.createLayoutParams(WEAPON_REMOVE_WIDTH, WEAPON_ROW_BUTTON_HEIGHT));
+
+            VanillaLayoutParams rowParams = weaponFactory.createLayoutParams(
+                    VanillaLayoutParams.MATCH_PARENT, WEAPON_ROW_HEIGHT);
+            rowParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
+            weaponList.addView(row, rowParams);
+        }
     }
 
     private VanillaDropDown buildSpinDropDown()
@@ -543,6 +757,18 @@ public class MoBendsScreenBuilder
         showOrHideTab(settingsChooser, subView == SUB_CHOOSER);
         showOrHideTab(animationsContent, subView == SUB_ANIMATIONS);
         showOrHideTab(configContent, subView == SUB_CONFIG);
+        showOrHideTab(weaponsContent, subView == SUB_WEAPONS);
+
+        if (subView == SUB_WEAPONS)
+        {
+            refreshWeaponList();
+        }
+
+        if (subView != SUB_CONFIG && configSearchField != null && !configSearchField.getText().isEmpty())
+        {
+            configSearchField.setText("");
+            onConfigSearchTextChanged("");
+        }
     }
 
     public void openConfig()

@@ -29,6 +29,10 @@ public abstract class HierarchicalModelMixin<E extends Entity> {
                 MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
                 ci.cancel();
             }
+            else if (MixinBridge.shouldMirrorBipedRender(model)) {
+                MixinBridge.renderBipedMirror(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                ci.cancel();
+            }
             return;
         }
 

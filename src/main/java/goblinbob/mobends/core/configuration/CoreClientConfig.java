@@ -176,6 +176,32 @@ public class CoreClientConfig
         save();
     }
 
+    public List<String> getCustomWeapons()
+    {
+        return new ArrayList<>(data.customWeapons);
+    }
+
+    public boolean addCustomWeapon(String itemId)
+    {
+        if (itemId == null || itemId.isEmpty() || data.customWeapons.contains(itemId))
+        {
+            return false;
+        }
+        data.customWeapons.add(itemId);
+        save();
+        return true;
+    }
+
+    public boolean removeCustomWeapon(String itemId)
+    {
+        if (!data.customWeapons.remove(itemId))
+        {
+            return false;
+        }
+        save();
+        return true;
+    }
+
     public String getPreviewSpinMode()
     {
         return data.previewSpinMode;
@@ -208,6 +234,8 @@ public class CoreClientConfig
         Map<String, String> itemUseActions = new HashMap<>();
 
         Map<String, String> itemAttackActions = new HashMap<>();
+
+        List<String> customWeapons = new ArrayList<>();
         String previewSpinMode = "HOVER";
         String betterCombatAnimations = null;
     }

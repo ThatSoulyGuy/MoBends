@@ -21,7 +21,9 @@ public final class HeldItemHelper
 
     public static boolean isSword(Item item)
     {
-        return item instanceof SwordItem || TinkersConstructCompat.isMeleeWeapon(item);
+        return item instanceof SwordItem
+                || TinkersConstructCompat.isMeleeWeapon(item)
+                || CustomWeapons.matches(item);
     }
 
     public static boolean isSword(ItemStack itemStack)

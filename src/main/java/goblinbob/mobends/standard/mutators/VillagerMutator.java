@@ -12,7 +12,6 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.CrossedArmsItemLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Collections;
@@ -390,8 +389,7 @@ public class VillagerMutator<E extends LivingEntity>
     {
         super.syncUpWithData(data);
 
-        final float fold = Mth.clamp((pitchOf(leftLeg) + pitchOf(rightLeg)) * 0.5F * SKIRT_FOLLOW,
-                -SKIRT_MAX_FOLD, SKIRT_MAX_LIFT);
+        final float fold = skirtFold(data, SKIRT_FOLLOW, SKIRT_MAX_FOLD, SKIRT_MAX_LIFT);
 
         if (skirt != null) skirt.rotation.orientInstantX(fold);
         if (outerSkirt != null) outerSkirt.rotation.orientInstantX(fold);

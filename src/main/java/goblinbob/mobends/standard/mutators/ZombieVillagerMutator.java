@@ -4,7 +4,6 @@ import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.data.ZombieVillagerData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.ZombieVillagerModel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.monster.ZombieVillager;
 
 public class ZombieVillagerMutator extends ZombieMutatorBase<ZombieVillagerData, ZombieVillager, ZombieVillagerModel<ZombieVillager>>
@@ -43,8 +42,7 @@ public class ZombieVillagerMutator extends ZombieMutatorBase<ZombieVillagerData,
 			return;
 		}
 
-		final float fold = Mth.clamp((pitchOf(leftLeg) + pitchOf(rightLeg)) * 0.5F * SKIRT_FOLLOW,
-				-SKIRT_MAX_FOLD, SKIRT_MAX_LIFT);
+		final float fold = skirtFold(data, SKIRT_FOLLOW, SKIRT_MAX_FOLD, SKIRT_MAX_LIFT);
 
 		skirt.rotation.orientInstantX(fold);
 	}

@@ -86,7 +86,11 @@ public class ConfigOptions
 
             new Option("disableMovementInGui", "mobends.gui.config.disable_movement_in_gui",
                     () -> ModConfig.disableMovementInGui,
-                    value -> ModConfig.disableMovementInGui = value)
+                    value -> ModConfig.disableMovementInGui = value),
+
+            new Option("bendRobesOnlyWhenSitting", "mobends.gui.config.bend_robes_only_when_sitting",
+                    () -> ModConfig.bendRobesOnlyWhenSitting,
+                    value -> ModConfig.bendRobesOnlyWhenSitting = value)
     ));
 
     public static List<Option> all()

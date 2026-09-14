@@ -339,6 +339,47 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return false;
     }
 
+    private static final float ROBE_FOLD_RATE = 0.25F;
+
+    protected float skirtFold(BipedEntityData<?> data, float follow, float maxFold, float maxLift)
+    {
+        final float weight = updateRobeFoldWeight(data);
+        if (weight <= 0.0F)
+        {
+            return 0.0F;
+        }
+
+        final float fold = net.minecraft.util.Mth.clamp((pitchOf(leftLeg) + pitchOf(rightLeg)) * 0.5F * follow,
+                -maxFold, maxLift);
+
+        return fold * weight;
+    }
+
+    private static float updateRobeFoldWeight(BipedEntityData<?> data)
+    {
+        final boolean sittingOnly = goblinbob.mobends.standard.main.ModConfig.bendRobesOnlyWhenSitting;
+        final float target = sittingOnly && !data.isRiding() ? 0.0F : 1.0F;
+
+        float weight = data.getRobeFoldWeight();
+        if (Float.isNaN(weight))
+        {
+            weight = target;
+        }
+        else
+        {
+            final float step = Math.min(1.0F,
+                    goblinbob.mobends.core.client.event.DataUpdateHandler.ticksPerFrame * ROBE_FOLD_RATE);
+            weight += (target - weight) * step;
+            if (Math.abs(target - weight) < 0.01F)
+            {
+                weight = target;
+            }
+        }
+
+        data.setRobeFoldWeight(weight);
+        return weight;
+    }
+
     protected static float pitchOf(BendsModelPart part)
     {
         if (part == null)
@@ -1138,6 +1179,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         goblinbob.mobends.compat.IWannaSkateCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.LegendsModCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 
     protected void captureMainRenderPose(PoseStack poseStack)
@@ -1245,7 +1289,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     {
         if (model == MoBendsRenderContext.getCurrentVanillaModel())
         {
-            renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            renderCurrentPose(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            drawOverlayExtras(model, poseStack, vertexConsumer, packedLight, packedOverlay, color);
             return;
         }
 
@@ -1448,6 +1493,12 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         captureRenderAnchorPose(poseStack);
 
+        renderCurrentPose(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+    }
+
+    public void renderCurrentPose(PoseStack poseStack, VertexConsumer vertexConsumer,
+                                  int packedLight, int packedOverlay, int color)
+    {
         if (body != null)
         {
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
@@ -1463,6 +1514,20 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
+    }
+
+    public boolean isCurrentVanillaModel(Object model)
+    {
+        final HumanoidModel<?> current = MoBendsRenderContext.getCurrentVanillaModel();
+        if (model == null || current == null)
+        {
+            return false;
+        }
+        if (model == current)
+        {
+            return true;
+        }
+        return model instanceof EntityModel<?> entityModel && humanoidViewOf(entityModel) == current;
     }
 
     protected void renderAttachedParts(PoseStack poseStack, VertexConsumer vertexConsumer,
@@ -1906,6 +1971,43 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             data.externalPoseAdopted = true;
         }
+    }
+
+    public void adoptUpperBodyFromVanillaModel(HumanoidModel<?> model, boolean adoptHead,
+                                               boolean adoptLeftArm, boolean adoptRightArm)
+    {
+        if (model == null || body == null) return;
+
+        final BipedEntityData<?> data = getRenderData();
+
+        final Quaternion bodyRotation = body.rotation.getSmooth();
+        adoptedParentInverse.set(-bodyRotation.x, -bodyRotation.y, -bodyRotation.z, bodyRotation.w);
+
+        if (adoptHead)
+        {
+            adoptChildRotation(head, data == null ? null : data.head, model.head);
+        }
+
+        if (adoptLeftArm)
+        {
+            adoptChildRotation(leftArm, data == null ? null : data.leftArm, model.leftArm);
+            straightenJoint(leftForeArm, data == null ? null : data.leftForeArm);
+        }
+
+        if (adoptRightArm)
+        {
+            adoptChildRotation(rightArm, data == null ? null : data.rightArm, model.rightArm);
+            straightenJoint(rightForeArm, data == null ? null : data.rightForeArm);
+        }
+    }
+
+    private void adoptChildRotation(BendsModelPart child, ModelPartTransform dataChild, ModelPart modelPart)
+    {
+        if (child == null || modelPart == null) return;
+
+        readModelRotation(modelPart, adoptedRotation);
+        Quaternion.mul(adoptedParentInverse, adoptedRotation, scratchRotation);
+        applyAdoptedRotation(child, dataChild, scratchRotation);
     }
 
     public static void applyAdoptedRotation(BendsModelPart part, ModelPartTransform dataPart, Quaternion rotation)

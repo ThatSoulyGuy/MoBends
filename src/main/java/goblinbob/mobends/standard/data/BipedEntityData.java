@@ -38,9 +38,21 @@ public abstract class BipedEntityData<E extends LivingEntity> extends LivingEnti
 
     public boolean externalPoseAdopted = false;
 
+    private float robeFoldWeight = Float.NaN;
+
     public BipedEntityData(E entity)
     {
         super(entity);
+    }
+
+    public float getRobeFoldWeight()
+    {
+        return this.robeFoldWeight;
+    }
+
+    public void setRobeFoldWeight(float robeFoldWeight)
+    {
+        this.robeFoldWeight = robeFoldWeight;
     }
 
     public void overrideMovingAtSprintSpeed(boolean movingAtSprintSpeed)

@@ -27,6 +27,8 @@ public class NeoForgeConfig
 
     public static final ModConfigSpec.BooleanValue TRIDENT_TRAIL;
 
+    public static final ModConfigSpec.BooleanValue BEND_ROBES_ONLY_WHEN_SITTING;
+
     static
     {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -71,6 +73,10 @@ public class NeoForgeConfig
                 .comment("Allow the Trident to have a trail")
                 .define("tridentTrail", true);
 
+        BEND_ROBES_ONLY_WHEN_SITTING = builder
+                .comment("Villager, witch, wandering trader and zombie villager robes only bend while sitting.")
+                .define("bendRobesOnlyWhenSitting", true);
+
         SPEC = builder.build();
     }
 
@@ -88,6 +94,7 @@ public class NeoForgeConfig
             case "arrowTrailPotionColor": ARROW_TRAIL_POTION_COLOR.set(value); break;
             case "spectralArrowTrailEffect": SPECTRAL_ARROW_TRAIL_EFFECT.set(value); break;
             case "tridentTrail": TRIDENT_TRAIL.set(value); break;
+            case "bendRobesOnlyWhenSitting": BEND_ROBES_ONLY_WHEN_SITTING.set(value); break;
             default: return;
         }
 
@@ -107,5 +114,6 @@ public class NeoForgeConfig
         ModConfig.arrowTrailPotionColor = ARROW_TRAIL_POTION_COLOR.get();
         ModConfig.spectralArrowTrailEffect = SPECTRAL_ARROW_TRAIL_EFFECT.get();
         ModConfig.tridentTrail = TRIDENT_TRAIL.get();
+        ModConfig.bendRobesOnlyWhenSitting = BEND_ROBES_ONLY_WHEN_SITTING.get();
     }
 }

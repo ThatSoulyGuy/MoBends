@@ -1,7 +1,5 @@
 package goblinbob.mobends.standard.mutators;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.core.client.model.BendsMesh;
 import goblinbob.mobends.core.client.model.BendsModelPart;
@@ -554,37 +552,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             }
         }
         return super.getData(entity);
-    }
-
-    @Override
-    public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
-                              int packedLight, int packedOverlay,
-                              int packedColor)
-    {
-        resolveAdaptivePivots();
-        applyBabyHeadScale();
-        syncConcealmentFromVanillaModel();
-        adoptExternalArmPose();
-
-        captureMainRenderPose(poseStack);
-
-        captureRenderAnchorPose(poseStack);
-
-        if (body != null)
-        {
-            body.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
-        }
-
-        renderAttachedParts(poseStack, vertexConsumer, packedLight, packedOverlay);
-
-        if (leftLeg != null)
-        {
-            leftLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
-        }
-        if (rightLeg != null)
-        {
-            rightLeg.render(poseStack, vertexConsumer, packedLight, packedOverlay, packedColor);
-        }
     }
 
     @Override

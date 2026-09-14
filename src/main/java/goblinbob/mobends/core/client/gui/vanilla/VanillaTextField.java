@@ -20,6 +20,10 @@ public class VanillaTextField extends VanillaView
     private EditBox editBox;
     private int maxLength = 256;
     private boolean focused = false;
+    private Runnable submitListener;
+
+    private static final int KEY_ENTER = 257;
+    private static final int KEY_KP_ENTER = 335;
 
     public VanillaTextField(String hint)
     {
@@ -93,6 +97,11 @@ public class VanillaTextField extends VanillaView
     public void setOnTextChangedListener(Consumer<String> listener)
     {
         this.textChangedListener = listener;
+    }
+
+    public void setOnSubmitListener(Runnable listener)
+    {
+        this.submitListener = listener;
     }
 
     public void setSingleLine(boolean singleLine) {  }
@@ -182,6 +191,11 @@ public class VanillaTextField extends VanillaView
     {
         if (editBox != null && editBox.isFocused())
         {
+            if (submitListener != null && (keyCode == KEY_ENTER || keyCode == KEY_KP_ENTER))
+            {
+                submitListener.run();
+                return true;
+            }
             return editBox.keyPressed(keyCode, scanCode, modifiers);
         }
         return false;

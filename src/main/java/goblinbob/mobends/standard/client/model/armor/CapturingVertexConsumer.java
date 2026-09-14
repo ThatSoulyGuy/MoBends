@@ -24,12 +24,26 @@ public class CapturingVertexConsumer implements VertexConsumer
     private int lightmapUV;
     private float normalX, normalY, normalZ;
 
+    private final boolean discard;
+
     public CapturingVertexConsumer()
     {
+        this(false);
+    }
+
+    public CapturingVertexConsumer(boolean discard)
+    {
+        this.discard = discard;
     }
 
     private void flushCurrentVertex()
     {
+        if (discard)
+        {
+            hasCurrentVertex = false;
+            return;
+        }
+
         if (hasCurrentVertex)
         {
             CapturedVertex vertex = new CapturedVertex(
