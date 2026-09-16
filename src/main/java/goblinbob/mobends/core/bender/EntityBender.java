@@ -220,6 +220,7 @@ public abstract class EntityBender<T extends LivingEntity>
             LivingEntityRenderer<T, EntityModel<T>> renderer = (LivingEntityRenderer<T, EntityModel<T>>) entry.getKey();
             Mutator<LivingEntityData<T>, T, EntityModel<T>> mutator = (Mutator<LivingEntityData<T>, T, EntityModel<T>>) entry.getValue();
             mutator.demutate(renderer);
+            mutator.invalidateModelCache(renderer.getModel());
             mutator.mutate(renderer);
             mutator.postRefresh();
         }

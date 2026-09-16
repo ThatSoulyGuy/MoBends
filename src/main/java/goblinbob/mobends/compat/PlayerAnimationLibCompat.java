@@ -1,15 +1,19 @@
 package goblinbob.mobends.compat;
 
+import goblinbob.mobends.api.animation.MoBendsAnimationControl;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import dev.architectury.platform.Platform;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public class PlayerAnimationLibCompat
 {
@@ -38,6 +42,8 @@ public class PlayerAnimationLibCompat
     private static Object transformPosition;
     private static Object transformRotation;
     private static Object transformBend;
+    private static Field layerMapField;
+    private static boolean layerMapResolved = false;
 
     private static final Channel torsoRotation = new Channel(3);
     private static final Channel torsoPosition = new Channel(3);
@@ -132,6 +138,17 @@ public class PlayerAnimationLibCompat
             return null;
         }
 
+        final Object stack = getAnimatingStack(player);
+        if (stack == null || hasSelfPosingLayer(player))
+        {
+            return null;
+        }
+
+        return stack;
+    }
+
+    private static Object getAnimatingStack(AbstractClientPlayer player)
+    {
         try
         {
             Object stack = getPlayerAnimLayerMethod.invoke(null, player);
@@ -152,6 +169,89 @@ public class PlayerAnimationLibCompat
     public static boolean hasActiveAnimation(LivingEntity entity)
     {
         return getActiveStack(entity) != null;
+    }
+
+    public static boolean isAnimatingVanillaModel(LivingEntity entity)
+    {
+        return isModLoaded() && entity instanceof AbstractClientPlayer player && getAnimatingStack(player) != null;
+    }
+
+    private static boolean hasSelfPosingLayer(AbstractClientPlayer player)
+    {
+        final Map<?, ?> layers = animationLayersOf(player);
+        if (layers == null || layers.isEmpty())
+        {
+            return false;
+        }
+
+        for (final Map.Entry<?, ?> entry : layers.entrySet())
+        {
+            if (!(entry.getKey() instanceof ResourceLocation id) || entry.getValue() == null
+                    || !MoBendsAnimationControl.isSelfPosingMod(id.getNamespace()))
+            {
+                continue;
+            }
+
+            try
+            {
+                final Boolean active = (Boolean) isActiveMethod.invoke(entry.getValue());
+                if (active != null && active)
+                {
+                    return true;
+                }
+            }
+            catch (Exception ignored)
+            {
+            }
+        }
+
+        return false;
+    }
+
+    private static Map<?, ?> animationLayersOf(AbstractClientPlayer player)
+    {
+        if (!layerMapResolved)
+        {
+            layerMapResolved = true;
+            layerMapField = findAnimationLayerMapField(player.getClass());
+        }
+
+        if (layerMapField == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return layerMapField.get(player) instanceof Map<?, ?> map ? map : null;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    private static Field findAnimationLayerMapField(Class<?> type)
+    {
+        for (Class<?> current = type; current != null; current = current.getSuperclass())
+        {
+            for (final Field field : current.getDeclaredFields())
+            {
+                if (Map.class.isAssignableFrom(field.getType()) && field.getName().contains("modAnimationData"))
+                {
+                    try
+                    {
+                        field.setAccessible(true);
+                        return field;
+                    }
+                    catch (Exception e)
+                    {
+                        return null;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public static boolean applyToPose(BipedEntityData<?> data, float partialTicks)

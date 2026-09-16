@@ -1,13 +1,19 @@
 package goblinbob.mobends.api.animation;
 
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Predicate;
@@ -22,6 +28,8 @@ public final class MoBendsAnimationControl
     private static final List<Entry> STATIC_POSES = new CopyOnWriteArrayList<>();
 
     private static final Set<String> SELF_POSING_MODS = new CopyOnWriteArraySet<>();
+    private static final Map<String, Set<String>> SELF_POSING_ITEM_TYPES = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Boolean> SELF_POSING_ITEM_CACHE = new ConcurrentHashMap<>();
 
     private static final Set<EntityType<?>> EXCLUDED_TYPES = new CopyOnWriteArraySet<>();
     private static final Set<Class<?>> EXCLUDED_CLASSES = new CopyOnWriteArraySet<>();
@@ -56,6 +64,26 @@ public final class MoBendsAnimationControl
         {
             SELF_POSING_MODS.add(modId);
         }
+    }
+
+    public static void registerSelfPosingMod(String modId, String... posingItemTypes)
+    {
+        registerSelfPosingMod(modId);
+
+        if (modId == null || modId.isEmpty() || posingItemTypes == null)
+        {
+            return;
+        }
+
+        final Set<String> types = SELF_POSING_ITEM_TYPES.computeIfAbsent(modId, id -> new CopyOnWriteArraySet<>());
+        for (final String type : posingItemTypes)
+        {
+            if (type != null && !type.isEmpty())
+            {
+                types.add(type);
+            }
+        }
+        SELF_POSING_ITEM_CACHE.clear();
     }
 
     public static void excludeEntityType(EntityType<?> entityType)
@@ -132,6 +160,8 @@ public final class MoBendsAnimationControl
         EXTERNAL_ANIMATIONS.removeIf(entry -> entry.modId.equals(modId));
         STATIC_POSES.removeIf(entry -> entry.modId.equals(modId));
         SELF_POSING_MODS.remove(modId);
+        SELF_POSING_ITEM_TYPES.remove(modId);
+        SELF_POSING_ITEM_CACHE.clear();
     }
 
     public static boolean isPoseOverridden(LivingEntity entity)
@@ -157,6 +187,64 @@ public final class MoBendsAnimationControl
     public static boolean isSelfPosingMod(String modId)
     {
         return modId != null && SELF_POSING_MODS.contains(modId);
+    }
+
+    public static boolean isSelfPosingItem(ItemStack stack)
+    {
+        if (stack == null || stack.isEmpty())
+        {
+            return false;
+        }
+
+        final Item item = stack.getItem();
+        final ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        if (id == null || !isSelfPosingMod(id.getNamespace()))
+        {
+            return false;
+        }
+
+        final Set<String> types = SELF_POSING_ITEM_TYPES.get(id.getNamespace());
+        if (types == null || types.isEmpty())
+        {
+            return true;
+        }
+
+        return SELF_POSING_ITEM_CACHE.computeIfAbsent(item.getClass(), type -> isAssignableToAny(type, types));
+    }
+
+    private static boolean isAssignableToAny(Class<?> type, Set<String> names)
+    {
+        for (Class<?> current = type; current != null; current = current.getSuperclass())
+        {
+            if (names.contains(current.getName()))
+            {
+                return true;
+            }
+            for (final Class<?> implemented : current.getInterfaces())
+            {
+                if (implementsAny(implemented, names))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean implementsAny(Class<?> type, Set<String> names)
+    {
+        if (names.contains(type.getName()))
+        {
+            return true;
+        }
+        for (final Class<?> parent : type.getInterfaces())
+        {
+            if (implementsAny(parent, names))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void put(List<Entry> target, String modId, Predicate<LivingEntity> predicate)

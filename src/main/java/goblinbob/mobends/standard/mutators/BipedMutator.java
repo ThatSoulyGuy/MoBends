@@ -35,7 +35,9 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 public abstract class BipedMutator<D extends BipedEntityData<E>,
                                    E extends LivingEntity,
@@ -80,6 +82,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     private static final Map<HumanoidModel<?>, AdaptiveHumanoidGeometry> overlayGeometry =
             new IdentityHashMap<>();
+
+    private static final Map<HumanoidModel<?>, Optional<AdaptiveHumanoidGeometry>> adaptiveGeometryCache =
+            new WeakHashMap<>();
+
+    private static final Map<HumanoidModel<?>, VanillaRestState> vanillaRestStates = new WeakHashMap<>();
 
     private boolean overlayModelsResolved = false;
 
@@ -161,13 +168,35 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         this.vanillaLeftLeg = view.leftLeg;
         this.vanillaRightLeg = view.rightLeg;
 
-        this.vanillaBodyState = VanillaPartState.capture(view.body);
-        this.vanillaHeadState = VanillaPartState.capture(view.head);
-        this.vanillaHatState = VanillaPartState.capture(view.hat);
-        this.vanillaLeftArmState = VanillaPartState.capture(view.leftArm);
-        this.vanillaRightArmState = VanillaPartState.capture(view.rightArm);
-        this.vanillaLeftLegState = VanillaPartState.capture(view.leftLeg);
-        this.vanillaRightLegState = VanillaPartState.capture(view.rightLeg);
+        final VanillaRestState rest = restStateOf(view);
+        this.vanillaBodyState = rest.body;
+        this.vanillaHeadState = rest.head;
+        this.vanillaHatState = rest.hat;
+        this.vanillaLeftArmState = rest.leftArm;
+        this.vanillaRightArmState = rest.rightArm;
+        this.vanillaLeftLegState = rest.leftLeg;
+        this.vanillaRightLegState = rest.rightLeg;
+    }
+
+    private static VanillaRestState restStateOf(HumanoidModel<?> view)
+    {
+        VanillaRestState rest = vanillaRestStates.get(view);
+        if (rest == null)
+        {
+            rest = new VanillaRestState(view);
+            vanillaRestStates.put(view, rest);
+        }
+        return rest;
+    }
+
+    @Override
+    public void invalidateModelCache(M model)
+    {
+        final HumanoidModel<?> view = humanoidViewOf(model);
+        if (view != null)
+        {
+            adaptiveGeometryCache.remove(view);
+        }
     }
 
     @Override
@@ -437,17 +466,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return false;
         }
 
-        for (HumanoidLayout baseline : baselines)
-        {
-            if (baseline.describes(view))
-            {
-                return false;
-            }
-        }
-
-        final AdaptiveHumanoidGeometry geometry = AdaptiveHumanoidGeometry.build(view,
-                adaptiveHeadCaptureMode(), adaptiveLimbCaptureMode(), null,
-                adaptiveWearParts(original), usesAdaptiveSkirt());
+        final AdaptiveHumanoidGeometry geometry = adaptiveGeometryOf(original, view, baselines);
         if (geometry == null)
         {
             return false;
@@ -507,6 +526,34 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         reconcileWithVanillaModel(view);
 
         return true;
+    }
+
+    private AdaptiveHumanoidGeometry adaptiveGeometryOf(M original, HumanoidModel<?> view, HumanoidLayout... baselines)
+    {
+        final Optional<AdaptiveHumanoidGeometry> cached = adaptiveGeometryCache.get(view);
+        if (cached != null)
+        {
+            return cached.orElse(null);
+        }
+
+        final AdaptiveHumanoidGeometry geometry = captureAdaptiveGeometry(original, view, baselines);
+        adaptiveGeometryCache.put(view, Optional.ofNullable(geometry));
+        return geometry;
+    }
+
+    private AdaptiveHumanoidGeometry captureAdaptiveGeometry(M original, HumanoidModel<?> view, HumanoidLayout... baselines)
+    {
+        for (HumanoidLayout baseline : baselines)
+        {
+            if (baseline.describes(view))
+            {
+                return null;
+            }
+        }
+
+        return AdaptiveHumanoidGeometry.build(view,
+                adaptiveHeadCaptureMode(), adaptiveLimbCaptureMode(), null,
+                adaptiveWearParts(original), usesAdaptiveSkirt());
     }
 
     private static BendsModelPart boneAt(float[] pivot)
@@ -901,7 +948,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return;
         }
 
-        if (goblinbob.mobends.compat.ModCompatManager.isExternallyPosed(MoBendsRenderContext.getCurrentEntity()))
+        final LivingEntity currentEntity = MoBendsRenderContext.getCurrentEntity();
+        if (goblinbob.mobends.compat.ModCompatManager.isExternallyPosed(currentEntity)
+                || goblinbob.mobends.compat.PlayerAnimationLibCompat.isAnimatingVanillaModel(currentEntity))
         {
             return;
         }
@@ -1834,12 +1883,13 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         if (!vanillaPositionsStored)
         {
-            vanillaBodyPos = new float[]{model.body.x, model.body.y, model.body.z};
-            vanillaHeadPos = new float[]{model.head.x, model.head.y, model.head.z};
-            vanillaLeftArmPos = new float[]{model.leftArm.x, model.leftArm.y, model.leftArm.z};
-            vanillaRightArmPos = new float[]{model.rightArm.x, model.rightArm.y, model.rightArm.z};
-            vanillaLeftLegPos = new float[]{model.leftLeg.x, model.leftLeg.y, model.leftLeg.z};
-            vanillaRightLegPos = new float[]{model.rightLeg.x, model.rightLeg.y, model.rightLeg.z};
+            final VanillaRestState rest = restStateOf(model);
+            vanillaBodyPos = rest.bodyPos;
+            vanillaHeadPos = rest.headPos;
+            vanillaLeftArmPos = rest.leftArmPos;
+            vanillaRightArmPos = rest.rightArmPos;
+            vanillaLeftLegPos = rest.leftLegPos;
+            vanillaRightLegPos = rest.rightLegPos;
             vanillaPositionsStored = true;
         }
 
@@ -2292,6 +2342,35 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             this.offsetY = offsetY;
             this.offsetZ = offsetZ;
             this.drawOwnCubes = drawOwnCubes;
+        }
+    }
+
+    private static final class VanillaRestState
+    {
+        private final VanillaPartState body, head, hat, leftArm, rightArm, leftLeg, rightLeg;
+        private final float[] bodyPos, headPos, leftArmPos, rightArmPos, leftLegPos, rightLegPos;
+
+        private VanillaRestState(HumanoidModel<?> view)
+        {
+            this.body = VanillaPartState.capture(view.body);
+            this.head = VanillaPartState.capture(view.head);
+            this.hat = VanillaPartState.capture(view.hat);
+            this.leftArm = VanillaPartState.capture(view.leftArm);
+            this.rightArm = VanillaPartState.capture(view.rightArm);
+            this.leftLeg = VanillaPartState.capture(view.leftLeg);
+            this.rightLeg = VanillaPartState.capture(view.rightLeg);
+
+            this.bodyPos = pivotOf(view.body);
+            this.headPos = pivotOf(view.head);
+            this.leftArmPos = pivotOf(view.leftArm);
+            this.rightArmPos = pivotOf(view.rightArm);
+            this.leftLegPos = pivotOf(view.leftLeg);
+            this.rightLegPos = pivotOf(view.rightLeg);
+        }
+
+        private static float[] pivotOf(ModelPart part)
+        {
+            return part != null ? new float[]{part.x, part.y, part.z} : null;
         }
     }
 

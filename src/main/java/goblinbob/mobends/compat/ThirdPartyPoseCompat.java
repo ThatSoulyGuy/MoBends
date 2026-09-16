@@ -1,11 +1,10 @@
 package goblinbob.mobends.compat;
 
 import goblinbob.mobends.api.animation.MoBendsAnimationControl;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
+
+import java.util.Map;
 
 public final class ThirdPartyPoseCompat
 {
@@ -25,6 +24,13 @@ public final class ThirdPartyPoseCompat
             "lrtactical"
     };
 
+    private static final String[] NO_ITEM_TYPES = {};
+
+    private static final Map<String, String[]> POSING_ITEM_TYPES = Map.of(
+            "tacz", new String[]{"com.tacz.guns.api.item.IGun"},
+            "cgm", new String[]{"com.mrcrayfish.guns.item.GunItem"}
+    );
+
     private static boolean initialized = false;
 
     private ThirdPartyPoseCompat()
@@ -41,7 +47,7 @@ public final class ThirdPartyPoseCompat
 
         for (final String modId : DEFAULT_SELF_POSING_MODS)
         {
-            MoBendsAnimationControl.registerSelfPosingMod(modId);
+            MoBendsAnimationControl.registerSelfPosingMod(modId, POSING_ITEM_TYPES.getOrDefault(modId, NO_ITEM_TYPES));
         }
 
         MoBendsAnimationControl.registerAnimationDeferral("mobends", ThirdPartyPoseCompat::shouldYieldToHeldItem);
@@ -54,18 +60,7 @@ public final class ThirdPartyPoseCompat
             return false;
         }
 
-        return isSelfPosed(entity.getItemInHand(InteractionHand.MAIN_HAND))
-                || isSelfPosed(entity.getItemInHand(InteractionHand.OFF_HAND));
-    }
-
-    private static boolean isSelfPosed(ItemStack stack)
-    {
-        if (stack == null || stack.isEmpty())
-        {
-            return false;
-        }
-
-        final ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return id != null && MoBendsAnimationControl.isSelfPosingMod(id.getNamespace());
+        return MoBendsAnimationControl.isSelfPosingItem(entity.getItemInHand(InteractionHand.MAIN_HAND))
+                || MoBendsAnimationControl.isSelfPosingItem(entity.getItemInHand(InteractionHand.OFF_HAND));
     }
 }

@@ -284,6 +284,10 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
     {
     }
 
+    public void invalidateModelCache(M model)
+    {
+    }
+
     public abstract void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                                        int packedLight, int packedOverlay, int color);
 
