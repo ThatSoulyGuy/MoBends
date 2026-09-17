@@ -122,6 +122,8 @@ public class DefaultAddon implements IAddon
 
 		goblinbob.mobends.compat.CustomNpcsCompat.register(registry, PLAYER_LIKE_ANIMATIONS, BIPED_PARTS);
 
+		goblinbob.mobends.compat.ModernCompanionsCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,
 				"head", "body", "neck", "leg1", "leg2", "leg3", "leg4", "leg5", "leg6", "leg7", "leg8",

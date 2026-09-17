@@ -47,6 +47,8 @@ public class ModCompatManager
 
         MonsterExpansionCompat.init();
 
+        ModernCompanionsCompat.init();
+
         BossesRiseCompat.init();
 
         MorePlayerModelsCompat.init();

@@ -116,6 +116,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                        E entity, float limbSwing, float limbSwingAmount,
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
+        if (goblinbob.mobends.compat.ModernCompanionsCompat.shouldSkipArmorLayer(vanillaArmorLayer, entity))
+        {
+            return;
+        }
+
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         boolean hasBendsAnimation = entityData instanceof BipedEntityData
                 && goblinbob.mobends.core.util.BenderHelper.isEntityAnimated(entity)
