@@ -106,6 +106,7 @@ public final class ModernCompanionsCompat
             registry.registerNewEntity(PREVIEW_KEY, UNLOCALIZED_NAME, entityClass,
                     ModernCompanionData::new, HumanoidMobMutator::new,
                     new BipedRenderer<>(), new BipedPreviewer<>(), animations, alterableParts);
+            markGroupBender(entityClass);
         }
         catch (Throwable ignored)
         {
@@ -137,6 +138,16 @@ public final class ModernCompanionsCompat
         catch (Throwable e)
         {
             return false;
+        }
+    }
+
+    private static void markGroupBender(Class<LivingEntity> entityClass)
+    {
+        final goblinbob.mobends.core.bender.EntityBender<LivingEntity> bender =
+                goblinbob.mobends.core.bender.EntityBenderRegistry.instance.getForEntityClass(entityClass);
+        if (bender != null)
+        {
+            bender.setCoversSubclasses(true);
         }
     }
 

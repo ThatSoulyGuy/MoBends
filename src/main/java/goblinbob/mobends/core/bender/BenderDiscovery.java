@@ -93,7 +93,7 @@ public final class BenderDiscovery
                 }
 
                 EntityBender<?> parent = findMostSpecificParent(originals, living);
-                if (parent == null) continue;
+                if (parent == null || parent.coversSubclasses()) continue;
                 if (!isModelAnimatable(renderer, parent)) continue;
 
                 candidates.add(new Candidate(entityType, living.getClass(), parent, appearance));

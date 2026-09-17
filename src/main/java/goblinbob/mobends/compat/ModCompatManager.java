@@ -49,6 +49,8 @@ public class ModCompatManager
 
         ModernCompanionsCompat.init();
 
+        MineColoniesCompat.init();
+
         BossesRiseCompat.init();
 
         MorePlayerModelsCompat.init();

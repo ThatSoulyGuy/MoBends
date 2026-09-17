@@ -10,10 +10,16 @@ import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 public class HumanoidMobMutator<E extends LivingEntity>
         extends BipedMutator<HumanoidMobData<E>, E, HumanoidModel<E>>
 {
     private HumanoidModel<?> builtFromModel;
+
+    private final Set<HumanoidModel<E>> builtModels = Collections.newSetFromMap(new WeakHashMap<>());
 
     public HumanoidMobMutator(IEntityDataFactory<E> dataFactory)
     {
@@ -93,9 +99,30 @@ public class HumanoidMobMutator<E extends LivingEntity>
     }
 
     @Override
+    public void demutate(LivingEntityRenderer<E, HumanoidModel<E>> renderer)
+    {
+        super.demutate(renderer);
+
+        final HumanoidModel<E> current = renderer.getModel();
+        for (HumanoidModel<E> model : builtModels)
+        {
+            if (model != current && !shouldModelBeSkipped(model))
+            {
+                applyVanillaModel(model);
+            }
+        }
+        builtModels.clear();
+        builtFromModel = null;
+    }
+
+    @Override
     public boolean createParts(HumanoidModel<E> original, float scaleFactor)
     {
         builtFromModel = original;
+        if (original != null)
+        {
+            builtModels.add(original);
+        }
 
         if (tryCreateAdaptiveParts(original))
         {

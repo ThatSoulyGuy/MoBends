@@ -121,6 +121,13 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             return;
         }
 
+        if (goblinbob.mobends.compat.MineColoniesCompat.shouldRenderVanillaArmorLayer(vanillaArmorLayer, entity))
+        {
+            renderVanillaArmorLayer(poseStack, bufferSource, packedLight, entity, limbSwing, limbSwingAmount,
+                    partialTicks, ageInTicks, netHeadYaw, headPitch);
+            return;
+        }
+
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         boolean hasBendsAnimation = entityData instanceof BipedEntityData
                 && goblinbob.mobends.core.util.BenderHelper.isEntityAnimated(entity)
@@ -141,12 +148,25 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void renderVanillaArmorLayer(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                         E entity, float limbSwing, float limbSwingAmount,
+                                         float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
+    {
+        ((HumanoidArmorLayer) vanillaArmorLayer).render(poseStack, bufferSource, packedLight, entity,
+                limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
+    }
+
     @SuppressWarnings("unchecked")
     private void renderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource,
                                   E entity, EquipmentSlot slot, int packedLight,
                                   boolean hasBendsAnimation, EntityData<?> entityData)
     {
-        ItemStack itemStack = entity.getItemBySlot(slot);
+        ItemStack itemStack = goblinbob.mobends.compat.MineColoniesCompat.displayArmor(entity, slot);
+        if (itemStack == null)
+        {
+            itemStack = entity.getItemBySlot(slot);
+        }
         if (itemStack.isEmpty()) return;
 
         final Object previousRuneColor =

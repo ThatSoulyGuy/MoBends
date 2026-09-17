@@ -136,5 +136,13 @@
   "mobends.config.keep_armor_as_vanilla": "Keep armor as vanilla",
   "mobends.config.keep_entity_as_vanilla": "Keep entity as vanilla",
   "entity.mca.villager": "Villager (MCA)",
-  "entity.mca.zombie_villager": "Zombie Villager (MCA)"
+  "entity.mca.zombie_villager": "Zombie Villager (MCA)",
+  "entity.minecolonies.citizen": "Citizen (MineColonies)",
+  "entity.mobends.minecolonies_barbarian": "Barbarians (MineColonies)",
+  "entity.mobends.minecolonies_pirate": "Pirates (MineColonies)",
+  "entity.mobends.minecolonies_egyptian": "Egyptians (MineColonies)",
+  "entity.mobends.minecolonies_amazon": "Amazons (MineColonies)",
+  "entity.mobends.minecolonies_norsemen": "Norsemen (MineColonies)",
+  "entity.mobends.minecolonies_drowned_pirate": "Drowned Pirates (MineColonies)",
+  "entity.minecolonies.mercenary": "Mercenary (MineColonies)"
 }

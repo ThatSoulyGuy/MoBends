@@ -39,6 +39,7 @@ public abstract class EntityBender<T extends LivingEntity>
     private final Map<LivingEntityRenderer<? extends T, ?>, Mutator<LivingEntityData<T>, T, ?>> mutatorMap = new HashMap<>();
 
     private boolean animate;
+    private boolean coversSubclasses = false;
     protected Map<String, BoneMetadata> boneMetadataMap;
 
     public EntityBender(String modId, @Nullable String key, String unlocalizedName, Class<T> entityClass,
@@ -147,6 +148,17 @@ public abstract class EntityBender<T extends LivingEntity>
     public void setAnimate(boolean animate)
     {
         this.animate = animate;
+    }
+
+    public boolean coversSubclasses()
+    {
+        return this.coversSubclasses;
+    }
+
+    public EntityBender<T> setCoversSubclasses(boolean coversSubclasses)
+    {
+        this.coversSubclasses = coversSubclasses;
+        return this;
     }
 
     public void beforeRender(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
@@ -268,6 +280,12 @@ public abstract class EntityBender<T extends LivingEntity>
         return null;
     }
 
+    private boolean isExplicitEntityType(EntityType<?> entityType)
+    {
+        return this.entityTypeId != null
+                && this.entityTypeId.equals(BuiltInRegistries.ENTITY_TYPE.getKey(entityType));
+    }
+
     @Nullable
     private Mob instantiatePreviewEntity(EntityType<?> entityType, Level level)
     {
@@ -282,7 +300,8 @@ public abstract class EntityBender<T extends LivingEntity>
 
         try
         {
-            return entityType.create(level) instanceof Mob mob && this.entityClass.isInstance(mob) ? mob : null;
+            return entityType.create(level) instanceof Mob mob
+                    && (this.entityClass.isInstance(mob) || isExplicitEntityType(entityType)) ? mob : null;
         }
         catch (Throwable ignored)
         {
