@@ -288,7 +288,7 @@ public class PlayerAnimationLibCompat
             final boolean bodyChanged = torsoRotation.isInfluenced() || !totalBend.isIdentity();
             if (bodyChanged)
             {
-                data.body.rotation.set(bodyAfter.x, bodyAfter.y, bodyAfter.z, bodyAfter.w);
+                data.body.rotation.setSmooth(bodyAfter.x, bodyAfter.y, bodyAfter.z, bodyAfter.w);
             }
             else
             {
@@ -362,7 +362,7 @@ public class PlayerAnimationLibCompat
         resolveRotation(partRotation, scratchWorld, scratchTarget);
         Quaternion.mul(upperBend, scratchTarget, scratchWorld);
         Quaternion.mul(bodyAfterInverse, scratchWorld, scratchLocal);
-        part.rotation.set(scratchLocal.x, scratchLocal.y, scratchLocal.z, scratchLocal.w);
+        part.rotation.setSmooth(scratchLocal.x, scratchLocal.y, scratchLocal.z, scratchLocal.w);
 
         boolean offsetsWritten = false;
 
@@ -417,7 +417,7 @@ public class PlayerAnimationLibCompat
         if (partRotation.isInfluenced())
         {
             resolveRotation(partRotation, part.rotation.getSmooth(), scratchTarget);
-            part.rotation.set(scratchTarget.x, scratchTarget.y, scratchTarget.z, scratchTarget.w);
+            part.rotation.setSmooth(scratchTarget.x, scratchTarget.y, scratchTarget.z, scratchTarget.w);
         }
 
         boolean offsetsWritten = false;
@@ -450,7 +450,7 @@ public class PlayerAnimationLibCompat
 
         final Quaternion current = lowerPart.rotation.getSmooth();
         nlerp(current, scratchBend, Math.min(1.0F, influence), scratchLocal);
-        lowerPart.rotation.set(scratchLocal.x, scratchLocal.y, scratchLocal.z, scratchLocal.w);
+        lowerPart.rotation.setSmooth(scratchLocal.x, scratchLocal.y, scratchLocal.z, scratchLocal.w);
     }
 
     private static void sample(Object stack, String bone, Object type, float partialTicks, Channel dest)

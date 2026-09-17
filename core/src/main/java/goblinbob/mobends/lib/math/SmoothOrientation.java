@@ -57,6 +57,13 @@ public class SmoothOrientation
         return this;
     }
 
+    public SmoothOrientation setSmooth(float x, float y, float z, float w)
+    {
+        this.smooth.set(x, y, z, w);
+        this.smooth.normalise();
+        return this;
+    }
+
     public SmoothOrientation add(float x, float y, float z, float w)
     {
         this.start.x += x;
