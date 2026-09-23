@@ -356,8 +356,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
 
         leftArm = new BendsModelPart(32, 48)
                 .setTextureSize(64, 64)
-                .setPosition(5.0F, armY, 0.0F)
-                .setMirror(true);
+                .setPosition(5.0F, armY, 0.0F);
         leftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
                 .inflate(0.01F, 0F, 0.01F)
                 .hideFace(BoxSide.BOTTOM)
@@ -375,8 +374,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
 
         leftForeArm = new BendsModelPart(32, 48 + 6)
                 .setTextureSize(64, 64)
-                .setPosition(0.0F, 4.0F, 2.0F)
-                .setMirror(true);
+                .setPosition(0.0F, 4.0F, 2.0F);
         leftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
                 .hideFace(BoxSide.TOP)
                 .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
@@ -394,8 +392,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
 
         leftLeg = new BendsModelPart(16, 48)
                 .setTextureSize(64, 64)
-                .setPosition(1.9F, 12.0F, 0.0F)
-                .setMirror(true);
+                .setPosition(1.9F, 12.0F, 0.0F);
         leftLeg.addCube(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
 
         rightLeg = new BendsModelPart(0, 16)
@@ -405,8 +402,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
 
         leftForeLeg = new BendsModelPart(16, 48 + 6)
                 .setTextureSize(64, 64)
-                .setPosition(0.0F, 6.0F, -2.0F)
-                .setMirror(true);
+                .setPosition(0.0F, 6.0F, -2.0F);
         leftForeLeg.developBox(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
                 .inflate(0.01F, 0F, 0.01F)
                 .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
@@ -431,8 +427,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         body.addChild(bodywear);
 
         leftArmwear = new BendsModelPart(48, 48)
-                .setTextureSize(64, 64)
-                .setMirror(true);
+                .setTextureSize(64, 64);
         leftArmwear.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + wearOffset)
                 .setHeight(limbWearHeight)
                 .inflate(0.0025F, 0F, 0.0025F)
@@ -450,8 +445,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         rightArm.addChild(rightArmwear);
 
         leftForeArmwear = new BendsModelPart(48, 48 + 6)
-                .setTextureSize(64, 64)
-                .setMirror(true);
+                .setTextureSize(64, 64);
         leftForeArmwear.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + wearOffset)
                 .setHeight(limbWearHeight)
                 .inflate(0.005F, 0F, 0.005F)
@@ -473,8 +467,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         rightForeArm.addChild(rightForeArmwear);
 
         leftLegwear = new BendsModelPart(0, 48)
-                .setTextureSize(64, 64)
-                .setMirror(true);
+                .setTextureSize(64, 64);
         leftLegwear.developBox(-2.0F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + wearOffset)
                 .setHeight(limbWearHeight)
                 .hideFace(BoxSide.BOTTOM)
@@ -490,8 +483,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         rightLeg.addChild(rightLegwear);
 
         leftForeLegwear = new BendsModelPart(0, 48 + 6)
-                .setTextureSize(64, 64)
-                .setMirror(true);
+                .setTextureSize(64, 64);
         leftForeLegwear.developBox(-2.0F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + wearOffset)
                 .setHeight(limbWearHeight)
                 .inflate(0.005F, 0F, 0.005F)
