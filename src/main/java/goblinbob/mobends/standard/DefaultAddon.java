@@ -84,14 +84,11 @@ public class DefaultAddon implements IAddon
 		registry.registerNewEntity(PiglinBrute.class, PiglinData::new, PiglinMutator::new, new BipedRenderer<>(),
 				new PiglinPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
-		registry.registerNewEntity(Pillager.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		registerIllager(registry, Pillager.class, goblinbob.mobends.compat.VillagersRebornCompat.humanPillager());
 
-		registry.registerNewEntity(Vindicator.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		registerIllager(registry, Vindicator.class, goblinbob.mobends.compat.VillagersRebornCompat.humanVindicator());
 
-		registry.registerNewEntity(Evoker.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		registerIllager(registry, Evoker.class, goblinbob.mobends.compat.VillagersRebornCompat.humanEvoker());
 
 		registry.registerNewEntity(Illusioner.class, IllagerData::new, IllagerMutator::new, new BipedRenderer<>(),
 				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
@@ -104,9 +101,18 @@ public class DefaultAddon implements IAddon
 				VillagerData::new, VillagerMutator::new, new BipedRenderer<>(),
 				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
-		registry.registerNewEntity(net.minecraft.world.entity.monster.Witch.class,
-				WitchData::new, WitchMutator::new, new BipedRenderer<>(),
-				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		if (goblinbob.mobends.compat.VillagersRebornCompat.humanWitch())
+		{
+			registry.registerNewEntity(net.minecraft.world.entity.monster.Witch.class,
+					HumanoidMobData::new, VillagersRebornMutator::new, new BipedRenderer<>(),
+					new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		}
+		else
+		{
+			registry.registerNewEntity(net.minecraft.world.entity.monster.Witch.class,
+					WitchData::new, WitchMutator::new, new BipedRenderer<>(),
+					new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		}
 
 		final Class<net.minecraft.world.entity.LivingEntity> guardClass =
 				goblinbob.mobends.compat.GuardVillagersCompat.getEntityClass();
@@ -125,6 +131,8 @@ public class DefaultAddon implements IAddon
 		goblinbob.mobends.compat.ModernCompanionsCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		goblinbob.mobends.compat.MineColoniesCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+
+		goblinbob.mobends.compat.VillagersRebornCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new SpiderRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,
@@ -151,6 +159,27 @@ public class DefaultAddon implements IAddon
 
 	protected void registerVersionSpecificContent(AddonAnimationRegistry registry)
 	{
+	}
+
+	private static <E extends net.minecraft.world.entity.monster.AbstractIllager> void registerIllager(
+			AddonAnimationRegistry registry, Class<E> illagerClass, boolean humanoid)
+	{
+		if (humanoid)
+		{
+			registry.registerNewEntity(illagerClass, HumanoidMobData::new, VillagersRebornMutator::new,
+					new BipedRenderer<>(), new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+			final goblinbob.mobends.core.bender.EntityBender<E> bender =
+					goblinbob.mobends.core.bender.EntityBenderRegistry.instance.getForEntityClass(illagerClass);
+			if (bender != null)
+			{
+				bender.setCoversSubclasses(true);
+			}
+		}
+		else
+		{
+			registry.registerNewEntity(illagerClass, IllagerData::new, IllagerMutator::new,
+					new BipedRenderer<>(), new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+		}
 	}
 
 	@Override
