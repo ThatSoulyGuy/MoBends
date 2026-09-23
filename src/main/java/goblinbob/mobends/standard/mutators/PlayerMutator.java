@@ -1,6 +1,11 @@
 package goblinbob.mobends.standard.mutators;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
+import goblinbob.mobends.compat.SkinLayersCompat;
+import goblinbob.mobends.compat.SkinLayersLayer;
+import goblinbob.mobends.core.client.MoBendsRenderContext;
 import goblinbob.mobends.core.client.model.BendsMesh;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
@@ -30,6 +35,8 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
 {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerMutator.class);
 
+    private int skinLayerParts = 0;
+
     protected BendsModelPart bodywear;
     protected BendsModelPart leftArmwear;
     protected BendsModelPart rightArmwear;
@@ -56,6 +63,11 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     public boolean hasSmallArms()
     {
         return this.smallArms;
+    }
+
+    public int getSkinLayerParts()
+    {
+        return this.skinLayerParts;
     }
 
     @Override
@@ -205,6 +217,12 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 this.layerElytraVanilla = layer;
             this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerElytra);
+        }
+
+        if (SkinLayersCompat.isLayer(layer))
+        {
+            this.originalLayers.put(index, layer);
+            layerRenderers.set(index, new SkinLayersLayer(renderer, layer));
         }
 
         if (goblinbob.mobends.compat.MorePlayerModelsCompat.isPartsLayer(layer))
@@ -580,6 +598,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     {
         super.clearConcealment();
 
+        skinLayerParts = 0;
         clearConcealed(bodywear);
         clearConcealed(leftArmwear);
         clearConcealed(leftForeArmwear);
@@ -610,6 +629,50 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         concealWith(leftForeLegwear, leftForeLeg, playerModel.leftPants);
         concealWith(rightLegwear, rightLeg, playerModel.rightPants);
         concealWith(rightForeLegwear, rightForeLeg, playerModel.rightPants);
+
+        skinLayerParts = MoBendsRenderContext.getCurrentEntity() instanceof AbstractClientPlayer player
+                ? SkinLayersCompat.activeParts(player, hasSmallArms()) : 0;
+        if (skinLayerParts == 0)
+        {
+            return;
+        }
+
+        SkinLayersCompat.clearInjectedMeshes(playerModel, skinLayerParts);
+        concealForSkinLayers(SkinLayersCompat.HEAD, headwear, null);
+        concealForSkinLayers(SkinLayersCompat.BODY, bodywear, null);
+        concealForSkinLayers(SkinLayersCompat.LEFT_ARM, leftArmwear, leftForeArmwear);
+        concealForSkinLayers(SkinLayersCompat.RIGHT_ARM, rightArmwear, rightForeArmwear);
+        concealForSkinLayers(SkinLayersCompat.LEFT_LEG, leftLegwear, leftForeLegwear);
+        concealForSkinLayers(SkinLayersCompat.RIGHT_LEG, rightLegwear, rightForeLegwear);
+    }
+
+    private void concealForSkinLayers(int flag, BendsModelPart wear, BendsModelPart foreWear)
+    {
+        if ((skinLayerParts & flag) == 0)
+        {
+            return;
+        }
+        if (wear != null)
+        {
+            wear.concealed = true;
+        }
+        if (foreWear != null)
+        {
+            foreWear.concealed = true;
+        }
+    }
+
+    @Override
+    public void renderCurrentPose(PoseStack poseStack, VertexConsumer vertexConsumer,
+                                  int packedLight, int packedOverlay, int color)
+    {
+        super.renderCurrentPose(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+
+        if (skinLayerParts != 0 && MoBendsRenderContext.getCurrentEntity() instanceof AbstractClientPlayer player)
+        {
+            SkinLayersCompat.render(this, player, skinLayerParts, hasSmallArms(),
+                    poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        }
     }
 
     public BendsModelPart getBodywear() { return bodywear; }

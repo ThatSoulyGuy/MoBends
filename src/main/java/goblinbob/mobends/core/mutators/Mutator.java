@@ -38,6 +38,8 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
 
     private final IEntityDataFactory<E> dataFactory;
     protected List<RenderLayer<E, M>> layerRenderers;
+    private int swappedLayerCount;
+    private boolean swappedModelVanilla;
 
     public Mutator(IEntityDataFactory<E> dataFactory)
     {
@@ -127,15 +129,40 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
 
         this.createParts(model, scaleFactor);
 
+        this.swappedModelVanilla = isModelVanilla;
+        this.swappedLayerCount = 0;
+
         if (this.layerRenderers != null)
         {
             for (int i = 0; i < layerRenderers.size(); ++i)
             {
                 swapLayer(renderer, i, isModelVanilla);
             }
+            this.swappedLayerCount = layerRenderers.size();
         }
 
         return true;
+    }
+
+    public void swapNewLayers(LivingEntityRenderer<E, M> renderer)
+    {
+        if (this.layerRenderers == null)
+        {
+            return;
+        }
+
+        final int count = this.layerRenderers.size();
+        if (count <= this.swappedLayerCount)
+        {
+            this.swappedLayerCount = count;
+            return;
+        }
+
+        for (int i = this.swappedLayerCount; i < count; ++i)
+        {
+            swapLayer(renderer, i, this.swappedModelVanilla);
+        }
+        this.swappedLayerCount = count;
     }
 
     public void demutate(LivingEntityRenderer<E, M> renderer)
@@ -153,6 +180,8 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
                 this.deswapLayer(renderer, i);
             }
         }
+
+        this.swappedLayerCount = 0;
     }
 
     private static float guiHeldHeadYaw = 0.0F;

@@ -64,6 +64,7 @@ dependencies {
     modCompileOnly("top.theillusivec4.curios:curios-neoforge:${common.mod.dep("curios")}")
 
     modCompileOnly("maven.modrinth:armourers-workshop:${common.mod.dep("armourers_workshop")}")
+    modCompileOnly("maven.modrinth:3dskinlayers:${common.mod.dep("skinlayers3d")}")
 
     commonBundle(project(common.path, "namedElements")) { isTransitive = false }
     shadowBundle(project(common.path, "transformProductionNeoForge")) { isTransitive = false }

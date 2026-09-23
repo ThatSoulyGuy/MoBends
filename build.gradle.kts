@@ -32,6 +32,7 @@ dependencies {
     modApi("dev.architectury:architectury:${mod.dep("architectury")}")
 
     modCompileOnly("maven.modrinth:armourers-workshop:${mod.dep("armourers_workshop")}")
+    modCompileOnly("maven.modrinth:3dskinlayers:${mod.dep("skinlayers3d")}")
 
     api(project(":core"))
 }

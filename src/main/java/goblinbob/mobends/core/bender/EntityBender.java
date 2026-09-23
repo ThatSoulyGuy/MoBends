@@ -187,6 +187,7 @@ public abstract class EntityBender<T extends LivingEntity>
             mutatorMap.put(renderer, (Mutator<LivingEntityData<T>, T, ?>) mutator);
         }
 
+        mutator.swapNewLayers(renderer);
         mutator.updateModel(entity, renderer, partialTicks);
         LivingEntityData<T> data = mutator.getOrMakeData(entity);
 
