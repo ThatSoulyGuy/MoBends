@@ -10,6 +10,8 @@ public final class MoBendsTheme
 
     public static final int BG_CONTENT = 0xF01E2028;
 
+    public static final int BG_WIP_OVERLAY = 0xD03A3E4A;
+
     public static final int BG_LIST = 0xF0161820;
 
     public static final int BG_HEADER = 0xFF12141A;

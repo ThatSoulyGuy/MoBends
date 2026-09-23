@@ -166,8 +166,8 @@ public class MoBendsScreenBuilder
         contentFrame.setBackgroundColor(MoBendsTheme.BG_CONTENT);
 
         settingsContent = buildSettingsTab(factory);
-        packsContent = buildPacksContent(factory);
-        customizeContent = buildCustomizeContent(factory);
+        packsContent = withWipOverlay(factory, buildPacksContent(factory));
+        customizeContent = withWipOverlay(factory, buildCustomizeContent(factory));
 
         contentFrame.addView(settingsContent, factory.createMatchParent());
         contentFrame.addView(packsContent, factory.createMatchParent());
@@ -852,35 +852,10 @@ public class MoBendsScreenBuilder
         layout.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_LARGE,
                          MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_LARGE);
 
-        VanillaTextView info = factory.createTextView(I18n.get("mobends.gui.customize.editor_info"));
-        info.setTextColor(MoBendsTheme.TEXT_PRIMARY);
-        info.setTextSize(14);
-        info.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
-        layout.addView(info, factory.createLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
-                VanillaLayoutParams.WRAP_CONTENT
-        ));
-
-        VanillaView spacer = factory.createView();
-        VanillaLayoutParams spacerParams = factory.createLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
-                MoBendsTheme.SPACING
-        );
-        layout.addView(spacer, spacerParams);
-
         final IAnimationEditor editor = AnimationEditorRegistry.INSTANCE.getPrimaryEditor();
 
         if (editor == null)
         {
-            VanillaTextView status = factory.createTextView(I18n.get("mobends.gui.customize.no_editor"));
-            status.setTextColor(MoBendsTheme.ACCENT_ERROR);
-            status.setTextSize(12);
-            status.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
-            layout.addView(status, factory.createLayoutParams(
-                    VanillaLayoutParams.MATCH_PARENT,
-                    VanillaLayoutParams.WRAP_CONTENT
-            ));
-
             return layout;
         }
 
@@ -902,6 +877,49 @@ public class MoBendsScreenBuilder
         ));
 
         return layout;
+    }
+
+    private VanillaView withWipOverlay(VanillaViewFactory factory, VanillaView content)
+    {
+        VanillaFrameLayout frame = factory.createFrameLayout();
+        frame.setLayoutParams(factory.createMatchParent());
+        frame.addView(content, factory.createMatchParent());
+
+        VanillaFrameLayout overlay = new VanillaFrameLayout()
+        {
+            @Override
+            public boolean handleClick(double mouseX, double mouseY, int button)
+            {
+                return visibility == VISIBLE && isInBounds(mouseX, mouseY);
+            }
+
+            @Override
+            public boolean handleMouseScrolled(double mouseX, double mouseY, double scrollY)
+            {
+                return visibility == VISIBLE && isInBounds(mouseX, mouseY);
+            }
+
+            @Override
+            public boolean handleMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
+            {
+                return visibility == VISIBLE && isInBounds(mouseX, mouseY);
+            }
+        };
+        overlay.setBackgroundColor(MoBendsTheme.BG_WIP_OVERLAY);
+
+        VanillaTextView label = factory.createTextView(I18n.get("mobends.gui.wip"));
+        label.setTextColor(MoBendsTheme.TEXT_PRIMARY);
+        label.setTextSize(42);
+        label.setBold(true);
+        label.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        overlay.addView(label, factory.createFrameLayoutParams(
+                VanillaLayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.WRAP_CONTENT,
+                VanillaLayoutParams.GRAVITY_CENTER
+        ));
+
+        frame.addView(overlay, factory.createMatchParent());
+        return frame;
     }
 
     private void onTabChanged(int tabIndex)
