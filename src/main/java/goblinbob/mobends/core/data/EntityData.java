@@ -21,6 +21,7 @@ import java.util.stream.StreamSupport;
 
 public abstract class EntityData<E extends Entity> implements IEntityAnimationData
 {
+    private static final double STILL_SPEED_THRESHOLD = 0.003D;
 
     protected int entityID;
     protected final E entity;
@@ -204,9 +205,9 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
 
     public boolean isStillHorizontally()
     {
-        final double deadZone = 0.0025;
         final double horizontalSqMagnitude = this.motionX * this.motionX + this.motionZ * this.motionZ;
-        return this.stillnessOverride != null ? this.stillnessOverride : horizontalSqMagnitude < deadZone;
+        return this.stillnessOverride != null ? this.stillnessOverride
+                : horizontalSqMagnitude < STILL_SPEED_THRESHOLD * STILL_SPEED_THRESHOLD;
     }
 
     public abstract IAnimationController<?> getController();
