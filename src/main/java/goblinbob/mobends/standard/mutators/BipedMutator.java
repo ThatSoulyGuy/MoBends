@@ -1625,6 +1625,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
             final float x = part.x, y = part.y, z = part.z;
             final float xRot = part.xRot, yRot = part.yRot, zRot = part.zRot;
+            final float xScale = part.xScale, yScale = part.yScale, zScale = part.zScale;
             final boolean skipDraw = part.skipDraw;
             final boolean visible = part.visible;
 
@@ -1634,6 +1635,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             part.xRot = 0.0F;
             part.yRot = 0.0F;
             part.zRot = 0.0F;
+            part.xScale = 1.0F;
+            part.yScale = 1.0F;
+            part.zScale = 1.0F;
             part.skipDraw = !attached.drawOwnCubes;
             part.visible = true;
 
@@ -1645,6 +1649,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             part.xRot = xRot;
             part.yRot = yRot;
             part.zRot = zRot;
+            part.xScale = xScale;
+            part.yScale = yScale;
+            part.zScale = zScale;
             part.skipDraw = skipDraw;
             part.visible = visible;
 
