@@ -1,23 +1,17 @@
 package goblinbob.mobends.standard.previewer;
 
-import goblinbob.mobends.core.bender.BoneMetadata;
 import goblinbob.mobends.core.bender.IPreviewer;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.data.SpiderData;
 import net.minecraft.world.entity.monster.Spider;
 
-import java.util.Map;
-
 public class SpiderPreviewer implements IPreviewer<SpiderData>
 {
-
-	protected double previewYOffset = 0;
 
 	@Override
 	public void prePreview(SpiderData data, String animationToPreview)
 	{
 		data.limbSwingAmount.override(0F);
-		previewYOffset = 0;
 
 		switch (animationToPreview)
 		{
@@ -33,8 +27,6 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 					if (t <= JUMP_DURATION)
 					{
 						data.overrideOnGroundState(false);
-
-						previewYOffset = Math.sin(t/JUMP_DURATION * Math.PI) * 1.5;
 					} else {
 						data.overrideOnGroundState(true);
 					}
@@ -64,21 +56,4 @@ public class SpiderPreviewer implements IPreviewer<SpiderData>
 				data.overrideStillness(true);
 		}
 	}
-
-	@Override
-	public void postPreview(SpiderData data, String animationToPreview)
-	{
-	}
-
-	@Override
-	public Map<String, BoneMetadata> getBoneMetadata()
-	{
-		return null;
-	}
-
-	public double getPreviewYOffset()
-	{
-		return previewYOffset;
-	}
-
 }

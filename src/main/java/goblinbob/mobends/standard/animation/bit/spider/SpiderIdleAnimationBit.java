@@ -5,18 +5,11 @@ import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.standard.data.SpiderData;
 import net.minecraft.world.entity.monster.Spider;
-import net.minecraft.util.Mth;
 
 public class SpiderIdleAnimationBit extends AnimationBit<SpiderData>
 {
 	protected static final float KNEEL_DURATION = 10F;
 
-
-	@Override
-	public void onPlay(SpiderData data)
-	{
-		super.onPlay(data);
-	}
 
 	@Override
 	public void perform(SpiderData data)
@@ -62,9 +55,6 @@ public class SpiderIdleAnimationBit extends AnimationBit<SpiderData>
 			data.limbs[6].adjustToLocalPosition(0, 1.5, 0.2F);
 			data.limbs[7].adjustToLocalPosition(0, 1.5, 0.2F);
 		}
-
-		float climbingRotation = 0;
-		float renderRotationY = Mth.wrapDegrees(spider.getYRot() - data.headYaw.get() - climbingRotation);
 
 		data.localOffset.slideToZero();
 		data.globalOffset.set((float) bodyX, (float) -groundLevel, (float) -bodyZ);

@@ -19,10 +19,6 @@ public class LiteralNode implements ExpressionNode {
         return true;
     }
 
-    public double getValue() {
-        return value;
-    }
-
     @Override
     public String toString() {
         return String.valueOf(value);

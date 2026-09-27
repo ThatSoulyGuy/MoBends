@@ -166,27 +166,4 @@ public class EssentialCompat
         dest[1] = (Float) getPivotYMethod.invoke(posePart);
         dest[2] = (Float) getPivotZMethod.invoke(posePart);
     }
-
-    public static boolean hasModifiedPose(LivingEntity entity)
-    {
-        if (!isModLoaded() || !(entity instanceof AbstractClientPlayer player))
-        {
-            return false;
-        }
-
-        if (!playerExtClass.isInstance(player))
-        {
-            return false;
-        }
-
-        try
-        {
-            return (Boolean) isPoseModifiedMethod.invoke(player);
-        }
-        catch (Exception e)
-        {
-            isLoaded = false;
-            return false;
-        }
-    }
 }

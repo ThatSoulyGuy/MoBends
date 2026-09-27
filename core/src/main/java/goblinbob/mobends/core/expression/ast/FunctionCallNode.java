@@ -29,7 +29,7 @@ public class FunctionCallNode implements ExpressionNode {
 
     @Override
     public boolean isConstant() {
-        if (!function.isPure()) {
+        if (!function.pure()) {
             return false;
         }
         for (ExpressionNode arg : arguments) {
@@ -42,7 +42,7 @@ public class FunctionCallNode implements ExpressionNode {
 
     @Override
     public ExpressionNode optimize() {
-        boolean allConstant = function.isPure();
+        boolean allConstant = function.pure();
         List<ExpressionNode> optimizedArgs = arguments.stream()
                 .map(ExpressionNode::optimize)
                 .collect(Collectors.toList());
@@ -70,14 +70,6 @@ public class FunctionCallNode implements ExpressionNode {
             return new FunctionCallNode(functionName, optimizedArgs);
         }
         return this;
-    }
-
-    public String getFunctionName() {
-        return functionName;
-    }
-
-    public List<ExpressionNode> getArguments() {
-        return arguments;
     }
 
     @Override

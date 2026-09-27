@@ -3,7 +3,6 @@ package goblinbob.mobends.compat;
 import dev.architectury.platform.Platform;
 import goblinbob.mobends.api.addon.AddonAnimationRegistry;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.BipedRenderer;
-import goblinbob.mobends.standard.client.renderer.entity.mutated.ZombieRenderer;
 import goblinbob.mobends.standard.data.HumanoidMobData;
 import goblinbob.mobends.standard.data.ZombieData;
 import goblinbob.mobends.standard.mutators.VillagersRebornMutator;
@@ -85,7 +84,7 @@ public final class VillagersRebornCompat
 
         for (final String[] villager : VILLAGERS)
         {
-            final Class<LivingEntity> villagerClass = resolve(villager[2]);
+            final Class<LivingEntity> villagerClass = ModCompatManager.livingEntityClass(PACKAGE + villager[2]);
             if (villagerClass == null)
             {
                 continue;
@@ -102,7 +101,7 @@ public final class VillagersRebornCompat
             }
         }
 
-        final Class<LivingEntity> zombieVillagerClass = resolve(ZOMBIE_VILLAGER_CLASS);
+        final Class<LivingEntity> zombieVillagerClass = ModCompatManager.livingEntityClass(PACKAGE + ZOMBIE_VILLAGER_CLASS);
         if (zombieVillagerClass != null && Zombie.class.isAssignableFrom(zombieVillagerClass))
         {
             try
@@ -112,25 +111,11 @@ public final class VillagersRebornCompat
                 registry.registerNewEntity("slimpatch:human_zombie_villager",
                         "entity.mobends.villagersreborn_zombie_villager", typed,
                         ZombieData::new, VillagersRebornZombieMutator::new,
-                        new ZombieRenderer<>(), new BipedPreviewer<>(), zombieAnimations, alterableParts);
+                        new BipedRenderer<>(), new BipedPreviewer<>(), zombieAnimations, alterableParts);
             }
             catch (Throwable ignored)
             {
             }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<LivingEntity> resolve(String className)
-    {
-        try
-        {
-            final Class<?> candidate = Class.forName(PACKAGE + className);
-            return LivingEntity.class.isAssignableFrom(candidate) ? (Class<LivingEntity>) candidate : null;
-        }
-        catch (Throwable t)
-        {
-            return null;
         }
     }
 }

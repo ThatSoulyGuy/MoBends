@@ -16,13 +16,4 @@ public class EnvironmentModule implements IModule
     public void onRefresh()
     {
     }
-
-    public static class Factory implements IModule.Factory
-    {
-        @Override
-        public IModule create()
-        {
-            return new EnvironmentModule();
-        }
-    }
 }

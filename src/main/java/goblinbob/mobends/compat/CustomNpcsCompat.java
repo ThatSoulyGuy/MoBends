@@ -6,18 +6,16 @@ import goblinbob.mobends.api.addon.AddonAnimationRegistry;
 import goblinbob.mobends.api.animation.MoBendsAnimationControl;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
-import goblinbob.mobends.core.client.MoBendsRenderContext;
+import goblinbob.mobends.core.client.event.LivingRenderEvents;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.core.mutators.Mutator;
+import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.BipedRenderer;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.CustomNpcData;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.CustomNpcMutator;
-import goblinbob.mobends.standard.mutators.SpiderMutator;
-import goblinbob.mobends.standard.mutators.SquidMutator;
-import goblinbob.mobends.standard.mutators.WolfMutator;
 import goblinbob.mobends.standard.previewer.BipedPreviewer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -214,17 +212,7 @@ public final class CustomNpcsCompat
 
         for (final String className : UNUSED_VARIANT_CLASSES)
         {
-            try
-            {
-                final Class<?> variant = Class.forName(className);
-                if (LivingEntity.class.isAssignableFrom(variant))
-                {
-                    MoBendsAnimationControl.excludeEntityClass((Class<? extends LivingEntity>) variant);
-                }
-            }
-            catch (Throwable ignored)
-            {
-            }
+            MoBendsAnimationControl.excludeEntityClass(ModCompatManager.livingEntityClass(className));
         }
     }
 
@@ -484,7 +472,8 @@ public final class CustomNpcsCompat
         }
 
         bone.scale.set(scratchScale[0], scratchScale[1], scratchScale[2]);
-        bone.preRotationScale.set(divide(1.0F, bodyScale[0]), divide(1.0F, bodyScale[1]), divide(1.0F, bodyScale[2]));
+        bone.preRotationScale.set(GUtil.divideOr(1.0F, bodyScale[0]), GUtil.divideOr(1.0F, bodyScale[1]),
+                GUtil.divideOr(1.0F, bodyScale[2]));
 
         if (side == 0.0F)
         {
@@ -492,14 +481,9 @@ public final class CustomNpcsCompat
             return;
         }
 
-        bone.globalOffset.set(side * ARM_INSET * (divide(scratchScale[0], bodyScale[0]) - 1.0F),
-                SHOULDER_OVERHANG * (divide(scratchScale[1], bodyScale[1]) - 1.0F),
+        bone.globalOffset.set(side * ARM_INSET * (GUtil.divideOr(scratchScale[0], bodyScale[0]) - 1.0F),
+                SHOULDER_OVERHANG * (GUtil.divideOr(scratchScale[1], bodyScale[1]) - 1.0F),
                 0.0F);
-    }
-
-    private static float divide(float value, float divisor)
-    {
-        return divisor == 0.0F ? value : value / divisor;
     }
 
     public static void removeRenderTranslation(LivingEntity entity, HumanoidModel<?> model)
@@ -707,37 +691,7 @@ public final class CustomNpcsCompat
             return RenderRoute.DISPLAY_VANILLA;
         }
 
-        MoBendsRenderContext.setCurrentEntity(display);
-
-        if (rawMutator instanceof BipedMutator<?, ?, ?> bipedMutator)
-        {
-            MoBendsRenderContext.setCurrentBipedMutator(bipedMutator);
-            MoBendsRenderContext.beginMainModelRender();
-
-            final HumanoidModel<?> humanoidModel = bipedMutator.humanoidViewOf(model);
-            if (humanoidModel != null)
-            {
-                MoBendsRenderContext.setCurrentVanillaModel(humanoidModel);
-                bipedMutator.syncPosesToVanillaModel(humanoidModel);
-            }
-        }
-        else if (rawMutator instanceof SpiderMutator spiderMutator)
-        {
-            MoBendsRenderContext.setCurrentSpiderMutator(spiderMutator);
-            MoBendsRenderContext.beginMainModelRender();
-        }
-        else if (rawMutator instanceof SquidMutator squidMutator)
-        {
-            MoBendsRenderContext.setCurrentSquidMutator(squidMutator);
-            MoBendsRenderContext.beginMainModelRender();
-        }
-        else if (rawMutator instanceof WolfMutator wolfMutator)
-        {
-            MoBendsRenderContext.setCurrentWolfMutator(wolfMutator);
-            MoBendsRenderContext.beginMainModelRender();
-        }
-
-        MoBendsRenderContext.setCurrentRenderBuffers(bufferSource, packedLight);
+        LivingRenderEvents.beginMutatedRender(display, rawMutator, vanillaRenderer, bufferSource);
         displayBender.beforeRender(data, display, partialTicks, poseStack);
 
         return RenderRoute.DISPLAY_ANIMATED;

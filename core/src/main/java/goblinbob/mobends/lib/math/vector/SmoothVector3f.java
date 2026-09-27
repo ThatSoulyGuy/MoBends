@@ -1,7 +1,5 @@
 package goblinbob.mobends.lib.math.vector;
 
-import goblinbob.mobends.lib.util.EnumAxis;
-
 public class SmoothVector3f
 {
 
@@ -31,16 +29,6 @@ public class SmoothVector3f
 		}
 	}
 
-	public void slideTo(Vec3f orientation, float smoothness)
-	{
-		this.slideTo(orientation.x, orientation.y, orientation.z, smoothness);
-	}
-
-	public void slideTo(Vec3f orientation)
-	{
-		this.slideTo(orientation, 1.0F);
-	}
-
 	public void slideToZero(float smoothness)
 	{
 		this.slideTo(0, 0, 0, smoothness);
@@ -49,40 +37,6 @@ public class SmoothVector3f
 	public void slideToZero()
 	{
 		this.slideToZero(1.0F);
-	}
-
-	public void slideTo(EnumAxis axis, float orientation, float smoothness)
-	{
-		if ((axis == EnumAxis.X ? this.end.x : axis == EnumAxis.Y ? this.end.y : this.end.z) != orientation)
-		{
-			if (axis == EnumAxis.X)
-			{
-				this.start.x = this.getX();
-				this.end.x = orientation;
-				this.completion.x = 0.0F;
-			}
-
-			if (axis == EnumAxis.Y)
-			{
-				this.start.y = this.getY();
-				this.end.y = orientation;
-				this.completion.y = 0.0F;
-			}
-
-			if (axis == EnumAxis.Z)
-			{
-				this.start.z = this.getZ();
-				this.end.z = orientation;
-				this.completion.z = 0.0F;
-			}
-		}
-
-		if (axis == EnumAxis.X)
-			this.smoothness.x = smoothness;
-		if (axis == EnumAxis.Y)
-			this.smoothness.y = smoothness;
-		if (axis == EnumAxis.Z)
-			this.smoothness.z = smoothness;
 	}
 
 	public void slideX(float orientation, float smoothness)
@@ -118,19 +72,9 @@ public class SmoothVector3f
 		this.smoothness.z = argSmooth;
 	}
 
-	public void slideX(float x)
-	{
-		this.slideX(x, 0.6f);
-	}
-
 	public void slideY(float y)
 	{
 		this.slideY(y, 0.6f);
-	}
-
-	public void slideZ(float z)
-	{
-		this.slideZ(z, 0.6f);
 	}
 
 	public void add(float x, float y, float z)
@@ -139,21 +83,6 @@ public class SmoothVector3f
 		this.completion.set(0, 0, 0);
 		this.end.x += x;
 		this.end.y += y;
-		this.end.z += z;
-	}
-
-	public void addX(float x)
-	{
-		this.end.x += x;
-	}
-
-	public void addY(float y)
-	{
-		this.end.y += y;
-	}
-
-	public void addZ(float z)
-	{
 		this.end.z += z;
 	}
 
@@ -224,11 +153,6 @@ public class SmoothVector3f
 		return this.start.z + (this.end.z - this.start.z) * this.completion.z;
 	}
 
-	public Vec3f getSmooth()
-	{
-		return new Vec3f(this.getX(), this.getY(), this.getZ());
-	}
-
 	public void update(float ticksPerFrame)
 	{
 		this.completion.x += ticksPerFrame * this.smoothness.x;
@@ -242,10 +166,5 @@ public class SmoothVector3f
 	public void finish()
 	{
 		this.set(this.end.x, this.end.y, this.end.z);
-	}
-
-	public float getEnd(EnumAxis axis)
-	{
-		return axis == EnumAxis.X ? this.end.x : axis == EnumAxis.Y ? this.end.y : this.end.z;
 	}
 }

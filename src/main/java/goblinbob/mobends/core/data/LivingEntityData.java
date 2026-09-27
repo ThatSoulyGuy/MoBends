@@ -56,11 +56,6 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         this.ticksFalling = 100F;
     }
 
-    public void setClimbing(boolean flag)
-    {
-        this.climbing = flag;
-    }
-
     public void setRidingBodyYaw(float yaw)
     {
         this.ridingBodyYaw = yaw;

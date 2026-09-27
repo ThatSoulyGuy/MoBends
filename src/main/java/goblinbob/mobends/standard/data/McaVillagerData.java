@@ -1,11 +1,11 @@
 package goblinbob.mobends.standard.data;
 
-import goblinbob.mobends.standard.animation.controller.McaVillagerController;
+import goblinbob.mobends.standard.animation.controller.NpcBipedController;
 import net.minecraft.world.entity.LivingEntity;
 
 public class McaVillagerData<E extends LivingEntity> extends BipedEntityData<E>
 {
-    private final McaVillagerController controller = new McaVillagerController();
+    private final NpcBipedController controller = new NpcBipedController(e -> false);
 
     public McaVillagerData(E entity)
     {
@@ -13,13 +13,8 @@ public class McaVillagerData<E extends LivingEntity> extends BipedEntityData<E>
     }
 
     @Override
-    public McaVillagerController getController()
+    public NpcBipedController getController()
     {
         return controller;
-    }
-
-    @Override
-    public void onTicksRestart()
-    {
     }
 }

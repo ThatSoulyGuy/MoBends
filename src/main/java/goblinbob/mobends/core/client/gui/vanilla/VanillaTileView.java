@@ -14,17 +14,11 @@ public class VanillaTileView extends VanillaLinearLayout
     {
         return hovered;
     }
-    private boolean drawBorder = true;
     private int idleColor = MoBendsTheme.BG_LIST;
 
     public void setBulge(int bulge)
     {
         this.bulge = bulge;
-    }
-
-    public void setDrawBorder(boolean drawBorder)
-    {
-        this.drawBorder = drawBorder;
     }
 
     @Nullable
@@ -72,7 +66,7 @@ public class VanillaTileView extends VanillaLinearLayout
 
         guiGraphics.fill(left, top, right, bottom, hovered ? MoBendsTheme.BG_TILE_HOVER : idleColor);
 
-        if (hovered && drawBorder)
+        if (hovered)
         {
             guiGraphics.fill(left, top, right, top + 1, MoBendsTheme.ACCENT_PRIMARY);
             guiGraphics.fill(left, bottom - 1, right, bottom, MoBendsTheme.ACCENT_PRIMARY);

@@ -107,10 +107,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         this.outerModel = (HumanoidModel<E>) outerModel;
     }
 
-    public void initArmor()
-    {
-    }
-
     @Override
     public void render(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                        E entity, float limbSwing, float limbSwingAmount,
@@ -196,7 +192,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         if (goblinbob.mobends.compat.WearableBackpacksCompat.isBackpackItem(itemStack)) return;
 
         boolean usesInnerModel = usesInnerModel(slot);
-        HumanoidModel<E> defaultModel = usesInnerModel ? getInnerModel() : getOuterModel();
+        HumanoidModel<E> defaultModel = usesInnerModel ? innerModel : outerModel;
         if (defaultModel == null)
         {
             return;
@@ -272,12 +268,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         if (isCustomModel && shouldUseBends && entityData instanceof BipedEntityData<?>
                 && isBendableGeoArmor(armorModel))
         {
-            BipedEntityData<?> geoData = (BipedEntityData<?>) entityData;
-
-            if (geoData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
-            {
-                geoData = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
-            }
+            BipedEntityData<?> geoData = previewAware((BipedEntityData<?>) entityData);
 
             if (renderCapturedGeoArmor(poseStack, bufferSource, packedLight, armorModel, defaultModel, itemStack, geoData, slot))
             {
@@ -290,12 +281,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (isTinkersArmor && slot != EquipmentSlot.HEAD && shouldUseBends && entityData instanceof BipedEntityData<?>)
         {
-            BipedEntityData<?> tinkersData = (BipedEntityData<?>) entityData;
-
-            if (tinkersData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
-            {
-                tinkersData = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
-            }
+            BipedEntityData<?> tinkersData = previewAware((BipedEntityData<?>) entityData);
 
             if (renderTinkersArmor(poseStack, bufferSource, packedLight, entity, slot, itemStack,
                     armorModel, defaultModel, tinkersData))
@@ -316,12 +302,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
             if (isTinkersArmor && shouldUseBends && entityData instanceof BipedEntityData<?>)
             {
-                skullData = (BipedEntityData<?>) entityData;
-
-                if (skullData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
-                {
-                    skullData = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
-                }
+                skullData = previewAware((BipedEntityData<?>) entityData);
             }
 
             final net.minecraft.client.model.SkullModelBase skull = skullData != null
@@ -335,7 +316,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
             try
             {
-                renderSelfDrawnArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
+                renderVanillaArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, false);
             }
             finally
             {
@@ -355,19 +336,21 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (shouldUseBends && entityData instanceof BipedEntityData<?>)
         {
-            BipedEntityData<?> bipedData = (BipedEntityData<?>) entityData;
-
-            if (bipedData instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
-            {
-                bipedData = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
-            }
+            BipedEntityData<?> bipedData = previewAware((BipedEntityData<?>) entityData);
 
             renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, bipedData, isCustomModel);
         }
         else
         {
-            renderVanillaArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack);
+            renderVanillaArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, true);
         }
+    }
+
+    private static BipedEntityData<?> previewAware(BipedEntityData<?> data)
+    {
+        return data instanceof PlayerData && PlayerPreviewer.isPreviewInProgress()
+                ? (BipedEntityData<?>) PlayerPreviewer.getPreviewData()
+                : data;
     }
 
     private boolean renderTinkersArmor(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
@@ -521,13 +504,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     {
         try
         {
-            Class<?> geoClass = Class.forName("software.bernie.geckolib.renderer.GeoArmorRenderer");
-            if (!geoClass.isInstance(armorModel))
-            {
-                return false;
-            }
-
-            return geoClass.isInstance(armorModel);
+            return Class.forName("software.bernie.geckolib.renderer.GeoArmorRenderer").isInstance(armorModel);
         }
         catch (Exception e)
         {
@@ -549,7 +526,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     }
 
     @Nullable
-    private static ResourceLocation geoArmorTexture(Model armorModel, ItemStack itemStack, EquipmentSlot slot)
+    private static ResourceLocation geoArmorTexture(Model armorModel, ItemStack itemStack)
     {
         try
         {
@@ -603,27 +580,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return null;
     }
 
-    private static final float EMISSIVE_INFLATION = 0.03F;
-
-    private static java.util.List<CapturedVertex> inflateAlongNormals(
-            java.util.List<CapturedVertex> source, float amount)
-    {
-        final java.util.List<CapturedVertex> result = new java.util.ArrayList<>(source.size());
-
-        for (CapturedVertex v : source)
-        {
-            result.add(new CapturedVertex(
-                    v.x + v.normalX * amount,
-                    v.y + v.normalY * amount,
-                    v.z + v.normalZ * amount,
-                    v.red, v.green, v.blue, v.alpha,
-                    v.u, v.v,
-                    v.overlayUV, v.lightmapUV,
-                    v.normalX, v.normalY, v.normalZ));
-        }
-
-        return result;
-    }
+    private static final float EMISSIVE_DEPTH_SCALE = 0.9997F;
 
     private static final float ELBOW_Y = 6.0F / 16.0F;
     private static final float KNEE_Y = 18.0F / 16.0F;
@@ -640,7 +597,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                                            Model armorModel, HumanoidModel<E> defaultModel,
                                            ItemStack itemStack, BipedEntityData<?> bipedData, EquipmentSlot slot)
     {
-        ResourceLocation texture = geoArmorTexture(armorModel, itemStack, slot);
+        ResourceLocation texture = geoArmorTexture(armorModel, itemStack);
         if (texture == null)
         {
             return false;
@@ -707,14 +664,15 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (!emissiveTypes.isEmpty())
         {
-            final java.util.List<CapturedVertex> emissiveVertices =
-                    inflateAlongNormals(primary.vertices, EMISSIVE_INFLATION);
+            final PoseStack emissivePose = new PoseStack();
+            emissivePose.last().pose().scaling(EMISSIVE_DEPTH_SCALE).mul(poseStack.last().pose());
+            emissivePose.last().normal().set(poseStack.last().normal());
 
             for (RenderType emissiveType : emissiveTypes)
             {
-                rigidRenderer.renderTaggedVertices(poseStack, bufferSource.getBuffer(emissiveType),
+                rigidRenderer.renderTaggedVertices(emissivePose, bufferSource.getBuffer(emissiveType),
                         packedLight, OverlayTexture.NO_OVERLAY,
-                        bipedData, emissiveVertices, primary.regions, primary.blendRegions, primary.blendWeights);
+                        bipedData, primary.vertices, primary.regions, primary.blendRegions, primary.blendWeights);
             }
         }
 
@@ -727,35 +685,22 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> regions = new java.util.ArrayList<>();
         final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> blendRegions = new java.util.ArrayList<>();
         final java.util.List<Float> blendWeights = new java.util.ArrayList<>();
+
+        void add(CapturedVertex v, BoneRegion region, BoneRegion blendRegion, float blendWeight)
+        {
+            vertices.add(v);
+            regions.add(region);
+            blendRegions.add(blendRegion);
+            blendWeights.add(blendWeight);
+        }
     }
 
     private java.util.Set<String> captureAlwaysDrawn(Model armorModel, HumanoidModel<E> defaultModel,
                                                      int packedLight, boolean[] slotVisibility, EquipmentSlot slot,
                                                      java.util.Map<RenderType, TypedGeometry> geometry)
     {
-        applyOnlyVisible(defaultModel, null, slotVisibility);
-
-        CapturingVertexConsumer capture = rigidRenderer.getCaptureConsumer();
-        PoseStack capturePoseStack = new PoseStack();
-
-        final com.mojang.blaze3d.vertex.VertexConsumer previousCapture =
-                goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
-        try
-        {
-            goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport.reprepare(armorModel);
-
-            IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, capturePoseStack, capture,
-                    packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
-        }
-        catch (Throwable ignored)
-        {
-        }
-        finally
-        {
-            goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end(previousCapture);
-        }
-
-        java.util.Map<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> capturedByType = capture.getVerticesByType();
+        java.util.Map<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> capturedByType =
+                captureGeo(armorModel, defaultModel, null, slotVisibility, packedLight);
 
         if (capturedByType.isEmpty())
         {
@@ -773,78 +718,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return keys;
     }
 
-    private void emitAlwaysDrawn(java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured, EquipmentSlot slot,
-                                 java.util.Set<String> keys, TypedGeometry out)
-    {
-        final java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> outVertices = out.vertices;
-        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outRegions = out.regions;
-        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outBlendRegions = out.blendRegions;
-        final java.util.List<Float> outBlendWeights = out.blendWeights;
-
-        goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment assignment = new goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment();
-
-        final boolean quadAligned = captured.size() % 4 == 0;
-
-        for (CapturedVertex v : captured)
-        {
-            keys.add(vertexKey(v));
-        }
-
-        if (!quadAligned)
-        {
-            for (CapturedVertex v : captured)
-            {
-                BoneRegion region = assignment.assignVertexForSlot(v.x, v.y, v.z, slot);
-                outVertices.add(v);
-                outRegions.add(region);
-                outBlendRegions.add(region);
-                outBlendWeights.add(0.0F);
-            }
-
-            return;
-        }
-
-        for (int q = 0; q + 3 < captured.size(); q += 4)
-        {
-            float cx = 0.0F, cy = 0.0F, cz = 0.0F;
-
-            for (int i = q; i < q + 4; ++i)
-            {
-                cx += captured.get(i).x * 0.25F;
-                cy += captured.get(i).y * 0.25F;
-                cz += captured.get(i).z * 0.25F;
-            }
-
-            if (isSkirtQuad(cy, slot))
-            {
-                emitSkirtQuad(java.util.Arrays.asList(captured.get(q), captured.get(q + 1),
-                                captured.get(q + 2), captured.get(q + 3)),
-                        outVertices, outRegions, outBlendRegions, outBlendWeights);
-
-                continue;
-            }
-
-            BoneRegion baseRegion = assignment.assignVertexForSlot(cx, cy, cz, slot);
-
-            for (int i = q; i < q + 4; ++i)
-            {
-                outVertices.add(captured.get(i));
-                outRegions.add(baseRegion);
-                outBlendRegions.add(baseRegion);
-                outBlendWeights.add(0.0F);
-            }
-        }
-    }
-
-    private static String vertexKey(goblinbob.mobends.standard.client.model.armor.CapturedVertex v)
-    {
-        return Float.floatToIntBits(v.x) + ":" + Float.floatToIntBits(v.y) + ":" + Float.floatToIntBits(v.z)
-                + ":" + Float.floatToIntBits(v.u) + ":" + Float.floatToIntBits(v.v);
-    }
-
-    private void capturePart(Model armorModel, HumanoidModel<E> defaultModel, int packedLight, GeoPart part,
-                             boolean[] slotVisibility, java.util.Set<String> excluded,
-                             java.util.Map<RenderType, TypedGeometry> geometry)
+    private java.util.Map<RenderType, java.util.List<CapturedVertex>> captureGeo(Model armorModel, HumanoidModel<E> defaultModel,
+                                                                              @Nullable GeoPart part, boolean[] slotVisibility,
+                                                                              int packedLight)
     {
         applyOnlyVisible(defaultModel, part, slotVisibility);
 
@@ -868,7 +744,72 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end(previousCapture);
         }
 
-        for (java.util.Map.Entry<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> entry : capture.getVerticesByType().entrySet())
+        return capture.getVerticesByType();
+    }
+
+    private void emitAlwaysDrawn(java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured, EquipmentSlot slot,
+                                 java.util.Set<String> keys, TypedGeometry out)
+    {
+        goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment assignment = new goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment();
+
+        final boolean quadAligned = captured.size() % 4 == 0;
+
+        for (CapturedVertex v : captured)
+        {
+            keys.add(vertexKey(v));
+        }
+
+        if (!quadAligned)
+        {
+            for (CapturedVertex v : captured)
+            {
+                BoneRegion region = assignment.assignVertexForSlot(v.x, v.y, v.z, slot);
+                out.add(v, region, region, 0.0F);
+            }
+
+            return;
+        }
+
+        for (int q = 0; q + 3 < captured.size(); q += 4)
+        {
+            float cx = 0.0F, cy = 0.0F, cz = 0.0F;
+
+            for (int i = q; i < q + 4; ++i)
+            {
+                cx += captured.get(i).x * 0.25F;
+                cy += captured.get(i).y * 0.25F;
+                cz += captured.get(i).z * 0.25F;
+            }
+
+            if (isSkirtQuad(cy, slot))
+            {
+                emitSkirtQuad(java.util.Arrays.asList(captured.get(q), captured.get(q + 1),
+                                captured.get(q + 2), captured.get(q + 3)), out);
+
+                continue;
+            }
+
+            BoneRegion baseRegion = assignment.assignVertexForSlot(cx, cy, cz, slot);
+
+            for (int i = q; i < q + 4; ++i)
+            {
+                out.add(captured.get(i), baseRegion, baseRegion, 0.0F);
+            }
+        }
+    }
+
+    private static String vertexKey(goblinbob.mobends.standard.client.model.armor.CapturedVertex v)
+    {
+        return Float.floatToIntBits(v.x) + ":" + Float.floatToIntBits(v.y) + ":" + Float.floatToIntBits(v.z)
+                + ":" + Float.floatToIntBits(v.u) + ":" + Float.floatToIntBits(v.v);
+    }
+
+    private void capturePart(Model armorModel, HumanoidModel<E> defaultModel, int packedLight, GeoPart part,
+                             boolean[] slotVisibility, java.util.Set<String> excluded,
+                             java.util.Map<RenderType, TypedGeometry> geometry)
+    {
+        for (java.util.Map.Entry<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> entry
+                : captureGeo(armorModel, defaultModel, part, slotVisibility, packedLight).entrySet())
         {
             emitPart(part, entry.getValue(), excluded,
                     geometry.computeIfAbsent(entry.getKey(), key -> new TypedGeometry()));
@@ -883,11 +824,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             return;
         }
 
-        final java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> outVertices = out.vertices;
-        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outRegions = out.regions;
-        final java.util.List<goblinbob.mobends.standard.client.model.armor.BoneRegion> outBlendRegions = out.blendRegions;
-        final java.util.List<Float> outBlendWeights = out.blendWeights;
-
         final boolean quadAligned = captured.size() % 4 == 0;
 
         if (!quadAligned)
@@ -899,7 +835,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                     continue;
                 }
 
-                emitVertex(part, v, jointBlend(part, v.y), outVertices, outRegions, outBlendRegions, outBlendWeights);
+                emitVertex(part, v, jointBlend(part, v.y), out);
             }
 
             return;
@@ -928,8 +864,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
             for (java.util.List<CapturedVertex> poly : polys)
             {
-                emitPoly(part, poly, pieceJointBlend(joint, poly),
-                        outVertices, outRegions, outBlendRegions, outBlendWeights);
+                final float weight = pieceJointBlend(joint, poly);
+                emitFan(poly, v -> emitVertex(part, v, weight, out));
             }
         }
 
@@ -940,11 +876,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return slot == EquipmentSlot.CHEST && centroidY > SKIRT_MIN_Y;
     }
 
-    private void emitSkirtQuad(java.util.List<CapturedVertex> quad,
-                               java.util.List<CapturedVertex> outVertices,
-                               java.util.List<BoneRegion> outRegions,
-                               java.util.List<BoneRegion> outBlendRegions,
-                               java.util.List<Float> outBlendWeights)
+    private void emitSkirtQuad(java.util.List<CapturedVertex> quad, TypedGeometry out)
     {
         for (java.util.List<CapturedVertex> half
                 : clipAll(java.util.Collections.singletonList(quad), AXIS_X, 0.0F))
@@ -966,16 +898,12 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
             for (java.util.List<CapturedVertex> piece : pieces)
             {
-                emitSkirtPoly(piece, left, outVertices, outRegions, outBlendRegions, outBlendWeights);
+                emitFan(piece, v -> emitSkirtVertex(v, left, out));
             }
         }
     }
 
-    private void emitSkirtPoly(java.util.List<CapturedVertex> poly, boolean left,
-                               java.util.List<CapturedVertex> outVertices,
-                               java.util.List<BoneRegion> outRegions,
-                               java.util.List<BoneRegion> outBlendRegions,
-                               java.util.List<Float> outBlendWeights)
+    private static void emitFan(java.util.List<CapturedVertex> poly, java.util.function.Consumer<CapturedVertex> emitter)
     {
         final int n = poly.size();
 
@@ -988,7 +916,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         {
             for (int i = 0; i < 4; ++i)
             {
-                emitSkirtVertex(poly.get(i), left, outVertices, outRegions, outBlendRegions, outBlendWeights);
+                emitter.accept(poly.get(i));
             }
 
             return;
@@ -996,23 +924,19 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         for (int k = 1; k + 1 < n; ++k)
         {
-            emitSkirtVertex(poly.get(0), left, outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitSkirtVertex(poly.get(k), left, outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitSkirtVertex(poly.get(k + 1), left, outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitSkirtVertex(poly.get(k + 1), left, outVertices, outRegions, outBlendRegions, outBlendWeights);
+            emitter.accept(poly.get(0));
+            emitter.accept(poly.get(k));
+            emitter.accept(poly.get(k + 1));
+            emitter.accept(poly.get(k + 1));
         }
     }
 
-    private void emitSkirtVertex(CapturedVertex v, boolean left,
-                                 java.util.List<CapturedVertex> outVertices,
-                                 java.util.List<BoneRegion> outRegions,
-                                 java.util.List<BoneRegion> outBlendRegions,
-                                 java.util.List<Float> outBlendWeights)
+    private void emitSkirtVertex(CapturedVertex v, boolean left, TypedGeometry out)
     {
-        outVertices.add(v);
-        outRegions.add(left ? BoneRegion.LEFT_LEG_UPPER : BoneRegion.RIGHT_LEG_UPPER);
-        outBlendRegions.add(left ? BoneRegion.LEFT_LEG_LOWER : BoneRegion.RIGHT_LEG_LOWER);
-        outBlendWeights.add(skirtKneeBlend(v.y));
+        out.add(v,
+                left ? BoneRegion.LEFT_LEG_UPPER : BoneRegion.RIGHT_LEG_UPPER,
+                left ? BoneRegion.LEFT_LEG_LOWER : BoneRegion.RIGHT_LEG_LOWER,
+                skirtKneeBlend(v.y));
     }
 
     private static float skirtKneeBlend(float y)
@@ -1125,38 +1049,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                 a.normalZ + (b.normalZ - a.normalZ) * t);
     }
 
-    private void emitPoly(GeoPart part, java.util.List<CapturedVertex> poly, float weight,
-                          java.util.List<CapturedVertex> outVertices,
-                          java.util.List<BoneRegion> outRegions,
-                          java.util.List<BoneRegion> outBlendRegions,
-                          java.util.List<Float> outBlendWeights)
-    {
-        final int n = poly.size();
-
-        if (n < 3)
-        {
-            return;
-        }
-
-        if (n == 4)
-        {
-            for (int i = 0; i < 4; ++i)
-            {
-                emitVertex(part, poly.get(i), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
-            }
-
-            return;
-        }
-
-        for (int k = 1; k + 1 < n; ++k)
-        {
-            emitVertex(part, poly.get(0), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitVertex(part, poly.get(k), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitVertex(part, poly.get(k + 1), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
-            emitVertex(part, poly.get(k + 1), weight, outVertices, outRegions, outBlendRegions, outBlendWeights);
-        }
-    }
-
     private static float pieceJointBlend(float joint, java.util.List<CapturedVertex> poly)
     {
         if (Float.isNaN(joint) || poly.isEmpty())
@@ -1174,16 +1066,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return centroidY / poly.size() > joint ? 1.0F : 0.0F;
     }
 
-    private void emitVertex(GeoPart part, CapturedVertex v, float weight,
-                            java.util.List<CapturedVertex> outVertices,
-                            java.util.List<BoneRegion> outRegions,
-                            java.util.List<BoneRegion> outBlendRegions,
-                            java.util.List<Float> outBlendWeights)
+    private void emitVertex(GeoPart part, CapturedVertex v, float weight, TypedGeometry out)
     {
-        outVertices.add(v);
-        outRegions.add(upperRegionFor(part));
-        outBlendRegions.add(lowerRegionFor(part));
-        outBlendWeights.add(weight);
+        out.add(v, upperRegionFor(part), lowerRegionFor(part), weight);
     }
 
     private static goblinbob.mobends.standard.client.model.armor.BoneRegion upperRegionFor(GeoPart part)
@@ -1214,23 +1099,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
     private static float jointBlend(GeoPart part, float y)
     {
-        float joint;
-
-        switch (part)
-        {
-            case LEFT_ARM:
-            case RIGHT_ARM:
-                joint = ELBOW_Y;
-                break;
-            case LEFT_LEG:
-            case RIGHT_LEG:
-                joint = KNEE_Y;
-                break;
-            default:
-                return 0.0F;
-        }
-
-        return y > joint ? 1.0F : 0.0F;
+        return y > jointPlane(part) ? 1.0F : 0.0F;
     }
 
     private static void applyOnlyVisible(HumanoidModel<?> model, GeoPart part, boolean[] slotVisibility)
@@ -1403,7 +1272,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                             entity,
                             slot,
                             itemStack,
-                            armorItem,
                             armorModel,
                             bipedData,
                             texture
@@ -1428,7 +1296,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                             entity,
                             slot,
                             itemStack,
-                            armorItem,
                             armorModel,
                             bipedData,
                             fallbackTexture
@@ -1467,7 +1334,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                     entity,
                     slot,
                     itemStack,
-                    armorItem,
                     armorModel,
                     bipedData,
                     texture
@@ -1562,12 +1428,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (bipedData != null)
         {
-            BipedEntityData<?> data = bipedData;
-
-            if (data instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
-            {
-                data = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
-            }
+            BipedEntityData<?> data = previewAware(bipedData);
 
             armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot,
                     itemStack, armorModel, data, palladiumArmor.texture, tint, renderTypeProvider);
@@ -1623,12 +1484,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (bipedData != null)
         {
-            BipedEntityData<?> data = bipedData;
-
-            if (data instanceof PlayerData && PlayerPreviewer.isPreviewInProgress())
-            {
-                data = (BipedEntityData<?>) PlayerPreviewer.getPreviewData();
-            }
+            BipedEntityData<?> data = previewAware(bipedData);
 
             refreshLegendsPartVisibility(armorModel, packedLight);
 
@@ -1700,7 +1556,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                 entity,
                 slot,
                 itemStack,
-                armorItem,
                 armorModel,
                 bipedData,
                 overlayTexture,
@@ -1779,7 +1634,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
     private void renderVanillaArmor(PoseStack poseStack, MultiBufferSource bufferSource,
                                     int packedLight, E entity, ArmorItem armorItem,
-                                    Model armorModel, EquipmentSlot slot, ItemStack itemStack)
+                                    Model armorModel, EquipmentSlot slot, ItemStack itemStack, boolean syncPose)
     {
         ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
         if (texture == null) return;
@@ -1787,27 +1642,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         VertexConsumer vertexConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
                 bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
 
-        if (mutator != null && armorModel instanceof HumanoidModel<?> humanoidModel
+        if (syncPose && mutator != null && armorModel instanceof HumanoidModel<?> humanoidModel
                 && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
         {
             mutator.syncPosesToVanillaModel(humanoidModel);
         }
-
-        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
-    }
-
-    private void renderSelfDrawnArmor(PoseStack poseStack, MultiBufferSource bufferSource,
-                                      int packedLight, E entity, ArmorItem armorItem,
-                                      Model armorModel, EquipmentSlot slot, ItemStack itemStack)
-    {
-        ResourceLocation texture = getArmorTexture(armorItem, itemStack, entity, slot, null);
-        if (texture == null)
-        {
-            return;
-        }
-
-        VertexConsumer vertexConsumer = (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
-                bufferSource, RenderType.armorCutoutNoCull(texture), itemStack.hasFoil());
 
         IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
     }
@@ -1889,48 +1728,10 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return slot == EquipmentSlot.LEGS;
     }
 
-    private HumanoidModel<E> getInnerModel()
-    {
-        return innerModel;
-    }
-
-    private HumanoidModel<E> getOuterModel()
-    {
-        return outerModel;
-    }
-
     private void setPartVisibility(HumanoidModel<E> model, EquipmentSlot slot)
     {
         model.setAllVisible(false);
-
-        switch (slot)
-        {
-            case HEAD:
-                model.head.visible = true;
-                model.hat.visible = true;
-                break;
-            case CHEST:
-                model.body.visible = true;
-                model.rightArm.visible = true;
-                model.leftArm.visible = true;
-                break;
-            case LEGS:
-                model.body.visible = true;
-                model.rightLeg.visible = true;
-                model.leftLeg.visible = true;
-                break;
-            case FEET:
-                model.rightLeg.visible = true;
-                model.leftLeg.visible = true;
-                break;
-            default:
-                break;
-        }
-    }
-
-    public ArmorRenderingFacade getArmorFacade()
-    {
-        return armorFacade;
+        goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper.showSlotParts(model, slot);
     }
 
     private static class ModelPoseSnapshot

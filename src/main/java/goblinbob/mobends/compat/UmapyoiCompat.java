@@ -68,7 +68,7 @@ public class UmapyoiCompat
             partYRot = partClass.getField("yRot");
             partZRot = partClass.getField("zRot");
         }
-        catch (Exception e)
+        catch (Throwable e)
         {
             isLoaded = false;
         }

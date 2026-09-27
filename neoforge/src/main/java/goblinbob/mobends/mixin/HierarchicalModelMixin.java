@@ -2,7 +2,7 @@ package goblinbob.mobends.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import goblinbob.mobends.neoforge.mixin.MixinBridge;
+import goblinbob.mobends.core.client.MixinBridge;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.IllagerModel;
 import net.minecraft.client.model.SpiderModel;

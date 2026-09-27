@@ -16,7 +16,7 @@ public class TorchHoldingAnimationBit extends AnimationBit<BipedEntityData<?>>
 	private HumanoidArm getTorchHand(LivingEntity living)
 	{
 		final HumanoidArm mainHand = living.getMainArm();
-		final HumanoidArm offHand = mainHand == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
+		final HumanoidArm offHand = mainHand.getOpposite();
 
 		final Item mainItem = living.getItemInHand(InteractionHand.MAIN_HAND).getItem();
 		final Item offItem = living.getItemInHand(InteractionHand.OFF_HAND).getItem();

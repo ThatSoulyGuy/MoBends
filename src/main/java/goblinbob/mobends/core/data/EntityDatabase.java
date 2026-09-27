@@ -118,9 +118,4 @@ public class EntityDatabase
         this.entryMap.clear();
     }
 
-    public void onTicksRestart()
-    {
-        entryMap.values().forEach(data -> data.onTicksRestart());
-    }
-
 }

@@ -42,11 +42,7 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
 		if(data.isStillHorizontally() || data.isDrawingBow() || data.getTicksAfterAttack() < 10 || !swimmingPose)
 		{
-			if (this.transformTransition > 0F)
-			{
-				this.transformTransition -= DataUpdateHandler.ticksPerFrame * this.transitionSpeed;
-				this.transformTransition = Math.max(0F, this.transformTransition);
-			}
+			this.transformTransition = Math.max(0F, this.transformTransition - DataUpdateHandler.ticksPerFrame * this.transitionSpeed);
 
 			armSway = (Mth.cos(ticks * .0825F) + 1) / 2;
 			armSway2 = (-Mth.sin(ticks * .0825F) + 1) / 2;
@@ -64,11 +60,7 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		}
 		else
 		{
-			if (this.transformTransition < 1F)
-			{
-				this.transformTransition += DataUpdateHandler.ticksPerFrame * this.transitionSpeed;
-				this.transformTransition = Math.min(this.transformTransition, 1F);
-			}
+			this.transformTransition = Math.min(this.transformTransition + DataUpdateHandler.ticksPerFrame * this.transitionSpeed, 1F);
 
 			data.leftArm.rotation.setSmoothness(.3F).orientX(armSway*-120)
 					.rotateY(-90F * t)

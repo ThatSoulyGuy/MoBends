@@ -7,11 +7,8 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.IllagerModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.AbstractIllager;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -39,18 +36,10 @@ public class IllagerMutator<E extends AbstractIllager>
     private static HumanoidModel<?> buildView(IllagerModel<?> model)
     {
         final ModelPart root = model.root();
-        final ModelPart head = root.getChild("head");
 
-        final Map<String, ModelPart> parts = new HashMap<>();
-        parts.put("head", head);
-        parts.put("hat", head.getChild("hat"));
-        parts.put("body", root.getChild("body"));
-        parts.put("right_arm", root.getChild("right_arm"));
-        parts.put("left_arm", root.getChild("left_arm"));
-        parts.put("right_leg", root.getChild("right_leg"));
-        parts.put("left_leg", root.getChild("left_leg"));
-
-        return new HumanoidModel<LivingEntity>(new ModelPart(Collections.emptyList(), parts));
+        return humanoidView(root.getChild("head"), root.getChild("body"),
+                root.getChild("right_arm"), root.getChild("left_arm"),
+                root.getChild("right_leg"), root.getChild("left_leg"));
     }
 
     private boolean hatVisible = false;

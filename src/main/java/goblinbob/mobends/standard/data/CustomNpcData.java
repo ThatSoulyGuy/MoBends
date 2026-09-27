@@ -1,11 +1,11 @@
 package goblinbob.mobends.standard.data;
 
-import goblinbob.mobends.standard.animation.controller.CustomNpcController;
+import goblinbob.mobends.standard.animation.controller.NpcBipedController;
 import net.minecraft.world.entity.LivingEntity;
 
 public class CustomNpcData<E extends LivingEntity> extends BipedEntityData<E>
 {
-    private final CustomNpcController controller = new CustomNpcController();
+    private final NpcBipedController controller = new NpcBipedController(goblinbob.mobends.compat.CustomNpcsCompat::isSitting);
 
     public CustomNpcData(E entity)
     {
@@ -13,13 +13,8 @@ public class CustomNpcData<E extends LivingEntity> extends BipedEntityData<E>
     }
 
     @Override
-    public CustomNpcController getController()
+    public NpcBipedController getController()
     {
         return controller;
-    }
-
-    @Override
-    public void onTicksRestart()
-    {
     }
 }

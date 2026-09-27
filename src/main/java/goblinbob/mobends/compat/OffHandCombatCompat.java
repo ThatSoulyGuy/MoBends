@@ -61,40 +61,6 @@ public class OffHandCombatCompat
         return isLoaded;
     }
 
-    public static boolean isSwinging(LivingEntity entity, InteractionHand hand)
-    {
-        if (entity == null)
-        {
-            return false;
-        }
-
-        if (entity.swinging && entity.swingingArm == hand)
-        {
-            return true;
-        }
-
-        if (!isModLoaded() || !(entity instanceof Player player))
-        {
-            return false;
-        }
-
-        try
-        {
-            final Object data = getDataMethod.invoke(null, player);
-            if (data == null)
-            {
-                return false;
-            }
-
-            return swingingField.getBoolean(data) && swingingArmField.get(data) == hand;
-        }
-        catch (Exception e)
-        {
-            isLoaded = false;
-            return false;
-        }
-    }
-
     public static int getSwingTime(LivingEntity entity, InteractionHand hand)
     {
         if (entity == null)

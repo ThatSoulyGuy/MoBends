@@ -20,7 +20,6 @@ public final class GuardVillagersCompat
     {
     }
 
-    @SuppressWarnings("unchecked")
     public static Class<LivingEntity> getEntityClass()
     {
         if (resolved)
@@ -36,17 +35,10 @@ public final class GuardVillagersCompat
 
         for (final String className : GUARD_CLASSES)
         {
-            try
+            entityClass = ModCompatManager.livingEntityClass(className);
+            if (entityClass != null)
             {
-                final Class<?> candidate = Class.forName(className);
-                if (LivingEntity.class.isAssignableFrom(candidate))
-                {
-                    entityClass = (Class<LivingEntity>) candidate;
-                    break;
-                }
-            }
-            catch (Throwable ignored)
-            {
+                break;
             }
         }
 

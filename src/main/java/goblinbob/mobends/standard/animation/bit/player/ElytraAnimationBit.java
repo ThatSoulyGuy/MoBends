@@ -13,7 +13,6 @@ public class ElytraAnimationBit extends AnimationBit<PlayerData>
     {
         final double magnitude = data.getInterpolatedMotionMagnitude();
 
-        float headPitch = data.headPitch.get();
         float headYaw = data.headYaw.get();
         float headYawAbs = Mth.abs(headYaw);
 

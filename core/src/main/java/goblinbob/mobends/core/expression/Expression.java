@@ -23,14 +23,6 @@ public class Expression {
         return (float) root.evaluate(context);
     }
 
-    public String getSource() {
-        return source;
-    }
-
-    public ExpressionNode getRoot() {
-        return root;
-    }
-
     @Override
     public String toString() {
         return "Expression{" + source + "}";

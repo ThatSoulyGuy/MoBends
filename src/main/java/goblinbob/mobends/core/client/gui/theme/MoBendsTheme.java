@@ -58,13 +58,9 @@ public final class MoBendsTheme
 
     public static final int ACCENT_ERROR = 0xFFFF6B6B;
 
-    public static final int ACCENT_INFO = 0xFF5B9BFF;
-
     public static final int SCROLLBAR_TRACK = 0xFF141620;
 
     public static final int SCROLLBAR_THUMB = 0xFF3A3E50;
-
-    public static final int SCROLLBAR_THUMB_HOVER = 0xFF4A5068;
 
     public static final int BORDER = 0xFF2A2E3C;
 
@@ -78,13 +74,10 @@ public final class MoBendsTheme
 
     public static final int SPACING = 3;
 
-    public static final float CORNER_RADIUS = 5f;
-
     public static final int HEADER_HEIGHT = 28;
 
     public static final int TAB_HEIGHT = 24;
 
     public static final int BUTTON_HEIGHT = 20;
 
-    public static final int LIST_ITEM_HEIGHT = 26;
 }

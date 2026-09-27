@@ -3,7 +3,6 @@ package goblinbob.mobends.core.pack;
 import com.mojang.logging.LogUtils;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import org.slf4j.Logger;
-import goblinbob.mobends.lib.flux.ObservableMap;
 import goblinbob.mobends.core.util.ErrorReporter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -11,8 +10,10 @@ import net.minecraft.resources.ResourceLocation;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class PackManager
 {
@@ -24,7 +25,7 @@ public class PackManager
     private PackCache cache;
     private ThumbnailProvider thumbnailProvider;
 
-    private ObservableMap<String, LocalBendsPack> localPacks = new ObservableMap<>();
+    private final Map<String, LocalBendsPack> localPacks = new HashMap<>();
 
     private CoreClientConfig config;
     private final List<IBendsPack> appliedPacks;
@@ -156,18 +157,6 @@ public class PackManager
     public ResourceLocation getThumbnailLocation(String packName, String thumbnailUrl)
     {
         return this.thumbnailProvider.getThumbnailLocation(packName, thumbnailUrl);
-    }
-
-    public File getLocalDirectory()
-    {
-        return localDirectory;
-    }
-
-    public File getMetaFileForPack(String filename) throws IOException
-    {
-        File packFile = new File(localDirectory, filename + ".bendsmeta");
-        packFile.createNewFile();
-        return packFile;
     }
 
     public File getDataFileForPack(String filename) throws IOException

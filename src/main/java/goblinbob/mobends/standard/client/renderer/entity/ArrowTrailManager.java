@@ -10,13 +10,6 @@ import java.util.Map;
 public class ArrowTrailManager
 {
     private static HashMap<AbstractArrow, ArrowTrail> trailMap = new HashMap<>();
-    public static long time, lastTime;
-
-    static
-    {
-        time = System.nanoTime() / 1000;
-        lastTime = System.nanoTime() / 1000;
-    }
 
     public static ArrowTrail getOrMake(AbstractArrow arrow)
     {

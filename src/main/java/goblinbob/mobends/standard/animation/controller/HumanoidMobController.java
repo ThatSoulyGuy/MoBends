@@ -12,10 +12,9 @@ import goblinbob.mobends.standard.animation.bit.biped.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.WalkAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import goblinbob.mobends.standard.data.HumanoidMobData;
 import net.minecraft.world.entity.LivingEntity;
 
-public class HumanoidMobController implements IAnimationController<HumanoidMobData<?>>
+public class HumanoidMobController<D extends BipedEntityData<?>> implements IAnimationController<D>
 {
     protected final HardAnimationLayer<BipedEntityData<?>> layerBase = new HardAnimationLayer<>();
 
@@ -30,7 +29,7 @@ public class HumanoidMobController implements IAnimationController<HumanoidMobDa
     protected final BipedActionController actionController = new BipedActionController();
 
     @Override
-    public void perform(HumanoidMobData<?> data)
+    public void perform(D data)
     {
         final LivingEntity entity = data.getEntity();
 

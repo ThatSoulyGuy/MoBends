@@ -136,9 +136,4 @@ public class ForgeVertexConsumer implements IVertexConsumer
     {
         return consumer;
     }
-
-    public VertexConsumer getConsumer()
-    {
-        return consumer;
-    }
 }

@@ -6,10 +6,6 @@ import net.minecraft.util.Mth;
 
 public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
-
-	protected final float KNEEL_DURATION = 0.15F;
-
-
 	@Override
 	public void perform(T data)
 	{
@@ -55,12 +51,6 @@ public class WalkAnimationBit<T extends BipedEntityData<?>> extends AnimationBit
 
 		data.globalOffset.slideY(Mth.cos(limbSwing * 2) * 0.6F);
 
-		float touchdown = Math.min(data.getTicksAfterTouchdown() * KNEEL_DURATION, 1.0F);
-		if (touchdown < 1.0F)
-		{
-			data.body.rotation.setSmoothness(1F);
-			data.body.rotation.orient(20.0F * (1 - touchdown), 1F, 0F, 0F);
-			data.globalOffset.setY((float) -Math.sin(touchdown * Math.PI) * 2.0F);
-		}
+		StandAnimationBit.touchdownKneel(data);
 	}
 }

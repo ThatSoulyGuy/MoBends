@@ -94,18 +94,6 @@ public class BinaryOpNode implements ExpressionNode {
         return this;
     }
 
-    public ExpressionNode getLeft() {
-        return left;
-    }
-
-    public ExpressionNode getRight() {
-        return right;
-    }
-
-    public Operator getOperator() {
-        return operator;
-    }
-
     @Override
     public String toString() {
         return "(" + left + " " + operator.getSymbol() + " " + right + ")";

@@ -1,12 +1,12 @@
 package goblinbob.mobends.standard.data;
 
-import goblinbob.mobends.standard.animation.controller.ZombieVillagerController;
+import goblinbob.mobends.standard.animation.controller.ZombieController;
 import net.minecraft.world.entity.monster.ZombieVillager;
 
 public class ZombieVillagerData extends ZombieDataBase<ZombieVillager>
 {
 
-	private final ZombieVillagerController controller = new ZombieVillagerController();
+	private final ZombieController controller = new ZombieController();
 
 	public ZombieVillagerData(ZombieVillager entity)
 	{
@@ -14,14 +14,9 @@ public class ZombieVillagerData extends ZombieDataBase<ZombieVillager>
 	}
 
 	@Override
-	public ZombieVillagerController getController()
+	public ZombieController getController()
 	{
 		return controller;
-	}
-
-	@Override
-	public void onTicksRestart()
-	{
 	}
 
 }

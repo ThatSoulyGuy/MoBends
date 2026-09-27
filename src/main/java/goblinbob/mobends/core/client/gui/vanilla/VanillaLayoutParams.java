@@ -9,12 +9,6 @@ public class VanillaLayoutParams
     public static final int GRAVITY_CENTER = 0x11;
     public static final int GRAVITY_CENTER_HORIZONTAL = 0x01;
     public static final int GRAVITY_CENTER_VERTICAL = 0x10;
-    public static final int GRAVITY_TOP = 0x30;
-    public static final int GRAVITY_BOTTOM = 0x50;
-    public static final int GRAVITY_LEFT = 0x03;
-    public static final int GRAVITY_RIGHT = 0x05;
-    public static final int GRAVITY_START = 0x00800003;
-    public static final int GRAVITY_END = 0x00800005;
 
     private int width;
     private int height;
@@ -34,6 +28,23 @@ public class VanillaLayoutParams
         this.weight = weight;
     }
 
+    public static VanillaLayoutParams matchParent()
+    {
+        return new VanillaLayoutParams(MATCH_PARENT, MATCH_PARENT);
+    }
+
+    public static int alignH(int gravity, int start, int avail, int size)
+    {
+        int g = gravity & 0x07;
+        return g == 0x05 ? start + avail - size : g == 0x01 ? start + (avail - size) / 2 : start;
+    }
+
+    public static int alignV(int gravity, int start, int avail, int size)
+    {
+        int g = gravity & 0x70;
+        return g == 0x50 ? start + avail - size : g == 0x10 ? start + (avail - size) / 2 : start;
+    }
+
     public int getWidth() { return width; }
 
     public int getHeight() { return height; }
@@ -46,11 +57,11 @@ public class VanillaLayoutParams
         this.marginBottom = bottom;
     }
 
-    public void setWeight(float weight) { this.weight = weight; }
-
-    public void setGravity(int gravity) { this.gravity = gravity; }
-
-    public Object getNativeLayoutParams() { return this; }
+    public VanillaLayoutParams setGravity(int gravity)
+    {
+        this.gravity = gravity;
+        return this;
+    }
 
     public float getWeight() { return weight; }
 

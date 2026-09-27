@@ -14,187 +14,187 @@ public final class UIGalleryWidget
 
     private UIGalleryWidget() {}
 
-    public static VanillaView build(VanillaViewFactory factory)
+    public static VanillaView build()
     {
-        VanillaScrollView root = factory.createScrollView();
-        root.setLayoutParams(factory.createMatchParent());
+        VanillaScrollView root = new VanillaScrollView();
+        root.setLayoutParams(VanillaLayoutParams.matchParent());
         root.setBackgroundColor(MoBendsTheme.BG_CONTENT);
 
-        VanillaLinearLayout col = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        col.setLayoutParams(wrapColumn(factory));
+        VanillaLinearLayout col = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        col.setLayoutParams(wrapColumn());
         col.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        header(factory, col, "TextView");
-        row(factory, col, text(factory, "Plain text", MoBendsTheme.TEXT_PRIMARY, 14, false));
-        row(factory, col, text(factory, "Bold text", MoBendsTheme.TEXT_PRIMARY, 14, true));
-        VanillaTextView italic = text(factory, "Italic text (slanted)", MoBendsTheme.TEXT_PRIMARY, 14, false);
+        header(col, "TextView");
+        row(col, text("Plain text", MoBendsTheme.TEXT_PRIMARY, 14, false));
+        row(col, text("Bold text", MoBendsTheme.TEXT_PRIMARY, 14, true));
+        VanillaTextView italic = text("Italic text (slanted)", MoBendsTheme.TEXT_PRIMARY, 14, false);
         italic.setItalic(true);
-        row(factory, col, italic);
-        VanillaTextView boldItalic = text(factory, "Bold + italic", MoBendsTheme.TEXT_PRIMARY, 14, true);
+        row(col, italic);
+        VanillaTextView boldItalic = text("Bold + italic", MoBendsTheme.TEXT_PRIMARY, 14, true);
         boldItalic.setItalic(true);
-        row(factory, col, boldItalic);
-        row(factory, col, text(factory, "Colored + size 20", MoBendsTheme.COLOR_SETTINGS, 20, false));
-        VanillaTextView centered = text(factory, "Gravity center", MoBendsTheme.TEXT_PRIMARY, 14, false);
-        centered.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        row(col, boldItalic);
+        row(col, text("Colored + size 20", MoBendsTheme.COLOR_SETTINGS, 20, false));
+        VanillaTextView centered = text("Gravity center", MoBendsTheme.TEXT_PRIMARY, 14, false);
+        centered.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
         centered.setBackgroundColor(MoBendsTheme.BG_LIST);
-        rowH(factory, col, centered, 18);
-        VanillaTextView maxLines = text(factory, "maxLines(2) wraps then clips: " + LOREM + " " + LOREM,
+        rowH(col, centered, 18);
+        VanillaTextView maxLines = text("maxLines(2) wraps then clips: " + LOREM + " " + LOREM,
                 MoBendsTheme.TEXT_SECONDARY, 12, false);
         maxLines.setMaxLines(2);
-        row(factory, col, maxLines);
+        row(col, maxLines);
 
-        header(factory, col, "Button");
-        final VanillaTextView clickStatus = text(factory, "Clicked: 0", MoBendsTheme.TEXT_SECONDARY, 12, false);
+        header(col, "Button");
+        final VanillaTextView clickStatus = text("Clicked: 0", MoBendsTheme.TEXT_SECONDARY, 12, false);
         final int[] count = {0};
-        VanillaButton clickBtn = factory.createButton("Click me");
+        VanillaButton clickBtn = new VanillaButton("Click me");
         clickBtn.setOnClickListener(() -> clickStatus.setText("Clicked: " + (++count[0])));
-        rowH(factory, col, clickBtn, MoBendsTheme.BUTTON_HEIGHT);
-        row(factory, col, clickStatus);
-        VanillaButton colorBtn = factory.createButton("Custom background color");
+        rowH(col, clickBtn, MoBendsTheme.BUTTON_HEIGHT);
+        row(col, clickStatus);
+        VanillaButton colorBtn = new VanillaButton("Custom background color");
         colorBtn.setBackgroundColor(0xFF7A4FC0);
-        rowH(factory, col, colorBtn, MoBendsTheme.BUTTON_HEIGHT);
-        VanillaButton sizeBtn = factory.createButton("Larger text (setTextSize 20)");
+        rowH(col, colorBtn, MoBendsTheme.BUTTON_HEIGHT);
+        VanillaButton sizeBtn = new VanillaButton("Larger text (setTextSize 20)");
         sizeBtn.setTextSize(20);
-        rowH(factory, col, sizeBtn, 40);
-        VanillaButton iconBtn = factory.createButton("Button with icon");
+        rowH(col, sizeBtn, 40);
+        VanillaButton iconBtn = new VanillaButton("Button with icon");
         iconBtn.setIcon(ResourceLocationFactory.create("mobends", "textures/gui/icons.png"));
-        rowH(factory, col, iconBtn, MoBendsTheme.BUTTON_HEIGHT);
-        VanillaButton disabledBtn = factory.createButton("Disabled button (dimmed + bordered)");
+        rowH(col, iconBtn, MoBendsTheme.BUTTON_HEIGHT);
+        VanillaButton disabledBtn = new VanillaButton("Disabled button (dimmed + bordered)");
         disabledBtn.setEnabled(false);
-        rowH(factory, col, disabledBtn, MoBendsTheme.BUTTON_HEIGHT);
+        rowH(col, disabledBtn, MoBendsTheme.BUTTON_HEIGHT);
 
-        header(factory, col, "Toggle");
-        final VanillaTextView toggleStatus = text(factory, "Toggle: OFF", MoBendsTheme.TEXT_SECONDARY, 12, false);
-        VanillaToggle toggle = factory.createToggle(false);
+        header(col, "Toggle");
+        final VanillaTextView toggleStatus = text("Toggle: OFF", MoBendsTheme.TEXT_SECONDARY, 12, false);
+        VanillaToggle toggle = new VanillaToggle(false);
         toggle.setText("Enable feature");
         toggle.setOnCheckedChangeListener(v -> toggleStatus.setText("Toggle: " + (v ? "ON" : "OFF")));
-        rowH(factory, col, toggle, 20);
-        row(factory, col, toggleStatus);
+        rowH(col, toggle, 20);
+        row(col, toggleStatus);
 
-        header(factory, col, "TextField");
-        final VanillaTextView echo = text(factory, "You typed: ", MoBendsTheme.TEXT_SECONDARY, 12, false);
-        VanillaTextField field = factory.createTextField("Type here (max 20 chars)...");
+        header(col, "TextField");
+        final VanillaTextView echo = text("You typed: ", MoBendsTheme.TEXT_SECONDARY, 12, false);
+        VanillaTextField field = new VanillaTextField("Type here (max 20 chars)...");
         field.setMaxLength(20);
         field.setOnTextChangedListener(s -> echo.setText("You typed: " + s));
-        rowH(factory, col, field, MoBendsTheme.BUTTON_HEIGHT);
-        row(factory, col, echo);
+        rowH(col, field, MoBendsTheme.BUTTON_HEIGHT);
+        row(col, echo);
 
-        header(factory, col, "LinearLayout — horizontal weights 1 : 2 : 1");
-        VanillaLinearLayout hrow = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        header(col, "LinearLayout — horizontal weights 1 : 2 : 1");
+        VanillaLinearLayout hrow = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
         hrow.setSpacing(MoBendsTheme.SPACING);
-        weighted(factory, hrow, 0xFFE0563B, 1f);
-        weighted(factory, hrow, 0xFF3BA0E0, 2f);
-        weighted(factory, hrow, 0xFF43D9AD, 1f);
-        rowH(factory, col, hrow, 24);
+        weighted(hrow, 0xFFE0563B, 1f);
+        weighted(hrow, 0xFF3BA0E0, 2f);
+        weighted(hrow, 0xFF43D9AD, 1f);
+        rowH(col, hrow, 24);
 
-        header(factory, col, "FrameLayout — overlapping children");
-        VanillaFrameLayout frame = factory.createFrameLayout();
-        VanillaView frameBg = factory.createView();
+        header(col, "FrameLayout — overlapping children");
+        VanillaFrameLayout frame = new VanillaFrameLayout();
+        VanillaView frameBg = new VanillaView();
         frameBg.setBackgroundColor(0xFF333845);
-        frame.addView(frameBg, factory.createMatchParent());
-        VanillaTextView overlay = text(factory, "centered on top", MoBendsTheme.COLOR_CUSTOMIZE, 14, true);
-        frame.addView(overlay, factory.createFrameLayoutParams(
-                VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.GRAVITY_CENTER));
-        rowH(factory, col, frame, 36);
+        frame.addView(frameBg, VanillaLayoutParams.matchParent());
+        VanillaTextView overlay = text("centered on top", MoBendsTheme.COLOR_CUSTOMIZE, 14, true);
+        frame.addView(overlay, new VanillaLayoutParams(
+                VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT).setGravity(VanillaLayoutParams.GRAVITY_CENTER));
+        rowH(col, frame, 36);
 
-        header(factory, col, "ScrollView — mouse-wheel scrolls; bordered box");
-        VanillaScrollView inner = factory.createScrollView();
+        header(col, "ScrollView — mouse-wheel scrolls; bordered box");
+        VanillaScrollView inner = new VanillaScrollView();
         inner.setBackgroundColor(MoBendsTheme.BG_LIST);
-        VanillaLinearLayout innerCol = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        innerCol.setLayoutParams(wrapColumn(factory));
+        VanillaLinearLayout innerCol = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        innerCol.setLayoutParams(wrapColumn());
         for (int i = 1; i <= 12; i++)
         {
-            VanillaTextView r = text(factory, "scrollable row " + i, MoBendsTheme.TEXT_PRIMARY, 12, false);
+            VanillaTextView r = text("scrollable row " + i, MoBendsTheme.TEXT_PRIMARY, 12, false);
             r.setPadding(4, 3, 4, 3);
-            innerCol.addView(r, factory.createLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
+            innerCol.addView(r, new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
         }
-        inner.addView(innerCol, wrapColumn(factory));
-        rowH(factory, col, inner, 60);
-        VanillaButton smooth = factory.createButton("smoothScrollTo(bottom) — animated");
+        inner.addView(innerCol, wrapColumn());
+        rowH(col, inner, 60);
+        VanillaButton smooth = new VanillaButton("smoothScrollTo(bottom) — animated");
         smooth.setOnClickListener(() -> inner.smoothScrollTo(9999));
-        rowH(factory, col, smooth, MoBendsTheme.BUTTON_HEIGHT);
-        VanillaButton smoothTop = factory.createButton("smoothScrollTo(top) — animated");
+        rowH(col, smooth, MoBendsTheme.BUTTON_HEIGHT);
+        VanillaButton smoothTop = new VanillaButton("smoothScrollTo(top) — animated");
         smoothTop.setOnClickListener(() -> inner.smoothScrollTo(0));
-        rowH(factory, col, smoothTop, MoBendsTheme.BUTTON_HEIGHT);
+        rowH(col, smoothTop, MoBendsTheme.BUTTON_HEIGHT);
 
-        header(factory, col, "ListView — simple adapter with dividers");
-        final VanillaTextView listStatus = text(factory, "Selected: (none)", MoBendsTheme.TEXT_SECONDARY, 12, false);
-        VanillaListView list = factory.createListView();
+        header(col, "ListView — simple adapter with dividers");
+        final VanillaTextView listStatus = text("Selected: (none)", MoBendsTheme.TEXT_SECONDARY, 12, false);
+        VanillaListView list = new VanillaListView();
         List<String> items = Arrays.asList(
                 "Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape", "Honeydew");
         list.setSimpleAdapter(items, (i, s) -> listStatus.setText("Selected: [" + i + "] " + s));
         list.setDividers(true, 0xFF55607A, 1);
-        rowH(factory, col, list, 80);
-        row(factory, col, listStatus);
+        rowH(col, list, 80);
+        row(col, listStatus);
 
-        header(factory, col, "Alpha / animateAlpha (animated fade)");
-        VanillaTextView alphaBox = text(factory, "I can fade", MoBendsTheme.TEXT_PRIMARY, 14, true);
+        header(col, "Alpha / animateAlpha (animated fade)");
+        VanillaTextView alphaBox = text("I can fade", MoBendsTheme.TEXT_PRIMARY, 14, true);
         alphaBox.setBackgroundColor(0xFF505870);
-        rowH(factory, col, alphaBox, 20);
-        VanillaLinearLayout alphaBtns = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        rowH(col, alphaBox, 20);
+        VanillaLinearLayout alphaBtns = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
         alphaBtns.setSpacing(MoBendsTheme.SPACING);
-        VanillaButton fade = factory.createButton("animateAlpha 0.2");
+        VanillaButton fade = new VanillaButton("animateAlpha 0.2");
         fade.setOnClickListener(() -> alphaBox.animateAlpha(0.2f, 400));
-        VanillaButton unfade = factory.createButton("setAlpha 1.0");
+        VanillaButton unfade = new VanillaButton("setAlpha 1.0");
         unfade.setOnClickListener(() -> alphaBox.setAlpha(1f));
-        alphaBtns.addView(fade, factory.createLayoutParams(0, MoBendsTheme.BUTTON_HEIGHT, 1f));
-        alphaBtns.addView(unfade, factory.createLayoutParams(0, MoBendsTheme.BUTTON_HEIGHT, 1f));
-        rowH(factory, col, alphaBtns, MoBendsTheme.BUTTON_HEIGHT);
+        alphaBtns.addView(fade, new VanillaLayoutParams(0, MoBendsTheme.BUTTON_HEIGHT, 1f));
+        alphaBtns.addView(unfade, new VanillaLayoutParams(0, MoBendsTheme.BUTTON_HEIGHT, 1f));
+        rowH(col, alphaBtns, MoBendsTheme.BUTTON_HEIGHT);
 
-        header(factory, col, "Visibility — GONE / VISIBLE");
-        VanillaTextView toggleMe = text(factory, "Now you see me", MoBendsTheme.TEXT_PRIMARY, 14, false);
+        header(col, "Visibility — GONE / VISIBLE");
+        VanillaTextView toggleMe = text("Now you see me", MoBendsTheme.TEXT_PRIMARY, 14, false);
         toggleMe.setBackgroundColor(0xFF425C42);
-        rowH(factory, col, toggleMe, 18);
-        VanillaButton visBtn = factory.createButton("Toggle visibility");
+        rowH(col, toggleMe, 18);
+        VanillaButton visBtn = new VanillaButton("Toggle visibility");
         visBtn.setOnClickListener(() -> toggleMe.setVisibility(
                 toggleMe.getVisibility() == VanillaView.VISIBLE ? VanillaView.GONE : VanillaView.VISIBLE));
-        rowH(factory, col, visBtn, MoBendsTheme.BUTTON_HEIGHT);
+        rowH(col, visBtn, MoBendsTheme.BUTTON_HEIGHT);
 
-        root.addView(col, wrapColumn(factory));
+        root.addView(col, wrapColumn());
         return root;
     }
 
-    private static VanillaLayoutParams wrapColumn(VanillaViewFactory factory)
+    private static VanillaLayoutParams wrapColumn()
     {
-        return factory.createLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
+        return new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
     }
 
-    private static VanillaTextView text(VanillaViewFactory factory, String s, int color, int size, boolean bold)
+    private static VanillaTextView text(String s, int color, int size, boolean bold)
     {
-        VanillaTextView t = factory.createTextView(s);
+        VanillaTextView t = new VanillaTextView(s);
         t.setTextColor(color);
         t.setTextSize(size);
         t.setBold(bold);
         return t;
     }
 
-    private static void header(VanillaViewFactory factory, VanillaLinearLayout col, String s)
+    private static void header(VanillaLinearLayout col, String s)
     {
-        VanillaTextView h = factory.createTextView(s);
+        VanillaTextView h = new VanillaTextView(s);
         h.setTextColor(MoBendsTheme.COLOR_PACKS);
         h.setTextSize(13);
         h.setBold(true);
-        VanillaLayoutParams p = factory.createLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
+        VanillaLayoutParams p = new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
         p.setMargins(0, MoBendsTheme.PADDING, 0, MoBendsTheme.SPACING);
         col.addView(h, p);
     }
 
-    private static void row(VanillaViewFactory factory, VanillaLinearLayout col, VanillaView v)
+    private static void row(VanillaLinearLayout col, VanillaView v)
     {
-        rowH(factory, col, v, VanillaLayoutParams.WRAP_CONTENT);
+        rowH(col, v, VanillaLayoutParams.WRAP_CONTENT);
     }
 
-    private static void rowH(VanillaViewFactory factory, VanillaLinearLayout col, VanillaView v, int height)
+    private static void rowH(VanillaLinearLayout col, VanillaView v, int height)
     {
-        VanillaLayoutParams p = factory.createLayoutParams(VanillaLayoutParams.MATCH_PARENT, height);
+        VanillaLayoutParams p = new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, height);
         p.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         col.addView(v, p);
     }
 
-    private static void weighted(VanillaViewFactory factory, VanillaLinearLayout row, int color, float weight)
+    private static void weighted(VanillaLinearLayout row, int color, float weight)
     {
-        VanillaView box = factory.createView();
+        VanillaView box = new VanillaView();
         box.setBackgroundColor(color);
-        row.addView(box, factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, weight));
+        row.addView(box, new VanillaLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, weight));
     }
 }

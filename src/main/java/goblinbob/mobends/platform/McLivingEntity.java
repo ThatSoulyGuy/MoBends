@@ -180,9 +180,4 @@ public class McLivingEntity extends McEntity implements ILivingEntity
             case HEAD -> EquipmentSlot.HEAD;
         };
     }
-
-    public LivingEntity getLivingEntity()
-    {
-        return livingEntity;
-    }
 }

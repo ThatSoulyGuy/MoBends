@@ -22,15 +22,10 @@ public class VanillaGridLayout extends VanillaViewGroup
         this.verticalSpacing = Math.max(0, verticalSpacing);
     }
 
-    public int getColumnCount()
-    {
-        return columnCount;
-    }
-
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         measuredWidth = resolveSize(lpW, availableWidth, availableWidth);
 

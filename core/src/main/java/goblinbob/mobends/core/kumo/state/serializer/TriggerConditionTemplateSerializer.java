@@ -7,14 +7,8 @@ import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 
 import java.lang.reflect.Type;
 
-public class TriggerConditionTemplateSerializer implements JsonSerializer<TriggerConditionTemplate>, JsonDeserializer<TriggerConditionTemplate>
+public class TriggerConditionTemplateSerializer implements JsonDeserializer<TriggerConditionTemplate>
 {
-
-    @Override
-    public JsonElement serialize(TriggerConditionTemplate src, Type typeOfSrc, JsonSerializationContext context)
-    {
-        return KumoSerializer.INSTANCE.gson.toJsonTree(src);
-    }
 
     @Override
     public TriggerConditionTemplate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException

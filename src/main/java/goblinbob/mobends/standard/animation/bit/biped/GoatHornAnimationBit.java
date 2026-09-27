@@ -40,11 +40,7 @@ public class GoatHornAnimationBit extends AnimationBit<BipedEntityData<?>>
         final ModelPartTransform mainArm = rightHanded ? data.rightArm : data.leftArm;
         final ModelPartTransform mainForeArm = rightHanded ? data.rightForeArm : data.leftForeArm;
 
-        if (bringUpAnimation < 1F)
-        {
-            bringUpAnimation += DataUpdateHandler.ticksPerFrame * BRING_UP_SPEED;
-            bringUpAnimation = Math.min(bringUpAnimation, 1F);
-        }
+        bringUpAnimation = Math.min(bringUpAnimation + DataUpdateHandler.ticksPerFrame * BRING_UP_SPEED, 1F);
 
         final float armPitch = Mth.clamp(data.headPitch.get(), -HEAD_PITCH_LIMIT, HEAD_PITCH_LIMIT) - ARM_PITCH_OFFSET;
         final float armYaw = data.headYaw.get() - ARM_YAW_OFFSET * handDirMtp;

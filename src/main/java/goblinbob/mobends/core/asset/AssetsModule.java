@@ -21,15 +21,6 @@ public class AssetsModule implements IModule
     {
     }
 
-    public static class Factory implements IModule.Factory
-    {
-        @Override
-        public IModule create()
-        {
-            return new AssetsModule();
-        }
-    }
-
     public Collection<AssetDefinition> getAssets()
     {
         return Collections.emptyList();

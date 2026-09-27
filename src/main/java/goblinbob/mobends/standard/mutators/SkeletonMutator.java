@@ -7,13 +7,10 @@ import goblinbob.mobends.standard.client.model.adaptive.HumanoidLayout;
 import goblinbob.mobends.standard.data.SkeletonData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.SkeletonModel;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 
 public class SkeletonMutator<E extends AbstractSkeleton> extends BipedMutator<SkeletonData<E>, E, SkeletonModel<E>>
 {
-
-    protected boolean boneLimbs = false;
 
     private final float clothingDeformation;
 
@@ -26,20 +23,6 @@ public class SkeletonMutator<E extends AbstractSkeleton> extends BipedMutator<Sk
     {
         super(dataCreationFunction);
         this.clothingDeformation = clothingDeformation;
-    }
-
-    @Override
-    public void fetchFields(LivingEntityRenderer<E, SkeletonModel<E>> renderer)
-    {
-        super.fetchFields(renderer);
-
-        this.boneLimbs = true;
-    }
-
-    @Override
-    public void storeVanillaModel(SkeletonModel<E> model)
-    {
-        super.storeVanillaModel(model);
     }
 
     @Override

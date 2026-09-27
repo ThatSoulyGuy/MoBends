@@ -2,17 +2,10 @@ package goblinbob.mobends.core.client.gui.vanilla;
 
 public class VanillaFrameLayout extends VanillaViewGroup
 {
-    private boolean measureAllChildren = false;
-
-    public void setMeasureAllChildren(boolean measureAll)
-    {
-        this.measureAllChildren = measureAll;
-    }
-
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         int effectiveW = (lpW > 0) ? Math.min(lpW, availableWidth) : availableWidth;
         int effectiveH = (lpH > 0) ? Math.min(lpH, availableHeight) : availableHeight;
@@ -25,17 +18,10 @@ public class VanillaFrameLayout extends VanillaViewGroup
 
         for (VanillaView child : children)
         {
-            if (child.visibility == GONE && !measureAllChildren) continue;
+            if (child.visibility == GONE) continue;
 
             VanillaLayoutParams clp = child.layoutParams;
-            int ml = 0, mt = 0, mr = 0, mb = 0;
-            if (clp != null)
-            {
-                ml = clp.getMarginLeft();
-                mt = clp.getMarginTop();
-                mr = clp.getMarginRight();
-                mb = clp.getMarginBottom();
-            }
+            int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
 
             child.measure(contentW - ml - mr, contentH - mt - mb);
             maxChildW = Math.max(maxChildW, child.measuredWidth + ml + mr);
@@ -55,54 +41,19 @@ public class VanillaFrameLayout extends VanillaViewGroup
             if (child.visibility == GONE) continue;
 
             VanillaLayoutParams clp = child.layoutParams;
-            int ml = 0, mt = 0, mr = 0, mb = 0;
-            int childGravity = VanillaLayoutParams.GRAVITY_NO_GRAVITY;
-            if (clp != null)
-            {
-                ml = clp.getMarginLeft();
-                mt = clp.getMarginTop();
-                mr = clp.getMarginRight();
-                mb = clp.getMarginBottom();
-                childGravity = clp.getGravity();
-            }
+            int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
+            int childGravity = clp.getGravity();
 
             int childW = child.measuredWidth;
             int childH = child.measuredHeight;
             int availW = getContentWidth() - ml - mr;
             int availH = getContentHeight() - mt - mb;
 
-            if (clp != null && clp.getWidth() == VanillaLayoutParams.MATCH_PARENT) childW = availW;
-            if (clp != null && clp.getHeight() == VanillaLayoutParams.MATCH_PARENT) childH = availH;
+            if (clp.getWidth() == VanillaLayoutParams.MATCH_PARENT) childW = availW;
+            if (clp.getHeight() == VanillaLayoutParams.MATCH_PARENT) childH = availH;
 
-            int childLeft;
-            int horizontalGravity = childGravity & 0x07;
-            if (horizontalGravity == 0x05)
-            {
-                childLeft = x + paddingLeft + availW - childW + ml;
-            }
-            else if (horizontalGravity == 0x01)
-            {
-                childLeft = x + paddingLeft + ml + (availW - childW) / 2;
-            }
-            else
-            {
-                childLeft = x + paddingLeft + ml;
-            }
-
-            int childTop;
-            int verticalGravity = childGravity & 0x70;
-            if (verticalGravity == 0x50)
-            {
-                childTop = y + paddingTop + availH - childH + mt;
-            }
-            else if (verticalGravity == 0x10)
-            {
-                childTop = y + paddingTop + mt + (availH - childH) / 2;
-            }
-            else
-            {
-                childTop = y + paddingTop + mt;
-            }
+            int childLeft = VanillaLayoutParams.alignH(childGravity, x + paddingLeft + ml, availW, childW);
+            int childTop = VanillaLayoutParams.alignV(childGravity, y + paddingTop + mt, availH, childH);
 
             child.layout(childLeft, childTop, childLeft + childW, childTop + childH);
         }

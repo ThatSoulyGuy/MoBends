@@ -1,16 +1,9 @@
 package goblinbob.mobends.forge;
 
-import com.mojang.logging.LogUtils;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.core.Core;
 import goblinbob.mobends.api.addon.AddonHelper;
-import goblinbob.mobends.api.addon.Addons;
-import goblinbob.mobends.core.animation.keyframe.AnimationLoader;
-import goblinbob.mobends.core.bender.EntityBenderRegistry;
-import goblinbob.mobends.core.data.EntityDatabase;
-import goblinbob.mobends.core.pack.PackDataProvider;
-import goblinbob.mobends.core.util.GsonResources;
 import goblinbob.mobends.forge.client.event.KeyboardEventHandler;
 import goblinbob.mobends.forge.client.event.RenderingEventHandler;
 import goblinbob.mobends.compat.ModCompatManager;
@@ -31,21 +24,14 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import org.slf4j.Logger;
 
 @Mod(MoBendsForge.MOD_ID)
 public class MoBendsForge
 {
     public static final String MOD_ID = "mobends";
 
-    private static final Logger LOGGER = LogUtils.getLogger();
-    public static final Logger LOG = LOGGER;
-    public static MoBendsForge instance;
-
     public MoBendsForge()
     {
-        instance = this;
-
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         modEventBus.addListener(this::commonSetup);
@@ -73,9 +59,6 @@ public class MoBendsForge
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-
-        goblinbob.mobends.core.network.SharedNetworkConfiguration.init();
-
         ForgeNetworkHandler.register();
     }
 
@@ -120,17 +103,5 @@ public class MoBendsForge
     public void onServerStarting(ServerStartingEvent event)
     {
         ForgeServerConfig.sync();
-    }
-
-    public static void refreshSystems()
-    {
-        AnimationLoader.clearCache();
-        GsonResources.clearCache();
-        PackDataProvider.INSTANCE.clearCache();
-        EntityDatabase.instance.refresh();
-        EntityBenderRegistry.instance.refreshMutators();
-        Addons.onRefresh();
-
-        Core.getInstance().refreshModules();
     }
 }

@@ -5,7 +5,7 @@ import goblinbob.mobends.api.addon.AddonAnimationRegistry;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.BipedRenderer;
 import goblinbob.mobends.standard.data.HumanoidMobData;
 import goblinbob.mobends.standard.data.MineColoniesCitizenData;
-import goblinbob.mobends.standard.mutators.MineColoniesMutator;
+import goblinbob.mobends.standard.mutators.VillagersRebornMutator;
 import goblinbob.mobends.standard.previewer.BipedPreviewer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -69,8 +69,8 @@ public final class MineColoniesCompat
             return;
         }
 
-        citizenClass = resolve(CITIZEN_CLASS);
-        mercenaryClass = resolve(MERCENARY_CLASS);
+        citizenClass = ModCompatManager.livingEntityClass(CITIZEN_CLASS);
+        mercenaryClass = ModCompatManager.livingEntityClass(MERCENARY_CLASS);
         isLoaded = true;
 
         try
@@ -128,9 +128,9 @@ public final class MineColoniesCompat
             try
             {
                 registry.registerNewEntity("minecolonies:citizen", "entity.minecolonies.citizen", citizenClass,
-                        MineColoniesCitizenData::new, MineColoniesMutator::new,
+                        MineColoniesCitizenData::new, VillagersRebornMutator::new,
                         new BipedRenderer<>(), new BipedPreviewer<>(), animations, alterableParts);
-                markGroupBender(citizenClass);
+                ModCompatManager.coverSubclasses(citizenClass);
             }
             catch (Throwable ignored)
             {
@@ -141,7 +141,7 @@ public final class MineColoniesCompat
         {
             for (int i = 2; i < faction.length; ++i)
             {
-                final Class<LivingEntity> raiderClass = resolve(faction[i]);
+                final Class<LivingEntity> raiderClass = ModCompatManager.livingEntityClass(faction[i]);
                 if (raiderClass == null)
                 {
                     continue;
@@ -150,9 +150,9 @@ public final class MineColoniesCompat
                 try
                 {
                     registry.registerNewEntity(faction[0], faction[1], raiderClass,
-                            HumanoidMobData::new, MineColoniesMutator::new,
+                            HumanoidMobData::new, VillagersRebornMutator::new,
                             new BipedRenderer<>(), new BipedPreviewer<>(), animations, alterableParts);
-                    markGroupBender(raiderClass);
+                    ModCompatManager.coverSubclasses(raiderClass);
                 }
                 catch (Throwable ignored)
                 {
@@ -165,9 +165,9 @@ public final class MineColoniesCompat
             try
             {
                 registry.registerNewEntity("minecolonies:mercenary", "entity.minecolonies.mercenary", mercenaryClass,
-                        HumanoidMobData::new, MineColoniesMutator::new,
+                        HumanoidMobData::new, VillagersRebornMutator::new,
                         new BipedRenderer<>(), new BipedPreviewer<>(), animations, alterableParts);
-                markGroupBender(mercenaryClass);
+                ModCompatManager.coverSubclasses(mercenaryClass);
             }
             catch (Throwable ignored)
             {
@@ -233,33 +233,5 @@ public final class MineColoniesCompat
         {
             return null;
         }
-    }
-
-    private static void markGroupBender(Class<LivingEntity> entityClass)
-    {
-        final goblinbob.mobends.core.bender.EntityBender<LivingEntity> bender =
-                goblinbob.mobends.core.bender.EntityBenderRegistry.instance.getForEntityClass(entityClass);
-        if (bender != null)
-        {
-            bender.setCoversSubclasses(true);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<LivingEntity> resolve(String className)
-    {
-        try
-        {
-            final Class<?> candidate = Class.forName(className);
-            if (LivingEntity.class.isAssignableFrom(candidate))
-            {
-                return (Class<LivingEntity>) candidate;
-            }
-        }
-        catch (Throwable ignored)
-        {
-        }
-
-        return null;
     }
 }

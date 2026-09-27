@@ -5,6 +5,7 @@ import dev.architectury.platform.Platform;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.math.Quaternion;
+import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import net.minecraft.client.model.HumanoidModel;
@@ -197,9 +198,9 @@ public class MorePlayerModelsCompat
                 ? scratchTranslation[1] + (1.0F - scratchScale[1]) * 0.125F
                 : scratchTranslation[1] * 2.0F;
 
-        part.x = divide(limbPivot.x() * 16.0F, scratchScale[0]);
-        part.y = divide((limbPivot.y() - lift) * 16.0F, scratchScale[1]);
-        part.z = divide(limbPivot.z() * 16.0F, scratchScale[2]);
+        part.x = GUtil.divideOr(limbPivot.x() * 16.0F, scratchScale[0]);
+        part.y = GUtil.divideOr((limbPivot.y() - lift) * 16.0F, scratchScale[1]);
+        part.z = GUtil.divideOr(limbPivot.z() * 16.0F, scratchScale[2]);
 
         limbOrientation.set(limbRotation.x(), limbRotation.y(), limbRotation.z(), limbRotation.w());
         final float[] euler = BipedMutator.eulerAnglesOf(limbOrientation);
@@ -484,15 +485,10 @@ public class MorePlayerModelsCompat
             return;
         }
 
-        bone.preRotationScale.set(divide(1.0F, parentScale[0]),
-                divide(1.0F, parentScale[1]),
-                divide(1.0F, parentScale[2]));
+        bone.preRotationScale.set(GUtil.divideOr(1.0F, parentScale[0]),
+                GUtil.divideOr(1.0F, parentScale[1]),
+                GUtil.divideOr(1.0F, parentScale[2]));
 
-        bone.globalOffset.set(0.0F, divide(pivotGap * (scale[1] - parentScale[1]), parentScale[1]), 0.0F);
-    }
-
-    private static float divide(float value, float divisor)
-    {
-        return divisor == 0.0F ? value : value / divisor;
+        bone.globalOffset.set(0.0F, GUtil.divideOr(pivotGap * (scale[1] - parentScale[1]), parentScale[1]), 0.0F);
     }
 }

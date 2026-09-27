@@ -20,11 +20,6 @@ public class SkeletonData<E extends AbstractSkeleton> extends BipedEntityData<E>
     }
 
     @Override
-    public void onTicksRestart()
-    {
-    }
-
-    @Override
     public void initModelPose()
     {
         super.initModelPose();

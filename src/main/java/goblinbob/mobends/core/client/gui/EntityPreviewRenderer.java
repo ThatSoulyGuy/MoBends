@@ -592,10 +592,4 @@ public class EntityPreviewRenderer
     {
         return previewEntity != null;
     }
-
-    @Nullable
-    public EntityBender<?> getCurrentBender()
-    {
-        return currentBender;
-    }
 }

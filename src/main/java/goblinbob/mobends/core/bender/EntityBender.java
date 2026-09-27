@@ -40,7 +40,6 @@ public abstract class EntityBender<T extends LivingEntity>
 
     private boolean animate;
     private boolean coversSubclasses = false;
-    protected Map<String, BoneMetadata> boneMetadataMap;
 
     public EntityBender(String modId, @Nullable String key, String unlocalizedName, Class<T> entityClass,
                         MutatedRenderer<T> renderer)

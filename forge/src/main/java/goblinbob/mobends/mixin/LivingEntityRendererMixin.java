@@ -1,7 +1,7 @@
 package goblinbob.mobends.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import goblinbob.mobends.forge.mixin.MixinBridge;
+import goblinbob.mobends.core.client.MixinBridge;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;

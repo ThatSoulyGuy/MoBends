@@ -10,7 +10,6 @@ import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 public class ExpressionCondition implements ITriggerCondition
 {
     private final Expression expression;
-    private final String expressionSource;
 
     public ExpressionCondition(Template template) throws MalformedKumoTemplateException
     {
@@ -18,8 +17,6 @@ public class ExpressionCondition implements ITriggerCondition
         {
             throw new MalformedKumoTemplateException("No 'expression' property given for expression condition.");
         }
-
-        this.expressionSource = template.expression;
 
         try
         {
@@ -36,11 +33,6 @@ public class ExpressionCondition implements ITriggerCondition
     {
         KumoExpressionContext expressionContext = new KumoExpressionContext(context);
         return expression.evaluateBoolean(expressionContext);
-    }
-
-    public String getExpressionSource()
-    {
-        return expressionSource;
     }
 
     public static class Template extends TriggerConditionTemplate

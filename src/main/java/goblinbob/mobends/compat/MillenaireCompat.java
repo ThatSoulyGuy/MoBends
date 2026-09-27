@@ -4,7 +4,7 @@ import dev.architectury.platform.Platform;
 import goblinbob.mobends.api.addon.AddonAnimationRegistry;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.BipedRenderer;
 import goblinbob.mobends.standard.data.HumanoidMobData;
-import goblinbob.mobends.standard.mutators.MillenaireMutator;
+import goblinbob.mobends.standard.mutators.VillagersRebornMutator;
 import goblinbob.mobends.standard.previewer.BipedPreviewer;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -34,7 +34,7 @@ public final class MillenaireCompat
             return;
         }
 
-        final Class<LivingEntity> villagerClass = resolve(VILLAGER_CLASS);
+        final Class<LivingEntity> villagerClass = ModCompatManager.livingEntityClass(VILLAGER_CLASS);
         if (villagerClass == null)
         {
             return;
@@ -43,7 +43,7 @@ public final class MillenaireCompat
         try
         {
             registry.registerNewEntity("millenaire:villager", "entity.mobends.millenaire_villager", villagerClass,
-                    HumanoidMobData::new, MillenaireMutator::new,
+                    HumanoidMobData::new, VillagersRebornMutator::new,
                     new BipedRenderer<>(), new BipedPreviewer<>(), animations, alterableParts);
         }
         catch (Throwable ignored)
@@ -105,19 +105,5 @@ public final class MillenaireCompat
         return candidates.isEmpty()
                 ? null
                 : candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<LivingEntity> resolve(String className)
-    {
-        try
-        {
-            final Class<?> candidate = Class.forName(className);
-            return LivingEntity.class.isAssignableFrom(candidate) ? (Class<LivingEntity>) candidate : null;
-        }
-        catch (Throwable t)
-        {
-            return null;
-        }
     }
 }

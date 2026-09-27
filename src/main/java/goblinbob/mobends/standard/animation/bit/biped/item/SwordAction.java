@@ -3,10 +3,8 @@ package goblinbob.mobends.standard.animation.bit.biped.item;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.*;
-import goblinbob.mobends.standard.animation.bit.biped.AttackStanceAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 
 import net.minecraft.client.Minecraft;
@@ -35,11 +33,6 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
             new AttackWhirlSlashAnimationBit()
     );
 
-    public SwordAction(HumanoidArm ignoredHandSide)
-    {
-
-    }
-
     private boolean canStartNextMove()
     {
         if (!goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks())
@@ -67,16 +60,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
             moveId = 0;
         }
 
-        AnimationBit<BipedEntityData<?>> bit = bits.get(moveId);
-
-        if (bit != null)
-        {
-            this.layerBase.playBit(bit, entityData);
-        }
-        else
-        {
-            this.layerBase.clearAnimation();
-        }
+        this.layerBase.playBit(bits.get(moveId), entityData);
 
         if (isLocal)
         {
@@ -100,38 +84,36 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
 
         LivingEntity entity = entityData.getEntity();
 
-        int comboClearTime = 20;
-
-        if (ticksAfterAttack > comboClearTime)
+        if (ticksAfterAttack > 20)
         {
             moveId = 0;
         }
 
-        if (ticksAfterAttack < 10)
+        if (ticksAfterAttack >= 10)
         {
-        }
-        else if (ticksAfterAttack < 60)
-        {
-            final boolean grounded = entityData.isOnGround();
-            final boolean jumping = !grounded
-                    && entityData.getTicksInAir() <= JUMP_AIRBORNE_TICKS;
+            if (ticksAfterAttack < 60)
+            {
+                final boolean grounded = entityData.isOnGround();
+                final boolean jumping = !grounded
+                        && entityData.getTicksInAir() <= JUMP_AIRBORNE_TICKS;
 
-            if (entity.isSprinting() && (grounded || jumping))
-            {
-                this.layerBase.playOrContinueBit(this.bitAttackStanceSprint, entityData);
-            }
-            else if (grounded && entityData.isStillHorizontally())
-            {
-                this.layerBase.playOrContinueBit(this.bitAttackStance, entityData);
+                if (entity.isSprinting() && (grounded || jumping))
+                {
+                    this.layerBase.playOrContinueBit(this.bitAttackStanceSprint, entityData);
+                }
+                else if (grounded && entityData.isStillHorizontally())
+                {
+                    this.layerBase.playOrContinueBit(this.bitAttackStance, entityData);
+                }
+                else
+                {
+                    this.layerBase.clearAnimation();
+                }
             }
             else
             {
                 this.layerBase.clearAnimation();
             }
-        }
-        else
-        {
-            this.layerBase.clearAnimation();
         }
 
         this.layerBase.perform(entityData);

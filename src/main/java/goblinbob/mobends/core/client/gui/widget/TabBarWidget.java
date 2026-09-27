@@ -13,20 +13,18 @@ public class TabBarWidget
 {
     private static final int TAB_GAP = 2;
 
-    private final VanillaViewFactory factory;
     private final VanillaLinearLayout rootLayout;
     private final List<TabInfo> tabs;
     private int selectedIndex;
     private Consumer<Integer> onTabChanged;
 
-    public TabBarWidget(VanillaViewFactory factory)
+    public TabBarWidget()
     {
-        this.factory = factory;
         this.tabs = new ArrayList<>();
         this.selectedIndex = -1;
 
-        this.rootLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-        this.rootLayout.setLayoutParams(factory.createLayoutParams(
+        this.rootLayout = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+        this.rootLayout.setLayoutParams(new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.TAB_HEIGHT
         ));
@@ -36,29 +34,29 @@ public class TabBarWidget
     {
         int tabIndex = tabs.size();
 
-        VanillaLinearLayout tabContainer = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        VanillaLinearLayout tabContainer = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
 
-        VanillaTextView label = factory.createTextView(I18n.get(labelKey));
+        VanillaTextView label = new VanillaTextView(I18n.get(labelKey));
         label.setTextColor(MoBendsTheme.TEXT_SECONDARY);
         label.setTextSize(14);
-        label.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        label.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
         label.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_SMALL,
                         MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_SMALL);
 
-        VanillaView indicator = factory.createView();
+        VanillaView indicator = new VanillaView();
         indicator.setBackgroundColor(accentColor);
         indicator.setVisibility(VanillaView.GONE);
-        indicator.setLayoutParams(factory.createLayoutParams(
+        indicator.setLayoutParams(new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 3
         ));
 
-        tabContainer.addView(label, factory.createLayoutParams(
+        tabContainer.addView(label, new VanillaLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT,
                 0,
                 1.0f
         ));
-        tabContainer.addView(indicator, factory.createLayoutParams(
+        tabContainer.addView(indicator, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 3
         ));
@@ -66,7 +64,7 @@ public class TabBarWidget
         tabContainer.setOnClickListener(() -> selectTab(tabIndex));
         tabContainer.setBackgroundColor(MoBendsTheme.BG_TAB_INACTIVE);
 
-        VanillaLayoutParams params = factory.createLayoutParams(
+        VanillaLayoutParams params = new VanillaLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT,
                 VanillaLayoutParams.MATCH_PARENT
         );
@@ -114,16 +112,6 @@ public class TabBarWidget
         {
             onTabChanged.accept(index);
         }
-    }
-
-    public int getSelectedIndex()
-    {
-        return selectedIndex;
-    }
-
-    public int getTabCount()
-    {
-        return tabs.size();
     }
 
     public VanillaView getView()

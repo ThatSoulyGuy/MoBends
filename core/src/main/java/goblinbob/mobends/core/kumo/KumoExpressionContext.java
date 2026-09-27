@@ -91,26 +91,6 @@ public class KumoExpressionContext implements ExpressionContext {
         };
     }
 
-    @Override
-    public boolean hasVariable(String name) {
-        return switch (name) {
-            case "ticks", "PI", "E", "random",
-                 "motionX", "motionY", "motionZ",
-                 "interpMotionX", "interpMotionY", "interpMotionZ",
-                 "motionMagnitude", "xzMotionMagnitude", "interpMotionMagnitude", "interpXZMotionMagnitude",
-                 "forwardMomentum", "sidewaysMomentum", "movementAngle", "lookAngle",
-                 "onGround", "isStill", "isStrafing", "isUnderwater",
-                 "health", "maxHealth", "healthPercent",
-                 "ticksInAir", "ticksAfterTouchdown", "ticksAfterPunch", "ticksAfterAttack", "ticksFalling",
-                 "limbSwing", "limbSwingAmount", "headYaw", "headPitch", "swingProgress",
-                 "isClimbing", "climbingCycle", "climbingRotation", "ledgeHeight",
-                 "isDrawingBow",
-                 "nodeProgress", "nodeAnimationFinished",
-                 "posX", "posY", "posZ" -> true;
-            default -> false;
-        };
-    }
-
 
     private double getLivingDataValue(java.util.function.Function<ILivingEntityAnimationData, Double> getter, double defaultValue) {
         if (entityData instanceof ILivingEntityAnimationData livingData) {

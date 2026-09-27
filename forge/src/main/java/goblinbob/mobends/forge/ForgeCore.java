@@ -9,28 +9,18 @@ import goblinbob.mobends.core.pack.PackManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import javax.annotation.Nullable;
-
 @OnlyIn(Dist.CLIENT)
 public class ForgeCore extends Core
 {
-    private static ForgeCore INSTANCE;
-
     private CoreClientConfig configuration;
 
     ForgeCore()
     {
-        INSTANCE = this;
         Core.instance = this;
         this.configuration = CoreClientConfig.getInstance();
 
         modules.add(new EnvironmentModule());
         modules.add(new AssetsModule());
-    }
-
-    public CoreClientConfig getConfiguration()
-    {
-        return configuration;
     }
 
     @Override
@@ -48,12 +38,6 @@ public class ForgeCore extends Core
     public void applyConfigurationToEntityBenders()
     {
         EntityBenderRegistry.instance.applyConfiguration(configuration);
-    }
-
-    @Nullable
-    public static ForgeCore getInstance()
-    {
-        return INSTANCE;
     }
 
     public static void createAsClient()

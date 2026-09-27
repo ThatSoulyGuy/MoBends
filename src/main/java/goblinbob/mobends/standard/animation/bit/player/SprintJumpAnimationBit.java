@@ -39,11 +39,7 @@ public class SprintJumpAnimationBit extends AnimationBit<PlayerData>
 		float bodyLean = Mth.clamp((float) data.getMotionY(), -.2F, .2F);
 		bodyLean = bodyLean * -100F + 20F;
 
-		if (this.relax < 1F)
-		{
-			this.relax += DataUpdateHandler.ticksPerFrame * 0.1F;
-			this.relax = Math.min(this.relax, 1F);
-		}
+		this.relax = Math.min(this.relax + DataUpdateHandler.ticksPerFrame * 0.1F, 1F);
 
 		float relaxAngle = Mth.sqrt(Mth.sqrt(this.relax));
 

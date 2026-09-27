@@ -22,31 +22,7 @@ public final class ExpressionCache {
         return new Expression(source, parser.parseAndOptimize());
     }
 
-    public void clear() {
-        cache.clear();
-    }
-
-    public int size() {
-        return cache.size();
-    }
-
-    public boolean contains(String source) {
-        return cache.containsKey(source);
-    }
-
     public void remove(String source) {
         cache.remove(source);
-    }
-
-    public static double evaluate(String source, ExpressionContext context) {
-        return INSTANCE.get(source).evaluate(context);
-    }
-
-    public static boolean evaluateBoolean(String source, ExpressionContext context) {
-        return INSTANCE.get(source).evaluateBoolean(context);
-    }
-
-    public static float evaluateFloat(String source, ExpressionContext context) {
-        return INSTANCE.get(source).evaluateFloat(context);
     }
 }

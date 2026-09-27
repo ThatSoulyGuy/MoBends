@@ -22,7 +22,7 @@ public class McResourceManager implements IResourceManager
     public Optional<InputStream> getResource(IResourcePath location)
     {
         ResourceManager manager = Minecraft.getInstance().getResourceManager();
-        ResourceLocation loc = getResourceLocation(location);
+        ResourceLocation loc = McResourcePath.toLocation(location);
 
         try
         {
@@ -43,7 +43,7 @@ public class McResourceManager implements IResourceManager
     public Collection<InputStream> getResources(IResourcePath location)
     {
         ResourceManager manager = Minecraft.getInstance().getResourceManager();
-        ResourceLocation loc = getResourceLocation(location);
+        ResourceLocation loc = McResourcePath.toLocation(location);
         List<InputStream> streams = new ArrayList<>();
 
         try
@@ -97,14 +97,5 @@ public class McResourceManager implements IResourceManager
         {
             return null;
         }
-    }
-
-    private ResourceLocation getResourceLocation(IResourcePath path)
-    {
-        if (path instanceof McResourcePath mcPath)
-        {
-            return mcPath.getLocation();
-        }
-        return ResourceLocationFactory.create(path.getNamespace(), path.getPath());
     }
 }

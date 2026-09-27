@@ -32,7 +32,7 @@ public class CrossbowHoldAnimationBit extends AnimationBit<BipedEntityData<?>>
         }
 
         final HumanoidArm mainArm = entity.getMainArm();
-        final HumanoidArm offArm = mainArm == HumanoidArm.RIGHT ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
+        final HumanoidArm offArm = mainArm.getOpposite();
 
         if (isReadyCrossbow(entity, entity.getMainHandItem(), InteractionHand.MAIN_HAND))
         {

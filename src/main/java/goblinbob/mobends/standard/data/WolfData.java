@@ -42,11 +42,6 @@ public class WolfData extends LivingEntityData<Wolf>
     }
 
     @Override
-    public void onTicksRestart()
-    {
-    }
-
-    @Override
     public void initModelPose()
     {
         super.initModelPose();

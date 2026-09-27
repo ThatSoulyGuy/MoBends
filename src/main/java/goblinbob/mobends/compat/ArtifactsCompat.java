@@ -32,7 +32,7 @@ public class ArtifactsCompat
             {
                 umbrellaClass = Class.forName("artifacts.item.UmbrellaItem");
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
                 isLoaded = false;
                 return;
@@ -43,7 +43,7 @@ public class ArtifactsCompat
                 isHoldingUmbrellaUprightMethod = umbrellaClass.getMethod(
                         "isHoldingUmbrellaUpright", LivingEntity.class, InteractionHand.class);
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
                 isHoldingUmbrellaUprightMethod = null;
             }

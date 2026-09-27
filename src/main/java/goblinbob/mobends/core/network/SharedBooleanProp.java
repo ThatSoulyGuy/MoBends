@@ -5,9 +5,9 @@ import net.minecraft.nbt.CompoundTag;
 public class SharedBooleanProp extends SharedProperty<Boolean>
 {
 
-    public SharedBooleanProp(String key, Boolean value, String description)
+    public SharedBooleanProp(String key, Boolean value)
     {
-        super(key, value, description);
+        super(key, value);
     }
 
     @Override

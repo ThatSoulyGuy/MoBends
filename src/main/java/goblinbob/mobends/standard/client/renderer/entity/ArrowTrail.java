@@ -7,8 +7,6 @@ import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.lib.math.vector.VectorUtils;
 import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -133,10 +131,7 @@ public class ArrowTrail
 
         if (!ModConfig.arrowTrailFullBright)
         {
-            final int packedLight = LevelRenderer.getLightColor(level, BlockPos.containing(node.x, node.y, node.z));
-            final int blockLight = LightTexture.block(packedLight);
-            final int skyLight = Math.max(0, LightTexture.sky(packedLight) - level.getSkyDarken());
-            brightness = 0.15F + 0.85F * (Math.max(blockLight, skyLight) / 15.0F);
+            brightness = SwordTrail.lightBrightness(level, BlockPos.containing(node.x, node.y, node.z));
         }
 
         float red = brightness;

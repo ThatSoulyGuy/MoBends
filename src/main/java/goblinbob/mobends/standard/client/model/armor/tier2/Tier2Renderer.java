@@ -5,19 +5,15 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.rendering.IModelRenderHelper;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.standard.client.model.armor.*;
-import goblinbob.mobends.standard.client.model.armor.cache.CacheManager;
-import goblinbob.mobends.standard.client.model.armor.tier.RenderTier;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.function.Function;
 
 public class Tier2Renderer
@@ -25,18 +21,7 @@ public class Tier2Renderer
     private final CapturingVertexConsumer limbCapture = new CapturingVertexConsumer();
     private final QuadSlicer quadSlicer = new QuadSlicer();
 
-    private long renderCount = 0;
-
     private int currentArmorColor = 0xFFFFFFFF;
-
-    public Tier2Renderer()
-    {
-    }
-
-    public RenderTier getTier()
-    {
-        return RenderTier.TIER_2_MODEL_INTERCEPTION;
-    }
 
     public <E extends LivingEntity> boolean renderWithTexture(
             ArmorRenderContext<E> context,
@@ -71,12 +56,6 @@ public class Tier2Renderer
             ResourceLocation texture,
             Function<ResourceLocation, RenderType> renderTypeProvider)
     {
-        if (context.getEntityData() == null)
-        {
-            renderVanilla(context, model, texture, renderTypeProvider);
-            return;
-        }
-
         RenderType renderType = renderTypeProvider.apply(texture);
         VertexConsumer vertexConsumer = context.getBufferSource().getBuffer(renderType);
         renderWithConsumer(context, model, vertexConsumer);
@@ -87,12 +66,6 @@ public class Tier2Renderer
             Model model,
             VertexConsumer vertexConsumer)
     {
-        if (context.getEntityData() == null)
-        {
-            return;
-        }
-
-        renderCount++;
         currentArmorColor = context.getArmorColor();
 
         BipedEntityData<?> entityData = context.getEntityData();
@@ -127,8 +100,6 @@ public class Tier2Renderer
         }
 
         poseStack.popPose();
-
-        CacheManager.getInstance().recordCacheAssistedRender();
     }
 
     @Nullable
@@ -241,13 +212,13 @@ public class Tier2Renderer
         ModelPart leftArmPart = findPartByName(root, "left_arm", "leftArm", "LeftArm");
         if (leftArmPart != null)
         {
-            renderSplitArm(poseStack, vertexConsumer, leftArmPart, entityData, true, packedLight, packedOverlay);
+            ArmorPoseHelper.renderSplitArm(poseStack, vertexConsumer, leftArmPart, entityData, true, packedLight, packedOverlay, 0F, currentArmorColor, limbCapture, quadSlicer);
         }
 
         ModelPart rightArmPart = findPartByName(root, "right_arm", "rightArm", "RightArm");
         if (rightArmPart != null)
         {
-            renderSplitArm(poseStack, vertexConsumer, rightArmPart, entityData, false, packedLight, packedOverlay);
+            ArmorPoseHelper.renderSplitArm(poseStack, vertexConsumer, rightArmPart, entityData, false, packedLight, packedOverlay, 0F, currentArmorColor, limbCapture, quadSlicer);
         }
     }
 
@@ -271,13 +242,13 @@ public class Tier2Renderer
         ModelPart leftLegPart = findPartByName(root, "left_leg", "leftLeg", "LeftLeg");
         if (leftLegPart != null)
         {
-            renderSplitLeg(poseStack, vertexConsumer, leftLegPart, entityData, true, packedLight, packedOverlay);
+            ArmorPoseHelper.renderSplitLeg(poseStack, vertexConsumer, leftLegPart, entityData, true, packedLight, packedOverlay, currentArmorColor, limbCapture, quadSlicer);
         }
 
         ModelPart rightLegPart = findPartByName(root, "right_leg", "rightLeg", "RightLeg");
         if (rightLegPart != null)
         {
-            renderSplitLeg(poseStack, vertexConsumer, rightLegPart, entityData, false, packedLight, packedOverlay);
+            ArmorPoseHelper.renderSplitLeg(poseStack, vertexConsumer, rightLegPart, entityData, false, packedLight, packedOverlay, currentArmorColor, limbCapture, quadSlicer);
         }
     }
 
@@ -292,112 +263,14 @@ public class Tier2Renderer
         ModelPart leftLegPart = findPartByName(root, "left_leg", "leftLeg", "LeftLeg");
         if (leftLegPart != null)
         {
-            renderSplitLeg(poseStack, vertexConsumer, leftLegPart, entityData, true, packedLight, packedOverlay);
+            ArmorPoseHelper.renderSplitLeg(poseStack, vertexConsumer, leftLegPart, entityData, true, packedLight, packedOverlay, currentArmorColor, limbCapture, quadSlicer);
         }
 
         ModelPart rightLegPart = findPartByName(root, "right_leg", "rightLeg", "RightLeg");
         if (rightLegPart != null)
         {
-            renderSplitLeg(poseStack, vertexConsumer, rightLegPart, entityData, false, packedLight, packedOverlay);
+            ArmorPoseHelper.renderSplitLeg(poseStack, vertexConsumer, rightLegPart, entityData, false, packedLight, packedOverlay, currentArmorColor, limbCapture, quadSlicer);
         }
-    }
-
-    private void renderSplitArm(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            ModelPart armPart,
-            BipedEntityData<?> entityData,
-            boolean isLeft,
-            int packedLight,
-            int packedOverlay)
-    {
-        ModelPartTransform upperArm = isLeft ? entityData.leftArm : entityData.rightArm;
-        ModelPartTransform foreArm = isLeft ? entityData.leftForeArm : entityData.rightForeArm;
-        JointPlane elbowPlane = JointDefinitions.getElbow(isLeft);
-
-        limbCapture.clear();
-        PoseStack captureStack = new PoseStack();
-        float[] storage = new float[6];
-        ArmorPoseHelper.resetPartToOrigin(armPart, storage);
-        armPart.render(captureStack, limbCapture, packedLight, packedOverlay);
-        ArmorPoseHelper.restorePartFromStorage(armPart, storage);
-
-        List<CapturedVertex> vertices = limbCapture.getVertices();
-        if (vertices.isEmpty())
-        {
-            return;
-        }
-
-        List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
-        List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, elbowPlane);
-
-        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.ARM_INFLATION);
-        LimbInflation lowerInflation = upperInflation.plus(LimbInflation.LOWER_LIMB_INFLATION_STEP);
-
-        poseStack.pushPose();
-        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
-        ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor, upperInflation);
-        poseStack.popPose();
-
-        float foreArmOffsetX = -foreArm.position.x * ArmorPoseHelper.SCALE;
-        float foreArmOffsetY = -foreArm.position.y * ArmorPoseHelper.SCALE;
-        float foreArmOffsetZ = -foreArm.position.z * ArmorPoseHelper.SCALE;
-        poseStack.pushPose();
-        ArmorPoseHelper.applyPartTransform(poseStack, entityData.body, true);
-        ArmorPoseHelper.applyPartTransform(poseStack, upperArm, true);
-        ArmorPoseHelper.applyPartTransform(poseStack, foreArm, true);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, currentArmorColor, lowerInflation);
-        poseStack.popPose();
-    }
-
-    private void renderSplitLeg(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            ModelPart legPart,
-            BipedEntityData<?> entityData,
-            boolean isLeft,
-            int packedLight,
-            int packedOverlay)
-    {
-        ModelPartTransform upperLeg = isLeft ? entityData.leftLeg : entityData.rightLeg;
-        ModelPartTransform lowerLeg = isLeft ? entityData.leftForeLeg : entityData.rightForeLeg;
-        JointPlane kneePlane = JointDefinitions.getKnee(isLeft);
-
-        limbCapture.clear();
-        PoseStack captureStack = new PoseStack();
-        float[] storage = new float[6];
-        ArmorPoseHelper.resetPartToOrigin(legPart, storage);
-        legPart.render(captureStack, limbCapture, packedLight, packedOverlay);
-        ArmorPoseHelper.restorePartFromStorage(legPart, storage);
-
-        List<CapturedVertex> vertices = limbCapture.getVertices();
-        if (vertices.isEmpty())
-        {
-            return;
-        }
-
-        List<CapturedVertex[]> quads = ArmorPoseHelper.groupIntoQuads(vertices);
-        List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, kneePlane);
-
-        float vanillaLegX = storage[0];
-
-        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION);
-        LimbInflation lowerInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION + LimbInflation.LOWER_LIMB_INFLATION_STEP);
-
-        poseStack.pushPose();
-        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, currentArmorColor, upperInflation);
-        poseStack.popPose();
-
-        float lowerLegOffsetX = -lowerLeg.position.x * ArmorPoseHelper.SCALE;
-        float lowerLegOffsetY = -lowerLeg.position.y * ArmorPoseHelper.SCALE;
-        float lowerLegOffsetZ = -lowerLeg.position.z * ArmorPoseHelper.SCALE;
-        poseStack.pushPose();
-        ArmorPoseHelper.applyLegTransform(poseStack, upperLeg, vanillaLegX);
-        ArmorPoseHelper.applyPartTransform(poseStack, lowerLeg, true);
-        ArmorPoseHelper.renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, currentArmorColor, lowerInflation);
-        poseStack.popPose();
     }
 
     private void renderPartWithTransform(
@@ -438,44 +311,5 @@ public class Tier2Renderer
                 context.getArmorColor()
         );
         poseStack.popPose();
-    }
-
-    private <E extends LivingEntity> void renderVanilla(
-            ArmorRenderContext<E> context,
-            Model model,
-            ResourceLocation texture,
-            Function<ResourceLocation, RenderType> renderTypeProvider)
-    {
-        PoseStack poseStack = context.getPoseStack();
-        MultiBufferSource bufferSource = context.getBufferSource();
-
-        poseStack.pushPose();
-
-        RenderType renderType = renderTypeProvider.apply(texture);
-        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(
-                model,
-                poseStack,
-                bufferSource.getBuffer(renderType),
-                context.getPackedLight(),
-                context.getPackedOverlay(),
-                context.getArmorColor()
-        );
-
-        poseStack.popPose();
-    }
-
-    public long getRenderCount()
-    {
-        return renderCount;
-    }
-
-    public void resetStats()
-    {
-        renderCount = 0;
-    }
-
-    public String getStats()
-    {
-        return String.format("Tier2Renderer: %d renders", renderCount);
     }
 }

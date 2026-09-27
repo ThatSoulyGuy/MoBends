@@ -113,9 +113,4 @@ public class McEntity implements IEntity
     {
         return entity;
     }
-
-    public Entity getEntity()
-    {
-        return entity;
-    }
 }

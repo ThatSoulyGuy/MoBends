@@ -15,19 +15,6 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
     private static final float NECK_FILL = 0.35F;
     private static final float WEAR_OFFSET = 0.25F;
 
-    protected BendsModelPart leftEar;
-    protected BendsModelPart rightEar;
-
-    protected BendsModelPart bodywear;
-    protected BendsModelPart leftArmwear;
-    protected BendsModelPart rightArmwear;
-    protected BendsModelPart leftForeArmwear;
-    protected BendsModelPart rightForeArmwear;
-    protected BendsModelPart leftLegwear;
-    protected BendsModelPart rightLegwear;
-    protected BendsModelPart leftForeLegwear;
-    protected BendsModelPart rightForeLegwear;
-
     private boolean rightEarShown = true;
 
     public PiglinMutatorBase(IEntityDataFactory<E> dataFactory)
@@ -67,7 +54,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
         head.addCube(-4.0F, -1.0F, -2.0F, 8, 1, 4, scaleFactor + NECK_FILL);
         body.addChild(head);
 
-        leftEar = new BendsModelPart(51, 6)
+        final BendsModelPart leftEar = new BendsModelPart(51, 6)
                 .setTextureSize(64, 64)
                 .setPosition(4.5F, -6.0F, 0.0F);
         leftEar.addCube(0.0F, 0.0F, -2.0F, 1, 5, 4, scaleFactor);
@@ -76,16 +63,12 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
 
         if (rightEarShown)
         {
-            rightEar = new BendsModelPart(39, 6)
+            final BendsModelPart rightEar = new BendsModelPart(39, 6)
                     .setTextureSize(64, 64)
                     .setPosition(-4.5F, -6.0F, 0.0F);
             rightEar.addCube(-1.0F, 0.0F, -2.0F, 1, 5, 4, scaleFactor);
             rightEar.rotation.orientInstantZ(EAR_TILT);
             head.addChild(rightEar);
-        }
-        else
-        {
-            rightEar = null;
         }
 
         headwear = new BendsModelPart(32, 0)
@@ -103,12 +86,12 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
         final float limbWearHeight = (6F + 2 * scaleFactor + 0.5F) - 0.25F;
         final int armWidth = 4;
 
-        bodywear = new BendsModelPart(16, 32)
+        final BendsModelPart bodywear = new BendsModelPart(16, 32)
                 .setTextureSize(64, 64);
         bodywear.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor + WEAR_OFFSET);
         body.addChild(bodywear);
 
-        leftArmwear = new BendsModelPart(48, 48)
+        final BendsModelPart leftArmwear = new BendsModelPart(48, 48)
                 .setTextureSize(64, 64)
                 .setMirror(true);
         leftArmwear.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + WEAR_OFFSET)
@@ -118,7 +101,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .create();
         leftArm.addChild(leftArmwear);
 
-        rightArmwear = new BendsModelPart(40, 32)
+        final BendsModelPart rightArmwear = new BendsModelPart(40, 32)
                 .setTextureSize(64, 64);
         rightArmwear.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + WEAR_OFFSET)
                 .setHeight(limbWearHeight)
@@ -127,7 +110,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .create();
         rightArm.addChild(rightArmwear);
 
-        leftForeArmwear = new BendsModelPart(48, 48 + 6)
+        final BendsModelPart leftForeArmwear = new BendsModelPart(48, 48 + 6)
                 .setTextureSize(64, 64)
                 .setMirror(true);
         leftForeArmwear.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + WEAR_OFFSET)
@@ -139,7 +122,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .create();
         leftForeArm.addChild(leftForeArmwear);
 
-        rightForeArmwear = new BendsModelPart(40, 32 + 6)
+        final BendsModelPart rightForeArmwear = new BendsModelPart(40, 32 + 6)
                 .setTextureSize(64, 64);
         rightForeArmwear.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + WEAR_OFFSET)
                 .setHeight(limbWearHeight)
@@ -150,7 +133,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .create();
         rightForeArm.addChild(rightForeArmwear);
 
-        leftLegwear = new BendsModelPart(0, 48)
+        final BendsModelPart leftLegwear = new BendsModelPart(0, 48)
                 .setTextureSize(64, 64)
                 .setMirror(true);
         leftLegwear.developBox(-0.1F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + WEAR_OFFSET)
@@ -159,7 +142,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .create();
         leftLeg.addChild(leftLegwear);
 
-        rightLegwear = new BendsModelPart(0, 32)
+        final BendsModelPart rightLegwear = new BendsModelPart(0, 32)
                 .setTextureSize(64, 64);
         rightLegwear.developBox(-3.9F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + WEAR_OFFSET)
                 .setHeight(limbWearHeight)
@@ -167,7 +150,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .create();
         rightLeg.addChild(rightLegwear);
 
-        leftForeLegwear = new BendsModelPart(0, 48 + 6)
+        final BendsModelPart leftForeLegwear = new BendsModelPart(0, 48 + 6)
                 .setTextureSize(64, 64)
                 .setMirror(true);
         leftForeLegwear.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + WEAR_OFFSET)
@@ -179,7 +162,7 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .create();
         leftForeLeg.addChild(leftForeLegwear);
 
-        rightForeLegwear = new BendsModelPart(0, 32 + 6)
+        final BendsModelPart rightForeLegwear = new BendsModelPart(0, 32 + 6)
                 .setTextureSize(64, 64);
         rightForeLegwear.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + WEAR_OFFSET)
                 .setHeight(limbWearHeight)
@@ -189,14 +172,6 @@ public abstract class PiglinMutatorBase<D extends BipedEntityData<E>, E extends 
                 .offsetTextureQuad(BoxSide.BOTTOM, 0, -6F)
                 .create();
         rightForeLeg.addChild(rightForeLegwear);
-    }
-
-    @Override
-    public void storeVanillaModel(PiglinModel<E> model)
-    {
-        this.vanillaModel = model;
-
-        super.storeVanillaModel(model);
     }
 
     @Override

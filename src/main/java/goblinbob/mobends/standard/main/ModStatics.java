@@ -10,7 +10,6 @@ public class ModStatics
 {
     public static String MOD_ID = "mobends";
     public static String MODID = MOD_ID;
-    public static String MOD_NAME = "Mo' Bends";
     public static final String VERSION = loadVersion();
 
     private static String loadVersion()

@@ -2,26 +2,19 @@ package goblinbob.mobends.core.util;
 
 import net.minecraft.world.entity.Entity;
 
+import java.util.function.Predicate;
+
 public class EntityHelper
 {
-    public interface ShouldRiderSitProvider
-    {
-        boolean shouldRiderSit(Entity vehicle);
-    }
+    private static Predicate<Entity> provider = vehicle -> true;
 
-    private static ShouldRiderSitProvider provider = vehicle -> true;
-
-    public static void setProvider(ShouldRiderSitProvider newProvider)
+    public static void setProvider(Predicate<Entity> newProvider)
     {
         provider = newProvider;
     }
 
     public static boolean shouldRiderSit(Entity vehicle)
     {
-        if (vehicle == null)
-        {
-            return false;
-        }
-        return provider.shouldRiderSit(vehicle);
+        return vehicle != null && provider.test(vehicle);
     }
 }

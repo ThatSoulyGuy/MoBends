@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.blaze3d.vertex.PoseStack;
+import goblinbob.mobends.core.client.model.BendsCube;
+import goblinbob.mobends.core.client.model.BendsModelPart;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransform;
@@ -14,6 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -117,6 +120,32 @@ public final class WeaponTrailMetrics
         {
             return FALLBACK;
         }
+    }
+
+    public static float gripX(HumanoidArm arm, BendsModelPart foreArmBone, ItemStack weapon,
+                              LivingEntity entity, ItemDisplayContext displayContext)
+    {
+        final float vanillaGripX = arm == HumanoidArm.LEFT ? 1.0F : -1.0F;
+
+        if (foreArmBone == null || foreArmBone.getCubes().isEmpty())
+        {
+            return vanillaGripX;
+        }
+
+        float minX = Float.POSITIVE_INFINITY;
+        float maxX = Float.NEGATIVE_INFINITY;
+
+        for (final BendsCube cube : foreArmBone.getCubes())
+        {
+            minX = Math.min(minX, cube.minX);
+            maxX = Math.max(maxX, cube.maxX);
+        }
+
+        final float centredGripX = (minX + maxX) * 0.5F;
+        final float ownOffset = Math.abs(displayOffsetX(weapon, entity, displayContext));
+        final float blend = 1.0F - Math.min(1.0F, ownOffset);
+
+        return vanillaGripX + (centredGripX - vanillaGripX) * blend;
     }
 
     public static float displayOffsetX(ItemStack itemStack, LivingEntity entity, ItemDisplayContext displayContext)

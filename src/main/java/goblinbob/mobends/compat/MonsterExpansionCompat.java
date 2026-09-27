@@ -1,9 +1,6 @@
 package goblinbob.mobends.compat;
 
 import dev.architectury.platform.Platform;
-import goblinbob.mobends.standard.mutators.BipedMutator;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -102,20 +99,5 @@ public class MonsterExpansionCompat
             isLoaded = false;
             return false;
         }
-    }
-
-    public static void applyPose(LivingEntity entity, BipedMutator<?, ?, ?> mutator, HumanoidModel<?> vanillaModel)
-    {
-        if (mutator == null || !(vanillaModel instanceof PlayerModel<?>))
-        {
-            return;
-        }
-
-        if (!isAnimating(entity))
-        {
-            return;
-        }
-
-        mutator.adoptPoseFromVanillaModel(vanillaModel, null, null);
     }
 }

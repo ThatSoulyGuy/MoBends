@@ -10,9 +10,4 @@ public interface IModule
     }
 
     void onRefresh();
-
-    interface Factory
-    {
-        IModule create();
-    }
 }

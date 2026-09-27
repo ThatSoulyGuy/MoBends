@@ -171,17 +171,6 @@ public final class TinkersArmorSupport
         }
     }
 
-    public static void setWings(Model model, boolean value)
-    {
-        try
-        {
-            hasWingsField.set(model, value);
-        }
-        catch (Throwable ignored)
-        {
-        }
-    }
-
     public static Object textureTypeFor(EquipmentSlot slot)
     {
         return slot == EquipmentSlot.LEGS ? typeLeggings : typeArmor;

@@ -7,6 +7,7 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 
 import java.lang.reflect.Method;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class LegendsEventBridge
@@ -41,37 +42,27 @@ public final class LegendsEventBridge
             @SuppressWarnings("unchecked")
             final Class<Event> eventType = (Class<Event>) eventClass;
 
-            final Consumer<Event> before = event -> {
-                try
-                {
-                    final Object player = getPlayer.invoke(event);
-                    LegendsModCompat.beginSetupAnimation(
-                            player instanceof LivingEntity living ? living : null,
-                            getPlayerModel.invoke(event));
-                }
-                catch (Throwable ignored)
-                {
-                }
-            };
-
-            final Consumer<Event> after = event -> {
-                try
-                {
-                    final Object player = getPlayer.invoke(event);
-                    LegendsModCompat.endSetupAnimation(
-                            player instanceof LivingEntity living ? living : null,
-                            getPlayerModel.invoke(event));
-                }
-                catch (Throwable ignored)
-                {
-                }
-            };
-
-            MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, false, eventType, before);
-            MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, true, eventType, after);
+            MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, false, eventType,
+                    listener(getPlayer, getPlayerModel, LegendsModCompat::beginSetupAnimation));
+            MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, true, eventType,
+                    listener(getPlayer, getPlayerModel, LegendsModCompat::endSetupAnimation));
         }
         catch (Throwable ignored)
         {
         }
+    }
+
+    private static Consumer<Event> listener(Method getPlayer, Method getPlayerModel, BiConsumer<LivingEntity, Object> action)
+    {
+        return event -> {
+            try
+            {
+                final Object player = getPlayer.invoke(event);
+                action.accept(player instanceof LivingEntity living ? living : null, getPlayerModel.invoke(event));
+            }
+            catch (Throwable ignored)
+            {
+            }
+        };
     }
 }

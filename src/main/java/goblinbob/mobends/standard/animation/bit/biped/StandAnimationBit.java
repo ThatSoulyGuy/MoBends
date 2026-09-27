@@ -8,13 +8,13 @@ import net.minecraft.util.Mth;
 public class StandAnimationBit<T extends BipedEntityData<?>> extends AnimationBit<T>
 {
 
-	protected final float kneelDuration = 0.15F;
+	private static final float KNEEL_DURATION = 0.15F;
 
 
 	@Override
 	public void onPlay(T data)
 	{
-		float touchdown = Math.min(data.getTicksAfterTouchdown() * kneelDuration, 1.0F);
+		float touchdown = Math.min(data.getTicksAfterTouchdown() * KNEEL_DURATION, 1.0F);
 		if (touchdown < 0.5F)
 		{
 			data.body.rotation.orientInstant(20F, 1F, 0F, 0F);
@@ -27,6 +27,24 @@ public class StandAnimationBit<T extends BipedEntityData<?>> extends AnimationBi
 
 	@Override
 	public void perform(T data)
+	{
+		restPose(data);
+
+		data.head.rotation.orientX(data.headPitch.get())
+						  .rotateY(data.headYaw.get());
+
+		final float PI = (float) Math.PI;
+		float phase = DataUpdateHandler.getTicks() / 10;
+		data.body.rotation.setSmoothness(1.0F).orientX(((Mth.cos(phase) - 1) / 2) * -3);
+		data.rightArm.rotation.setSmoothness(0.4F).orientX(0.0F)
+				.rotateZ(Mth.cos(phase + PI/2) * -2.5F + 2.5F);
+		data.leftArm.rotation.setSmoothness(0.4F).orientX(0.0F)
+				.rotateZ(Mth.cos(phase + PI/2) * 2.5F - 2.5F);
+
+		touchdownKneel(data);
+	}
+
+	static void restPose(BipedEntityData<?> data)
 	{
 		data.localOffset.slideToZero(0.3F);
 		data.globalOffset.slideToZero(0.3F);
@@ -45,19 +63,11 @@ public class StandAnimationBit<T extends BipedEntityData<?>> extends AnimationBi
 		data.leftForeLeg.rotation.orient(4F, 1F, 0F, 0F);
 		data.rightForeArm.rotation.orient(-4.0F, 1F, 0F, 0F);
 		data.leftForeArm.rotation.orient(-4.0F, 1F, 0F, 0F);
+	}
 
-		data.head.rotation.orientX(data.headPitch.get())
-						  .rotateY(data.headYaw.get());
-
-		final float PI = (float) Math.PI;
-		float phase = DataUpdateHandler.getTicks() / 10;
-		data.body.rotation.setSmoothness(1.0F).orientX(((Mth.cos(phase) - 1) / 2) * -3);
-		data.rightArm.rotation.setSmoothness(0.4F).orientX(0.0F)
-				.rotateZ(Mth.cos(phase + PI/2) * -2.5F + 2.5F);
-		data.leftArm.rotation.setSmoothness(0.4F).orientX(0.0F)
-				.rotateZ(Mth.cos(phase + PI/2) * 2.5F - 2.5F);
-
-		float touchdown = Math.min(data.getTicksAfterTouchdown() * kneelDuration, 1.0F);
+	static void touchdownKneel(BipedEntityData<?> data)
+	{
+		float touchdown = Math.min(data.getTicksAfterTouchdown() * KNEEL_DURATION, 1.0F);
 		if (touchdown < 1.0F)
 		{
 			data.body.rotation.setSmoothness(1F);

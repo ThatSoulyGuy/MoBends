@@ -1,9 +1,6 @@
 package goblinbob.mobends.compat;
 
 import dev.architectury.platform.Platform;
-import goblinbob.mobends.standard.mutators.BipedMutator;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -50,7 +47,7 @@ public class ParCoolCompat
             api = Api.MODERN;
             return;
         }
-        catch (Exception ignored)
+        catch (Throwable ignored)
         {
         }
 
@@ -59,7 +56,7 @@ public class ParCoolCompat
             initLegacyReflection();
             api = Api.LEGACY;
         }
-        catch (Exception ignored)
+        catch (Throwable ignored)
         {
             api = Api.NONE;
         }
@@ -157,20 +154,5 @@ public class ParCoolCompat
             api = Api.NONE;
             return false;
         }
-    }
-
-    public static void applyPose(LivingEntity entity, BipedMutator<?, ?, ?> mutator, HumanoidModel<?> vanillaModel)
-    {
-        if (mutator == null || !(vanillaModel instanceof PlayerModel<?>))
-        {
-            return;
-        }
-
-        if (!isAnimating(entity))
-        {
-            return;
-        }
-
-        mutator.adoptPoseFromVanillaModel(vanillaModel, null, null);
     }
 }

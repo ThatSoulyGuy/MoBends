@@ -13,14 +13,6 @@ public class AttackStanceAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	protected final float PI = (float) Math.PI;
 	protected final float kneelDuration = 0.15F;
-	protected final float legSpreadSpeed = 0.1F;
-	protected float legSpreadAnimation = 0F;
-
-	@Override
-	public void onPlay(BipedEntityData<?> entityData)
-	{
-		this.legSpreadAnimation = 0F;
-	}
 
 	@Override
 	public void perform(BipedEntityData<?> data)

@@ -109,8 +109,8 @@ public class VanillaIconView extends VanillaView
     @Override
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         measuredWidth = resolveSize(lpW, availableWidth, Math.max(iconSize, minWidth));
         measuredHeight = resolveSize(lpH, availableHeight, Math.max(iconSize, minHeight));

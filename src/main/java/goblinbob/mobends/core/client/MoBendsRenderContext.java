@@ -19,7 +19,6 @@ public class MoBendsRenderContext {
     private static final ThreadLocal<net.minecraft.world.entity.LivingEntity> currentEntity = new ThreadLocal<>();
 
     private static final ThreadLocal<net.minecraft.client.renderer.MultiBufferSource> currentBufferSource = new ThreadLocal<>();
-    private static final ThreadLocal<Integer> currentPackedLight = new ThreadLocal<>();
 
 
     public static void beginMainModelRender() {
@@ -96,18 +95,12 @@ public class MoBendsRenderContext {
         return currentWolfMutator.get();
     }
 
-    public static void setCurrentRenderBuffers(net.minecraft.client.renderer.MultiBufferSource bufferSource, int packedLight) {
+    public static void setCurrentRenderBuffers(net.minecraft.client.renderer.MultiBufferSource bufferSource) {
         currentBufferSource.set(bufferSource);
-        currentPackedLight.set(packedLight);
     }
 
     public static net.minecraft.client.renderer.MultiBufferSource getCurrentBufferSource() {
         return currentBufferSource.get();
-    }
-
-    public static int getCurrentPackedLight() {
-        Integer light = currentPackedLight.get();
-        return light == null ? 15728880 : light;
     }
 
     private static boolean inArmorRender = false;
@@ -134,6 +127,5 @@ public class MoBendsRenderContext {
         currentVanillaModel.remove();
         currentEntity.remove();
         currentBufferSource.remove();
-        currentPackedLight.remove();
     }
 }

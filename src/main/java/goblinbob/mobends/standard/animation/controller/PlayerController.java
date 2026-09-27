@@ -9,9 +9,6 @@ import goblinbob.mobends.standard.animation.bit.player.*;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PlayerData;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
 public class PlayerController implements IAnimationController<PlayerData>
 {
@@ -37,7 +34,7 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected FlyingAnimationBit bitFlying = new FlyingAnimationBit();
     protected ElytraAnimationBit bitElytra = new ElytraAnimationBit();
     protected CapeAnimationBit bitCape = new CapeAnimationBit();
-    protected SleepingAnimationBit bitSleeping = new SleepingAnimationBit();
+    protected AnimationBit<BipedEntityData<?>> bitSleeping = new HumanoidSleepingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitExternalPose = new ExternalPoseAnimationBit();
     protected HardAnimationLayer<BipedEntityData<?>> layerZipline = new HardAnimationLayer<>();
     protected AnimationBit<BipedEntityData<?>> bitZiplineHang = new ZiplineHangAnimationBit();
@@ -60,42 +57,18 @@ public class PlayerController implements IAnimationController<PlayerData>
 
     public void performActionAnimations(PlayerData data, AbstractClientPlayer player)
     {
-        if (player.isAlive() && player.isSleeping())
+        if ((player.isAlive() && player.isSleeping())
+                || isCrawling(data, player)
+                || goblinbob.mobends.compat.ParagliderCompat.isParagliding(player)
+                || goblinbob.mobends.compat.ZiplineCompat.isZiplining(player)
+                || isHangingOnChain(player))
         {
             actionController.clearAction();
             return;
         }
 
-        if (isCrawling(data, player))
-        {
-            actionController.clearAction();
-            return;
-        }
-
-        if (goblinbob.mobends.compat.ParagliderCompat.isParagliding(player))
-        {
-            actionController.clearAction();
-            return;
-        }
-
-        if (goblinbob.mobends.compat.ZiplineCompat.isZiplining(player))
-        {
-            actionController.clearAction();
-            return;
-        }
-
-        if (isHangingOnChain(player))
-        {
-            actionController.clearAction();
-            return;
-        }
-
-        final HumanoidArm primaryHand = player.getMainArm();
-        final ItemStack heldItemMainhand = player.getMainHandItem();
-        final ItemStack heldItemOffhand = player.getOffhandItem();
-        final Item activeItem = player.getUseItem().getItem();
-
-        actionController.perform(data, primaryHand, heldItemMainhand, heldItemOffhand, activeItem);
+        actionController.perform(data, player.getMainArm(), player.getMainHandItem(), player.getOffhandItem(),
+                player.getUseItem().getItem());
     }
 
     @Override

@@ -50,7 +50,7 @@ public final class ModernCompanionsCompat
             return;
         }
 
-        entityClass = resolve(ENTITY_CLASS);
+        entityClass = ModCompatManager.livingEntityClass(ENTITY_CLASS);
         if (entityClass == null)
         {
             return;
@@ -89,11 +89,6 @@ public final class ModernCompanionsCompat
         return isLoaded;
     }
 
-    public static boolean isCompanion(LivingEntity entity)
-    {
-        return isModLoaded() && entity != null && entityClass.isInstance(entity);
-    }
-
     public static void register(AddonAnimationRegistry registry, String[] animations, String[] alterableParts)
     {
         if (!isModLoaded())
@@ -106,7 +101,7 @@ public final class ModernCompanionsCompat
             registry.registerNewEntity(PREVIEW_KEY, UNLOCALIZED_NAME, entityClass,
                     ModernCompanionData::new, HumanoidMobMutator::new,
                     new BipedRenderer<>(), new BipedPreviewer<>(), animations, alterableParts);
-            markGroupBender(entityClass);
+            ModCompatManager.coverSubclasses(entityClass);
         }
         catch (Throwable ignored)
         {
@@ -139,33 +134,5 @@ public final class ModernCompanionsCompat
         {
             return false;
         }
-    }
-
-    private static void markGroupBender(Class<LivingEntity> entityClass)
-    {
-        final goblinbob.mobends.core.bender.EntityBender<LivingEntity> bender =
-                goblinbob.mobends.core.bender.EntityBenderRegistry.instance.getForEntityClass(entityClass);
-        if (bender != null)
-        {
-            bender.setCoversSubclasses(true);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<LivingEntity> resolve(String className)
-    {
-        try
-        {
-            final Class<?> candidate = Class.forName(className);
-            if (LivingEntity.class.isAssignableFrom(candidate))
-            {
-                return (Class<LivingEntity>) candidate;
-            }
-        }
-        catch (Throwable ignored)
-        {
-        }
-
-        return null;
     }
 }

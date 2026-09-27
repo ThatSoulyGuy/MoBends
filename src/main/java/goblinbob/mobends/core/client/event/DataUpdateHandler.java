@@ -44,9 +44,4 @@ public class DataUpdateHandler
     {
         ticksPerFrame = 0F;
     }
-
-    public static boolean checkTicksRestart(float newTicks)
-    {
-        return ticks > newTicks;
-    }
 }

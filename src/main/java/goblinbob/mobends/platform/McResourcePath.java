@@ -44,9 +44,13 @@ public class McResourcePath implements IResourcePath
         return location;
     }
 
-    public ResourceLocation getLocation()
+    static ResourceLocation toLocation(IResourcePath path)
     {
-        return location;
+        if (path instanceof McResourcePath mcPath)
+        {
+            return mcPath.location;
+        }
+        return ResourceLocationFactory.create(path.getNamespace(), path.getPath());
     }
 
     @Override

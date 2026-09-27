@@ -4,7 +4,6 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -134,15 +133,6 @@ public final class PalladiumSupport
 
         int dyed = colorProvider.getDyedColor(itemStack);
         return dyed == -1 ? 0xFFFFFFFF : (0xFF000000 | dyed);
-    }
-
-    public static boolean isPalladiumArmor(ItemStack itemStack)
-    {
-        return AVAILABLE
-                && itemStack != null
-                && !itemStack.isEmpty()
-                && itemStack.getItem() instanceof ArmorItem
-                && armorWithRendererClass.isInstance(itemStack.getItem());
     }
 
     public static final class Armor

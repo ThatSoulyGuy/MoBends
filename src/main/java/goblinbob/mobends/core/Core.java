@@ -15,29 +15,12 @@ public class Core
         return instance;
     }
 
-    public static void createAsClient()
-    {
-    }
-
-    public static void createAsServer()
-    {
-    }
-
     public void onClientSetup()
-    {
-    }
-
-    public void onServerSetup()
     {
     }
 
     public void applyConfigurationToEntityBenders()
     {
-    }
-
-    public void registerModule(IModule.Factory factory)
-    {
-        modules.add(factory.create());
     }
 
     protected void initModules()
@@ -46,17 +29,5 @@ public class Core
         {
             module.init();
         }
-    }
-
-    public void refreshModules()
-    {
-        for (IModule module : modules)
-        {
-            module.refresh();
-        }
-    }
-
-    public static void saveConfiguration()
-    {
     }
 }

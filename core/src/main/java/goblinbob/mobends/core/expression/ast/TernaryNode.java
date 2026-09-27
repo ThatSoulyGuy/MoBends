@@ -47,18 +47,6 @@ public class TernaryNode implements ExpressionNode {
         return this;
     }
 
-    public ExpressionNode getCondition() {
-        return condition;
-    }
-
-    public ExpressionNode getThenBranch() {
-        return thenBranch;
-    }
-
-    public ExpressionNode getElseBranch() {
-        return elseBranch;
-    }
-
     @Override
     public String toString() {
         return "(" + condition + " ? " + thenBranch + " : " + elseBranch + ")";

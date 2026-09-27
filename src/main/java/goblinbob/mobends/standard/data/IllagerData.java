@@ -17,9 +17,4 @@ public class IllagerData<E extends AbstractIllager> extends BipedEntityData<E>
     {
         return controller;
     }
-
-    @Override
-    public void onTicksRestart()
-    {
-    }
 }

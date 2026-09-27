@@ -7,7 +7,7 @@ import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.core.data.LivingEntityData;
 import goblinbob.mobends.lib.math.vector.SmoothVector3f;
-import goblinbob.mobends.core.network.NetworkConfiguration;
+import goblinbob.mobends.core.network.SharedNetworkConfiguration;
 import goblinbob.mobends.core.pack.BendsPackPerformer;
 import goblinbob.mobends.core.util.EntityHelper;
 import goblinbob.mobends.standard.main.ModConfig;
@@ -28,7 +28,6 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
     private static final Logger LOGGER = LoggerFactory.getLogger(Mutator.class);
     private static Field layersField;
 
-    protected M vanillaModel;
     protected float headYaw;
     protected float headPitch;
     protected float limbSwing;
@@ -101,13 +100,21 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         }
     }
 
-    public abstract void storeVanillaModel(M model);
+    public void storeVanillaModel(M model)
+    {
+    }
 
-    public abstract void applyVanillaModel(M model);
+    public void applyVanillaModel(M model)
+    {
+    }
 
-    public abstract void swapLayer(LivingEntityRenderer<E, M> renderer, int index, boolean isModelVanilla);
+    public void swapLayer(LivingEntityRenderer<E, M> renderer, int index, boolean isModelVanilla)
+    {
+    }
 
-    public abstract void deswapLayer(LivingEntityRenderer<E, M> renderer, int index);
+    public void deswapLayer(LivingEntityRenderer<E, M> renderer, int index)
+    {
+    }
 
     public abstract boolean createParts(M original, float scaleFactor);
 
@@ -277,9 +284,9 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         final IAnimationController<D> controller = (IAnimationController<D>) data.getController();
         controller.perform(data);
 
-        if (NetworkConfiguration.instance.areBendsPacksAllowed())
+        if (SharedNetworkConfiguration.INSTANCE.areBendsPacksAllowed())
         {
-            final boolean limitMovement = NetworkConfiguration.instance.isMovementLimited();
+            final boolean limitMovement = SharedNetworkConfiguration.INSTANCE.isMovementLimited();
             final SmoothVector3f lastGlobalOffset = limitMovement ? new SmoothVector3f(data.globalOffset) : null;
             final SmoothVector3f lastLocalOffset = limitMovement ? new SmoothVector3f(data.localOffset) : null;
 

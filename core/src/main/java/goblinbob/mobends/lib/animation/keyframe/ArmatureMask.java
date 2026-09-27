@@ -1,7 +1,6 @@
 package goblinbob.mobends.lib.animation.keyframe;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class ArmatureMask
@@ -26,24 +25,6 @@ public class ArmatureMask
 	{
 		if (this.includedParts == null) this.includedParts = new ArrayList<>();
 		this.includedParts.add(bone);
-	}
-
-	public void includeAll(Collection<String> bones)
-	{
-		if (this.includedParts == null) this.includedParts = new ArrayList<>();
-		this.includedParts.addAll(bones);
-	}
-
-	public void exclude(String bone)
-	{
-		if (this.excludedParts == null) this.excludedParts = new ArrayList<>();
-		this.excludedParts.add(bone);
-	}
-
-	public void excludeAll(Collection<String> bones)
-	{
-		if (this.excludedParts == null) this.excludedParts = new ArrayList<>();
-		this.excludedParts.addAll(bones);
 	}
 
 	private static boolean listContains(List<String> parts, String bone)

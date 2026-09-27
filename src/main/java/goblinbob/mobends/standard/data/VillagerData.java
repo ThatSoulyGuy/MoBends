@@ -17,9 +17,4 @@ public class VillagerData<E extends LivingEntity> extends BipedEntityData<E>
     {
         return controller;
     }
-
-    @Override
-    public void onTicksRestart()
-    {
-    }
 }

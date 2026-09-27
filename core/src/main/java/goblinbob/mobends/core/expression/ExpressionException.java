@@ -1,19 +1,8 @@
 package goblinbob.mobends.core.expression;
 
 public class ExpressionException extends RuntimeException {
-    private final String expression;
-    private final int position;
-
     public ExpressionException(String message, String expression, int position) {
         super(formatMessage(message, expression, position));
-        this.expression = expression;
-        this.position = position;
-    }
-
-    public ExpressionException(String message, String expression, int position, Throwable cause) {
-        super(formatMessage(message, expression, position), cause);
-        this.expression = expression;
-        this.position = position;
     }
 
     private static String formatMessage(String message, String expression, int position) {
@@ -28,13 +17,5 @@ public class ExpressionException extends RuntimeException {
             sb.append('^');
         }
         return sb.toString();
-    }
-
-    public String getExpression() {
-        return expression;
-    }
-
-    public int getPosition() {
-        return position;
     }
 }

@@ -2,7 +2,6 @@ package goblinbob.mobends.core.client.gui.vanilla;
 
 import net.minecraft.client.gui.GuiGraphics;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,45 +25,9 @@ public class VanillaViewGroup extends VanillaView
         children.add(index, child);
     }
 
-    public void removeView(VanillaView child)
-    {
-        children.remove(child);
-    }
-
-    public void removeViewAt(int index)
-    {
-        children.remove(index);
-    }
-
     public void removeAllViews()
     {
         children.clear();
-    }
-
-    public int getChildCount()
-    {
-        return children.size();
-    }
-
-    public VanillaView getChildAt(int index)
-    {
-        return children.get(index);
-    }
-
-    @Nullable
-    public VanillaView findViewById(int id)
-    {
-        if (this.id == id) return this;
-        for (VanillaView child : children)
-        {
-            if (child.id == id) return child;
-            if (child instanceof VanillaViewGroup vg)
-            {
-                VanillaView found = vg.findViewById(id);
-                if (found != null) return found;
-            }
-        }
-        return null;
     }
 
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick)

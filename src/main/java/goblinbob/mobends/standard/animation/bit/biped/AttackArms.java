@@ -12,11 +12,6 @@ public final class AttackArms
     {
     }
 
-    public static HumanoidArm offArm(HumanoidArm arm)
-    {
-        return arm == HumanoidArm.RIGHT ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
-    }
-
     public static HumanoidArm attackingArm(BipedEntityData<?> data, LivingEntity living)
     {
         final HumanoidArm mainArm = living.getMainArm();
@@ -27,7 +22,7 @@ public final class AttackArms
         }
 
         return data.getTicksAfterOffHandAttack() < data.getTicksAfterAttack()
-                ? offArm(mainArm)
+                ? mainArm.getOpposite()
                 : mainArm;
     }
 
@@ -67,7 +62,7 @@ public final class AttackArms
             return;
         }
 
-        final HumanoidArm other = offArm(attackArm);
+        final HumanoidArm other = attackArm.getOpposite();
 
         if (ticksAfterAttack(data, living, other) < 4F && holdsSword(living, other))
         {

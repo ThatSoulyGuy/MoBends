@@ -46,7 +46,7 @@ public class EntityBenderRegistry
         return entityClassToBenderMap.values();
     }
 
-    public Collection<EntityBender<?>> getRegistered(Filter filter)
+    public Collection<EntityBender<?>> getRegisteredUnique()
     {
         final Map<String, EntityBender<?>> uniqueByKey = new LinkedHashMap<>();
         for (EntityBender<?> entityBender : entityClassToBenderMap.values())
@@ -55,12 +55,6 @@ public class EntityBenderRegistry
         }
 
         List<EntityBender<?>> benderList = new ArrayList<>(uniqueByKey.values());
-
-        if (filter.query != null)
-        {
-            benderList.removeIf(bender -> !bender.getUnlocalizedName().toLowerCase().contains(filter.query.toLowerCase()));
-        }
-
         benderList.sort(Comparator.comparing(EntityBender::getKey));
 
         return benderList;
@@ -122,18 +116,6 @@ public class EntityBenderRegistry
 
         for (EntityBender<?> entityBender : entityClassToBenderMap.values())
             entityBender.refreshMutation();
-    }
-
-    public static class Filter
-    {
-        public boolean ascending = false;
-        public SortingKey sortingKey = SortingKey.NAME;
-        public String query = null;
-
-        public enum SortingKey
-        {
-            NAME,
-        }
     }
 
 }

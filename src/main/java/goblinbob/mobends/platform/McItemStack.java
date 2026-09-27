@@ -89,9 +89,4 @@ public class McItemStack implements IItemStack
     {
         return itemStack;
     }
-
-    public ItemStack getItemStack()
-    {
-        return itemStack;
-    }
 }

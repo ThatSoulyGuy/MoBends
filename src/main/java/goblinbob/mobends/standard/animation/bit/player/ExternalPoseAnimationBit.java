@@ -1,6 +1,7 @@
 package goblinbob.mobends.standard.animation.bit.player;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
+import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.standard.data.BipedEntityData;
 
 public class ExternalPoseAnimationBit extends AnimationBit<BipedEntityData<?>>
@@ -20,37 +21,13 @@ public class ExternalPoseAnimationBit extends AnimationBit<BipedEntityData<?>>
 
     private static void neutralize(BipedEntityData<?> data)
     {
-        data.body.globalOffset.set(0F, 0F, 0F);
-        data.head.globalOffset.set(0F, 0F, 0F);
-        data.leftArm.globalOffset.set(0F, 0F, 0F);
-        data.rightArm.globalOffset.set(0F, 0F, 0F);
-        data.leftLeg.globalOffset.set(0F, 0F, 0F);
-        data.rightLeg.globalOffset.set(0F, 0F, 0F);
-        data.leftForeArm.globalOffset.set(0F, 0F, 0F);
-        data.rightForeArm.globalOffset.set(0F, 0F, 0F);
-        data.leftForeLeg.globalOffset.set(0F, 0F, 0F);
-        data.rightForeLeg.globalOffset.set(0F, 0F, 0F);
-
-        data.body.offset.set(0F, 0F, 0F);
-        data.head.offset.set(0F, 0F, 0F);
-        data.leftArm.offset.set(0F, 0F, 0F);
-        data.rightArm.offset.set(0F, 0F, 0F);
-        data.leftLeg.offset.set(0F, 0F, 0F);
-        data.rightLeg.offset.set(0F, 0F, 0F);
-        data.leftForeArm.offset.set(0F, 0F, 0F);
-        data.rightForeArm.offset.set(0F, 0F, 0F);
-        data.leftForeLeg.offset.set(0F, 0F, 0F);
-        data.rightForeLeg.offset.set(0F, 0F, 0F);
-
-        data.body.rotation.identity();
-        data.head.rotation.identity();
-        data.leftArm.rotation.identity();
-        data.rightArm.rotation.identity();
-        data.leftLeg.rotation.identity();
-        data.rightLeg.rotation.identity();
-        data.leftForeArm.rotation.identity();
-        data.rightForeArm.rotation.identity();
-        data.leftForeLeg.rotation.identity();
-        data.rightForeLeg.rotation.identity();
+        for (ModelPartTransform part : new ModelPartTransform[] {
+                data.body, data.head, data.leftArm, data.rightArm, data.leftLeg, data.rightLeg,
+                data.leftForeArm, data.rightForeArm, data.leftForeLeg, data.rightForeLeg })
+        {
+            part.globalOffset.set(0F, 0F, 0F);
+            part.offset.set(0F, 0F, 0F);
+            part.rotation.identity();
+        }
     }
 }

@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.monster.Spider;
-import net.minecraft.world.level.block.state.BlockState;
 
 public class SpiderData extends LivingEntityData<Spider>
 {
@@ -36,25 +35,9 @@ public class SpiderData extends LivingEntityData<Spider>
         return controller;
     }
 
-    public float getCrawlProgress()
-    {
-        return crawlProgress;
-    }
-
     public float getInterpolatedCrawlProgress()
     {
         return GUtil.lerp(prevCrawlProgress, crawlProgress, DataUpdateHandler.partialTicks);
-    }
-
-    @Override
-    public void onTicksRestart()
-    {
-    }
-
-    @Override
-    public void update(float partialTicks)
-    {
-        super.update(partialTicks);
     }
 
     @Override
@@ -119,7 +102,7 @@ public class SpiderData extends LivingEntityData<Spider>
         return Math.abs(Mth.wrapDegrees(yaw - direction.toYRot()));
     }
 
-    public Direction calcWallFacing()
+    private Direction calcWallFacing()
     {
         if (!entity.isClimbing())
         {
@@ -132,26 +115,24 @@ public class SpiderData extends LivingEntityData<Spider>
                 Mth.floor(entity.getZ())
         );
 
-        final BlockState blockN = entity.level().getBlockState(position.relative(Direction.NORTH));
-        final BlockState blockS = entity.level().getBlockState(position.relative(Direction.SOUTH));
-        final BlockState blockW = entity.level().getBlockState(position.relative(Direction.WEST));
-        final BlockState blockE = entity.level().getBlockState(position.relative(Direction.EAST));
-
         final float yaw = entity.getYRot();
         Direction best = null;
         float bestDifference = Float.MAX_VALUE;
 
-        if (!blockN.isAir()) { best = Direction.NORTH; bestDifference = angleTo(yaw, Direction.NORTH); }
-        if (!blockS.isAir()) { float d = angleTo(yaw, Direction.SOUTH); if (d < bestDifference) { best = Direction.SOUTH; bestDifference = d; } }
-        if (!blockW.isAir()) { float d = angleTo(yaw, Direction.WEST); if (d < bestDifference) { best = Direction.WEST; bestDifference = d; } }
-        if (!blockE.isAir()) { float d = angleTo(yaw, Direction.EAST); if (d < bestDifference) { best = Direction.EAST; bestDifference = d; } }
+        for (Direction direction : new Direction[] { Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST })
+        {
+            if (!entity.level().getBlockState(position.relative(direction)).isAir())
+            {
+                final float difference = angleTo(yaw, direction);
+                if (difference < bestDifference)
+                {
+                    best = direction;
+                    bestDifference = difference;
+                }
+            }
+        }
 
         return best;
-    }
-
-    public Direction getWallFacing()
-    {
-        return wallFacing;
     }
 
     public float getCrawlingRotation()
@@ -247,17 +228,6 @@ public class SpiderData extends LivingEntityData<Spider>
             this.adjustTargetZ = Math.sin(this.neutralYaw + bodyYaw) * distance + data.getPositionZ();
         }
 
-        public void adjustToWorldPosition(double x, double z, float adjustingSpeed)
-        {
-            if (this.adjustingProgress != 1)
-                return;
-
-            this.adjustingSpeed = adjustingSpeed;
-            this.adjustingProgress = 0;
-            this.adjustTargetX = x;
-            this.adjustTargetZ = z;
-        }
-
         public void adjustToLocalPosition(double x, double z, float adjustingSpeed)
         {
             if (this.adjustingProgress != 1)
@@ -294,12 +264,7 @@ public class SpiderData extends LivingEntityData<Spider>
             final double xzDistance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
             final double xzAngle = Math.atan2(deltaX, deltaZ);
 
-            return new IKResult(
-                    worldLimbX, worldLimbZ,
-                    localX, localZ,
-                    deltaX, deltaZ,
-                    xzDistance, xzAngle
-            );
+            return new IKResult(xzDistance, xzAngle);
         }
 
         public void applyIK(IKResult result, double groundLevel, double liftHeight, float pt)
@@ -316,58 +281,16 @@ public class SpiderData extends LivingEntityData<Spider>
             return this.neutralYaw;
         }
 
-        public double getPrevWorldX()
-        {
-            return this.prevWorldX;
-        }
-
-        public double getPrevWorldZ()
-        {
-            return this.prevWorldZ;
-        }
-
-        public double getWorldX()
-        {
-            return this.worldX;
-        }
-
-        public double getWorldZ()
-        {
-            return this.worldZ;
-        }
-
-        public float getAdjustingProgress()
-        {
-            return this.adjustingProgress;
-        }
-
-        public boolean isOdd()
-        {
-            return this.odd;
-        }
-
     }
 
     public static class IKResult
     {
 
-        public final double worldX;
-        public final double worldZ;
-        public final double localX;
-        public final double localZ;
-        public final double deltaX;
-        public final double deltaZ;
         public final double xzDistance;
         public final double xzAngle;
 
-        IKResult(double worldX, double worldZ, double localX, double localZ, double deltaX, double deltaZ, double xzDistance, double xzAngle)
+        IKResult(double xzDistance, double xzAngle)
         {
-            this.worldX = worldX;
-            this.worldZ = worldZ;
-            this.localX = localX;
-            this.localZ = localZ;
-            this.deltaX = deltaX;
-            this.deltaZ = deltaZ;
             this.xzDistance = xzDistance;
             this.xzAngle = xzAngle;
         }

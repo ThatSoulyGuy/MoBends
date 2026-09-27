@@ -283,9 +283,4 @@ public class KeyframeLayerState implements ILayerState
         return mask == null || mask.doesAllow(partName);
     }
 
-    public static KeyframeLayerState createFromTemplate(IKumoInstancingContext data, KeyframeLayerTemplate layerTemplate) throws MalformedKumoTemplateException
-    {
-        return new KeyframeLayerState(data, layerTemplate);
-    }
-
 }

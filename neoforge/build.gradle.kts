@@ -50,7 +50,6 @@ repositories {
     mavenCentral()
     maven("https://maven.architectury.dev/")
     maven("https://maven.neoforged.net/releases/")
-    maven("https://maven.theillusivec4.top") { content { includeGroup("top.theillusivec4.curios") } }
     maven("https://api.modrinth.com/maven") { content { includeGroup("maven.modrinth") } }
 }
 
@@ -61,10 +60,7 @@ dependencies {
 
     modApi("dev.architectury:architectury-neoforge:${common.mod.dep("architectury")}")
 
-    modCompileOnly("top.theillusivec4.curios:curios-neoforge:${common.mod.dep("curios")}")
-
     modCompileOnly("maven.modrinth:armourers-workshop:${common.mod.dep("armourers_workshop")}")
-    modCompileOnly("maven.modrinth:3dskinlayers:${common.mod.dep("skinlayers3d")}")
 
     commonBundle(project(common.path, "namedElements")) { isTransitive = false }
     shadowBundle(project(common.path, "transformProductionNeoForge")) { isTransitive = false }

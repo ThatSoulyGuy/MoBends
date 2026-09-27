@@ -3,7 +3,6 @@ package goblinbob.mobends.core.kumo.state.keyframe;
 import static org.junit.jupiter.api.Assertions.*;
 
 import goblinbob.mobends.core.kumo.FakeAnimationData;
-import goblinbob.mobends.core.kumo.state.ILayerState;
 import goblinbob.mobends.core.kumo.state.IKumoContext;
 import goblinbob.mobends.core.kumo.state.INodeState;
 import goblinbob.mobends.core.kumo.state.template.IKumoInstancingContext;
@@ -44,7 +43,6 @@ public class KeyframeLayerStateTest
         Ctx(FakeAnimationData data) { this.data = data; }
 
         @Override public IEntityAnimationData getEntityData() { return data; }
-        @Override public ILayerState getLayerState() { return null; }
         @Override public INodeState getCurrentNode() { return current; }
         @Override public void setCurrentNode(INodeState node) { this.current = node; }
         @Override public KeyframeAnimation getAnimation(String key) { return animations.get(key); }

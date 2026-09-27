@@ -6,7 +6,6 @@ import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.compat.SkinLayersCompat;
 import goblinbob.mobends.compat.SkinLayersLayer;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
-import goblinbob.mobends.core.client.model.BendsMesh;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.data.IEntityDataFactory;
@@ -68,18 +67,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     public int getSkinLayerParts()
     {
         return this.skinLayerParts;
-    }
-
-    @Override
-    public boolean mutate(LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer)
-    {
-        return super.mutate(renderer);
-    }
-
-    @Override
-    public void demutate(LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer)
-    {
-        super.demutate(renderer);
     }
 
     @Override
@@ -154,15 +141,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         return false;
     }
 
-    public void updateSmallArms(AbstractClientPlayer player)
-    {
-        if (player != null)
-        {
-            IPlayerSkinProvider skinProvider = IPlayerSkinProvider.Holder.getProvider();
-            this.smallArms = skinProvider != null && skinProvider.isSlimModel(player);
-        }
-    }
-
     @Override
     public void updateModel(AbstractClientPlayer entity,
                             LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer,
@@ -180,18 +158,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         }
 
         super.updateModel(entity, renderer, partialTicks);
-    }
-
-    @Override
-    public void storeVanillaModel(PlayerModel<AbstractClientPlayer> model)
-    {
-        super.storeVanillaModel(model);
-    }
-
-    @Override
-    public void applyVanillaModel(PlayerModel<AbstractClientPlayer> model)
-    {
-        super.applyVanillaModel(model);
     }
 
     @Override
@@ -261,14 +227,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     @Override
     protected AdaptiveHumanoidGeometry.WearParts adaptiveWearParts(PlayerModel<AbstractClientPlayer> original)
     {
-        if (original == null)
-        {
-            return null;
-        }
-
-        return new AdaptiveHumanoidGeometry.WearParts(original.jacket,
-                original.leftSleeve, original.rightSleeve,
-                original.leftPants, original.rightPants);
+        return playerWearPartsOf(original);
     }
 
     @Override
@@ -291,18 +250,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         rightForeLegwear = attachWear(rightForeLeg, geometry.rightForeLegWearMesh);
     }
 
-    private static BendsModelPart attachWear(BendsModelPart parent, BendsMesh mesh)
-    {
-        if (parent == null || mesh == null)
-        {
-            return null;
-        }
-
-        final BendsModelPart wear = new BendsModelPart().addMesh(mesh);
-        parent.addChild(wear);
-        return wear;
-    }
-
     @Override
     protected void reconcileWithVanillaModel(HumanoidModel<?> original)
     {
@@ -318,13 +265,13 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
             return;
         }
 
-        final float[] bodyAnchor = {body.position.x, body.position.y, body.position.z};
+        final float[] bodyAnchor = absoluteOf(null, body);
 
         attach(playerModel.jacket, playerModel.jacket, body, bodyAnchor);
-        attach(playerModel.leftSleeve, playerModel.leftSleeve, leftArm, childAnchor(bodyAnchor, leftArm));
-        attach(playerModel.rightSleeve, playerModel.rightSleeve, rightArm, childAnchor(bodyAnchor, rightArm));
-        attach(playerModel.leftPants, playerModel.leftPants, leftLeg, rootAnchor(leftLeg));
-        attach(playerModel.rightPants, playerModel.rightPants, rightLeg, rootAnchor(rightLeg));
+        attach(playerModel.leftSleeve, playerModel.leftSleeve, leftArm, absoluteOf(bodyAnchor, leftArm));
+        attach(playerModel.rightSleeve, playerModel.rightSleeve, rightArm, absoluteOf(bodyAnchor, rightArm));
+        attach(playerModel.leftPants, playerModel.leftPants, leftLeg, absoluteOf(null, leftLeg));
+        attach(playerModel.rightPants, playerModel.rightPants, rightLeg, absoluteOf(null, rightLeg));
     }
 
     @Override
@@ -343,16 +290,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                 .setPosition(0.0F, 12.0F, 0.0F);
         body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
 
-        head = new BendsModelPart(0, 0)
-                .setTextureSize(64, 64)
-                .setPosition(0.0F, -12.0F, 0.0F);
-        head.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor);
-        body.addChild(head);
-
-        headwear = new BendsModelPart(32, 0)
-                .setTextureSize(64, 64);
-        headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
-        head.addChild(headwear);
+        createHeadParts(scaleFactor);
 
         leftArm = new BendsModelPart(32, 48)
                 .setTextureSize(64, 64)
@@ -507,27 +445,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         return true;
     }
 
-    @Override
-    public void syncUpWithData(PlayerData data)
-    {
-        super.syncUpWithData(data);
-    }
-
-    @Override
-    public void performAnimations(PlayerData data, String animatedEntityKey,
-                                   LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> renderer,
-                                   float partialTicks)
-    {
-        super.performAnimations(data, animatedEntityKey, renderer, partialTicks);
-    }
-
-    @Override
-    public void postRefresh()
-    {
-        if (this.layerArmor != null)
-            this.layerArmor.initArmor();
-    }
-
     public void poseForFirstPersonView()
     {
         if (this.body != null) this.body.getRotation().identity();
@@ -535,12 +452,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         if (this.rightForeArm != null) this.rightForeArm.getRotation().identity();
         if (this.leftArm != null) this.leftArm.getRotation().identity();
         if (this.leftForeArm != null) this.leftForeArm.getRotation().identity();
-    }
-
-    @Override
-    public boolean isModelVanilla(PlayerModel<AbstractClientPlayer> model)
-    {
-        return this.body == null;
     }
 
     @Override
@@ -555,11 +466,7 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
         if (entity != null && !PlayerPreviewer.isPreviewInProgress())
         {
             IPlayerSkinProvider skinProvider = IPlayerSkinProvider.Holder.getProvider();
-            boolean playerIsSlim = skinProvider != null && skinProvider.isSlimModel(entity);
-            if (playerIsSlim != this.smallArms)
-            {
-                this.smallArms = playerIsSlim;
-            }
+            this.smallArms = skinProvider != null && skinProvider.isSlimModel(entity);
         }
         return super.getData(entity);
     }
@@ -666,14 +573,4 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
                     poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
     }
-
-    public BendsModelPart getBodywear() { return bodywear; }
-    public BendsModelPart getLeftArmwear() { return leftArmwear; }
-    public BendsModelPart getRightArmwear() { return rightArmwear; }
-    public BendsModelPart getLeftForeArmwear() { return leftForeArmwear; }
-    public BendsModelPart getRightForeArmwear() { return rightForeArmwear; }
-    public BendsModelPart getLeftLegwear() { return leftLegwear; }
-    public BendsModelPart getRightLegwear() { return rightLegwear; }
-    public BendsModelPart getLeftForeLegwear() { return leftForeLegwear; }
-    public BendsModelPart getRightForeLegwear() { return rightForeLegwear; }
 }

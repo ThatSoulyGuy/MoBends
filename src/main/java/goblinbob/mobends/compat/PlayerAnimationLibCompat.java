@@ -3,7 +3,9 @@ package goblinbob.mobends.compat;
 import goblinbob.mobends.api.animation.MoBendsAnimationControl;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.math.Quaternion;
+import goblinbob.mobends.lib.math.QuaternionUtils;
 import goblinbob.mobends.lib.math.vector.Vec3f;
+import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
@@ -13,6 +15,7 @@ import dev.architectury.platform.Platform;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 
 public class PlayerAnimationLibCompat
@@ -82,12 +85,11 @@ public class PlayerAnimationLibCompat
             {
                 initReflection();
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
                 isLoaded = false;
                 org.slf4j.LoggerFactory.getLogger("MoBends").warn(
-                        "Player Animator was detected but its API could not be bound; "
-                                + "animations from other mods will not drive the Mo'Bends model.", e);
+                        "Player Animator was detected but its API could not be bound.", e);
             }
         }
     }
@@ -371,16 +373,16 @@ public class PlayerAnimationLibCompat
             final float positionInfluence = partPosition.influence();
 
             Quaternion.mul(bodyAfterInverse, upperBend, scratchLocal);
-            rotateVector(scratchLocal,
+            QuaternionUtils.rotateVector(scratchLocal,
                     partPosition.value[0] - rest[0] * (1.0F - partPosition.weight[0]),
                     partPosition.value[1] - rest[1] * (1.0F - partPosition.weight[1]),
                     partPosition.value[2] - rest[2] * (1.0F - partPosition.weight[2]),
                     scratchVector);
 
             part.offset.set(
-                    part.offset.x * (1.0F - positionInfluence) + divideByScale(scratchVector[0], bodyScale.x),
-                    part.offset.y * (1.0F - positionInfluence) + divideByScale(scratchVector[1], bodyScale.y),
-                    part.offset.z * (1.0F - positionInfluence) + divideByScale(scratchVector[2], bodyScale.z));
+                    part.offset.x * (1.0F - positionInfluence) + GUtil.divideOr(scratchVector[0], bodyScale.x),
+                    part.offset.y * (1.0F - positionInfluence) + GUtil.divideOr(scratchVector[1], bodyScale.y),
+                    part.offset.z * (1.0F - positionInfluence) + GUtil.divideOr(scratchVector[2], bodyScale.z));
 
             offsetsWritten = true;
         }
@@ -547,17 +549,6 @@ public class PlayerAnimationLibCompat
                 cz * cy * cx + sz * sy * sx);
     }
 
-    static void rotateVector(Quaternion q, float vx, float vy, float vz, float[] dest)
-    {
-        final float tx = 2.0F * (q.y * vz - q.z * vy);
-        final float ty = 2.0F * (q.z * vx - q.x * vz);
-        final float tz = 2.0F * (q.x * vy - q.y * vx);
-
-        dest[0] = vx + q.w * tx + (q.y * tz - q.z * ty);
-        dest[1] = vy + q.w * ty + (q.z * tx - q.x * tz);
-        dest[2] = vz + q.w * tz + (q.x * ty - q.y * tx);
-    }
-
     static void nlerp(Quaternion from, Quaternion to, float t, Quaternion dest)
     {
         final float dot = from.x * to.x + from.y * to.y + from.z * to.z + from.w * to.w;
@@ -569,11 +560,6 @@ public class PlayerAnimationLibCompat
                 from.z + (to.z * sign - from.z) * t,
                 from.w + (to.w * sign - from.w) * t);
         dest.normalise();
-    }
-
-    private static float divideByScale(float value, float scale)
-    {
-        return scale == 0.0F ? value : value / scale;
     }
 
     private static final class Channel
@@ -589,11 +575,8 @@ public class PlayerAnimationLibCompat
 
         private void clear()
         {
-            for (int i = 0; i < 3; ++i)
-            {
-                value[i] = 0.0F;
-                weight[i] = 1.0F;
-            }
+            Arrays.fill(value, 0.0F);
+            Arrays.fill(weight, 1.0F);
         }
 
         private float influence()

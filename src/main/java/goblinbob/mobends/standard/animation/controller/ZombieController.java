@@ -14,18 +14,18 @@ import goblinbob.mobends.standard.animation.bit.biped.WalkAnimationBit;
 import goblinbob.mobends.standard.animation.bit.zombie_base.ZombieLeanAnimationBit;
 import goblinbob.mobends.standard.animation.bit.zombie_base.ZombieStumblingAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
-import goblinbob.mobends.standard.data.ZombieData;
+import goblinbob.mobends.standard.data.ZombieDataBase;
 
 
-public class ZombieController implements IAnimationController<ZombieData>
+public class ZombieController implements IAnimationController<ZombieDataBase<?>>
 {
 
-	protected HardAnimationLayer<ZombieData> layerBase;
-	protected HardAnimationLayer<ZombieData> layerSet;
+	protected HardAnimationLayer<ZombieDataBase<?>> layerBase;
+	protected HardAnimationLayer<ZombieDataBase<?>> layerSet;
 	protected HardAnimationLayer<BipedEntityData<?>> layerAction;
 	protected HardAnimationLayer<BipedEntityData<?>> layerSpear;
-	protected AnimationBit<ZombieData> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
-	protected AnimationBit<ZombieData>[] bitAnimationSet;
+	protected AnimationBit<ZombieDataBase<?>> bitStand, bitWalk, bitJump, bitRiding, bitSitting;
+	protected AnimationBit<ZombieDataBase<?>>[] bitAnimationSet;
 	protected MobSwingAnimationBit bitAttack;
 	protected AnimationBit<BipedEntityData<?>> bitSpearThrow;
 
@@ -49,7 +49,7 @@ public class ZombieController implements IAnimationController<ZombieData>
 	}
 
 	@Override
-	public void perform(ZombieData zombieData)
+	public void perform(ZombieDataBase<?> zombieData)
 	{
 		if (zombieData.isRiding())
 		{

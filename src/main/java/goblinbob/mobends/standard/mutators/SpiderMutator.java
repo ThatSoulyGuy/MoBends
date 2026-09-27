@@ -8,7 +8,6 @@ import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.data.SpiderData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.SpiderModel;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.monster.Spider;
 
 public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spider>>
@@ -20,31 +19,9 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
     public BendsModelPart[] spiderUpperLimbs;
     public BendsModelPart[] spiderLowerLimbs;
 
-    private SpiderData currentData;
-
     public SpiderMutator(IEntityDataFactory<Spider> dataFactory)
     {
         super(dataFactory);
-    }
-
-    @Override
-    public void storeVanillaModel(SpiderModel<Spider> model)
-    {
-    }
-
-    @Override
-    public void applyVanillaModel(SpiderModel<Spider> model)
-    {
-    }
-
-    @Override
-    public void swapLayer(LivingEntityRenderer<Spider, SpiderModel<Spider>> renderer, int index, boolean isModelVanilla)
-    {
-    }
-
-    @Override
-    public void deswapLayer(LivingEntityRenderer<Spider, SpiderModel<Spider>> renderer, int index)
-    {
     }
 
     @Override
@@ -99,8 +76,6 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
     @Override
     public void syncUpWithData(SpiderData data)
     {
-        this.currentData = data;
-
         if (spiderHead != null) spiderHead.syncUp(data.spiderHead);
         if (spiderNeck != null) spiderNeck.syncUp(data.spiderNeck);
         if (spiderBody != null) spiderBody.syncUp(data.spiderBody);
@@ -135,12 +110,6 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
     @Override
     public void renderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
                               int packedLight, int packedOverlay, int color)
-    {
-        renderParts(poseStack, vertexConsumer, packedLight, packedOverlay, color);
-    }
-
-    private void renderParts(PoseStack poseStack, VertexConsumer vertexConsumer,
-                             int packedLight, int packedOverlay, int color)
     {
         if (spiderHead != null)
         {

@@ -11,7 +11,6 @@ public class PhysicsModCompat
 
     private static boolean initialized = false;
     private static boolean isLoaded = false;
-    private static boolean reflectionAvailable = false;
 
     private static Method isRagdollActiveMethod;
 
@@ -27,9 +26,8 @@ public class PhysicsModCompat
             try
             {
                 initReflection();
-                reflectionAvailable = true;
             }
-            catch (Exception ignored)
+            catch (Throwable ignored)
             {
             }
         }
@@ -92,7 +90,7 @@ public class PhysicsModCompat
     {
         if (!isModLoaded()) return false;
 
-        if (reflectionAvailable && isRagdollActiveMethod != null)
+        if (isRagdollActiveMethod != null)
         {
             try
             {

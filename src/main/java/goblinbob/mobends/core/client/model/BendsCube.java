@@ -152,7 +152,7 @@ public class BendsCube
     }
 
     public BendsCube(float x0, float y0, float z0, float x1, float y1, float z1,
-                     BoxFactory.TextureFace[] faces,
+                     BendsBoxFactory.TextureFace[] faces,
                      byte faceVisibilityFlag,
                      boolean mirror,
                      float textureWidth, float textureHeight)
@@ -206,7 +206,7 @@ public class BendsCube
         }
     }
 
-    private BendsQuad createQuadFromFace(BendsVertex[] vertices, BoxFactory.TextureFace face,
+    private BendsQuad createQuadFromFace(BendsVertex[] vertices, BendsBoxFactory.TextureFace face,
                                           float textureWidth, float textureHeight)
     {
         if (face == null)

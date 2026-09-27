@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.world.entity.LivingEntity;
 
-public abstract class MutatedRenderer<T extends LivingEntity>
+public class MutatedRenderer<T extends LivingEntity>
 {
 
     protected final float scale = 0.0625F;

@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.api.player.IPlayerSkinProvider;
 import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 import goblinbob.mobends.standard.data.PlayerData;
-import goblinbob.mobends.standard.main.ModStatics;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -18,8 +17,6 @@ public class BendsCapeRenderer
     public static final int MODEL_LENGTH = 16;
     public static final int MODEL_DEPTH = 1;
     public static final int SLAB_AMOUNT = 16;
-
-    public static final ResourceLocation CAPE_TEXTURE = ModStatics.getResource("textures/cape.png");
 
     public Slab[] slabs;
 
@@ -50,11 +47,6 @@ public class BendsCapeRenderer
         this.slabs[0].rotate(-10.0f);
     }
 
-    public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay)
-    {
-        this.slabs[0].render(poseStack, vertexConsumer, packedLight, packedOverlay, 1.0F / 16.0F);
-    }
-
     public void render(PoseStack poseStack, net.minecraft.client.renderer.MultiBufferSource bufferSource,
                        int packedLight, net.minecraft.client.player.AbstractClientPlayer player, float scale)
     {
@@ -78,8 +70,6 @@ public class BendsCapeRenderer
         public float textureWidth = 64;
         public float textureHeight = 32;
         private Slab childSlab;
-        public boolean showModel;
-        public boolean isHidden;
         public int offsetX;
         public int offsetY;
         public int offsetZ;
@@ -88,20 +78,10 @@ public class BendsCapeRenderer
         public int rotationPointZ;
         public int hingeOffset = 0;
 
-        private final CapeVertex[] vertexPositions;
         private final CapeQuad[] quadList;
-        public final float posX1;
-        public final float posY1;
-        public final float posZ1;
-        public final float posX2;
-        public final float posY2;
-        public final float posZ2;
 
         public Slab(int texV)
         {
-            this.textureWidth = 64.0F;
-            this.textureHeight = 32.0F;
-            this.showModel = true;
             this.rotationPointX = 0;
             this.rotationPointY = MODEL_LENGTH / SLAB_AMOUNT;
             this.rotationPointZ = 0;
@@ -109,15 +89,14 @@ public class BendsCapeRenderer
             this.offsetY = 0;
             this.offsetZ = 0;
             int slabLength = MODEL_LENGTH / SLAB_AMOUNT;
-            this.posX1 = this.offsetX;
-            this.posY1 = this.offsetY;
-            this.posZ1 = this.offsetZ;
-            this.posX2 = this.offsetX + MODEL_WIDTH;
-            this.posY2 = this.offsetY + slabLength;
-            this.posZ2 = this.offsetZ + MODEL_DEPTH;
+            final float posX1 = this.offsetX;
+            final float posY1 = this.offsetY;
+            final float posZ1 = this.offsetZ;
+            final float posX2 = this.offsetX + MODEL_WIDTH;
+            final float posY2 = this.offsetY + slabLength;
+            final float posZ2 = this.offsetZ + MODEL_DEPTH;
             int texU = 0;
 
-            this.vertexPositions = new CapeVertex[8];
             this.quadList = new CapeQuad[6];
 
             CapeVertex v0 = new CapeVertex(posX1, posY1, posZ1, 0.0F, 0.0F);
@@ -128,15 +107,6 @@ public class BendsCapeRenderer
             CapeVertex v5 = new CapeVertex(posX2, posY1, posZ2, 0.0F, 8.0F);
             CapeVertex v6 = new CapeVertex(posX2, posY2, posZ2, 8.0F, 8.0F);
             CapeVertex v7 = new CapeVertex(posX1, posY2, posZ2, 8.0F, 0.0F);
-
-            this.vertexPositions[0] = v0;
-            this.vertexPositions[1] = v1;
-            this.vertexPositions[2] = v2;
-            this.vertexPositions[3] = v3;
-            this.vertexPositions[4] = v4;
-            this.vertexPositions[5] = v5;
-            this.vertexPositions[6] = v6;
-            this.vertexPositions[7] = v7;
 
             this.quadList[0] = new CapeQuad(new CapeVertex[] { v5, v1, v2, v6 },
                     texU + MODEL_DEPTH + MODEL_WIDTH, texV + MODEL_DEPTH,
@@ -183,30 +153,27 @@ public class BendsCapeRenderer
 
         public void render(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float scale)
         {
-            if (!this.isHidden && this.showModel)
+            poseStack.pushPose();
+
+            poseStack.translate(this.rotationPointX * scale, this.rotationPointY * scale, (this.rotationPointZ + this.hingeOffset) * scale);
+            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(this.rotateAngle));
+            poseStack.translate(0, 0, -this.hingeOffset * scale);
+
+            PoseStack.Pose pose = poseStack.last();
+            Matrix4f matrix = pose.pose();
+            Matrix3f normal = pose.normal();
+
+            for (CapeQuad quad : this.quadList)
             {
-                poseStack.pushPose();
-
-                poseStack.translate(this.rotationPointX * scale, this.rotationPointY * scale, (this.rotationPointZ + this.hingeOffset) * scale);
-                poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(this.rotateAngle));
-                poseStack.translate(0, 0, -this.hingeOffset * scale);
-
-                PoseStack.Pose pose = poseStack.last();
-                Matrix4f matrix = pose.pose();
-                Matrix3f normal = pose.normal();
-
-                for (CapeQuad quad : this.quadList)
-                {
-                    quad.render(matrix, normal, vertexConsumer, packedLight, packedOverlay, scale);
-                }
-
-                if (this.childSlab != null)
-                {
-                    this.childSlab.render(poseStack, vertexConsumer, packedLight, packedOverlay, scale);
-                }
-
-                poseStack.popPose();
+                quad.render(matrix, normal, vertexConsumer, packedLight, packedOverlay, scale);
             }
+
+            if (this.childSlab != null)
+            {
+                this.childSlab.render(poseStack, vertexConsumer, packedLight, packedOverlay, scale);
+            }
+
+            poseStack.popPose();
         }
     }
 

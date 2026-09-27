@@ -351,13 +351,9 @@ public final class AdaptiveHumanoidGeometry
             for (int i = 0; i < quad.length; ++i)
             {
                 final CapturedVertex vertex = quad[i];
-                moved[i] = new CapturedVertex(pushOut(vertex.x, centreX, amount),
+                moved[i] = vertex.at(pushOut(vertex.x, centreX, amount),
                         pushOut(vertex.y, centreY, amount),
-                        pushOut(vertex.z, centreZ, amount),
-                        vertex.red, vertex.green, vertex.blue, vertex.alpha,
-                        vertex.u, vertex.v,
-                        vertex.overlayUV, vertex.lightmapUV,
-                        vertex.normalX, vertex.normalY, vertex.normalZ);
+                        pushOut(vertex.z, centreZ, amount));
             }
 
             displaced.add(moved);
@@ -391,11 +387,7 @@ public final class AdaptiveHumanoidGeometry
             for (int i = 0; i < quad.length; ++i)
             {
                 final CapturedVertex vertex = quad[i];
-                moved[i] = new CapturedVertex(vertex.x + dx, vertex.y + dy, vertex.z + dz,
-                        vertex.red, vertex.green, vertex.blue, vertex.alpha,
-                        vertex.u, vertex.v,
-                        vertex.overlayUV, vertex.lightmapUV,
-                        vertex.normalX, vertex.normalY, vertex.normalZ);
+                moved[i] = vertex.at(vertex.x + dx, vertex.y + dy, vertex.z + dz);
             }
 
             shifted.add(moved);
@@ -477,7 +469,7 @@ public final class AdaptiveHumanoidGeometry
 
         for (SliceResult slice : slices)
         {
-            final List<SliceResult.SlicedVertex> vertices = upper
+            final List<CapturedVertex> vertices = upper
                     ? slice.getUpperVertices()
                     : slice.getLowerVertices();
 
@@ -489,7 +481,7 @@ public final class AdaptiveHumanoidGeometry
 
             if (count == 4)
             {
-                for (SliceResult.SlicedVertex vertex : vertices)
+                for (CapturedVertex vertex : vertices)
                 {
                     addVertex(builder, vertex, dx, dy, dz, tuckCentre);
                 }
@@ -532,7 +524,7 @@ public final class AdaptiveHumanoidGeometry
         return slicedMesh(slices, false, offsetX, offsetY, offsetZ, new float[] { centreX, centreZ });
     }
 
-    private static void addVertex(BendsMesh.Builder builder, SliceResult.SlicedVertex vertex,
+    private static void addVertex(BendsMesh.Builder builder, CapturedVertex vertex,
                                   float dx, float dy, float dz, float[] tuckCentre)
     {
         float x = vertex.x + dx;

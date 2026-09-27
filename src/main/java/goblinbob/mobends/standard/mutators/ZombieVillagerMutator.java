@@ -6,7 +6,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.ZombieVillagerModel;
 import net.minecraft.world.entity.monster.ZombieVillager;
 
-public class ZombieVillagerMutator extends ZombieMutatorBase<ZombieVillagerData, ZombieVillager, ZombieVillagerModel<ZombieVillager>>
+public class ZombieVillagerMutator extends BipedMutator<ZombieVillagerData, ZombieVillager, ZombieVillagerModel<ZombieVillager>>
 {
 
 	private static final float SKIRT_FOLLOW = 1.0F;
@@ -22,14 +22,6 @@ public class ZombieVillagerMutator extends ZombieMutatorBase<ZombieVillagerData,
 	protected boolean usesAdaptiveSkirt()
 	{
 		return true;
-	}
-
-	@Override
-	public void storeVanillaModel(ZombieVillagerModel<ZombieVillager> model)
-	{
-		this.vanillaModel = model;
-
-		super.storeVanillaModel(model);
 	}
 
 	@Override

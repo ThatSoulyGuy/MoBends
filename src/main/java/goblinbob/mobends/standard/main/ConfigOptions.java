@@ -2,8 +2,6 @@ package goblinbob.mobends.standard.main;
 
 import goblinbob.mobends.api.platform.PlatformServices;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -47,7 +45,7 @@ public class ConfigOptions
         }
     }
 
-    private static final List<Option> OPTIONS = Collections.unmodifiableList(Arrays.asList(
+    private static final List<Option> OPTIONS = List.of(
             new Option("showSwordTrail", "mobends.gui.config.show_sword_trail",
                     () -> ModConfig.showSwordTrail,
                     value -> ModConfig.showSwordTrail = value),
@@ -91,7 +89,7 @@ public class ConfigOptions
             new Option("bendRobesOnlyWhenSitting", "mobends.gui.config.bend_robes_only_when_sitting",
                     () -> ModConfig.bendRobesOnlyWhenSitting,
                     value -> ModConfig.bendRobesOnlyWhenSitting = value)
-    ));
+    );
 
     public static List<Option> all()
     {

@@ -91,10 +91,6 @@ public class EpicFightCompat
         }
         catch (Throwable t)
         {
-            clientEngineInstanceMethod = null;
-            renderEngineField = null;
-            getEntityRendererMethod = null;
-            hasRendererForMethod = null;
             isLoaded = false;
         }
     }
@@ -117,13 +113,7 @@ public class EpicFightCompat
 
         try
         {
-            Object clientEngine = clientEngineInstanceMethod.invoke(null);
-            if (clientEngine == null)
-            {
-                return;
-            }
-
-            Object renderEngine = renderEngineField.get(clientEngine);
+            Object renderEngine = renderEngine();
             if (renderEngine == null)
             {
                 return;
@@ -199,13 +189,7 @@ public class EpicFightCompat
     {
         try
         {
-            Object clientEngine = clientEngineInstanceMethod.invoke(null);
-            if (clientEngine == null)
-            {
-                return false;
-            }
-
-            Object renderEngine = renderEngineField.get(clientEngine);
+            Object renderEngine = renderEngine();
             if (renderEngine == null)
             {
                 return false;
@@ -217,6 +201,12 @@ public class EpicFightCompat
         {
             return false;
         }
+    }
+
+    private static Object renderEngine() throws ReflectiveOperationException
+    {
+        Object clientEngine = clientEngineInstanceMethod.invoke(null);
+        return clientEngine == null ? null : renderEngineField.get(clientEngine);
     }
 
     @SuppressWarnings("unchecked")

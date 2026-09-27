@@ -103,8 +103,8 @@ public class VanillaButton extends VanillaView
 
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         var font = Minecraft.getInstance().font;
         int textW = (text != null ? (int) (font.width(text) * textScale) : 0);

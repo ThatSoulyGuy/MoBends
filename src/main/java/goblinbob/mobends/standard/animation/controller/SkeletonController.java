@@ -7,16 +7,10 @@ import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SittingAnimationBit;
-import goblinbob.mobends.standard.animation.bit.skeleton.StandAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.skeleton.WalkAnimationBit;
 import goblinbob.mobends.standard.data.SkeletonData;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SkeletonController implements IAnimationController<SkeletonData<?>>
 {
@@ -30,7 +24,7 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 	{
 		this.layerBase = new HardAnimationLayer<>();
 
-		this.bitStand = new StandAnimationBit();
+		this.bitStand = new StandAnimationBit<SkeletonData<?>>();
 		this.bitWalk = new WalkAnimationBit();
 		this.bitJump = new JumpAnimationBit<SkeletonData<?>>();
 		this.bitRiding = new RidingAnimationBit<SkeletonData<?>>();
@@ -40,12 +34,8 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 
 	public void performActionAnimations(SkeletonData<?> data, AbstractSkeleton skeleton)
 	{
-		final HumanoidArm primaryHand = skeleton.getMainArm();
-		final ItemStack heldItemMainhand = skeleton.getMainHandItem();
-		final ItemStack heldItemOffhand = skeleton.getOffhandItem();
-		final Item activeItem = skeleton.getUseItem().getItem();
-
-		actionController.perform(data, primaryHand, heldItemMainhand, heldItemOffhand, activeItem);
+		actionController.perform(data, skeleton.getMainArm(), skeleton.getMainHandItem(), skeleton.getOffhandItem(),
+				skeleton.getUseItem().getItem());
 	}
 
 	@Override
@@ -78,7 +68,6 @@ public class SkeletonController implements IAnimationController<SkeletonData<?>>
 			}
 		}
 
-		List<String> actions = new ArrayList<>();
 		this.layerBase.perform(skeletonData);
 		this.performActionAnimations(skeletonData, skeleton);
 	}

@@ -153,9 +153,4 @@ public class McPlayer extends McLivingEntity implements IPlayer
     {
         return player.getZ();
     }
-
-    public Player getPlayer()
-    {
-        return player;
-    }
 }

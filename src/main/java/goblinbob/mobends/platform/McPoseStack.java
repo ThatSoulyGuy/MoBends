@@ -115,11 +115,6 @@ public class McPoseStack implements IPoseStack
         return poseStack;
     }
 
-    public PoseStack getPoseStack()
-    {
-        return poseStack;
-    }
-
     @Override
     public boolean isEmpty()
     {

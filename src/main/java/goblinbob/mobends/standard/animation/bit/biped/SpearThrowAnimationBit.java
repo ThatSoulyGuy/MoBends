@@ -44,7 +44,7 @@ public class SpearThrowAnimationBit extends AnimationBit<BipedEntityData<?>>
         }
 
         final HumanoidArm mainArm = entity.getMainArm();
-        final HumanoidArm offArm = mainArm == HumanoidArm.RIGHT ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
+        final HumanoidArm offArm = mainArm.getOpposite();
 
         if (isSpear(entity.getMainHandItem()))
         {
@@ -87,11 +87,7 @@ public class SpearThrowAnimationBit extends AnimationBit<BipedEntityData<?>>
         final ModelPartTransform mainArm = rightHanded ? data.rightArm : data.leftArm;
         final ModelPartTransform mainForeArm = rightHanded ? data.rightForeArm : data.leftForeArm;
 
-        if (windUp < 1F)
-        {
-            windUp += DataUpdateHandler.ticksPerFrame * WIND_UP_SPEED;
-            windUp = Math.min(windUp, 1F);
-        }
+        windUp = Math.min(windUp + DataUpdateHandler.ticksPerFrame * WIND_UP_SPEED, 1F);
 
         final float armPitch = THROW_PITCH + data.headPitch.get() * PITCH_INFLUENCE;
 

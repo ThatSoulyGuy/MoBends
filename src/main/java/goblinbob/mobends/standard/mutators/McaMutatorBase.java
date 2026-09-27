@@ -4,8 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.compat.McaCompat;
 import goblinbob.mobends.core.client.MoBendsRenderContext;
-import goblinbob.mobends.core.client.model.BendsMesh;
-import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.client.model.adaptive.AdaptiveHumanoidGeometry;
 import goblinbob.mobends.standard.data.BipedEntityData;
@@ -75,25 +73,7 @@ public abstract class McaMutatorBase<D extends BipedEntityData<E>, E extends Liv
     @Override
     protected void createAdaptiveWearParts(AdaptiveHumanoidGeometry geometry)
     {
-        attachWear(body, geometry.bodyWearMesh);
-        attachWear(leftArm, geometry.leftArmWearMesh);
-        attachWear(rightArm, geometry.rightArmWearMesh);
-        attachWear(leftForeArm, geometry.leftForeArmWearMesh);
-        attachWear(rightForeArm, geometry.rightForeArmWearMesh);
-        attachWear(leftLeg, geometry.leftLegWearMesh);
-        attachWear(rightLeg, geometry.rightLegWearMesh);
-        attachWear(leftForeLeg, geometry.leftForeLegWearMesh);
-        attachWear(rightForeLeg, geometry.rightForeLegWearMesh);
-    }
-
-    private static void attachWear(BendsModelPart parent, BendsMesh mesh)
-    {
-        if (parent == null || mesh == null)
-        {
-            return;
-        }
-
-        parent.addChild(new BendsModelPart().addMesh(mesh));
+        attachAdaptiveWear(geometry);
     }
 
     @Override

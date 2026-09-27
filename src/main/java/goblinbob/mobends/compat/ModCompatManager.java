@@ -1,7 +1,14 @@
 package goblinbob.mobends.compat;
 
 import goblinbob.mobends.api.animation.MoBendsAnimationControl;
+import goblinbob.mobends.core.bender.EntityBender;
+import goblinbob.mobends.core.bender.EntityBenderRegistry;
+import goblinbob.mobends.standard.mutators.BipedMutator;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.world.entity.LivingEntity;
+
+import java.util.function.Predicate;
 
 public class ModCompatManager
 {
@@ -18,10 +25,6 @@ public class ModCompatManager
         goblinbob.mobends.core.client.skeleton.MoBendsSkeletonProvider.register();
 
         PlayerAnimationLibCompat.init();
-
-        CuriosCompat.init();
-
-        BetterBloodOverlayCompat.init();
 
         PhysicsModCompat.init();
 
@@ -116,11 +119,6 @@ public class ModCompatManager
         return MoBendsAnimationControl.isAnimationDeferred(entity);
     }
 
-    public static boolean hasExternalAnimation(LivingEntity entity)
-    {
-        return MoBendsAnimationControl.hasExternalAnimation(entity);
-    }
-
     public static boolean tracksPerHandAttacks()
     {
         return OffHandCombatCompat.isModLoaded() || BetterCombatCompat.isModLoaded();
@@ -129,5 +127,37 @@ public class ModCompatManager
     public static boolean isAttachedProxyEntity(LivingEntity entity)
     {
         return CustomNpcsCompat.isAttachedDisplayEntity(entity);
+    }
+
+    public static void adoptPlayerPoseIf(LivingEntity entity, BipedMutator<?, ?, ?> mutator, HumanoidModel<?> vanillaModel,
+                                         Predicate<LivingEntity> posing)
+    {
+        if (mutator != null && vanillaModel instanceof PlayerModel<?> && posing.test(entity))
+        {
+            mutator.adoptPoseFromVanillaModel(vanillaModel, null, null);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static Class<LivingEntity> livingEntityClass(String className)
+    {
+        try
+        {
+            final Class<?> candidate = Class.forName(className);
+            return LivingEntity.class.isAssignableFrom(candidate) ? (Class<LivingEntity>) candidate : null;
+        }
+        catch (Throwable t)
+        {
+            return null;
+        }
+    }
+
+    static void coverSubclasses(Class<LivingEntity> entityClass)
+    {
+        final EntityBender<LivingEntity> bender = EntityBenderRegistry.instance.getForEntityClass(entityClass);
+        if (bender != null)
+        {
+            bender.setCoversSubclasses(true);
+        }
     }
 }

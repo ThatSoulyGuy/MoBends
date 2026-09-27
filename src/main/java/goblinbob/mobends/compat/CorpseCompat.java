@@ -3,6 +3,8 @@ package goblinbob.mobends.compat;
 import dev.architectury.platform.Platform;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.Arrays;
+
 public class CorpseCompat
 {
     private static final String MOD_ID = "corpse";
@@ -47,9 +49,7 @@ public class CorpseCompat
             return;
         }
 
-        final Class<?>[] trimmed = new Class<?>[found];
-        System.arraycopy(resolved, 0, trimmed, 0, found);
-        renderEntityClasses = trimmed;
+        renderEntityClasses = Arrays.copyOf(resolved, found);
     }
 
     public static boolean isModLoaded()

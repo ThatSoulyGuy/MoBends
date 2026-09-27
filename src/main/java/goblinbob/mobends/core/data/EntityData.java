@@ -12,18 +12,14 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.StreamSupport;
 
 public abstract class EntityData<E extends Entity> implements IEntityAnimationData
 {
     private static final double STILL_SPEED_THRESHOLD = 0.003D;
 
-    protected int entityID;
     protected final E entity;
 
     protected double positionX, positionY, positionZ;
@@ -51,7 +47,6 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         this.entity = entity;
         if (this.entity != null)
         {
-            this.entityID = entity.getId();
             this.positionX = this.entity.getX();
             this.positionY = this.entity.getY();
             this.positionZ = this.entity.getZ();
@@ -64,11 +59,6 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         this.packAnimationState = new PackAnimationState();
 
         this.initModelPose();
-    }
-
-    public boolean isDetached()
-    {
-        return this.detached;
     }
 
     public void setDetached(boolean detached)
@@ -96,19 +86,9 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         this.onGroundOverride = state;
     }
 
-    public void unsetOnGroundStateOverride()
-    {
-        this.onGroundOverride = null;
-    }
-
     public void overrideStillness(boolean stillness)
     {
         this.stillnessOverride = stillness;
-    }
-
-    public void unsetStillnessOverride()
-    {
-        this.stillnessOverride = null;
     }
 
     public void initModelPose()
@@ -156,22 +136,7 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
         if (motionY <= 0 && (block.getBlock() instanceof StairBlock || blockBelow.getBlock() instanceof StairBlock))
             return true;
 
-        Iterable<net.minecraft.world.phys.shapes.VoxelShape> collisions = entity.level().getBlockCollisions(entity, entity.getBoundingBox().move(0, -0.125F, 0));
-        List<AABB> list = StreamSupport.stream(collisions.spliterator(), false)
-            .map(voxelShape -> voxelShape.bounds())
-            .toList();
-        return list.size() > 0;
-    }
-
-    public boolean calcCollidedHorizontally()
-    {
-        Iterable<net.minecraft.world.phys.shapes.VoxelShape> collisions = entity.level().getBlockCollisions(entity,
-                entity.getBoundingBox().move(this.motionX, 0, this.motionZ));
-        List<AABB> list = StreamSupport.stream(collisions.spliterator(), false)
-            .map(voxelShape -> voxelShape.bounds())
-            .toList();
-
-        return list.size() > 0;
+        return entity.level().getBlockCollisions(entity, entity.getBoundingBox().move(0, -0.125F, 0)).iterator().hasNext();
     }
 
     public double getPositionX() { return this.positionX; }
@@ -186,11 +151,7 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
 
     public double getMotionZ() { return this.motionZ; }
 
-    public double getPrevMotionX() { return this.prevMotionX; }
-
     public double getPrevMotionY() { return this.prevMotionY; }
-
-    public double getPrevMotionZ() { return this.prevMotionZ; }
 
     public double getInterpolatedMotionX() { return this.prevMotionX + (this.motionX - this.prevMotionX) * DataUpdateHandler.partialTicks; }
 
@@ -381,7 +342,5 @@ public abstract class EntityData<E extends Entity> implements IEntityAnimationDa
     {
         return nameToPartMap.get(name);
     }
-
-    public abstract void onTicksRestart();
 
 }

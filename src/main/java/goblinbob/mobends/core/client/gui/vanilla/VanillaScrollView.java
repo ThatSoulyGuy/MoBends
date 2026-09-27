@@ -7,14 +7,12 @@ public class VanillaScrollView extends VanillaViewGroup
 {
     protected int scrollOffset = 0;
     protected int maxScroll = 0;
-    private boolean verticalScrollBarEnabled = true;
 
     private int targetScroll = 0;
     private boolean animatingScroll = false;
 
     private static final int SCROLLBAR_WIDTH = 4;
     private static final int OUTSIDE_POINTER = Integer.MIN_VALUE / 2;
-    private static final boolean SHOW_BORDER = true;
 
     public void scrollTo(int y)
     {
@@ -23,49 +21,28 @@ public class VanillaScrollView extends VanillaViewGroup
         relayoutChildren();
     }
 
-    public void scrollBy(int dy)
-    {
-        scrollTo(scrollOffset + dy);
-    }
-
     public void smoothScrollTo(int y)
     {
         this.targetScroll = y;
         this.animatingScroll = true;
     }
 
-    public int getScrollY() { return scrollOffset; }
-
-    public void setVerticalScrollBarEnabled(boolean visible)
-    {
-        this.verticalScrollBarEnabled = visible;
-    }
-
-    public void setOverScrollEnabled(boolean enabled)
-    {
-    }
-
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         measuredWidth = resolveSize(lpW, availableWidth, availableWidth);
         measuredHeight = resolveSize(lpH, availableHeight, availableHeight);
 
         int contentW = measuredWidth - paddingLeft - paddingRight;
-        if (verticalScrollBarEnabled) contentW -= SCROLLBAR_WIDTH;
+        contentW -= SCROLLBAR_WIDTH;
 
         for (VanillaView child : children)
         {
             if (child.visibility == GONE) continue;
             VanillaLayoutParams clp = child.layoutParams;
-            int ml = 0, mr = 0;
-            if (clp != null)
-            {
-                ml = clp.getMarginLeft();
-                mr = clp.getMarginRight();
-            }
+            int ml = clp.getMarginLeft(), mr = clp.getMarginRight();
             child.measure(contentW - ml - mr, Integer.MAX_VALUE / 2);
         }
     }
@@ -98,7 +75,7 @@ public class VanillaScrollView extends VanillaViewGroup
     protected void relayoutChildren()
     {
         int contentW = measuredWidth - paddingLeft - paddingRight;
-        if (verticalScrollBarEnabled) contentW -= SCROLLBAR_WIDTH;
+        contentW -= SCROLLBAR_WIDTH;
 
         int totalContentHeight = 0;
 
@@ -106,17 +83,10 @@ public class VanillaScrollView extends VanillaViewGroup
         {
             if (child.visibility == GONE) continue;
             VanillaLayoutParams clp = child.layoutParams;
-            int ml = 0, mt = 0, mr = 0, mb = 0;
-            if (clp != null)
-            {
-                ml = clp.getMarginLeft();
-                mt = clp.getMarginTop();
-                mr = clp.getMarginRight();
-                mb = clp.getMarginBottom();
-            }
+            int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
 
             int childW = child.measuredWidth;
-            if (clp != null && clp.getWidth() == VanillaLayoutParams.MATCH_PARENT)
+            if (clp.getWidth() == VanillaLayoutParams.MATCH_PARENT)
             {
                 childW = contentW - ml - mr;
             }
@@ -145,7 +115,7 @@ public class VanillaScrollView extends VanillaViewGroup
             guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, color);
         }
 
-        int clipRight = x + measuredWidth - paddingRight - (verticalScrollBarEnabled ? SCROLLBAR_WIDTH : 0);
+        int clipRight = x + measuredWidth - paddingRight - SCROLLBAR_WIDTH;
         guiGraphics.enableScissor(x + paddingLeft, y + paddingTop, clipRight, y + measuredHeight - paddingBottom);
 
         final boolean pointerInside = isInViewport(mouseX, mouseY);
@@ -159,19 +129,16 @@ public class VanillaScrollView extends VanillaViewGroup
 
         guiGraphics.disableScissor();
 
-        if (verticalScrollBarEnabled && maxScroll > 0)
+        if (maxScroll > 0)
         {
             renderScrollbar(guiGraphics);
         }
 
-        if (SHOW_BORDER)
-        {
-            int b = MoBendsTheme.BORDER;
-            guiGraphics.fill(x, y, x + measuredWidth, y + 1, b);
-            guiGraphics.fill(x, y + measuredHeight - 1, x + measuredWidth, y + measuredHeight, b);
-            guiGraphics.fill(x, y, x + 1, y + measuredHeight, b);
-            guiGraphics.fill(x + measuredWidth - 1, y, x + measuredWidth, y + measuredHeight, b);
-        }
+        int b = MoBendsTheme.BORDER;
+        guiGraphics.fill(x, y, x + measuredWidth, y + 1, b);
+        guiGraphics.fill(x, y + measuredHeight - 1, x + measuredWidth, y + measuredHeight, b);
+        guiGraphics.fill(x, y, x + 1, y + measuredHeight, b);
+        guiGraphics.fill(x + measuredWidth - 1, y, x + measuredWidth, y + measuredHeight, b);
     }
 
     private void renderScrollbar(GuiGraphics guiGraphics)
@@ -228,7 +195,7 @@ public class VanillaScrollView extends VanillaViewGroup
 
     private boolean isInViewport(double pointerX, double pointerY)
     {
-        int clipRight = x + measuredWidth - paddingRight - (verticalScrollBarEnabled ? SCROLLBAR_WIDTH : 0);
+        int clipRight = x + measuredWidth - paddingRight - SCROLLBAR_WIDTH;
 
         return pointerX >= x + paddingLeft && pointerX < clipRight
                 && pointerY >= y + paddingTop && pointerY < y + measuredHeight - paddingBottom;

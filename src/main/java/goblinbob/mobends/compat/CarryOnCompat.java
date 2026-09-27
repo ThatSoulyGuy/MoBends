@@ -73,7 +73,7 @@ public class CarryOnCompat
             {
                 initReflection();
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
                 isLoaded = false;
             }
@@ -152,29 +152,6 @@ public class CarryOnCompat
         catch (Exception e)
         {
             return null;
-        }
-    }
-
-    public static boolean isCarrying(net.minecraft.world.entity.LivingEntity entity)
-    {
-        if (!isModLoaded() || !(entity instanceof Player player))
-        {
-            return false;
-        }
-
-        try
-        {
-            Object carry = getCarryData(player);
-            if (carry == null)
-            {
-                return false;
-            }
-            Boolean carrying = (Boolean) isCarryingMethod.invoke(carry);
-            return carrying != null && carrying;
-        }
-        catch (Exception e)
-        {
-            return false;
         }
     }
 

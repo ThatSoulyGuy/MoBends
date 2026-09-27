@@ -3,7 +3,6 @@ package goblinbob.mobends.core.kumo.state.condition;
 import goblinbob.mobends.core.kumo.state.template.MalformedKumoTemplateException;
 import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class OrCondition implements ITriggerCondition
@@ -13,14 +12,7 @@ public class OrCondition implements ITriggerCondition
 
     public OrCondition(Template template) throws MalformedKumoTemplateException
     {
-        this.conditions = new LinkedList<>();
-        for (TriggerConditionTemplate conditionTemplate : template.conditions)
-        {
-            if (conditionTemplate != null)
-            {
-                this.conditions.add(TriggerConditionRegistry.instance.createFromTemplate(conditionTemplate));
-            }
-        }
+        this.conditions = TriggerConditionRegistry.instance.createAll(template.conditions);
     }
 
     @Override

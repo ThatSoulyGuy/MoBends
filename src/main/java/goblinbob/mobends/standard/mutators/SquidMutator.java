@@ -8,7 +8,6 @@ import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.data.SquidData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.SquidModel;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.animal.Squid;
 
 public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
@@ -23,26 +22,6 @@ public class SquidMutator extends Mutator<SquidData, Squid, SquidModel<Squid>>
 	public SquidMutator(IEntityDataFactory<Squid> dataFactory)
 	{
 		super(dataFactory);
-	}
-
-	@Override
-	public void storeVanillaModel(SquidModel<Squid> model)
-	{
-	}
-
-	@Override
-	public void applyVanillaModel(SquidModel<Squid> model)
-	{
-	}
-
-	@Override
-	public void swapLayer(LivingEntityRenderer<Squid, SquidModel<Squid>> renderer, int index, boolean isModelVanilla)
-	{
-	}
-
-	@Override
-	public void deswapLayer(LivingEntityRenderer<Squid, SquidModel<Squid>> renderer, int index)
-	{
 	}
 
 	@Override

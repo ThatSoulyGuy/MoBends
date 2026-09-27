@@ -11,6 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -309,10 +310,7 @@ public final class LegendsModCompat
 
             if (part == null)
             {
-                for (int j = 0; j < VALUES_PER_PART; ++j)
-                {
-                    target[offset + j] = 0.0F;
-                }
+                Arrays.fill(target, offset, offset + VALUES_PER_PART, 0.0F);
                 continue;
             }
 

@@ -35,8 +35,7 @@ public class VanillaMoBendsScreen extends Screen
         screenBuilder.dispose();
         GuiOverlay.clear();
 
-        VanillaViewFactory factory = new VanillaViewFactory();
-        VanillaView content = screenBuilder.buildContent(factory);
+        VanillaView content = screenBuilder.buildContent();
 
         this.rootView = content;
         rootView.measure(this.width, this.height);

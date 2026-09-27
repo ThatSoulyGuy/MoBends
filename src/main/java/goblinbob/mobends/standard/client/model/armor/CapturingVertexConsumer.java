@@ -103,11 +103,6 @@ public class CapturingVertexConsumer implements VertexConsumer
         normalX = normalY = normalZ = 0.0f;
     }
 
-    public int getVertexCount()
-    {
-        return vertices.size() + (hasCurrentVertex ? 1 : 0);
-    }
-
     public VertexConsumer addVertex(float x, float y, float z)
     {
         flushCurrentVertex();

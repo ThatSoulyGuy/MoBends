@@ -5,6 +5,7 @@ import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.util.BenderHelper;
 import goblinbob.mobends.lib.math.Quaternion;
+import goblinbob.mobends.lib.math.QuaternionUtils;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
@@ -31,7 +32,6 @@ public class FirstPersonModelCompat
 
     private static boolean initialized = false;
     private static boolean isLoaded = false;
-    private static boolean offsetHandlerRegistered = false;
 
     private static Method isEnabledMethod;
     private static Method isRenderingPlayerMethod;
@@ -61,7 +61,6 @@ public class FirstPersonModelCompat
         try
         {
             registerOffsetHandler();
-            offsetHandlerRegistered = true;
         }
         catch (Throwable ignored)
         {
@@ -112,20 +111,6 @@ public class FirstPersonModelCompat
     {
         if (!initialized) init();
         return isLoaded;
-    }
-
-    public static boolean isEnabled()
-    {
-        if (!isModLoaded() || isEnabledMethod == null) return false;
-
-        try
-        {
-            return Boolean.TRUE.equals(isEnabledMethod.invoke(null));
-        }
-        catch (Throwable e)
-        {
-            return false;
-        }
     }
 
     public static boolean isRenderingFirstPersonBody()
@@ -183,10 +168,10 @@ public class FirstPersonModelCompat
         float bodyPivotX = body.globalOffset.x + (body.position.x + body.offset.x) * body.offsetScale;
         float bodyPivotZ = body.globalOffset.z + (body.position.z + body.offset.z) * body.offsetScale;
 
-        float[] neck = rotateVectorByQuaternion(bodyRotation,
+        float[] neck = QuaternionUtils.rotateVector(bodyRotation,
                 (head.position.x + head.offset.x) * head.offsetScale,
                 (head.position.y + head.offset.y) * head.offsetScale,
-                (head.position.z + head.offset.z) * head.offsetScale);
+                (head.position.z + head.offset.z) * head.offsetScale, new float[3]);
 
         float headX = bodyPivotX + neck[0];
         float headZ = bodyPivotZ + neck[2];
@@ -217,17 +202,5 @@ public class FirstPersonModelCompat
         }
 
         return current.add(offsetX, 0.0D, offsetZ);
-    }
-
-    private static float[] rotateVectorByQuaternion(Quaternion q, float x, float y, float z)
-    {
-        float tx = 2.0F * (q.y * z - q.z * y);
-        float ty = 2.0F * (q.z * x - q.x * z);
-        float tz = 2.0F * (q.x * y - q.y * x);
-        return new float[]{
-                x + q.w * tx + (q.y * tz - q.z * ty),
-                y + q.w * ty + (q.z * tx - q.x * tz),
-                z + q.w * tz + (q.x * ty - q.y * tx)
-        };
     }
 }

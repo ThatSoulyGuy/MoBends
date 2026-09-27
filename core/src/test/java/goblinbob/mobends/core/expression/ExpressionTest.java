@@ -37,12 +37,6 @@ public class ExpressionTest
             if (v == null) throw new ExpressionException("Unknown variable: " + name, name, 0);
             return v;
         }
-
-        @Override
-        public boolean hasVariable(String name)
-        {
-            return values.containsKey(name);
-        }
     }
 
     private static double eval(String source, ExpressionContext context)
@@ -283,7 +277,6 @@ public class ExpressionTest
                 () -> ExpressionContext.CONSTANT_FOLDING.getVariable("limb_swing"));
         assertTrue(thrown.getMessage().contains("limb_swing"),
                 "the folding error should name the variable, got: " + thrown.getMessage());
-        assertFalse(ExpressionContext.CONSTANT_FOLDING.hasVariable("limb_swing"));
     }
 
 

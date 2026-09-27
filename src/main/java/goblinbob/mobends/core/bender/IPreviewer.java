@@ -11,10 +11,10 @@ public interface IPreviewer<D extends EntityData<?>>
 
 	void prePreview(D data, String animationToPreview);
 
-	void postPreview(D data, String animationToPreview);
+	default void postPreview(D data, String animationToPreview) { }
 
 	default IVec3fRead getAnchorPoint() { return Vec3f.ZERO; }
 
-	Map<String, BoneMetadata> getBoneMetadata();
+	default Map<String, BoneMetadata> getBoneMetadata() { return null; }
 
 }

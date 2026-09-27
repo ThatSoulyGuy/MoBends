@@ -1,12 +1,13 @@
 package goblinbob.mobends.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import goblinbob.mobends.forge.mixin.MixinBridge;
+import goblinbob.mobends.core.client.MixinBridge;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.AgeableListModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.WolfModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.util.FastColor;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
@@ -35,16 +36,17 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
                                          int packedLight, int packedOverlay,
                                          float red, float green, float blue, float alpha,
                                          CallbackInfo ci) {
+        int color = FastColor.ARGB32.color((int)(alpha * 255.0F), (int)(red * 255.0F), (int)(green * 255.0F), (int)(blue * 255.0F));
         if ((Object) this instanceof HumanoidModel<?> humanoidModel) {
             if (MixinBridge.shouldRenderBipedCustom()) {
                 MixinBridge.setBabyHeadScale(mobends$babyHeadScale(humanoidModel.young));
-                MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 ci.cancel();
             }
             else if (MixinBridge.mayRenderBipedOverlay()) {
                 Set<ModelPart> renderedParts = mobends$renderedParts();
                 if (MixinBridge.shouldRenderBipedOverlay(humanoidModel, renderedParts)) {
-                    MixinBridge.renderBipedOverlay(humanoidModel, renderedParts, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                    MixinBridge.renderBipedOverlay(humanoidModel, renderedParts, poseStack, vertexConsumer, packedLight, packedOverlay, color);
                     ci.cancel();
                 }
             }
@@ -52,7 +54,7 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
         else if ((Object) this instanceof WolfModel<?> wolfModel) {
             if (MixinBridge.shouldRenderWolfCustom()) {
                 MixinBridge.setWolfBabyHeadScale(mobends$babyHeadScale(wolfModel.young));
-                MixinBridge.renderWolfMutated(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+                MixinBridge.renderWolfMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 ci.cancel();
             }
         }

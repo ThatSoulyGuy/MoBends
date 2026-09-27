@@ -25,8 +25,6 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 
 	}};
 
-	protected double previewYOffset = 0;
-
 	@Override
 	public void prePreview(D data, String animationToPreview)
 	{
@@ -39,8 +37,6 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		data.unsetInWaterOverride();
 		data.unsetRidingOverride();
 		data.unsetMovingAtSprintSpeedOverride();
-
-		previewYOffset = 0;
 
 		switch (animationToPreview)
 		{
@@ -95,8 +91,6 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 		if (t <= JUMP_DURATION)
 		{
 			data.overrideOnGroundState(false);
-
-			previewYOffset = Math.sin(t/JUMP_DURATION * Math.PI) * 0.8;
 		} else {
 			data.overrideOnGroundState(true);
 		}
@@ -175,22 +169,12 @@ public class BipedPreviewer<D extends BipedEntityData<?>> implements IPreviewer<
 	}
 
 	@Override
-	public void postPreview(D data, String animationToPreview)
-	{
-	}
-
-	@Override
 	public IVec3fRead getAnchorPoint() { return VIEWPORT_ANCHOR; }
 
 	@Override
 	public Map<String, BoneMetadata> getBoneMetadata()
 	{
 		return BONE_METADATA;
-	}
-
-	public double getPreviewYOffset()
-	{
-		return previewYOffset;
 	}
 
 }

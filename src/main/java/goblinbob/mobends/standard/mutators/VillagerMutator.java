@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -46,8 +45,6 @@ public class VillagerMutator<E extends LivingEntity>
     private static final int TRIM_YELLOW_U = 18;
     private static final int TRIM_YELLOW_V = 41;
     private static final float TRIM_INFLATE = 0.02F;
-
-    private static final boolean HAT_RIM_ENABLED = true;
 
     private static final int ROBE_TEX_U = 0;
     private static final int ROBE_TEX_V = 38;
@@ -131,18 +128,10 @@ public class VillagerMutator<E extends LivingEntity>
     private static HumanoidModel<?> buildView(VillagerModel<?> model)
     {
         final ModelPart root = model.root();
-        final ModelPart head = root.getChild("head");
 
-        final Map<String, ModelPart> parts = new HashMap<>();
-        parts.put("head", head);
-        parts.put("hat", head.getChild("hat"));
-        parts.put("body", root.getChild("body"));
-        parts.put("right_arm", detachedPart());
-        parts.put("left_arm", detachedPart());
-        parts.put("right_leg", root.getChild("right_leg"));
-        parts.put("left_leg", root.getChild("left_leg"));
-
-        return new HumanoidModel<LivingEntity>(new ModelPart(Collections.emptyList(), parts));
+        return humanoidView(root.getChild("head"), root.getChild("body"),
+                detachedPart(), detachedPart(),
+                root.getChild("right_leg"), root.getChild("left_leg"));
     }
 
     private static ModelPart detachedPart()
@@ -263,7 +252,7 @@ public class VillagerMutator<E extends LivingEntity>
         part.setTextureOffset(32, 0);
         part.addCube(-4.0F, -10.0F, -4.0F, 8, 10, 8, scaleFactor + 0.51F);
 
-        if (outer && HAT_RIM_ENABLED)
+        if (outer)
         {
             final BendsModelPart hatRim = new BendsModelPart(30, 47)
                     .setTextureSize(64, textureHeight())

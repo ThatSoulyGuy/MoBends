@@ -79,11 +79,7 @@ public class SpiderDeathAnimationBit extends AnimationBit<SpiderData>
         data.limbs[6].upperPart.rotation.rotateY(f6);
         data.limbs[7].upperPart.rotation.rotateY(-f6);
 
-        if (wiggleSpeedMultiplier > 0.0F)
-        {
-            wiggleSpeedMultiplier -= DataUpdateHandler.ticksPerFrame * 0.1F;
-            wiggleSpeedMultiplier = Math.max(0, wiggleSpeedMultiplier);
-        }
+        wiggleSpeedMultiplier = Math.max(0F, wiggleSpeedMultiplier - DataUpdateHandler.ticksPerFrame * 0.1F);
 
         wigglePhase += (0.3F + wiggleSpeedMultiplier * 2F) * DataUpdateHandler.ticksPerFrame;
 

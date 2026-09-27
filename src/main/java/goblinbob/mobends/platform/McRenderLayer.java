@@ -23,9 +23,4 @@ public class McRenderLayer implements IRenderLayer
     {
         return renderType;
     }
-
-    public RenderType getRenderType()
-    {
-        return renderType;
-    }
 }

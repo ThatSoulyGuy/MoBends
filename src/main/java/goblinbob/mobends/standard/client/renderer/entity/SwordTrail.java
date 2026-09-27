@@ -5,7 +5,6 @@ import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.EntityBenderRegistry;
 import goblinbob.mobends.core.client.TrailRenderQueue;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
-import goblinbob.mobends.core.client.model.BendsCube;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.math.Quaternion;
@@ -255,9 +254,7 @@ public class SwordTrail
 
         public Vec3f[] getPoints()
         {
-            float alpha = ticksExisted / 5F;
-            alpha = Math.min(alpha, 1F);
-            alpha = 1F - alpha;
+            float alpha = getAlpha();
 
             final float middleX = (bladeEnd.x + bladeStart.x) * 0.5F;
             final float middleY = (bladeEnd.y + bladeStart.y) * 0.5F;
@@ -309,11 +306,6 @@ public class SwordTrail
 
     public void render(PoseStack poseStack, LivingEntity entity, float modelScale)
     {
-        if (trailPartList.isEmpty())
-        {
-            return;
-        }
-
         if (trailPartList.size() < 2)
         {
             return;
@@ -329,7 +321,6 @@ public class SwordTrail
         final float currentYaw = Mth.rotLerp(partialTicks, entity.yBodyRotO, entity.yBodyRot);
 
         Iterator<TrailPart> it = trailPartList.iterator();
-        TrailPart prevPart = null;
         Vec3f[] prevTransformedPoints = null;
         float prevAlpha = 0;
 
@@ -343,7 +334,7 @@ public class SwordTrail
                     ? part.getViewPoints()
                     : transformPoints(part.getPoints(currentX, currentY, currentZ, currentYaw, modelScale), matrix);
 
-            if (prevPart != null && prevTransformedPoints != null)
+            if (prevTransformedPoints != null)
             {
                 int prevColor = ((int)(prevAlpha * 255.0F) << 24) |
                                ((int)(color.getR() * brightness * 255.0F) << 16) |
@@ -360,7 +351,6 @@ public class SwordTrail
                 TrailRenderQueue.vertex(transformedPoints[0].x, transformedPoints[0].y, transformedPoints[0].z, currColor);
             }
 
-            prevPart = part;
             prevTransformedPoints = transformedPoints;
             prevAlpha = alpha;
         }
@@ -374,8 +364,11 @@ public class SwordTrail
             return 1.0F;
         }
 
-        final Level level = entity.level();
-        final BlockPos pos = BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ());
+        return lightBrightness(entity.level(), BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ()));
+    }
+
+    static float lightBrightness(Level level, BlockPos pos)
+    {
         final int packedLight = LevelRenderer.getLightColor(level, pos);
         final int blockLight = LightTexture.block(packedLight);
         final int skyLight = Math.max(0, LightTexture.sky(packedLight) - level.getSkyDarken());
@@ -465,7 +458,7 @@ public class SwordTrail
             copyPivot(newPart.arm, armBone);
             copyPivot(newPart.foreArm, foreArmBone);
 
-            newPart.gripX = gripXFor(primaryHand, foreArmBone, weapon, entity, displayContext);
+            newPart.gripX = WeaponTrailMetrics.gripX(primaryHand, foreArmBone, weapon, entity, displayContext);
         }
 
         newPart.renderOffset.set(entityData.globalOffset.getX(),
@@ -483,32 +476,6 @@ public class SwordTrail
         {
             target.position.set(bone.position.x, bone.position.y, bone.position.z);
         }
-    }
-
-    private static float gripXFor(HumanoidArm arm, BendsModelPart foreArmBone, ItemStack weapon,
-                                  LivingEntity entity, ItemDisplayContext displayContext)
-    {
-        final float vanillaGripX = arm == HumanoidArm.LEFT ? 1.0F : -1.0F;
-
-        if (foreArmBone == null || foreArmBone.getCubes().isEmpty())
-        {
-            return vanillaGripX;
-        }
-
-        float minX = Float.POSITIVE_INFINITY;
-        float maxX = Float.NEGATIVE_INFINITY;
-
-        for (final BendsCube cube : foreArmBone.getCubes())
-        {
-            minX = Math.min(minX, cube.minX);
-            maxX = Math.max(maxX, cube.maxX);
-        }
-
-        final float centredGripX = (minX + maxX) * 0.5F;
-        final float ownOffset = Math.abs(WeaponTrailMetrics.displayOffsetX(weapon, entity, displayContext));
-        final float blend = 1.0F - Math.min(1.0F, ownOffset);
-
-        return vanillaGripX + (centredGripX - vanillaGripX) * blend;
     }
 
     private static BipedMutator<?, ?, ?> mutatorOf(LivingEntity entity)

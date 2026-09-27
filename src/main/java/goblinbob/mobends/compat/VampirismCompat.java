@@ -49,7 +49,7 @@ public final class VampirismCompat
 
         for (final String[] entry : HUMANOID_ENTITIES)
         {
-            final Class<LivingEntity> entityClass = resolve(entry[1]);
+            final Class<LivingEntity> entityClass = ModCompatManager.livingEntityClass(entry[1]);
             if (entityClass == null)
             {
                 continue;
@@ -68,7 +68,7 @@ public final class VampirismCompat
 
         for (final String[] entry : VILLAGER_ENTITIES)
         {
-            final Class<LivingEntity> entityClass = resolve(entry[1]);
+            final Class<LivingEntity> entityClass = ModCompatManager.livingEntityClass(entry[1]);
             if (entityClass == null)
             {
                 continue;
@@ -89,23 +89,5 @@ public final class VampirismCompat
     private static String unlocalizedNameOf(String key)
     {
         return "entity." + key.replace(':', '.');
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<LivingEntity> resolve(String className)
-    {
-        try
-        {
-            final Class<?> candidate = Class.forName(className);
-            if (LivingEntity.class.isAssignableFrom(candidate))
-            {
-                return (Class<LivingEntity>) candidate;
-            }
-        }
-        catch (Throwable ignored)
-        {
-        }
-
-        return null;
     }
 }

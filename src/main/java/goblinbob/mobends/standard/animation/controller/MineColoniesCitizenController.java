@@ -6,7 +6,7 @@ import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.HumanoidMobData;
 import net.minecraft.world.entity.LivingEntity;
 
-public class MineColoniesCitizenController extends HumanoidMobController
+public class MineColoniesCitizenController extends HumanoidMobController<HumanoidMobData<?>>
 {
     protected final AnimationBit<BipedEntityData<?>> bitSleeping = new HumanoidSleepingAnimationBit<>();
 

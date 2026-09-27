@@ -1,6 +1,7 @@
 package goblinbob.mobends.standard.client.model.armor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class QuadSlicer
@@ -28,26 +29,15 @@ public class QuadSlicer
 
         if (aboveCount == 0)
         {
-            List<SliceResult.SlicedVertex> lower = new ArrayList<>(4);
-            for (CapturedVertex v : vertices)
-            {
-                lower.add(SliceResult.SlicedVertex.from(v));
-            }
-            return SliceResult.entirelyBelow(lower);
+            return SliceResult.entirelyBelow(Arrays.asList(vertices));
         }
         else if (aboveCount == 4)
         {
-            List<SliceResult.SlicedVertex> upper = new ArrayList<>(4);
-            for (CapturedVertex v : vertices)
-            {
-                upper.add(SliceResult.SlicedVertex.from(v));
-            }
-            return SliceResult.entirelyAbove(upper);
+            return SliceResult.entirelyAbove(Arrays.asList(vertices));
         }
 
-        List<SliceResult.SlicedVertex> upperVertices = new ArrayList<>();
-        List<SliceResult.SlicedVertex> lowerVertices = new ArrayList<>();
-        List<SliceResult.SlicedVertex> edgeVertices = new ArrayList<>();
+        List<CapturedVertex> upperVertices = new ArrayList<>();
+        List<CapturedVertex> lowerVertices = new ArrayList<>();
 
         for (int i = 0; i < 4; i++)
         {
@@ -55,29 +45,26 @@ public class QuadSlicer
             CapturedVertex v1 = vertices[i];
             CapturedVertex v2 = vertices[next];
 
-            SliceResult.SlicedVertex sv1 = SliceResult.SlicedVertex.from(v1);
-
             if (above[i])
             {
-                upperVertices.add(sv1);
+                upperVertices.add(v1);
             }
             else
             {
-                lowerVertices.add(sv1);
+                lowerVertices.add(v1);
             }
 
             if (above[i] != above[next])
             {
                 float t = calculateIntersectionT(distances[i], distances[next]);
-                SliceResult.SlicedVertex intersection = SliceResult.SlicedVertex.lerp(v1, v2, t);
+                CapturedVertex intersection = lerp(v1, v2, t);
 
                 upperVertices.add(intersection);
                 lowerVertices.add(intersection);
-                edgeVertices.add(intersection);
             }
         }
 
-        return SliceResult.sliced(upperVertices, lowerVertices, edgeVertices);
+        return SliceResult.sliced(upperVertices, lowerVertices);
     }
 
     public List<SliceResult> sliceAll(List<CapturedVertex[]> quads, JointPlane plane)
@@ -100,25 +87,24 @@ public class QuadSlicer
         return dist1 / denominator;
     }
 
-    public List<SliceResult.SlicedVertex[]> triangulate(List<SliceResult.SlicedVertex> vertices)
+    private static CapturedVertex lerp(CapturedVertex a, CapturedVertex b, float t)
     {
-        List<SliceResult.SlicedVertex[]> triangles = new ArrayList<>();
-
-        if (vertices.size() < 3)
-        {
-            return triangles;
-        }
-
-        SliceResult.SlicedVertex pivot = vertices.get(0);
-        for (int i = 1; i < vertices.size() - 1; i++)
-        {
-            triangles.add(new SliceResult.SlicedVertex[] {
-                pivot,
-                vertices.get(i),
-                vertices.get(i + 1)
-            });
-        }
-
-        return triangles;
+        float oneMinusT = 1.0f - t;
+        return new CapturedVertex(
+            a.x * oneMinusT + b.x * t,
+            a.y * oneMinusT + b.y * t,
+            a.z * oneMinusT + b.z * t,
+            a.red * oneMinusT + b.red * t,
+            a.green * oneMinusT + b.green * t,
+            a.blue * oneMinusT + b.blue * t,
+            a.alpha * oneMinusT + b.alpha * t,
+            a.u * oneMinusT + b.u * t,
+            a.v * oneMinusT + b.v * t,
+            a.overlayUV,
+            a.lightmapUV,
+            a.normalX * oneMinusT + b.normalX * t,
+            a.normalY * oneMinusT + b.normalY * t,
+            a.normalZ * oneMinusT + b.normalZ * t
+        );
     }
 }

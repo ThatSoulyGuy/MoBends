@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.network;
 
-public class SharedNetworkConfiguration extends NetworkConfiguration
+public class SharedNetworkConfiguration
 {
     public static final SharedNetworkConfiguration INSTANCE = new SharedNetworkConfiguration();
 
@@ -11,8 +11,8 @@ public class SharedNetworkConfiguration extends NetworkConfiguration
     private SharedNetworkConfiguration()
     {
         this.sharedConfig = new SharedConfig();
-        this.allowBendspacks = new SharedBooleanProp("allow_bendspacks", true, "Whether bendspacks are allowed");
-        this.limitMovement = new SharedBooleanProp("limit_movement", false, "Whether movement is limited");
+        this.allowBendspacks = new SharedBooleanProp("allow_bendspacks", true);
+        this.limitMovement = new SharedBooleanProp("limit_movement", false);
 
         this.sharedConfig.addProperty(allowBendspacks);
         this.sharedConfig.addProperty(limitMovement);
@@ -23,13 +23,11 @@ public class SharedNetworkConfiguration extends NetworkConfiguration
         return sharedConfig;
     }
 
-    @Override
     public boolean areBendsPacksAllowed()
     {
         return allowBendspacks.getValue();
     }
 
-    @Override
     public boolean isMovementLimited()
     {
         return limitMovement.getValue();
@@ -49,10 +47,5 @@ public class SharedNetworkConfiguration extends NetworkConfiguration
     public void resetToDefaults()
     {
         sharedConfig.resetToDefaults();
-    }
-
-    public static void init()
-    {
-        NetworkConfiguration.instance = INSTANCE;
     }
 }

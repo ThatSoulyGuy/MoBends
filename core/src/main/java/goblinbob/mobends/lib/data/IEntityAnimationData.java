@@ -1,11 +1,12 @@
 package goblinbob.mobends.lib.data;
 
-import goblinbob.mobends.lib.client.model.IBendsModel;
 import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.lib.math.vector.SmoothVector3f;
 
-public interface IEntityAnimationData extends IBendsModel
+public interface IEntityAnimationData
 {
+
+    Object getPartForName(String name);
 
 
     SmoothVector3f getGlobalOffset();

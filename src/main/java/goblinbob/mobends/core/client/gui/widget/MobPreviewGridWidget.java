@@ -9,9 +9,7 @@ import goblinbob.mobends.core.client.gui.vanilla.*;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import net.minecraft.client.resources.language.I18n;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +45,6 @@ public class MobPreviewGridWidget
     private static final float PREVIEW_MAX_FIT_SCALE = 38.0F;
     private static final float SPIN_DEGREES_PER_SECOND = 24.0F;
 
-    private final VanillaViewFactory factory;
     private final VanillaScrollView scrollView;
     private final VanillaGridLayout grid;
     private final List<MobCard> cards = new ArrayList<>();
@@ -55,12 +52,10 @@ public class MobPreviewGridWidget
     private String animationType = IDLE_ANIMATION;
     private SpinMode spinMode = SpinMode.HOVER;
 
-    public MobPreviewGridWidget(VanillaViewFactory factory)
+    public MobPreviewGridWidget()
     {
-        this.factory = factory;
-
-        this.scrollView = factory.createScrollView();
-        this.scrollView.setLayoutParams(factory.createMatchParent());
+        this.scrollView = new VanillaScrollView();
+        this.scrollView.setLayoutParams(VanillaLayoutParams.matchParent());
         this.scrollView.setBackgroundColor(MoBendsTheme.BG_LIST);
         this.scrollView.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                 MoBendsTheme.PADDING, MoBendsTheme.PADDING);
@@ -69,7 +64,7 @@ public class MobPreviewGridWidget
         this.grid.setCellSize(CARD_WIDTH, CARD_HEIGHT);
         this.grid.setSpacing(CARD_SPACING, CARD_SPACING);
 
-        scrollView.addView(grid, factory.createLayoutParams(
+        scrollView.addView(grid, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.WRAP_CONTENT
         ));
@@ -80,17 +75,13 @@ public class MobPreviewGridWidget
         return scrollView;
     }
 
-    public void populateFromRegistry(@Nullable EntityBenderRegistry.Filter filter)
+    public void populateFromRegistry()
     {
         clear();
 
         BenderDiscovery.scanForDerivedBenders();
 
-        Collection<EntityBender<?>> benders = filter != null
-                ? EntityBenderRegistry.instance.getRegistered(filter)
-                : EntityBenderRegistry.instance.getRegistered();
-
-        for (EntityBender<?> bender : benders)
+        for (EntityBender<?> bender : EntityBenderRegistry.instance.getRegisteredUnique())
         {
             MobCard card = createCard(bender);
             cards.add(card);
@@ -158,11 +149,6 @@ public class MobPreviewGridWidget
         return animationType;
     }
 
-    public SpinMode getSpinMode()
-    {
-        return spinMode;
-    }
-
     public void setSpinMode(SpinMode spinMode)
     {
         this.spinMode = spinMode;
@@ -209,46 +195,45 @@ public class MobPreviewGridWidget
     private MobCard createCard(EntityBender<?> bender)
     {
         VanillaTileView view = new VanillaTileView();
-        view.setOrientation(VanillaViewFactory.VERTICAL);
-        view.setGravity(VanillaLinearLayout.GRAVITY_CENTER_HORIZONTAL);
+        view.setOrientation(VanillaLinearLayout.VERTICAL);
+        view.setGravity(VanillaLayoutParams.GRAVITY_CENTER_HORIZONTAL);
         view.setBulge(0);
         view.setIdleColor(MoBendsTheme.BG_LIST_ITEM_HOVER);
         view.setPadding(0, 0, 0, MoBendsTheme.PADDING_SMALL);
 
-        VanillaView accentBar = factory.createView();
-        view.addView(accentBar, factory.createLayoutParams(
+        VanillaView accentBar = new VanillaView();
+        view.addView(accentBar, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, ACCENT_HEIGHT));
 
-        VanillaFrameLayout previewSlot = factory.createFrameLayout();
-        VanillaLayoutParams previewSlotParams = factory.createLayoutParams(
+        VanillaFrameLayout previewSlot = new VanillaFrameLayout();
+        VanillaLayoutParams previewSlotParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, 0, 1.0F);
         view.addView(previewSlot, previewSlotParams);
 
-        EntityPreviewWidget preview = new EntityPreviewWidget(factory,
-                VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.MATCH_PARENT);
+        EntityPreviewWidget preview = new EntityPreviewWidget(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.MATCH_PARENT);
         preview.setChromeVisible(false);
         preview.setInteractive(false);
         preview.setBackgroundColor(0);
-        previewSlot.addView(preview.getView(), factory.createMatchParent());
+        previewSlot.addView(preview.getView(), VanillaLayoutParams.matchParent());
 
-        VanillaTextView placeholderView = factory.createTextView(I18n.get("mobends.gui.preview.unavailable"));
+        VanillaTextView placeholderView = new VanillaTextView(I18n.get("mobends.gui.preview.unavailable"));
         placeholderView.setTextColor(MoBendsTheme.TEXT_HINT);
         placeholderView.setTextSize(NAME_TEXT_SIZE);
         placeholderView.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
         placeholderView.setVisibility(VanillaView.GONE);
-        previewSlot.addView(placeholderView, factory.createMatchParent());
+        previewSlot.addView(placeholderView, VanillaLayoutParams.matchParent());
 
-        VanillaTextView nameView = factory.createTextView(bender.getLocalizedName());
+        VanillaTextView nameView = new VanillaTextView(bender.getLocalizedName());
         nameView.setTextSize(NAME_TEXT_SIZE);
         nameView.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
         nameView.setMaxLines(2);
-        view.addView(nameView, factory.createLayoutParams(
+        view.addView(nameView, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, NAME_HEIGHT));
 
-        VanillaToggle toggle = factory.createToggle(bender.isAnimated());
+        VanillaToggle toggle = new VanillaToggle(bender.isAnimated());
         toggle.setToggleSize(TOGGLE_TRACK_WIDTH, TOGGLE_TRACK_HEIGHT);
         toggle.setTooltip(I18n.get("mobends.gui.animations.toggle"));
-        view.addView(toggle, factory.createLayoutParams(
+        view.addView(toggle, new VanillaLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT, TOGGLE_HEIGHT));
 
         MobCard card = new MobCard(bender, view, preview, accentBar, nameView, placeholderView);

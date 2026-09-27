@@ -23,6 +23,7 @@ import net.minecraft.world.item.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class BipedActionController
 {
@@ -39,8 +40,8 @@ public class BipedActionController
 
     private static final Map<Item, UseAnim> USE_ANIM_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
-    private static final Map<UseActionType, ItemActionFactory<AnimationBit<BipedEntityData<?>>>> ITEM_USE_ACTION_MAP = new HashMap<>();
-    private static final Map<AttackActionType, ItemActionFactory<AnimationBit<BipedEntityData<?>>>> ITEM_ATTACK_ACTION_MAP = new HashMap<>();
+    private static final Map<UseActionType, Function<HumanoidArm, AnimationBit<BipedEntityData<?>>>> ITEM_USE_ACTION_MAP = new HashMap<>();
+    private static final Map<AttackActionType, Function<HumanoidArm, AnimationBit<BipedEntityData<?>>>> ITEM_ATTACK_ACTION_MAP = new HashMap<>();
     static
     {
         ITEM_USE_ACTION_MAP.put(UseActionType.FOOD, EatingAnimationBit::new);
@@ -50,9 +51,9 @@ public class BipedActionController
         ITEM_USE_ACTION_MAP.put(UseActionType.SPYGLASS, SpyglassAnimationBit::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.HORN, GoatHornAnimationBit::new);
 
-        ITEM_ATTACK_ACTION_MAP.put(AttackActionType.TOOL, ToolAction::new);
-        ITEM_ATTACK_ACTION_MAP.put(AttackActionType.FISTS, PunchingAction::new);
-        ITEM_ATTACK_ACTION_MAP.put(AttackActionType.SWORD, SwordAction::new);
+        ITEM_ATTACK_ACTION_MAP.put(AttackActionType.TOOL, hand -> new ToolAction());
+        ITEM_ATTACK_ACTION_MAP.put(AttackActionType.FISTS, hand -> new PunchingAction());
+        ITEM_ATTACK_ACTION_MAP.put(AttackActionType.SWORD, hand -> new SwordAction());
 
         for (UseActionType type : UseActionType.values())
         {
@@ -166,7 +167,7 @@ public class BipedActionController
             Item activeItem
     ) {
         final LivingEntity entity = data.getEntity();
-        final HumanoidArm offHand = primaryHand == HumanoidArm.RIGHT ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
+        final HumanoidArm offHand = primaryHand.getOpposite();
         final HumanoidModel.ArmPose armPoseMain = getAction(entity, heldItemMainhand, InteractionHand.MAIN_HAND);
         final HumanoidModel.ArmPose armPoseOff = getAction(entity, heldItemOffhand, InteractionHand.OFF_HAND);
         final HumanoidArm activeHandSide = entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? primaryHand : offHand;
@@ -178,8 +179,8 @@ public class BipedActionController
 
             if (useActionType != null)
             {
-                ItemActionFactory<AnimationBit<BipedEntityData<?>>> factory = ITEM_USE_ACTION_MAP.get(useActionType);
-                this.actionBit = factory.create(activeHandSide);
+                Function<HumanoidArm, AnimationBit<BipedEntityData<?>>> factory = ITEM_USE_ACTION_MAP.get(useActionType);
+                this.actionBit = factory.apply(activeHandSide);
                 this.layerAction.playOrContinueBit(this.actionBit, data);
             }
             else
@@ -201,17 +202,8 @@ public class BipedActionController
 
             if (this.currentUseActionType == null)
             {
-                ItemActionFactory<AnimationBit<BipedEntityData<?>>> factory = ITEM_ATTACK_ACTION_MAP.get(attackActionType);
-                if (factory == null)
-                {
-                    this.actionBit = null;
-                    this.layerAction.clearAnimation();
-                }
-                else
-                {
-                    this.actionBit = factory.create(primaryHand);
-                    this.layerAction.playOrContinueBit(this.actionBit, data);
-                }
+                this.actionBit = ITEM_ATTACK_ACTION_MAP.get(attackActionType).apply(primaryHand);
+                this.layerAction.playOrContinueBit(this.actionBit, data);
             }
         }
 

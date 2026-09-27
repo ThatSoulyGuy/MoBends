@@ -1,7 +1,5 @@
 package goblinbob.mobends.lib.animation.keyframe;
 
-import goblinbob.mobends.lib.util.SerialHelper;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -22,7 +20,9 @@ public class BinaryAnimationLoader
     {
         DataInputStream dataInputStream = new DataInputStream(stream);
 
-        String header = SerialHelper.readChar(dataInputStream, HEADER.length());
+        byte[] headerBytes = new byte[HEADER.length()];
+        dataInputStream.readFully(headerBytes);
+        String header = new String(headerBytes, StandardCharsets.UTF_8);
         if (!header.equals(HEADER))
         {
             throw new IOException("File doesn't start with the header.");
@@ -31,7 +31,7 @@ public class BinaryAnimationLoader
         KeyframeAnimation animation = new KeyframeAnimation();
         animation.bones = new HashMap<>();
 
-        int version = dataInputStream.readInt();
+        dataInputStream.readInt();
         int amountOfKeyframes = dataInputStream.readInt();
         int amountOfBones = dataInputStream.readInt();
 

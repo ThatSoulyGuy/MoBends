@@ -1,7 +1,7 @@
 package goblinbob.mobends.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import goblinbob.mobends.neoforge.mixin.MixinBridge;
+import goblinbob.mobends.core.client.MixinBridge;
 import net.minecraft.client.model.geom.ModelPart;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

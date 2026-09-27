@@ -105,11 +105,6 @@ public class CoreClientConfig
         save();
     }
 
-    public boolean isEntityEnabled(String entity)
-    {
-        return data.enabledEntities.getOrDefault(entity, true);
-    }
-
     public void setEntityEnabled(String entity, boolean enabled)
     {
         data.enabledEntities.put(entity, enabled);
@@ -118,7 +113,7 @@ public class CoreClientConfig
 
     public boolean isEntityAnimated(String entity)
     {
-        return isEntityEnabled(entity);
+        return data.enabledEntities.getOrDefault(entity, true);
     }
 
 
@@ -127,53 +122,14 @@ public class CoreClientConfig
         return data.vanillaArmorItems.getOrDefault(itemId, false);
     }
 
-    public void setArmorKeptVanilla(String itemId, boolean keepVanilla)
-    {
-        if (keepVanilla)
-        {
-            data.vanillaArmorItems.put(itemId, true);
-        }
-        else
-        {
-            data.vanillaArmorItems.remove(itemId);
-        }
-        save();
-    }
-
     public String getItemUseAction(String itemId)
     {
         return data.itemUseActions.get(itemId);
     }
 
-    public void setItemUseAction(String itemId, String action)
-    {
-        if (action == null)
-        {
-            data.itemUseActions.remove(itemId);
-        }
-        else
-        {
-            data.itemUseActions.put(itemId, action);
-        }
-        save();
-    }
-
     public String getItemAttackAction(String itemId)
     {
         return data.itemAttackActions.get(itemId);
-    }
-
-    public void setItemAttackAction(String itemId, String action)
-    {
-        if (action == null)
-        {
-            data.itemAttackActions.remove(itemId);
-        }
-        else
-        {
-            data.itemAttackActions.put(itemId, action);
-        }
-        save();
     }
 
     public List<String> getCustomWeapons()

@@ -43,8 +43,7 @@ public class SpiderController implements IAnimationController<SpiderData>
 				{
 					this.layerBase.playOrContinueBit(bitJump, spiderData);
 
-					if (resetAfterJumped)
-						resetAfterJumped = false;
+					resetAfterJumped = false;
 				}
 				else
 				{
@@ -88,7 +87,7 @@ public class SpiderController implements IAnimationController<SpiderData>
 			c = maxStretch;
 		}
 
-		final double alpha = c > maxStretch ? 0 : Math.acos((c/2)/limbSegmentLength);
+		final double alpha = Math.acos((c/2)/limbSegmentLength);
 		final double beta = Math.atan2(stretchDistance, -groundLevel);
 
 		double lowerAngle = Math.max(-2.3, -2 * alpha);

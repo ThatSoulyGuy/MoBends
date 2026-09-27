@@ -23,7 +23,7 @@ public final class PartCapture
 
     public final float minX, minY, minZ, maxX, maxY, maxZ;
 
-    public final float baseMinX, baseMinY, baseMinZ, baseMaxX, baseMaxY, baseMaxZ;
+    public final float baseMinY, baseMinZ, baseMaxY, baseMaxZ;
 
     public final int cubeCount;
 
@@ -65,32 +65,28 @@ public final class PartCapture
         this.maxY = highY * PIXELS;
         this.maxZ = highZ * PIXELS;
 
-        float baseLowX = this.minX, baseLowY = this.minY, baseLowZ = this.minZ;
-        float baseHighX = this.maxX, baseHighY = this.maxY, baseHighZ = this.maxZ;
+        float baseLowY = this.minY, baseLowZ = this.minZ;
+        float baseHighY = this.maxY, baseHighZ = this.maxZ;
 
         if (cubeCount > 1)
         {
-            baseLowX = baseLowY = baseLowZ = Float.MAX_VALUE;
-            baseHighX = baseHighY = baseHighZ = -Float.MAX_VALUE;
+            baseLowY = baseLowZ = Float.MAX_VALUE;
+            baseHighY = baseHighZ = -Float.MAX_VALUE;
 
             for (int i = 0; i < 6; ++i)
             {
                 for (CapturedVertex vertex : quads.get(i))
                 {
-                    baseLowX = Math.min(baseLowX, vertex.x * PIXELS);
                     baseLowY = Math.min(baseLowY, vertex.y * PIXELS);
                     baseLowZ = Math.min(baseLowZ, vertex.z * PIXELS);
-                    baseHighX = Math.max(baseHighX, vertex.x * PIXELS);
                     baseHighY = Math.max(baseHighY, vertex.y * PIXELS);
                     baseHighZ = Math.max(baseHighZ, vertex.z * PIXELS);
                 }
             }
         }
 
-        this.baseMinX = baseLowX;
         this.baseMinY = baseLowY;
         this.baseMinZ = baseLowZ;
-        this.baseMaxX = baseHighX;
         this.baseMaxY = baseHighY;
         this.baseMaxZ = baseHighZ;
 

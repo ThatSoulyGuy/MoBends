@@ -7,20 +7,12 @@ public class KumoContext implements IKumoContext
 
     public IEntityAnimationData entityData;
 
-    public ILayerState layerState;
-
     public INodeState currentNode;
 
     @Override
     public IEntityAnimationData getEntityData()
     {
         return entityData;
-    }
-
-    @Override
-    public ILayerState getLayerState()
-    {
-        return layerState;
     }
 
     @Override

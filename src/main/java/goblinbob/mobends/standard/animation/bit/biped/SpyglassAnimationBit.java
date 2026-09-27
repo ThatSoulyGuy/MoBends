@@ -43,11 +43,7 @@ public class SpyglassAnimationBit extends AnimationBit<BipedEntityData<?>>
         final ModelPartTransform mainArm = rightHanded ? data.rightArm : data.leftArm;
         final ModelPartTransform mainForeArm = rightHanded ? data.rightForeArm : data.leftForeArm;
 
-        if (bringUpAnimation < 1F)
-        {
-            bringUpAnimation += DataUpdateHandler.ticksPerFrame * BRING_UP_SPEED;
-            bringUpAnimation = Math.min(bringUpAnimation, 1F);
-        }
+        bringUpAnimation = Math.min(bringUpAnimation + DataUpdateHandler.ticksPerFrame * BRING_UP_SPEED, 1F);
 
         final float crouchOffset = living != null && living.isCrouching() ? CROUCH_PITCH_OFFSET : 0F;
         final float armPitch = Mth.clamp(

@@ -9,6 +9,8 @@ import goblinbob.mobends.core.client.model.BoxSide;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.lib.math.Quaternion;
+import goblinbob.mobends.lib.math.QuaternionUtils;
+import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.client.model.adaptive.AdaptiveHumanoidGeometry;
 import goblinbob.mobends.standard.client.model.adaptive.HumanoidLayout;
@@ -23,7 +25,6 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
@@ -117,31 +118,13 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     protected float babyHeadScale = 1.0F;
 
-    protected ModelPart vanillaBody;
-    protected ModelPart vanillaHead;
-    protected ModelPart vanillaHat;
-    protected ModelPart vanillaLeftArm;
-    protected ModelPart vanillaRightArm;
-    protected ModelPart vanillaLeftLeg;
-    protected ModelPart vanillaRightLeg;
-
-    private VanillaPartState vanillaBodyState;
-    private VanillaPartState vanillaHeadState;
-    private VanillaPartState vanillaHatState;
-    private VanillaPartState vanillaLeftArmState;
-    private VanillaPartState vanillaRightArmState;
-    private VanillaPartState vanillaLeftLegState;
-    private VanillaPartState vanillaRightLegState;
+    private VanillaRestState vanillaRest;
 
     @SuppressWarnings("rawtypes")
     protected LayerCustomBipedArmor layerArmor;
     protected RenderLayer<E, M> layerHeldItem;
     protected final java.util.Map<Integer, RenderLayer<E, M>> originalLayers = new java.util.HashMap<>();
     private java.util.Map<Integer, RenderLayer<E, M>> suspendedLayers;
-    @SuppressWarnings("rawtypes")
-    protected CustomHeadLayer layerCustomHead;
-    @SuppressWarnings("rawtypes")
-    protected CustomHeadLayer layerCustomHeadVanilla;
 
     public BipedMutator(IEntityDataFactory<E> dataFactory)
     {
@@ -160,22 +143,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (view == null)
             return;
 
-        this.vanillaBody = view.body;
-        this.vanillaHead = view.head;
-        this.vanillaHat = view.hat;
-        this.vanillaLeftArm = view.leftArm;
-        this.vanillaRightArm = view.rightArm;
-        this.vanillaLeftLeg = view.leftLeg;
-        this.vanillaRightLeg = view.rightLeg;
-
-        final VanillaRestState rest = restStateOf(view);
-        this.vanillaBodyState = rest.body;
-        this.vanillaHeadState = rest.head;
-        this.vanillaHatState = rest.hat;
-        this.vanillaLeftArmState = rest.leftArm;
-        this.vanillaRightArmState = rest.rightArm;
-        this.vanillaLeftLegState = rest.leftLeg;
-        this.vanillaRightLegState = rest.rightLeg;
+        this.vanillaRest = restStateOf(view);
     }
 
     private static VanillaRestState restStateOf(HumanoidModel<?> view)
@@ -209,13 +177,16 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (view == null)
             return;
 
-        VanillaPartState.restore(this.vanillaBodyState, view.body);
-        VanillaPartState.restore(this.vanillaHeadState, view.head);
-        VanillaPartState.restore(this.vanillaHatState, view.hat);
-        VanillaPartState.restore(this.vanillaLeftArmState, view.leftArm);
-        VanillaPartState.restore(this.vanillaRightArmState, view.rightArm);
-        VanillaPartState.restore(this.vanillaLeftLegState, view.leftLeg);
-        VanillaPartState.restore(this.vanillaRightLegState, view.rightLeg);
+        if (this.vanillaRest != null)
+        {
+            VanillaPartState.restore(this.vanillaRest.body, view.body);
+            VanillaPartState.restore(this.vanillaRest.head, view.head);
+            VanillaPartState.restore(this.vanillaRest.hat, view.hat);
+            VanillaPartState.restore(this.vanillaRest.leftArm, view.leftArm);
+            VanillaPartState.restore(this.vanillaRest.rightArm, view.rightArm);
+            VanillaPartState.restore(this.vanillaRest.leftLeg, view.leftLeg);
+            VanillaPartState.restore(this.vanillaRest.rightLeg, view.rightLeg);
+        }
 
         this.vanillaPositionsStored = false;
     }
@@ -234,14 +205,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
             try
             {
-                net.minecraft.client.model.geom.ModelLayerLocation innerLocation =
-                    net.minecraft.client.model.geom.ModelLayers.PLAYER_INNER_ARMOR;
-                net.minecraft.client.model.geom.ModelLayerLocation outerLocation =
-                    net.minecraft.client.model.geom.ModelLayers.PLAYER_OUTER_ARMOR;
-
                 net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-                HumanoidModel<?> innerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(innerLocation));
-                HumanoidModel<?> outerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(outerLocation));
+                HumanoidModel<?> innerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(ModelLayers.PLAYER_INNER_ARMOR));
+                HumanoidModel<?> outerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR));
 
                 this.layerArmor.setArmorModels(innerModel, outerModel);
             }
@@ -259,11 +225,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             this.layerHeldItem = createHeldItemLayer(renderer);
             this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerHeldItem);
-        }
-        else if (layer instanceof CustomHeadLayer)
-        {
-            if (isModelVanilla)
-                this.layerCustomHeadVanilla = (CustomHeadLayer) layer;
         }
     }
 
@@ -326,12 +287,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (original != null && layer != original)
         {
             layerRenderers.set(index, original);
-            return;
-        }
-
-        if (layer == this.layerCustomHead && this.layerCustomHeadVanilla != null)
-        {
-            layerRenderers.set(index, this.layerCustomHeadVanilla);
         }
     }
 
@@ -347,15 +302,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setTextureSize(64, 64);
         headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
         head.addChild(headwear);
-    }
-
-    protected void createOuterHeadParts(float scaleFactor, float outerOffset)
-    {
-        outerHead = new BendsModelPart(0, 0)
-                .setTextureSize(64, 64)
-                .setPosition(0.0F, -12.0F, 0.0F);
-        outerHead.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + outerOffset);
-        outerBody.addChild(outerHead);
     }
 
     protected boolean usesAdaptiveGeometry()
@@ -436,11 +382,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     {
     }
 
-    protected AdaptiveHumanoidGeometry.CaptureMode adaptiveHeadCaptureMode()
-    {
-        return AdaptiveHumanoidGeometry.CaptureMode.OWN_CUBES;
-    }
-
     protected AdaptiveHumanoidGeometry.CaptureMode adaptiveLimbCaptureMode()
     {
         return AdaptiveHumanoidGeometry.CaptureMode.OWN_CUBES;
@@ -448,6 +389,71 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     protected void createAdaptiveWearParts(AdaptiveHumanoidGeometry geometry)
     {
+    }
+
+    protected void attachAdaptiveWear(AdaptiveHumanoidGeometry geometry)
+    {
+        attachWear(body, geometry.bodyWearMesh);
+        attachWear(leftArm, geometry.leftArmWearMesh);
+        attachWear(rightArm, geometry.rightArmWearMesh);
+        attachWear(leftForeArm, geometry.leftForeArmWearMesh);
+        attachWear(rightForeArm, geometry.rightForeArmWearMesh);
+        attachWear(leftLeg, geometry.leftLegWearMesh);
+        attachWear(rightLeg, geometry.rightLegWearMesh);
+        attachWear(leftForeLeg, geometry.leftForeLegWearMesh);
+        attachWear(rightForeLeg, geometry.rightForeLegWearMesh);
+    }
+
+    protected static BendsModelPart attachWear(BendsModelPart parent, BendsMesh mesh)
+    {
+        if (parent == null || mesh == null)
+        {
+            return null;
+        }
+
+        final BendsModelPart wear = new BendsModelPart().addMesh(mesh);
+        parent.addChild(wear);
+        return wear;
+    }
+
+    protected static void alignPlayerWear(HumanoidModel<?> model)
+    {
+        if (model instanceof PlayerModel<?> playerModel)
+        {
+            playerModel.leftSleeve.copyFrom(model.leftArm);
+            playerModel.rightSleeve.copyFrom(model.rightArm);
+            playerModel.leftPants.copyFrom(model.leftLeg);
+            playerModel.rightPants.copyFrom(model.rightLeg);
+            playerModel.jacket.copyFrom(model.body);
+        }
+    }
+
+    protected static AdaptiveHumanoidGeometry.WearParts playerWearPartsOf(HumanoidModel<?> model)
+    {
+        if (!(model instanceof PlayerModel<?> playerModel))
+        {
+            return null;
+        }
+
+        return new AdaptiveHumanoidGeometry.WearParts(playerModel.jacket,
+                playerModel.leftSleeve, playerModel.rightSleeve,
+                playerModel.leftPants, playerModel.rightPants);
+    }
+
+    protected static HumanoidModel<?> humanoidView(ModelPart head, ModelPart body,
+                                                   ModelPart rightArm, ModelPart leftArm,
+                                                   ModelPart rightLeg, ModelPart leftLeg)
+    {
+        final Map<String, ModelPart> parts = new java.util.HashMap<>();
+        parts.put("head", head);
+        parts.put("hat", head.getChild("hat"));
+        parts.put("body", body);
+        parts.put("right_arm", rightArm);
+        parts.put("left_arm", leftArm);
+        parts.put("right_leg", rightLeg);
+        parts.put("left_leg", leftLeg);
+
+        return new HumanoidModel<LivingEntity>(new ModelPart(Collections.emptyList(), parts));
     }
 
     protected boolean tryCreateAdaptiveParts(M original, HumanoidLayout... baselines)
@@ -552,7 +558,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
 
         return AdaptiveHumanoidGeometry.build(view,
-                adaptiveHeadCaptureMode(), adaptiveLimbCaptureMode(), null,
+                AdaptiveHumanoidGeometry.CaptureMode.OWN_CUBES, adaptiveLimbCaptureMode(), null,
                 adaptiveWearParts(original), usesAdaptiveSkirt());
     }
 
@@ -572,8 +578,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             return;
         }
 
-        final float[] bodyAnchor = {body.position.x, body.position.y, body.position.z};
-        final float[] headAnchor = childAnchor(bodyAnchor, head);
+        final float[] bodyAnchor = absoluteOf(null, body);
+        final float[] headAnchor = absoluteOf(bodyAnchor, head);
 
         if (limbSubtreesBaked())
         {
@@ -592,10 +598,10 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             attach(original.hat, original.head, head, headAnchor);
             attach(original.body, original.body, body, bodyAnchor);
-            attach(original.leftArm, original.leftArm, leftArm, childAnchor(bodyAnchor, leftArm));
-            attach(original.rightArm, original.rightArm, rightArm, childAnchor(bodyAnchor, rightArm));
-            attach(original.leftLeg, original.leftLeg, leftLeg, rootAnchor(leftLeg));
-            attach(original.rightLeg, original.rightLeg, rightLeg, rootAnchor(rightLeg));
+            attach(original.leftArm, original.leftArm, leftArm, absoluteOf(bodyAnchor, leftArm));
+            attach(original.rightArm, original.rightArm, rightArm, absoluteOf(bodyAnchor, rightArm));
+            attach(original.leftLeg, original.leftLeg, leftLeg, absoluteOf(null, leftLeg));
+            attach(original.rightLeg, original.rightLeg, rightLeg, absoluteOf(null, rightLeg));
         }
 
         if (headwear != null && adaptiveGeometry == null
@@ -622,28 +628,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         return adaptiveGeometry != null && adaptiveGeometry.limbSubtreesBaked;
     }
 
-    protected static float[] childAnchor(float[] parentAnchor, BendsModelPart bone)
-    {
-        if (bone == null)
-        {
-            return null;
-        }
-        return new float[] {
-                parentAnchor[0] + bone.position.x,
-                parentAnchor[1] + bone.position.y,
-                parentAnchor[2] + bone.position.z
-        };
-    }
-
-    protected static float[] rootAnchor(BendsModelPart bone)
-    {
-        if (bone == null)
-        {
-            return null;
-        }
-        return new float[] {bone.position.x, bone.position.y, bone.position.z};
-    }
-
     protected void attach(ModelPart source, ModelPart anchorSource, BendsModelPart bone, float[] boneAnchor)
     {
         if (source == null || anchorSource == null || bone == null || boneAnchor == null)
@@ -662,7 +646,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 anchorSource.x - boneAnchor[0],
                 anchorSource.y - boneAnchor[1],
                 anchorSource.z - boneAnchor[2],
-                drawOwnCubes));
+                drawOwnCubes, false));
     }
 
     @Override
@@ -770,7 +754,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .setPosition(0.0F, 12.0F, 0.0F);
         outerBody.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor + outerOffset);
 
-        createOuterHeadParts(scaleFactor, outerOffset);
+        outerHead = new BendsModelPart(0, 0)
+                .setTextureSize(64, 64)
+                .setPosition(0.0F, -12.0F, 0.0F);
+        outerHead.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + outerOffset);
+        outerBody.addChild(outerHead);
 
         outerLeftArm = new BendsModelPart(40, 16)
                 .setTextureSize(64, 64)
@@ -966,11 +954,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         adaptivePivotsResolved = true;
     }
 
-    public boolean isOverlayModel(Object model)
-    {
-        return isOverlayModel(model, null);
-    }
-
     public boolean isOverlayModel(Object model, Object renderedParts)
     {
         if (!(model instanceof HumanoidModel<?>))
@@ -1052,9 +1035,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 model.leftArm, model.rightArm, model.leftLeg, model.rightLeg
         };
 
-        final VanillaPartState[] hostRest = {
-                vanillaHeadState, vanillaHatState, vanillaBodyState,
-                vanillaLeftArmState, vanillaRightArmState, vanillaLeftLegState, vanillaRightLegState
+        final VanillaPartState[] hostRest = vanillaRest == null ? new VanillaPartState[parts.length] : new VanillaPartState[] {
+                vanillaRest.head, vanillaRest.hat, vanillaRest.body,
+                vanillaRest.leftArm, vanillaRest.rightArm, vanillaRest.leftLeg, vanillaRest.rightLeg
         };
 
         final boolean restorePose = hasBakedRestPose(parts);
@@ -1211,23 +1194,28 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         goblinbob.mobends.compat.EssentialCompat.applyEmotePose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
-        goblinbob.mobends.compat.ParCoolCompat.applyPose(
-                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+        goblinbob.mobends.compat.ModCompatManager.adoptPlayerPoseIf(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel(),
+                goblinbob.mobends.compat.ParCoolCompat::isAnimating);
 
-        goblinbob.mobends.compat.MonsterExpansionCompat.applyPose(
-                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+        goblinbob.mobends.compat.ModCompatManager.adoptPlayerPoseIf(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel(),
+                goblinbob.mobends.compat.MonsterExpansionCompat::isAnimating);
 
-        goblinbob.mobends.compat.CrawlCompat.applyPose(
-                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+        goblinbob.mobends.compat.ModCompatManager.adoptPlayerPoseIf(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel(),
+                goblinbob.mobends.compat.CrawlCompat::isPosingModel);
 
-        goblinbob.mobends.compat.BossesRiseCompat.applyPose(
-                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+        goblinbob.mobends.compat.ModCompatManager.adoptPlayerPoseIf(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel(),
+                goblinbob.mobends.compat.BossesRiseCompat::isAnimating);
 
         goblinbob.mobends.compat.CustomNpcsCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
-        goblinbob.mobends.compat.IWannaSkateCompat.applyPose(
-                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+        goblinbob.mobends.compat.ModCompatManager.adoptPlayerPoseIf(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel(),
+                goblinbob.mobends.compat.IWannaSkateCompat::isPosingModel);
 
         goblinbob.mobends.compat.LegendsModCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
@@ -1462,7 +1450,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         poseStack.popPose();
     }
 
-    private static float[] absoluteOf(float[] parentAbsolute, BendsModelPart bone)
+    protected static float[] absoluteOf(float[] parentAbsolute, BendsModelPart bone)
     {
         if (bone == null)
         {
@@ -1623,11 +1611,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                                 attached.offsetY / 16.0F,
                                 attached.offsetZ / 16.0F);
 
-            final float x = part.x, y = part.y, z = part.z;
-            final float xRot = part.xRot, yRot = part.yRot, zRot = part.zRot;
-            final float xScale = part.xScale, yScale = part.yScale, zScale = part.zScale;
-            final boolean skipDraw = part.skipDraw;
-            final boolean visible = part.visible;
+            final VanillaPartState saved = new VanillaPartState(part);
 
             part.x = 0.0F;
             part.y = 0.0F;
@@ -1643,17 +1627,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
             part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
 
-            part.x = x;
-            part.y = y;
-            part.z = z;
-            part.xRot = xRot;
-            part.yRot = yRot;
-            part.zRot = zRot;
-            part.xScale = xScale;
-            part.yScale = yScale;
-            part.zScale = zScale;
-            part.skipDraw = skipDraw;
-            part.visible = visible;
+            VanillaPartState.restore(saved, part);
 
             poseStack.popPose();
         }
@@ -1905,7 +1879,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         float bodyPivotY = body.globalOffset.y + (body.position.y + body.offset.y) * body.offsetScale;
         float bodyPivotZ = body.globalOffset.z + (body.position.z + body.offset.z) * body.offsetScale;
 
-        float[] bodyNeck = rotateVectorByQuaternion(bodyRotation, 0.0F, -12.0F * body.scale.y, 0.0F, scratchVec);
+        float[] bodyNeck = QuaternionUtils.rotateVector(bodyRotation, 0.0F, -12.0F * body.scale.y, 0.0F, scratchVec);
         model.body.x = bodyPivotX + bodyNeck[0];
         model.body.y = bodyPivotY + bodyNeck[1];
         model.body.z = bodyPivotZ + bodyNeck[2];
@@ -1945,14 +1919,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             model.hat.zRot = model.head.zRot;
         }
 
-        if (model instanceof PlayerModel<?> playerModel)
-        {
-            playerModel.leftSleeve.copyFrom(model.leftArm);
-            playerModel.rightSleeve.copyFrom(model.rightArm);
-            playerModel.leftPants.copyFrom(model.leftLeg);
-            playerModel.rightPants.copyFrom(model.rightLeg);
-            playerModel.jacket.copyFrom(model.body);
-        }
+        alignPlayerWear(model);
 
         onPosesSyncedToVanillaModel(model);
     }
@@ -1989,7 +1956,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         readModelRotation(model.body, adoptedBodyRotation);
 
-        float[] neck = rotateVectorByQuaternion(adoptedBodyRotation, 0.0F, -12.0F * body.scale.y, 0.0F, scratchVec);
+        float[] neck = QuaternionUtils.rotateVector(adoptedBodyRotation, 0.0F, -12.0F * body.scale.y, 0.0F, scratchVec);
         final float bodyPivotX = model.body.x - neck[0];
         final float bodyPivotY = model.body.y - neck[1];
         final float bodyPivotZ = model.body.z - neck[2];
@@ -2090,11 +2057,11 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         if (isHiddenByDisplacement(modelPart)) return;
 
-        float[] local = rotateVectorByQuaternion(adoptedParentInverse,
+        float[] local = QuaternionUtils.rotateVector(adoptedParentInverse,
                 modelPart.x - bodyPivotX, modelPart.y - bodyPivotY, modelPart.z - bodyPivotZ, scratchPivot);
-        local[0] = divideByScale(local[0], body.scale.x);
-        local[1] = divideByScale(local[1], body.scale.y);
-        local[2] = divideByScale(local[2], body.scale.z);
+        local[0] = GUtil.divideOr(local[0], body.scale.x);
+        local[1] = GUtil.divideOr(local[1], body.scale.y);
+        local[2] = GUtil.divideOr(local[2], body.scale.z);
 
         solveOffset(child, local[0] - child.globalOffset.x,
                 local[1] - child.globalOffset.y,
@@ -2141,11 +2108,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             dataPart.rotation.identity();
             dataPart.offset.set(0.0F, 0.0F, 0.0F);
         }
-    }
-
-    private static float divideByScale(float value, float scale)
-    {
-        return scale == 0.0F ? value : value / scale;
     }
 
     private static boolean isHiddenByDisplacement(ModelPart modelPart)
@@ -2245,7 +2207,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         float lx = (child.globalOffset.x + (child.position.x + child.offset.x) * child.offsetScale) * parentScale.x;
         float ly = (child.globalOffset.y + (child.position.y + child.offset.y) * child.offsetScale) * parentScale.y;
         float lz = (child.globalOffset.z + (child.position.z + child.offset.z) * child.offsetScale) * parentScale.z;
-        float[] rotated = rotateVectorByQuaternion(parentRotation, lx, ly, lz, scratchVec);
+        float[] rotated = QuaternionUtils.rotateVector(parentRotation, lx, ly, lz, scratchVec);
         outPivot[0] = parentPivotX + rotated[0];
         outPivot[1] = parentPivotY + rotated[1];
         outPivot[2] = parentPivotZ + rotated[2];
@@ -2262,22 +2224,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         modelPart.yRot = euler[1];
         modelPart.zRot = euler[2];
         modelPart.visible = visible;
-    }
-
-    private static float[] rotateVectorByQuaternion(Quaternion q, float x, float y, float z)
-    {
-        return rotateVectorByQuaternion(q, x, y, z, new float[3]);
-    }
-
-    private static float[] rotateVectorByQuaternion(Quaternion q, float x, float y, float z, float[] dest)
-    {
-        float tx = 2.0F * (q.y * z - q.z * y);
-        float ty = 2.0F * (q.z * x - q.x * z);
-        float tz = 2.0F * (q.x * y - q.y * x);
-        dest[0] = x + q.w * tx + (q.y * tz - q.z * ty);
-        dest[1] = y + q.w * ty + (q.z * tx - q.x * tz);
-        dest[2] = z + q.w * tz + (q.x * ty - q.y * tx);
-        return dest;
     }
 
     private static final float[] ZERO_EULER = {0, 0, 0};
@@ -2330,13 +2276,6 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         private final float offsetX, offsetY, offsetZ;
         private final boolean drawOwnCubes;
         private final boolean useOwnTransform;
-
-        private AttachedPart(ModelPart part, BendsModelPart bone,
-                             float offsetX, float offsetY, float offsetZ,
-                             boolean drawOwnCubes)
-        {
-            this(part, bone, offsetX, offsetY, offsetZ, drawOwnCubes, false);
-        }
 
         private AttachedPart(ModelPart part, BendsModelPart bone,
                              float offsetX, float offsetY, float offsetZ,

@@ -6,12 +6,10 @@ import goblinbob.mobends.core.data.EntityData;
 public class HardAnimationLayer<T extends EntityData<?>> extends AnimationLayer<T>
 {
 	protected AnimationBit<T> performedBit;
-	protected AnimationBit<T> previousBit;
 
 	@SuppressWarnings("unchecked")
 	public void playBit(AnimationBit<? extends T> bit, T entityData)
 	{
-		this.previousBit = this.performedBit;
 		this.performedBit = (AnimationBit<T>) bit;
 		this.performedBit.setupForPlay(this, entityData);
 	}
@@ -42,10 +40,5 @@ public class HardAnimationLayer<T extends EntityData<?>> extends AnimationLayer<
 	public void clearAnimation()
 	{
 		this.performedBit = null;
-	}
-
-	public AnimationBit<T> getPerformedBit()
-	{
-		return this.performedBit;
 	}
 }

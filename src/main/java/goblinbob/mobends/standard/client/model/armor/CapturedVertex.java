@@ -30,4 +30,9 @@ public class CapturedVertex
         this.normalY = normalY;
         this.normalZ = normalZ;
     }
+
+    public CapturedVertex at(float x, float y, float z)
+    {
+        return new CapturedVertex(x, y, z, red, green, blue, alpha, u, v, overlayUV, lightmapUV, normalX, normalY, normalZ);
+    }
 }

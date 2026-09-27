@@ -1,7 +1,6 @@
 package goblinbob.mobends.core.animation.keyframe;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 import goblinbob.mobends.core.util.ResourceLocationFactory;
 import goblinbob.mobends.lib.animation.keyframe.BinaryAnimationLoader;
 import goblinbob.mobends.lib.animation.keyframe.KeyframeAnimation;
@@ -17,32 +16,11 @@ import java.util.Optional;
 public class AnimationLoader
 {
 
-    private static Map<String, KeyframeAnimation> internalRegistry = new HashMap<>();
-
     private static Map<ResourceLocation, KeyframeAnimation> cachedAnimations = new HashMap<>();
 
     public static void clearCache()
     {
-        internalRegistry.clear();
         cachedAnimations.clear();
-    }
-
-    public static KeyframeAnimation loadFromFile(File file) throws IOException
-    {
-        if (file.getName().endsWith(".json"))
-        {
-            JsonReader fileReader = new JsonReader(new FileReader(file));
-            return (new Gson()).fromJson(fileReader, KeyframeAnimation.class);
-        }
-        else
-        {
-            return BinaryAnimationLoader.loadFromBinaryInputStream(new BufferedInputStream(new FileInputStream(file)));
-        }
-    }
-
-    public static KeyframeAnimation loadFromString(String animationJson)
-    {
-        return (new Gson()).fromJson(animationJson, KeyframeAnimation.class);
     }
 
     public static KeyframeAnimation loadFromResource(ResourceLocation location) throws IOException
@@ -89,7 +67,7 @@ public class AnimationLoader
             return loadFromResource(ResourceLocationFactory.create(domain, path));
         }
 
-        return internalRegistry.get(key);
+        return null;
     }
 
 }

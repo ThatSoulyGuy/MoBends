@@ -38,8 +38,6 @@ public class VanillaToggle extends VanillaView
 
     public void setChecked(boolean checked) { this.checked = checked; }
 
-    public boolean isChecked() { return checked; }
-
     public void toggle()
     {
         setChecked(!checked);
@@ -124,8 +122,8 @@ public class VanillaToggle extends VanillaView
 
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         var font = Minecraft.getInstance().font;
         int contentW = toggleWidth + paddingLeft + paddingRight + 4;

@@ -7,14 +7,7 @@
   "mixins": [
   ],
   "client": [
-    "VillagerModelMcaMixin",
-    "VillagerModelMcaRelocatedMixin",
-    "PlayerModelMcaMixin",
-    "PlayerModelMcaRelocatedMixin",
-    "VillagerModelMcaRebornMixin",
-    "VillagerModelMcaRebornRelocatedMixin",
-    "PlayerModelMcaRebornMixin",
-    "PlayerModelMcaRebornRelocatedMixin"
+    "McaModelMixin"
   ],
   "injectors": {
     "defaultRequire": 0

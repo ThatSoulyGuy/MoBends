@@ -3,117 +3,67 @@ package goblinbob.mobends.forge;
 import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ForgeConfig
 {
     public static final ForgeConfigSpec SPEC;
 
-    public static final ForgeConfigSpec.BooleanValue DISABLE_SPIN_SWING;
-
-    public static final ForgeConfigSpec.BooleanValue MOBS_CAN_SPIN;
-
-    public static final ForgeConfigSpec.BooleanValue DISABLE_MOVEMENT_IN_GUI;
-
-    public static final ForgeConfigSpec.BooleanValue ARROW_TRAIL_FULL_BRIGHT;
-
-    public static final ForgeConfigSpec.BooleanValue SWORD_TRAIL_FULL_BRIGHT;
-
-    public static final ForgeConfigSpec.BooleanValue SHOW_SWORD_TRAIL;
-
-    public static final ForgeConfigSpec.BooleanValue SHOW_ARROW_TRAIL;
-
-    public static final ForgeConfigSpec.BooleanValue ARROW_TRAIL_POTION_COLOR;
-
-    public static final ForgeConfigSpec.BooleanValue SPECTRAL_ARROW_TRAIL_EFFECT;
-
-    public static final ForgeConfigSpec.BooleanValue TRIDENT_TRAIL;
-
-    public static final ForgeConfigSpec.BooleanValue BEND_ROBES_ONLY_WHEN_SITTING;
+    private static final Map<String, ForgeConfigSpec.BooleanValue> VALUES = new HashMap<>();
 
     static
     {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-        DISABLE_SPIN_SWING = builder
-                .comment("Disable spinning animation when swinging for players")
-                .define("disableSpinSwing", false);
-
-        MOBS_CAN_SPIN = builder
-                .comment("Allow mobs to do the spinning animation when swinging")
-                .define("mobsCanSpin", false);
-
-        DISABLE_MOVEMENT_IN_GUI = builder
-                .comment("Disables movement when inside a GUI.")
-                .define("disableMovementInGui", false);
-
-        ARROW_TRAIL_FULL_BRIGHT = builder
-                .comment("Arrow trail does not respect lighting conditions.")
-                .define("arrowTrailFullBright", false);
-
-        SWORD_TRAIL_FULL_BRIGHT = builder
-                .comment("Sword trail does not respect lighting conditions.")
-                .define("swordTrailFullBright", false);
-
-        SHOW_SWORD_TRAIL = builder
-                .comment("Show the trail when swords are swung")
-                .define("showSwordTrail", true);
-
-        SHOW_ARROW_TRAIL = builder
-                .comment("Show the trail when arrows are travelling")
-                .define("showArrowTrail", true);
-
-        ARROW_TRAIL_POTION_COLOR = builder
-                .comment("The color of an arrow trail will match the color of its potion effect.")
-                .define("arrowTrailPotionColor", true);
-
-        SPECTRAL_ARROW_TRAIL_EFFECT = builder
-                .comment("Enable the special golden trail effect for Spectral Arrows")
-                .define("spectralArrowTrailEffect", true);
-
-        TRIDENT_TRAIL = builder
-                .comment("Allow the Trident to have a trail")
-                .define("tridentTrail", true);
-
-        BEND_ROBES_ONLY_WHEN_SITTING = builder
-                .comment("Villager, witch, wandering trader and zombie villager robes only bend while sitting.")
-                .define("bendRobesOnlyWhenSitting", true);
+        define(builder, "disableSpinSwing", "Disable spinning animation when swinging for players", false);
+        define(builder, "mobsCanSpin", "Allow mobs to do the spinning animation when swinging", false);
+        define(builder, "disableMovementInGui", "Disables movement when inside a GUI.", false);
+        define(builder, "arrowTrailFullBright", "Arrow trail does not respect lighting conditions.", false);
+        define(builder, "swordTrailFullBright", "Sword trail does not respect lighting conditions.", false);
+        define(builder, "showSwordTrail", "Show the trail when swords are swung", true);
+        define(builder, "showArrowTrail", "Show the trail when arrows are travelling", true);
+        define(builder, "arrowTrailPotionColor", "The color of an arrow trail will match the color of its potion effect.", true);
+        define(builder, "spectralArrowTrailEffect", "Enable the special golden trail effect for Spectral Arrows", true);
+        define(builder, "tridentTrail", "Allow the Trident to have a trail", true);
+        define(builder, "bendRobesOnlyWhenSitting", "Villager, witch, wandering trader and zombie villager robes only bend while sitting.", true);
 
         SPEC = builder.build();
     }
 
+    private static void define(ForgeConfigSpec.Builder builder, String key, String comment, boolean defaultValue)
+    {
+        VALUES.put(key, builder.comment(comment).define(key, defaultValue));
+    }
+
+    private static boolean get(String key)
+    {
+        return VALUES.get(key).get();
+    }
+
     public static void set(String key, boolean value)
     {
-        switch (key)
-        {
-            case "disableSpinSwing": DISABLE_SPIN_SWING.set(value); break;
-            case "mobsCanSpin": MOBS_CAN_SPIN.set(value); break;
-            case "disableMovementInGui": DISABLE_MOVEMENT_IN_GUI.set(value); break;
-            case "arrowTrailFullBright": ARROW_TRAIL_FULL_BRIGHT.set(value); break;
-            case "swordTrailFullBright": SWORD_TRAIL_FULL_BRIGHT.set(value); break;
-            case "showSwordTrail": SHOW_SWORD_TRAIL.set(value); break;
-            case "showArrowTrail": SHOW_ARROW_TRAIL.set(value); break;
-            case "arrowTrailPotionColor": ARROW_TRAIL_POTION_COLOR.set(value); break;
-            case "spectralArrowTrailEffect": SPECTRAL_ARROW_TRAIL_EFFECT.set(value); break;
-            case "tridentTrail": TRIDENT_TRAIL.set(value); break;
-            case "bendRobesOnlyWhenSitting": BEND_ROBES_ONLY_WHEN_SITTING.set(value); break;
-            default: return;
-        }
+        ForgeConfigSpec.BooleanValue configValue = VALUES.get(key);
+        if (configValue == null)
+            return;
 
+        configValue.set(value);
         SPEC.save();
         sync();
     }
 
     public static void sync()
     {
-        ModConfig.performSpinAttack = !DISABLE_SPIN_SWING.get();
-        ModConfig.mobsCanSpin = MOBS_CAN_SPIN.get();
-        ModConfig.disableMovementInGui = DISABLE_MOVEMENT_IN_GUI.get();
-        ModConfig.arrowTrailFullBright = ARROW_TRAIL_FULL_BRIGHT.get();
-        ModConfig.swordTrailFullBright = SWORD_TRAIL_FULL_BRIGHT.get();
-        ModConfig.showSwordTrail = SHOW_SWORD_TRAIL.get();
-        ModConfig.showArrowTrails = SHOW_ARROW_TRAIL.get();
-        ModConfig.arrowTrailPotionColor = ARROW_TRAIL_POTION_COLOR.get();
-        ModConfig.spectralArrowTrailEffect = SPECTRAL_ARROW_TRAIL_EFFECT.get();
-        ModConfig.tridentTrail = TRIDENT_TRAIL.get();
-        ModConfig.bendRobesOnlyWhenSitting = BEND_ROBES_ONLY_WHEN_SITTING.get();
+        ModConfig.performSpinAttack = !get("disableSpinSwing");
+        ModConfig.mobsCanSpin = get("mobsCanSpin");
+        ModConfig.disableMovementInGui = get("disableMovementInGui");
+        ModConfig.arrowTrailFullBright = get("arrowTrailFullBright");
+        ModConfig.swordTrailFullBright = get("swordTrailFullBright");
+        ModConfig.showSwordTrail = get("showSwordTrail");
+        ModConfig.showArrowTrails = get("showArrowTrail");
+        ModConfig.arrowTrailPotionColor = get("arrowTrailPotionColor");
+        ModConfig.spectralArrowTrailEffect = get("spectralArrowTrailEffect");
+        ModConfig.tridentTrail = get("tridentTrail");
+        ModConfig.bendRobesOnlyWhenSitting = get("bendRobesOnlyWhenSitting");
     }
 }

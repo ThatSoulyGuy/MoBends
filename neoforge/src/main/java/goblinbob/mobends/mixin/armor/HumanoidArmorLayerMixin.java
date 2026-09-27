@@ -112,7 +112,6 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
                     entity,
                     slot,
                     armorStack,
-                    armorItem,
                     armorModel,
                     entityData,
                     texture

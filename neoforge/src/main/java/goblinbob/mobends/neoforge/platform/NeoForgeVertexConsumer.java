@@ -73,9 +73,4 @@ public class NeoForgeVertexConsumer implements IVertexConsumer
     {
         return consumer;
     }
-
-    public VertexConsumer getConsumer()
-    {
-        return consumer;
-    }
 }

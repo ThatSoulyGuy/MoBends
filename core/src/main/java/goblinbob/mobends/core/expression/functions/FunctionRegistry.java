@@ -6,7 +6,6 @@ import goblinbob.mobends.core.expression.ExpressionMath;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 public final class FunctionRegistry {
     private static final Map<String, ExpressionFunction> FUNCTIONS = new HashMap<>();
@@ -121,10 +120,6 @@ public final class FunctionRegistry {
 
     public static boolean hasFunction(String name) {
         return FUNCTIONS.containsKey(name.toLowerCase());
-    }
-
-    public static Set<String> getFunctionNames() {
-        return FUNCTIONS.keySet();
     }
 
     private static double fade(double t) {

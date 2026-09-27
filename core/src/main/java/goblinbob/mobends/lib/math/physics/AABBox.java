@@ -3,7 +3,7 @@ package goblinbob.mobends.lib.math.physics;
 import goblinbob.mobends.lib.math.vector.IVec3fRead;
 import goblinbob.mobends.lib.math.vector.Vec3fReadonly;
 
-public class AABBox implements IAABBox, ICollider
+public class AABBox implements IAABBox
 {
 
 	public final Vec3fReadonly min;
@@ -37,12 +37,6 @@ public class AABBox implements IAABBox, ICollider
 	public IVec3fRead getMax()
 	{
 		return this.max;
-	}
-
-	@Override
-	public RayHitInfo intersect(Ray ray)
-	{
-		return Physics.intersect(ray, this);
 	}
 
 }

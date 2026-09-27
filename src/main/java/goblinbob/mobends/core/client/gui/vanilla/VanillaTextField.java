@@ -19,7 +19,6 @@ public class VanillaTextField extends VanillaView
     @Nullable
     private EditBox editBox;
     private int maxLength = 256;
-    private boolean focused = false;
     private Runnable submitListener;
 
     private static final int KEY_ENTER = 257;
@@ -52,10 +51,6 @@ public class VanillaTextField extends VanillaView
                     textChangedListener.accept(newText);
                 }
             });
-            if (focused)
-            {
-                editBox.setFocused(true);
-            }
         }
     }
 
@@ -70,17 +65,6 @@ public class VanillaTextField extends VanillaView
 
     public String getText() { return text; }
 
-    public void setHint(String hint)
-    {
-        this.hint = hint;
-        if (editBox != null)
-        {
-            editBox.setHint(Component.literal(hint));
-        }
-    }
-
-    public String getHint() { return hint; }
-
     public void setTextColor(int color)
     {
         this.textColor = color;
@@ -89,8 +73,6 @@ public class VanillaTextField extends VanillaView
             editBox.setTextColor(color);
         }
     }
-
-    public void setHintTextColor(int color) {  }
 
     public void setTextSize(float sizeSp) {  }
 
@@ -104,32 +86,12 @@ public class VanillaTextField extends VanillaView
         this.submitListener = listener;
     }
 
-    public void setSingleLine(boolean singleLine) {  }
-
     public void setMaxLength(int maxLength)
     {
         this.maxLength = maxLength;
         if (editBox != null)
         {
             editBox.setMaxLength(maxLength);
-        }
-    }
-
-    public void requestFocus()
-    {
-        this.focused = true;
-        if (editBox != null)
-        {
-            editBox.setFocused(true);
-        }
-    }
-
-    public void clearFocus()
-    {
-        this.focused = false;
-        if (editBox != null)
-        {
-            editBox.setFocused(false);
         }
     }
 
@@ -178,12 +140,10 @@ public class VanillaTextField extends VanillaView
         {
             editBox.mouseClicked(mouseX, mouseY, button);
             editBox.setFocused(true);
-            this.focused = true;
             return true;
         }
 
         editBox.setFocused(false);
-        this.focused = false;
         return false;
     }
 
@@ -212,8 +172,8 @@ public class VanillaTextField extends VanillaView
 
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         var font = Minecraft.getInstance().font;
         int contentW = 100 + paddingLeft + paddingRight;

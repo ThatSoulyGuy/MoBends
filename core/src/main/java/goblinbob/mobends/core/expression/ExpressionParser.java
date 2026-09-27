@@ -233,15 +233,15 @@ public class ExpressionParser {
         }
 
         var func = FunctionRegistry.getFunction(name);
-        if (arguments.size() < func.getMinArgs()) {
+        if (arguments.size() < func.minArgs()) {
             throw new ExpressionException(
-                    "Function '" + name + "' requires at least " + func.getMinArgs() + " arguments, got " + arguments.size(),
+                    "Function '" + name + "' requires at least " + func.minArgs() + " arguments, got " + arguments.size(),
                     source, position
             );
         }
-        if (arguments.size() > func.getMaxArgs()) {
+        if (arguments.size() > func.maxArgs()) {
             throw new ExpressionException(
-                    "Function '" + name + "' accepts at most " + func.getMaxArgs() + " arguments, got " + arguments.size(),
+                    "Function '" + name + "' accepts at most " + func.maxArgs() + " arguments, got " + arguments.size(),
                     source, position
             );
         }

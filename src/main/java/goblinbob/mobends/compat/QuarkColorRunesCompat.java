@@ -43,9 +43,6 @@ public class QuarkColorRunesCompat
         }
         catch (Throwable t)
         {
-            setTargetStackMethod = null;
-            setTargetColorMethod = null;
-            changeColorMethod = null;
             isLoaded = false;
         }
     }

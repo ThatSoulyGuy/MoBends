@@ -7,14 +7,8 @@ import goblinbob.mobends.core.kumo.state.template.keyframe.KeyframeNodeTemplate;
 
 import java.lang.reflect.Type;
 
-public class KeyframeNodeSerializer implements JsonSerializer<KeyframeNodeTemplate>, JsonDeserializer<KeyframeNodeTemplate>
+public class KeyframeNodeSerializer implements JsonDeserializer<KeyframeNodeTemplate>
 {
-
-    @Override
-    public JsonElement serialize(KeyframeNodeTemplate src, Type typeOfSrc, JsonSerializationContext context)
-    {
-        return (new Gson()).toJsonTree(src, KeyframeNodeRegistry.INSTANCE.getTemplateClass(src.getType()));
-    }
 
     @Override
     public KeyframeNodeTemplate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException

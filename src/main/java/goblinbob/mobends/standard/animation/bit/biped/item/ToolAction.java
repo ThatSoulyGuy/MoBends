@@ -9,13 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class ToolAction extends AnimationBit<BipedEntityData<?>>
 {
-    protected final HumanoidArm actionHand;
-
-    public ToolAction(HumanoidArm actionHand)
-    {
-        this.actionHand = actionHand;
-    }
-
     @Override
     public void perform(BipedEntityData<?> data)
     {
@@ -31,12 +24,8 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
         final HumanoidArm activeHand = goblinbob.mobends.standard.animation.bit.biped.AttackArms
                 .attackingArm(data, entity);
 
-        boolean mainHandSwitch = activeHand == HumanoidArm.RIGHT;
         float sideMultiplier = activeHand == HumanoidArm.RIGHT ? 1.0F : -1.0F;
-        ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
-        ModelPartTransform offArm = mainHandSwitch ? data.leftArm : data.rightArm;
-        ModelPartTransform mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
-        ModelPartTransform offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
+        final ModelPartTransform mainArm = activeHand == HumanoidArm.RIGHT ? data.rightArm : data.leftArm;
 
         data.localOffset.slideToZero(0.3F);
         data.centerRotation.setSmoothness(.3F).orientZero();

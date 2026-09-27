@@ -14,7 +14,6 @@ public class VanillaView
     protected int x, y;
     protected int measuredWidth, measuredHeight;
 
-    protected int id;
     protected int visibility = VISIBLE;
     protected boolean enabled = true;
     protected float alpha = 1.0f;
@@ -29,24 +28,14 @@ public class VanillaView
     protected int minWidth, minHeight;
     protected int paddingLeft, paddingTop, paddingRight, paddingBottom;
 
-    @Nullable
-    protected VanillaLayoutParams layoutParams;
+    protected VanillaLayoutParams layoutParams = new VanillaLayoutParams(VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT);
     @Nullable
     protected Runnable clickListener;
-    @Nullable
-    protected Object background;
-
-    public void setId(int id) { this.id = id; }
-
-    public int getId() { return id; }
 
     public void setLayoutParams(VanillaLayoutParams params)
     {
         this.layoutParams = params;
     }
-
-    @Nullable
-    public VanillaLayoutParams getLayoutParams() { return layoutParams; }
 
     public void setPadding(int left, int top, int right, int bottom)
     {
@@ -60,13 +49,9 @@ public class VanillaView
 
     public int getHeight() { return measuredHeight; }
 
-    public int getLeft() { return x; }
-
     public int getTop() { return y; }
 
     public void setMinimumWidth(int minWidth) { this.minWidth = minWidth; }
-
-    public void setMinimumHeight(int minHeight) { this.minHeight = minHeight; }
 
     public void setVisibility(int visibility) { this.visibility = visibility; }
 
@@ -74,23 +59,10 @@ public class VanillaView
 
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
-    public boolean isEnabled() { return enabled; }
-
     public void setAlpha(float alpha)
     {
         this.alpha = alpha;
         this.alphaAnimating = false;
-    }
-
-    public float getAlpha() { return alpha; }
-
-    public void setBackground(@Nullable Object drawable)
-    {
-        this.background = drawable;
-        if (drawable instanceof Integer color)
-        {
-            this.backgroundColor = color;
-        }
     }
 
     public void setBackgroundColor(int color) { this.backgroundColor = color; }
@@ -129,13 +101,11 @@ public class VanillaView
         }
     }
 
-    public Object getNativeView() { return this; }
-
     public void measure(int availableWidth, int availableHeight)
     {
-        int w = resolveSize(layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT,
+        int w = resolveSize(layoutParams.getWidth(),
                 availableWidth, minWidth + paddingLeft + paddingRight);
-        int h = resolveSize(layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT,
+        int h = resolveSize(layoutParams.getHeight(),
                 availableHeight, minHeight + paddingTop + paddingBottom);
         measuredWidth = w;
         measuredHeight = h;
@@ -213,10 +183,6 @@ public class VanillaView
     {
         return mx >= x && mx < x + measuredWidth && my >= y && my < y + measuredHeight;
     }
-
-    protected int getContentLeft() { return x + paddingLeft; }
-
-    protected int getContentTop() { return y + paddingTop; }
 
     protected int getContentWidth() { return measuredWidth - paddingLeft - paddingRight; }
 

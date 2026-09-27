@@ -67,7 +67,7 @@ public class NotEnoughAnimationsCompat
             {
                 initReflection();
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
                 isLoaded = false;
             }

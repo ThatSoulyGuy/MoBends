@@ -35,8 +35,6 @@ public class KumoAnimatorState<D extends IEntityAnimationData>
 
         for (ILayerState layer : layerStates)
         {
-            context.layerState = layer;
-
             if (!started)
             {
                 layer.start(context);

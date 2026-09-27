@@ -14,11 +14,6 @@ public class SharedConfig
         properties.add(property);
     }
 
-    public Iterable<SharedProperty<?>> getProperties()
-    {
-        return properties;
-    }
-
     public void writeToNBT(CompoundTag tag)
     {
         for (SharedProperty<?> property : properties)

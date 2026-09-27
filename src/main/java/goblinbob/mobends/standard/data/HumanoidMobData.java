@@ -5,7 +5,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class HumanoidMobData<E extends LivingEntity> extends BipedEntityData<E>
 {
-    private final HumanoidMobController controller = new HumanoidMobController();
+    private final HumanoidMobController<HumanoidMobData<?>> controller = new HumanoidMobController<>();
 
     public HumanoidMobData(E entity)
     {
@@ -13,13 +13,8 @@ public class HumanoidMobData<E extends LivingEntity> extends BipedEntityData<E>
     }
 
     @Override
-    public HumanoidMobController getController()
+    public HumanoidMobController<HumanoidMobData<?>> getController()
     {
         return controller;
-    }
-
-    @Override
-    public void onTicksRestart()
-    {
     }
 }

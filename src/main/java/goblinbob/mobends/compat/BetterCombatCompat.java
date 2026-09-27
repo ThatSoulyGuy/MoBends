@@ -88,7 +88,7 @@ public final class BetterCombatCompat
             initReflection();
             isLoaded = true;
         }
-        catch (Exception e)
+        catch (Throwable e)
         {
             isLoaded = false;
         }
@@ -310,21 +310,17 @@ public final class BetterCombatCompat
         {
             final PlayerLayers layers = layersFor(player.getClass());
 
-            int posesCleared = 0;
-            for (final Field pose : layers.poses)
+            for (final Field pose : layers.poses())
             {
-                if (clearLayer(poseBaseField, pose.get(player)))
-                {
-                    ++posesCleared;
-                }
+                clearLayer(poseBaseField, pose.get(player));
             }
 
-            if (layers.attack == null)
+            if (layers.attack() == null)
             {
                 return null;
             }
 
-            final Object attackStack = layers.attack.get(player);
+            final Object attackStack = layers.attack().get(player);
             if (attackStack == null)
             {
                 return null;
@@ -405,13 +401,6 @@ public final class BetterCombatCompat
         firstPersonTicks += 1.0F;
 
         final boolean wanted = firstPersonTicks < FIRST_PERSON_WINDOW;
-
-        if (wanted && !firstPersonRequested)
-        {
-        }
-        else if (!wanted && firstPersonRequested)
-        {
-        }
 
         firstPersonRequested = wanted;
 
@@ -495,7 +484,7 @@ public final class BetterCombatCompat
         {
             final PlayerLayers layers = layersFor(player.getClass());
 
-            for (final Field pose : layers.poses)
+            for (final Field pose : layers.poses())
             {
                 final Object subStack = pose.get(player);
                 if (subStack != null)
@@ -510,21 +499,20 @@ public final class BetterCombatCompat
         }
     }
 
-    private static boolean clearLayer(Field baseField, Object subStack) throws Exception
+    private static void clearLayer(Field baseField, Object subStack) throws Exception
     {
         if (subStack == null)
         {
-            return false;
+            return;
         }
 
         final Object base = baseField.get(subStack);
         if (base == null || getAnimationMethod.invoke(base) == null)
         {
-            return false;
+            return;
         }
 
         setAnimationMethod.invoke(base, new Object[]{null});
-        return true;
     }
 
     private static PlayerLayers layersFor(Class<?> playerClass)
@@ -560,15 +548,5 @@ public final class BetterCombatCompat
         return cached;
     }
 
-    private static final class PlayerLayers
-    {
-        private final Field attack;
-        private final Field[] poses;
-
-        private PlayerLayers(Field attack, Field[] poses)
-        {
-            this.attack = attack;
-            this.poses = poses;
-        }
-    }
+    private record PlayerLayers(Field attack, Field[] poses) {}
 }

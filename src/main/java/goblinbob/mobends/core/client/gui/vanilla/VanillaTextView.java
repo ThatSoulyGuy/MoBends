@@ -44,8 +44,6 @@ public class VanillaTextView extends VanillaView
 
     public void setMaxLines(int maxLines) { this.maxLines = maxLines <= 0 ? Integer.MAX_VALUE : maxLines; }
 
-    public void setTextIsSelectable(boolean selectable) {  }
-
     private List<FormattedCharSequence> buildLines(int wrapWidthFontSpace)
     {
         if (text == null || text.isEmpty()) return Collections.emptyList();
@@ -64,8 +62,8 @@ public class VanillaTextView extends VanillaView
 
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         Font font = Minecraft.getInstance().font;
         int horizPad = paddingLeft + paddingRight;

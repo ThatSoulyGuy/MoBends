@@ -6,7 +6,6 @@ import dev.architectury.platform.Platform;
 import goblinbob.mobends.api.addon.AddonAnimationRegistry;
 import goblinbob.mobends.standard.client.model.adaptive.AdaptiveHumanoidGeometry;
 import goblinbob.mobends.standard.client.renderer.entity.mutated.BipedRenderer;
-import goblinbob.mobends.standard.client.renderer.entity.mutated.ZombieRenderer;
 import goblinbob.mobends.standard.data.McaVillagerData;
 import goblinbob.mobends.standard.data.ZombieData;
 import goblinbob.mobends.standard.mutators.McaVillagerMutator;
@@ -93,7 +92,7 @@ public final class McaCompat
                 final Class<Zombie> typed = (Class<Zombie>) zombieVillagerClass;
                 registry.registerNewEntity("mca:male_zombie_villager", "entity.mca.zombie_villager", typed,
                         ZombieData::new, McaZombieVillagerMutator::new,
-                        new ZombieRenderer<>(), new BipedPreviewer<>(), zombieAnimations, alterableParts);
+                        new BipedRenderer<>(), new BipedPreviewer<>(), zombieAnimations, alterableParts);
             }
             catch (Throwable ignored)
             {
@@ -213,16 +212,10 @@ public final class McaCompat
         {
             for (final String prefix : PACKAGE_PREFIXES)
             {
-                try
+                final Class<?> candidate = ModCompatManager.livingEntityClass(prefix + root + className);
+                if (candidate != null)
                 {
-                    final Class<?> candidate = Class.forName(prefix + root + className);
-                    if (LivingEntity.class.isAssignableFrom(candidate))
-                    {
-                        return candidate;
-                    }
-                }
-                catch (Throwable ignored)
-                {
+                    return candidate;
                 }
             }
         }

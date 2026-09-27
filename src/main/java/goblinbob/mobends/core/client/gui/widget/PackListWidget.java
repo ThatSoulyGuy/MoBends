@@ -21,7 +21,6 @@ public class PackListWidget
     private static final Logger LOG = LogUtils.getLogger();
     private static final int ITEM_HEIGHT = 34;
 
-    private final VanillaViewFactory factory;
     private final VanillaScrollView scrollView;
     private final VanillaLinearLayout contentLayout;
     private final List<PackItemInfo> items;
@@ -31,23 +30,22 @@ public class PackListWidget
     @Nullable
     private Consumer<IBendsPack> onPackSelected;
 
-    public PackListWidget(VanillaViewFactory factory)
+    public PackListWidget()
     {
-        this.factory = factory;
         this.items = new ArrayList<>();
 
-        this.scrollView = factory.createScrollView();
-        this.scrollView.setLayoutParams(factory.createMatchParent());
+        this.scrollView = new VanillaScrollView();
+        this.scrollView.setLayoutParams(VanillaLayoutParams.matchParent());
         this.scrollView.setBackgroundColor(MoBendsTheme.BG_LIST);
 
-        this.contentLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        this.contentLayout.setLayoutParams(factory.createLayoutParams(
+        this.contentLayout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        this.contentLayout.setLayoutParams(new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.WRAP_CONTENT
         ));
         this.contentLayout.setPadding(0, MoBendsTheme.PADDING_SMALL, 0, MoBendsTheme.PADDING_SMALL);
 
-        scrollView.addView(contentLayout, factory.createMatchParent());
+        scrollView.addView(contentLayout, VanillaLayoutParams.matchParent());
     }
 
     public void setOnPackSelected(Consumer<IBendsPack> callback)
@@ -75,7 +73,7 @@ public class PackListWidget
         PackItemInfo item = createPackItem(pack, applied);
         items.add(item);
 
-        VanillaLayoutParams params = factory.createLayoutParams(
+        VanillaLayoutParams params = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 ITEM_HEIGHT
         );
@@ -140,40 +138,40 @@ public class PackListWidget
 
     private PackItemInfo createPackItem(IBendsPack pack, boolean applied)
     {
-        VanillaLinearLayout rootLayout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
+        VanillaLinearLayout rootLayout = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
         rootLayout.setBackgroundColor(MoBendsTheme.BG_LIST_ITEM);
-        rootLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+        rootLayout.setGravity(VanillaLayoutParams.GRAVITY_CENTER_VERTICAL);
         rootLayout.setPadding(0, 0, MoBendsTheme.PADDING, 0);
 
-        VanillaView accentBar = factory.createView();
+        VanillaView accentBar = new VanillaView();
         accentBar.setBackgroundColor(applied ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF);
-        accentBar.setLayoutParams(factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
+        accentBar.setLayoutParams(new VanillaLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
 
-        VanillaLinearLayout infoLayout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        infoLayout.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
-        VanillaLayoutParams infoParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
+        VanillaLinearLayout infoLayout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        infoLayout.setGravity(VanillaLayoutParams.GRAVITY_CENTER_VERTICAL);
+        VanillaLayoutParams infoParams = new VanillaLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
         infoParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
-        VanillaTextView nameView = factory.createTextView(pack.getDisplayName());
+        VanillaTextView nameView = new VanillaTextView(pack.getDisplayName());
         nameView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         nameView.setTextSize(13);
         nameView.setBold(true);
 
-        VanillaTextView authorView = factory.createTextView("by " + pack.getAuthor());
+        VanillaTextView authorView = new VanillaTextView("by " + pack.getAuthor());
         authorView.setTextColor(MoBendsTheme.TEXT_SECONDARY);
         authorView.setTextSize(10);
 
-        infoLayout.addView(nameView, factory.createLayoutParams(
+        infoLayout.addView(nameView, new VanillaLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT));
-        infoLayout.addView(authorView, factory.createLayoutParams(
+        infoLayout.addView(authorView, new VanillaLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT));
 
-        VanillaToggle toggle = factory.createToggle(applied);
+        VanillaToggle toggle = new VanillaToggle(applied);
         toggle.setOnCheckedChangeListener(checked -> onPackToggled(pack, checked, accentBar));
 
-        rootLayout.addView(accentBar, factory.createLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
+        rootLayout.addView(accentBar, new VanillaLayoutParams(3, VanillaLayoutParams.MATCH_PARENT));
         rootLayout.addView(infoLayout, infoParams);
-        rootLayout.addView(toggle, factory.createLayoutParams(
+        rootLayout.addView(toggle, new VanillaLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT));
 
         PackItemInfo itemInfo = new PackItemInfo(pack, rootLayout, accentBar, nameView, authorView, toggle, applied);

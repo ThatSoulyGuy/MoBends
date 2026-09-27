@@ -65,30 +65,4 @@ public class KeyframeTest
         assertEquals(2.0f, kf.scale[1], EPSILON);
         assertEquals(2.0f, kf.scale[2], EPSILON);
     }
-
-    @Test
-    public void mirrorRotationYZ()
-    {
-        Keyframe kf = createKeyframe();
-        kf.rotation[1] = 0.5f;
-        kf.rotation[2] = 0.3f;
-
-        kf.mirrorRotationYZ();
-
-        assertEquals(-0.5f, kf.rotation[1], EPSILON);
-        assertEquals(-0.3f, kf.rotation[2], EPSILON);
-    }
-
-    @Test
-    public void swapRotationYZ()
-    {
-        Keyframe kf = createKeyframe();
-        kf.rotation[1] = 0.5f;
-        kf.rotation[2] = 0.3f;
-
-        kf.swapRotationYZ();
-
-        assertEquals(0.3f, kf.rotation[1], EPSILON);
-        assertEquals(0.5f, kf.rotation[2], EPSILON);
-    }
 }

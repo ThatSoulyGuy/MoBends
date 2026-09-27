@@ -10,23 +10,7 @@ public class HumanoidSleepingAnimationBit<T extends BipedEntityData<?>> extends 
     @Override
     public void perform(T data)
     {
-        data.localOffset.slideToZero(0.3F);
-        data.globalOffset.slideToZero(0.3F);
-        data.renderRotation.setSmoothness(.3F).orientZero();
-        data.centerRotation.setSmoothness(.3F).orientZero();
-        data.renderRightItemRotation.setSmoothness(.3F).orientZero();
-        data.renderLeftItemRotation.setSmoothness(.3F).orientZero();
-
-        data.rightLeg.rotation.orient(0F, 1F, 0F, 0F);
-        data.rightLeg.rotation.rotate(2F, 0F, 0F, 1F);
-        data.rightLeg.rotation.rotate(5, 0F, 1F, 0F);
-        data.leftLeg.rotation.orient(0F, 1F, 0F, 0F);
-        data.leftLeg.rotation.rotate(-2F, 0F, 0F, 1F);
-        data.leftLeg.rotation.rotate(-5, 0F, 1F, 0F);
-        data.rightForeLeg.rotation.orient(4F, 1F, 0F, 0F);
-        data.leftForeLeg.rotation.orient(4F, 1F, 0F, 0F);
-        data.rightForeArm.rotation.orient(-4.0F, 1F, 0F, 0F);
-        data.leftForeArm.rotation.orient(-4.0F, 1F, 0F, 0F);
+        StandAnimationBit.restPose(data);
 
         float phase = DataUpdateHandler.getTicks() / 10;
         data.head.rotation.setSmoothness(1.0F).orientX(((Mth.cos(phase) - 1) / 2) * -3);

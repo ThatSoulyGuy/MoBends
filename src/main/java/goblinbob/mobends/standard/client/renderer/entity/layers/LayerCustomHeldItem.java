@@ -2,19 +2,18 @@ package goblinbob.mobends.standard.client.renderer.entity.layers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import goblinbob.mobends.core.client.model.BendsCube;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.lib.math.SmoothOrientation;
 import goblinbob.mobends.core.util.GlHelper;
+import goblinbob.mobends.standard.client.renderer.entity.WeaponTrailMetrics;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ArmedModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.HumanoidArm;
@@ -176,44 +175,8 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
     protected void translateToGrip(HumanoidArm arm, E entity, ItemStack itemStack,
                                    ItemDisplayContext displayContext, PoseStack poseStack)
     {
-        float vanillaGripX = arm == HumanoidArm.LEFT ? 1.0F : -1.0F;
-        BendsModelPart foreArm = this.getCustomForeArm(arm);
-
-        if (foreArm != null && !foreArm.getCubes().isEmpty())
-        {
-            float minX = Float.POSITIVE_INFINITY;
-            float maxX = Float.NEGATIVE_INFINITY;
-
-            for (BendsCube cube : foreArm.getCubes())
-            {
-                minX = Math.min(minX, cube.minX);
-                maxX = Math.max(maxX, cube.maxX);
-            }
-
-            float centredGripX = (minX + maxX) * 0.5F;
-            float ownOffset = Math.abs(this.getDisplayOffsetX(entity, itemStack, displayContext));
-            float blend = 1.0F - Math.min(1.0F, ownOffset);
-            float gripX = vanillaGripX + (centredGripX - vanillaGripX) * blend;
-
-            poseStack.translate(-gripX / 16.0F, 0.125F, -0.625F);
-            return;
-        }
-
-        poseStack.translate(-vanillaGripX / 16.0F, 0.125F, -0.625F);
-    }
-
-    private float getDisplayOffsetX(E entity, ItemStack itemStack, ItemDisplayContext displayContext)
-    {
-        try
-        {
-            BakedModel model = Minecraft.getInstance().getItemRenderer()
-                    .getModel(itemStack, entity.level(), entity, entity.getId());
-            return model.getTransforms().getTransform(displayContext).translation.x() * 16.0F;
-        }
-        catch (Exception e)
-        {
-            return 0.0F;
-        }
+        poseStack.translate(-WeaponTrailMetrics.gripX(arm, this.getCustomForeArm(arm), itemStack, entity, displayContext) / 16.0F,
+                0.125F, -0.625F);
     }
 
     private boolean isDrivenByMoBends(E entity)
@@ -284,13 +247,7 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
             EntityData<?> entityData = EntityDatabase.instance.get(entity);
             if (entityData instanceof BipedEntityData<?> bipedData)
             {
-                SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
-                        ? bipedData.renderRightItemRotation
-                        : bipedData.renderLeftItemRotation;
-
-                poseStack.translate(0, 8.0F * scale, 0);
-                GlHelper.rotate(poseStack, itemRotation.getSmooth());
-                poseStack.translate(0, -8.0F * scale, 0);
+                applyItemRotation(poseStack, bipedData, arm);
             }
 
             return;
@@ -305,13 +262,18 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
         EntityData<?> entityData = EntityDatabase.instance.get(entity);
         if (entityData instanceof BipedEntityData<?> bipedData && this.isDrivenByMoBends(entity))
         {
-            SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
-                    ? bipedData.renderRightItemRotation
-                    : bipedData.renderLeftItemRotation;
-
-            poseStack.translate(0, 8F * 0.0625F, 0);
-            GlHelper.rotate(poseStack, itemRotation.getSmooth());
-            poseStack.translate(0, -8F * 0.0625F, 0);
+            applyItemRotation(poseStack, bipedData, arm);
         }
+    }
+
+    private static void applyItemRotation(PoseStack poseStack, BipedEntityData<?> bipedData, HumanoidArm arm)
+    {
+        SmoothOrientation itemRotation = arm == HumanoidArm.RIGHT
+                ? bipedData.renderRightItemRotation
+                : bipedData.renderLeftItemRotation;
+
+        poseStack.translate(0, 8F * 0.0625F, 0);
+        GlHelper.rotate(poseStack, itemRotation.getSmooth());
+        poseStack.translate(0, -8F * 0.0625F, 0);
     }
 }

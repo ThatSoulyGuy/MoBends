@@ -23,11 +23,6 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
 
     private static final float MIN_MOVE_INTERVAL = 4.0F;
 
-    public PunchingAction(HumanoidArm ignoredHandSide)
-    {
-
-    }
-
     @Override
     public void perform(BipedEntityData<?> entityData)
     {
@@ -44,7 +39,7 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
             LivingEntity entity = entityData.getEntity();
             if (entity == Minecraft.getInstance().player)
             {
-                punchingFist = punchingFist == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
+                punchingFist = punchingFist.getOpposite();
             }
             else
             {

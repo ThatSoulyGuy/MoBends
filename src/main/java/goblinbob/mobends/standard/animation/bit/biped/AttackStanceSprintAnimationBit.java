@@ -21,8 +21,6 @@ public class AttackStanceSprintAnimationBit extends AnimationBit<BipedEntityData
 		float handDirMtp = mainHandSwitch ? 1 : -1;
 		IModelPart mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
 		IModelPart offArm = mainHandSwitch ? data.leftArm : data.rightArm;
-		IModelPart mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
-		IModelPart offForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
 
 		if (HeldItemHelper.isSword(living.getItemInHand(AttackArms.handOf(living, primaryHand))))
 		{

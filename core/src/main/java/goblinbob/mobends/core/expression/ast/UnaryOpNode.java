@@ -52,14 +52,6 @@ public class UnaryOpNode implements ExpressionNode {
         return this;
     }
 
-    public ExpressionNode getOperand() {
-        return operand;
-    }
-
-    public Operator getOperator() {
-        return operator;
-    }
-
     @Override
     public String toString() {
         return operator.getSymbol() + operand;

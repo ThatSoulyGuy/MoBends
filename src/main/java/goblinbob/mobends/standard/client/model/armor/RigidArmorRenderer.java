@@ -24,8 +24,6 @@ public class RigidArmorRenderer
 
     private final Map<BoneRegion, RestPosePosition> restPosePositions = new EnumMap<>(BoneRegion.class);
 
-    private net.minecraft.world.entity.EquipmentSlot slotHint = null;
-
     public RigidArmorRenderer()
     {
         this.boneAssignment = new ArmorBoneAssignment();
@@ -44,36 +42,6 @@ public class RigidArmorRenderer
             int packedLight,
             int packedOverlay,
             BipedEntityData<?> data)
-    {
-        renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, 0xFFFFFFFF);
-    }
-
-    public void renderCapturedVertices(
-            PoseStack poseStack,
-            VertexConsumer outputConsumer,
-            int packedLight,
-            int packedOverlay,
-            BipedEntityData<?> data,
-            net.minecraft.world.entity.EquipmentSlot slot)
-    {
-        this.slotHint = slot;
-        try
-        {
-            renderCapturedVertices(poseStack, outputConsumer, packedLight, packedOverlay, data, 0xFFFFFFFF);
-        }
-        finally
-        {
-            this.slotHint = null;
-        }
-    }
-
-    public void renderCapturedVertices(
-            PoseStack poseStack,
-            VertexConsumer outputConsumer,
-            int packedLight,
-            int packedOverlay,
-            BipedEntityData<?> data,
-            int armorColor)
     {
         List<CapturedVertex> vertices = captureConsumer.getVertices();
         if (vertices.isEmpty())
@@ -101,17 +69,9 @@ public class RigidArmorRenderer
             RestPosePosition restPos = restPosePositions.get(region);
             if (transform == null || restPos == null)
             {
-                float tintR = ((armorColor >> 16) & 0xFF) / 255.0F;
-                float tintG = ((armorColor >> 8) & 0xFF) / 255.0F;
-                float tintB = (armorColor & 0xFF) / 255.0F;
-                float tintA = ((armorColor >> 24) & 0xFF) / 255.0F;
-                int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
-                            ((int)(v.red * tintR * 255.0F) << 16) |
-                            ((int)(v.green * tintG * 255.0F) << 8) |
-                            (int)(v.blue * tintB * 255.0F);
                 IEntityVertexHelper.Holder.getHelper().emitVertex(outputConsumer,
                         v.x, v.y, v.z,
-                        color,
+                        colorOf(v),
                         v.u, v.v,
                         packedOverlay, packedLight,
                         v.normalX, v.normalY, v.normalZ);
@@ -130,17 +90,9 @@ public class RigidArmorRenderer
             float ny = transform.n01 * v.normalX + transform.n11 * v.normalY + transform.n21 * v.normalZ;
             float nz = transform.n02 * v.normalX + transform.n12 * v.normalY + transform.n22 * v.normalZ;
 
-            float tintR = ((armorColor >> 16) & 0xFF) / 255.0F;
-            float tintG = ((armorColor >> 8) & 0xFF) / 255.0F;
-            float tintB = (armorColor & 0xFF) / 255.0F;
-            float tintA = ((armorColor >> 24) & 0xFF) / 255.0F;
-            int color = ((int)(v.alpha * tintA * 255.0F) << 24) |
-                        ((int)(v.red * tintR * 255.0F) << 16) |
-                        ((int)(v.green * tintG * 255.0F) << 8) |
-                        (int)(v.blue * tintB * 255.0F);
             IEntityVertexHelper.Holder.getHelper().emitVertex(outputConsumer,
                     tx, ty, tz,
-                    color,
+                    colorOf(v),
                     v.u, v.v,
                     packedOverlay, packedLight,
                     nx, ny, nz);
@@ -232,24 +184,25 @@ public class RigidArmorRenderer
                 }
             }
 
-            int color = ((int)(v.alpha * 255.0F) << 24) |
-                        ((int)(v.red * 255.0F) << 16) |
-                        ((int)(v.green * 255.0F) << 8) |
-                        (int)(v.blue * 255.0F);
-
             IEntityVertexHelper.Holder.getHelper().emitVertex(outputConsumer,
-                    tx, ty, tz, color, v.u, v.v,
+                    tx, ty, tz, colorOf(v), v.u, v.v,
                     packedOverlay, packedLight, nx, ny, nz);
         }
 
         poseStack.popPose();
     }
 
+    private static int colorOf(CapturedVertex v)
+    {
+        return ((int)(v.alpha * 255.0F) << 24) |
+               ((int)(v.red * 255.0F) << 16) |
+               ((int)(v.green * 255.0F) << 8) |
+               (int)(v.blue * 255.0F);
+    }
+
     private BoneRegion assignSingle(CapturedVertex v)
     {
-        return slotHint != null
-                ? boneAssignment.assignVertexForSlot(v.x, v.y, v.z, slotHint)
-                : boneAssignment.assignVertex(v.x, v.y, v.z);
+        return boneAssignment.assignVertex(v.x, v.y, v.z);
     }
 
     private BoneRegion assignQuad(List<CapturedVertex> vertices, int quadStart)
@@ -270,9 +223,7 @@ public class RigidArmorRenderer
         centreY *= 0.25F;
         centreZ *= 0.25F;
 
-        return slotHint != null
-                ? boneAssignment.assignVertexForSlot(centreX, centreY, centreZ, slotHint)
-                : boneAssignment.assignVertex(centreX, centreY, centreZ);
+        return boneAssignment.assignVertex(centreX, centreY, centreZ);
     }
 
     private void computeBoneTransforms(PoseStack poseStack, BipedEntityData<?> data)

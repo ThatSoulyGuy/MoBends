@@ -7,13 +7,10 @@ import goblinbob.mobends.standard.data.SquidData;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.util.Mth;
 
-import javax.annotation.Nullable;
-
 public class SquidController implements IAnimationController<SquidData>
 {
 
     @Override
-    @Nullable
     public void perform(SquidData data)
     {
         Squid squid = data.getEntity();

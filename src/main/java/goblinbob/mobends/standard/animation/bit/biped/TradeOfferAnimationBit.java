@@ -53,11 +53,7 @@ public class TradeOfferAnimationBit extends AnimationBit<BipedEntityData<?>>
             return;
         }
 
-        if (bringUp < 1.0F)
-        {
-            bringUp += DataUpdateHandler.ticksPerFrame * BRING_UP_SPEED;
-            bringUp = Math.min(bringUp, 1.0F);
-        }
+        bringUp = Math.min(bringUp + DataUpdateHandler.ticksPerFrame * BRING_UP_SPEED, 1.0F);
 
         final boolean rightHanded = offerArm == HumanoidArm.RIGHT;
         final float handDirection = rightHanded ? 1.0F : -1.0F;

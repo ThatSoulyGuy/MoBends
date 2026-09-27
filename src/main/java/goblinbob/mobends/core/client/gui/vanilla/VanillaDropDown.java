@@ -48,8 +48,6 @@ public class VanillaDropDown extends VanillaView implements GuiOverlay.Layer
         this.selectedIndex = Math.max(0, Math.min(options.size() - 1, selectedIndex));
     }
 
-    public int getSelectedIndex() { return selectedIndex; }
-
     public void setOnSelectionChanged(IntConsumer listener) { this.selectionListener = listener; }
 
     private int getPopupWidth()
@@ -190,8 +188,8 @@ public class VanillaDropDown extends VanillaView implements GuiOverlay.Layer
 
     public void measure(int availableWidth, int availableHeight)
     {
-        int lpW = layoutParams != null ? layoutParams.getWidth() : VanillaLayoutParams.WRAP_CONTENT;
-        int lpH = layoutParams != null ? layoutParams.getHeight() : VanillaLayoutParams.WRAP_CONTENT;
+        int lpW = layoutParams.getWidth();
+        int lpH = layoutParams.getHeight();
 
         Font font = Minecraft.getInstance().font;
         int contentW = font.width(label) + TEXT_INSET * 2 + ARROW_WIDTH + 4;

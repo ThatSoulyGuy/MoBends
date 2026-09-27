@@ -44,10 +44,8 @@ public class WearableBackpacksCompat
                 getBackpackStackMethod = holderClass.getMethod("getBackpackStack", LivingEntity.class);
                 backpackItemClass = Class.forName("com.nyfaria.wearablebackpacks.item.BackpackItem");
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
-                getBackpackStackMethod = null;
-                backpackItemClass = null;
                 isLoaded = false;
             }
         }

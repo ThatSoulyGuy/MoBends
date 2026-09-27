@@ -1,99 +1,21 @@
 package goblinbob.mobends.core.expression.functions;
 
-public interface ExpressionFunction {
-    double apply(double[] args);
+import java.util.function.Function;
 
-    int getMinArgs();
-
-    int getMaxArgs();
-
-    default boolean isPure() {
-        return true;
+public record ExpressionFunction(int minArgs, int maxArgs, boolean pure, Function<double[], Double> impl) {
+    public double apply(double[] args) {
+        return impl.apply(args);
     }
 
-    static ExpressionFunction of(int argCount, java.util.function.Function<double[], Double> impl) {
-        return new ExpressionFunction() {
-            @Override
-            public double apply(double[] args) {
-                return impl.apply(args);
-            }
-
-            @Override
-            public int getMinArgs() {
-                return argCount;
-            }
-
-            @Override
-            public int getMaxArgs() {
-                return argCount;
-            }
-        };
+    static ExpressionFunction of(int argCount, Function<double[], Double> impl) {
+        return new ExpressionFunction(argCount, argCount, true, impl);
     }
 
-    static ExpressionFunction of(int minArgs, int maxArgs, java.util.function.Function<double[], Double> impl) {
-        return new ExpressionFunction() {
-            @Override
-            public double apply(double[] args) {
-                return impl.apply(args);
-            }
-
-            @Override
-            public int getMinArgs() {
-                return minArgs;
-            }
-
-            @Override
-            public int getMaxArgs() {
-                return maxArgs;
-            }
-        };
+    static ExpressionFunction of(int minArgs, int maxArgs, Function<double[], Double> impl) {
+        return new ExpressionFunction(minArgs, maxArgs, true, impl);
     }
 
-    static ExpressionFunction impure(int argCount, java.util.function.Function<double[], Double> impl) {
-        return new ExpressionFunction() {
-            @Override
-            public double apply(double[] args) {
-                return impl.apply(args);
-            }
-
-            @Override
-            public int getMinArgs() {
-                return argCount;
-            }
-
-            @Override
-            public int getMaxArgs() {
-                return argCount;
-            }
-
-            @Override
-            public boolean isPure() {
-                return false;
-            }
-        };
-    }
-
-    static ExpressionFunction impure(int minArgs, int maxArgs, java.util.function.Function<double[], Double> impl) {
-        return new ExpressionFunction() {
-            @Override
-            public double apply(double[] args) {
-                return impl.apply(args);
-            }
-
-            @Override
-            public int getMinArgs() {
-                return minArgs;
-            }
-
-            @Override
-            public int getMaxArgs() {
-                return maxArgs;
-            }
-
-            @Override
-            public boolean isPure() {
-                return false;
-            }
-        };
+    static ExpressionFunction impure(int minArgs, int maxArgs, Function<double[], Double> impl) {
+        return new ExpressionFunction(minArgs, maxArgs, false, impl);
     }
 }

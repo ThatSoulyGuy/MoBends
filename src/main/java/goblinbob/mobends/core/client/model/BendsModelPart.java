@@ -3,8 +3,6 @@ package goblinbob.mobends.core.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import goblinbob.mobends.lib.math.SmoothOrientation;
-import goblinbob.mobends.lib.math.TransformUtils;
-import goblinbob.mobends.lib.math.matrix.IMat4x4d;
 import goblinbob.mobends.lib.math.vector.IVec3f;
 import goblinbob.mobends.lib.math.vector.Vec3f;
 import goblinbob.mobends.core.util.GlHelper;
@@ -200,15 +198,6 @@ public class BendsModelPart implements IModelPart
     }
 
     @Override
-    public void applyPreTransform(float scale, IMat4x4d dest)
-    {
-        if (globalOffset.x != 0.0F || globalOffset.y != 0.0F || globalOffset.z != 0.0F)
-        {
-            TransformUtils.translate(dest, globalOffset.x * scale, globalOffset.y * scale, globalOffset.z * scale);
-        }
-    }
-
-    @Override
     public void applyLocalTransform(PoseStack poseStack, float scale)
     {
         if (position.x != 0.0F || position.y != 0.0F || position.z != 0.0F)
@@ -236,46 +225,6 @@ public class BendsModelPart implements IModelPart
         {
             poseStack.scale(this.scale.x, this.scale.y, this.scale.z);
         }
-    }
-
-    @Override
-    public void applyLocalTransform(float scale, IMat4x4d matrix)
-    {
-        if (position.x != 0.0F || position.y != 0.0F || position.z != 0.0F)
-        {
-            TransformUtils.translate(matrix, position.x * scale * offsetScale,
-                                    position.y * scale * offsetScale,
-                                    position.z * scale * offsetScale);
-        }
-
-        if (offset.x != 0.0F || offset.y != 0.0F || offset.z != 0.0F)
-        {
-            TransformUtils.translate(matrix, offset.x * scale * offsetScale,
-                                    offset.y * scale * offsetScale,
-                                    offset.z * scale * offsetScale);
-        }
-
-        TransformUtils.rotate(matrix, rotation.getSmooth());
-
-        if (this.scale.x != 1.0F || this.scale.y != 1.0F || this.scale.z != 1.0F)
-        {
-            TransformUtils.scale(matrix, this.scale.x, this.scale.y, this.scale.z, matrix);
-        }
-    }
-
-    @Override
-    public void applyPostTransform(PoseStack poseStack, float scale)
-    {
-    }
-
-    @Override
-    public void renderPart(PoseStack poseStack, float scale)
-    {
-    }
-
-    @Override
-    public void renderJustPart(PoseStack poseStack, float scale)
-    {
     }
 
     @Override

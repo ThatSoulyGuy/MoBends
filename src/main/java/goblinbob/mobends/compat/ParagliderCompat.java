@@ -33,10 +33,8 @@ public class ParagliderCompat
                 paragliderClass = Class.forName("tictim.paraglider.api.item.Paraglider");
                 isParaglidingMethod = paragliderClass.getMethod("isParagliding", ItemStack.class);
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
-                paragliderClass = null;
-                isParaglidingMethod = null;
                 isLoaded = false;
             }
         }

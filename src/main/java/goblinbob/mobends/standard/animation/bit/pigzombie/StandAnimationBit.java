@@ -8,7 +8,11 @@ public class StandAnimationBit extends goblinbob.mobends.standard.animation.bit.
 	public void perform(PigZombieData data)
 	{
 		super.perform(data);
+		hunch(data);
+	}
 
+	static void hunch(PigZombieData data)
+	{
 		data.globalOffset.slideY(-3F);
 
 		data.body.rotation.localRotateX(20F)

@@ -108,6 +108,31 @@ public class ProceduralLayerState implements ILayerState
         SmoothOrientation rotation = part.getRotation();
         IVec3f offset = part.getOffset();
 
+        applyRotation(rotation, bone, context);
+
+        if (bone.hasOffset())
+        {
+            float offX = bone.evaluateOffsetX(context) * blendWeight;
+            float offY = bone.evaluateOffsetY(context) * blendWeight;
+            float offZ = bone.evaluateOffsetZ(context) * blendWeight;
+
+            if (additive)
+            {
+                offset.set(
+                        offset.getX() + offX,
+                        offset.getY() + offY,
+                        offset.getZ() + offZ
+                );
+            }
+            else
+            {
+                offset.set(offX, offY, offZ);
+            }
+        }
+    }
+
+    private void applyRotation(SmoothOrientation rotation, CompiledBoneExpression bone, ExpressionContext context)
+    {
         if (bone.hasRotation())
         {
             float rotX = bone.evaluateRotationX(context);
@@ -135,26 +160,6 @@ public class ProceduralLayerState implements ILayerState
                     if (bone.hasRotationY()) rotation.rotateInstantY(rotY * blendWeight);
                     if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ * blendWeight);
                 }
-            }
-        }
-
-        if (bone.hasOffset())
-        {
-            float offX = bone.evaluateOffsetX(context) * blendWeight;
-            float offY = bone.evaluateOffsetY(context) * blendWeight;
-            float offZ = bone.evaluateOffsetZ(context) * blendWeight;
-
-            if (additive)
-            {
-                offset.set(
-                        offset.getX() + offX,
-                        offset.getY() + offY,
-                        offset.getZ() + offZ
-                );
-            }
-            else
-            {
-                offset.set(offX, offY, offZ);
             }
         }
     }
@@ -184,67 +189,12 @@ public class ProceduralLayerState implements ILayerState
 
     private void applyCenterRotation(IEntityAnimationData entityData, CompiledBoneExpression bone, ExpressionContext context)
     {
-        SmoothOrientation rotation = entityData.getCenterRotation();
-
-        if (bone.hasRotation())
-        {
-            float rotX = bone.evaluateRotationX(context);
-            float rotY = bone.evaluateRotationY(context);
-            float rotZ = bone.evaluateRotationZ(context);
-
-            if (additive)
-            {
-                if (bone.hasRotationX()) rotation.rotateInstantX(rotX * blendWeight);
-                if (bone.hasRotationY()) rotation.rotateInstantY(rotY * blendWeight);
-                if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ * blendWeight);
-            }
-            else
-            {
-                if (blendWeight >= 1.0f)
-                {
-                    rotation.identity();
-                    if (bone.hasRotationX()) rotation.orientInstantX(rotX);
-                    if (bone.hasRotationY()) rotation.rotateInstantY(rotY);
-                    if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ);
-                }
-                else
-                {
-                    if (bone.hasRotationX()) rotation.rotateInstantX(rotX * blendWeight);
-                    if (bone.hasRotationY()) rotation.rotateInstantY(rotY * blendWeight);
-                    if (bone.hasRotationZ()) rotation.rotateInstantZ(rotZ * blendWeight);
-                }
-            }
-        }
-
-        if (bone.hasOffset())
-        {
-            float offX = bone.evaluateOffsetX(context) * blendWeight;
-            float offY = bone.evaluateOffsetY(context) * blendWeight;
-            float offZ = bone.evaluateOffsetZ(context) * blendWeight;
-
-            if (additive)
-            {
-                entityData.getGlobalOffset().set(
-                        entityData.getGlobalOffset().getX() + offX,
-                        entityData.getGlobalOffset().getY() + offY,
-                        entityData.getGlobalOffset().getZ() + offZ
-                );
-            }
-            else
-            {
-                entityData.getGlobalOffset().set(offX, offY, offZ);
-            }
-        }
+        applyRotation(entityData.getCenterRotation(), bone, context);
+        applyRootBone(entityData, bone, context);
     }
 
     private boolean shouldPartBeAffected(String partName)
     {
         return mask == null || mask.doesAllow(partName);
-    }
-
-    public static ProceduralLayerState createFromTemplate(IKumoInstancingContext context, ProceduralLayerTemplate template)
-            throws MalformedKumoTemplateException
-    {
-        return new ProceduralLayerState(context, template);
     }
 }

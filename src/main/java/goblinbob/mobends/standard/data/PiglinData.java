@@ -17,9 +17,4 @@ public class PiglinData<E extends AbstractPiglin> extends BipedEntityData<E>
     {
         return controller;
     }
-
-    @Override
-    public void onTicksRestart()
-    {
-    }
 }

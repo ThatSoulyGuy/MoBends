@@ -17,11 +17,6 @@ public class OverridableProperty<T>
         this.override = overrideValue;
     }
 
-    public void unsetOverride()
-    {
-        this.override = null;
-    }
-
     public T get()
     {
         return this.override != null ? this.override : this.value;

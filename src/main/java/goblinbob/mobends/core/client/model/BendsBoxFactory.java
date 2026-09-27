@@ -7,7 +7,7 @@ public class BendsBoxFactory
     public BendsModelPart target;
     public final Vec3f min;
     public final Vec3f max;
-    public final BoxFactory.TextureFace[] faces;
+    public final TextureFace[] faces;
     public int uvWidth;
     public int uvHeight;
     public int uvLength;
@@ -23,7 +23,7 @@ public class BendsBoxFactory
     {
         this.min = new Vec3f(x - delta, y - delta, z - delta);
         this.max = new Vec3f(x + dx + delta, y + dy + delta, z + dz + delta);
-        this.faces = new BoxFactory.TextureFace[6];
+        this.faces = new TextureFace[6];
         this.uvWidth = dx;
         this.uvHeight = dy;
         this.uvLength = dz;
@@ -176,11 +176,28 @@ public class BendsBoxFactory
         int u = this.textureU;
         int v = this.textureV;
 
-        this.faces[0] = new BoxFactory.TextureFace(u + uvLength + uvWidth, v + uvLength, uvLength, uvHeight);
-        this.faces[1] = new BoxFactory.TextureFace(u, v + uvLength, uvLength, uvHeight);
-        this.faces[2] = new BoxFactory.TextureFace(u + uvLength, v, uvWidth, uvLength);
-        this.faces[3] = new BoxFactory.TextureFace(u + uvLength + uvWidth, v + uvLength, uvWidth, -uvLength);
-        this.faces[4] = new BoxFactory.TextureFace(u + uvLength, v + uvLength, uvWidth, uvHeight);
-        this.faces[5] = new BoxFactory.TextureFace(u + uvLength + uvWidth + uvLength, v + uvLength, uvWidth, uvHeight);
+        this.faces[0] = new TextureFace(u + uvLength + uvWidth, v + uvLength, uvLength, uvHeight);
+        this.faces[1] = new TextureFace(u, v + uvLength, uvLength, uvHeight);
+        this.faces[2] = new TextureFace(u + uvLength, v, uvWidth, uvLength);
+        this.faces[3] = new TextureFace(u + uvLength + uvWidth, v + uvLength, uvWidth, -uvLength);
+        this.faces[4] = new TextureFace(u + uvLength, v + uvLength, uvWidth, uvHeight);
+        this.faces[5] = new TextureFace(u + uvLength + uvWidth + uvLength, v + uvLength, uvWidth, uvHeight);
+    }
+
+    public static class TextureFace
+    {
+        public int uPos;
+        public int vPos;
+        public int uSize;
+        public int vSize;
+        public FaceRotation faceRotation = FaceRotation.IDENTITY;
+
+        public TextureFace(int uPos, int vPos, int uSize, int vSize)
+        {
+            this.uPos = uPos;
+            this.vPos = vPos;
+            this.uSize = uSize;
+            this.vSize = vSize;
+        }
     }
 }

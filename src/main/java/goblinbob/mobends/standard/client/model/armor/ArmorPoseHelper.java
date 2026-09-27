@@ -6,7 +6,9 @@ import goblinbob.mobends.api.rendering.IEntityVertexHelper;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.core.util.GlHelper;
 import goblinbob.mobends.standard.data.BipedEntityData;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
@@ -196,22 +198,6 @@ public final class ArmorPoseHelper
             float offsetZ,
             int packedLight,
             int packedOverlay,
-            int armorColor)
-    {
-        renderSlicedVertices(poseStack, consumer, sliceResults, renderUpper, offsetX, offsetY, offsetZ,
-                packedLight, packedOverlay, armorColor, LimbInflation.NONE);
-    }
-
-    public static void renderSlicedVertices(
-            PoseStack poseStack,
-            VertexConsumer consumer,
-            List<SliceResult> sliceResults,
-            boolean renderUpper,
-            float offsetX,
-            float offsetY,
-            float offsetZ,
-            int packedLight,
-            int packedOverlay,
             int armorColor,
             LimbInflation inflation)
     {
@@ -220,7 +206,7 @@ public final class ArmorPoseHelper
 
         for (SliceResult result : sliceResults)
         {
-            List<SliceResult.SlicedVertex> vertices = renderUpper
+            List<CapturedVertex> vertices = renderUpper
                     ? result.getUpperVertices()
                     : result.getLowerVertices();
 
@@ -270,11 +256,11 @@ public final class ArmorPoseHelper
         }
     }
 
-    public static void outputVertex(
+    private static void outputVertex(
             Matrix4f matrix,
             Matrix3f normal,
             VertexConsumer consumer,
-            SliceResult.SlicedVertex v,
+            CapturedVertex v,
             float offsetX,
             float offsetY,
             float offsetZ,
@@ -368,28 +354,143 @@ public final class ArmorPoseHelper
         part.zRot = origZRot;
     }
 
-    public static void renderPartWithVanillaPosition(
-            ModelPart part,
+    public static void showSlotParts(HumanoidModel<?> model, EquipmentSlot slot)
+    {
+        switch (slot)
+        {
+            case HEAD:
+                model.head.visible = true;
+                model.hat.visible = true;
+                break;
+            case CHEST:
+                model.body.visible = true;
+                model.rightArm.visible = true;
+                model.leftArm.visible = true;
+                break;
+            case LEGS:
+                model.body.visible = true;
+                model.rightLeg.visible = true;
+                model.leftLeg.visible = true;
+                break;
+            case FEET:
+                model.rightLeg.visible = true;
+                model.leftLeg.visible = true;
+                break;
+            default:
+                break;
+        }
+    }
+
+    public static void renderSplitArm(
             PoseStack poseStack,
             VertexConsumer vertexConsumer,
+            ModelPart armPart,
+            BipedEntityData<?> entityData,
+            boolean isLeft,
             int packedLight,
-            int packedOverlay)
+            int packedOverlay,
+            float slimArmOffset,
+            int armorColor,
+            CapturingVertexConsumer limbCapture,
+            QuadSlicer quadSlicer)
     {
-        if (part == null || !part.visible)
+        if (armPart == null || !armPart.visible)
         {
             return;
         }
 
-        float origXRot = part.xRot, origYRot = part.yRot, origZRot = part.zRot;
+        ModelPartTransform upperArm = isLeft ? entityData.leftArm : entityData.rightArm;
+        ModelPartTransform foreArm = isLeft ? entityData.leftForeArm : entityData.rightForeArm;
 
-        part.xRot = 0;
-        part.yRot = 0;
-        part.zRot = 0;
+        limbCapture.clear();
+        PoseStack captureStack = new PoseStack();
+        float[] storage = new float[6];
+        resetPartToOrigin(armPart, storage);
+        armPart.render(captureStack, limbCapture, packedLight, packedOverlay);
+        restorePartFromStorage(armPart, storage);
 
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
+        List<CapturedVertex> vertices = limbCapture.getVertices();
+        if (vertices.isEmpty())
+        {
+            return;
+        }
 
-        part.xRot = origXRot;
-        part.yRot = origYRot;
-        part.zRot = origZRot;
+        List<CapturedVertex[]> quads = groupIntoQuads(vertices);
+        List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, JointDefinitions.ELBOW);
+
+        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.ARM_INFLATION);
+        LimbInflation lowerInflation = upperInflation.plus(LimbInflation.LOWER_LIMB_INFLATION_STEP);
+
+        poseStack.pushPose();
+        applyPartTransform(poseStack, entityData.body, true);
+        applyPartTransform(poseStack, upperArm, true);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, slimArmOffset, 0, packedLight, packedOverlay, armorColor, upperInflation);
+        poseStack.popPose();
+
+        float foreArmOffsetX = -foreArm.position.x * SCALE;
+        float foreArmOffsetY = -foreArm.position.y * SCALE + slimArmOffset;
+        float foreArmOffsetZ = -foreArm.position.z * SCALE;
+        poseStack.pushPose();
+        applyPartTransform(poseStack, entityData.body, true);
+        applyPartTransform(poseStack, upperArm, true);
+        applyPartTransform(poseStack, foreArm, true);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, foreArmOffsetX, foreArmOffsetY, foreArmOffsetZ, packedLight, packedOverlay, armorColor, lowerInflation);
+        poseStack.popPose();
+    }
+
+    public static void renderSplitLeg(
+            PoseStack poseStack,
+            VertexConsumer vertexConsumer,
+            ModelPart legPart,
+            BipedEntityData<?> entityData,
+            boolean isLeft,
+            int packedLight,
+            int packedOverlay,
+            int armorColor,
+            CapturingVertexConsumer limbCapture,
+            QuadSlicer quadSlicer)
+    {
+        if (legPart == null || !legPart.visible)
+        {
+            return;
+        }
+
+        ModelPartTransform upperLeg = isLeft ? entityData.leftLeg : entityData.rightLeg;
+        ModelPartTransform lowerLeg = isLeft ? entityData.leftForeLeg : entityData.rightForeLeg;
+
+        limbCapture.clear();
+        PoseStack captureStack = new PoseStack();
+        float[] storage = new float[6];
+        resetPartToOrigin(legPart, storage);
+        legPart.render(captureStack, limbCapture, packedLight, packedOverlay);
+        restorePartFromStorage(legPart, storage);
+
+        List<CapturedVertex> vertices = limbCapture.getVertices();
+        if (vertices.isEmpty())
+        {
+            return;
+        }
+
+        List<CapturedVertex[]> quads = groupIntoQuads(vertices);
+        List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, JointDefinitions.KNEE);
+
+        float vanillaLegX = storage[0];
+
+        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION);
+        LimbInflation lowerInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION + LimbInflation.LOWER_LIMB_INFLATION_STEP);
+
+        poseStack.pushPose();
+        applyLegTransform(poseStack, upperLeg, vanillaLegX);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, true, 0, 0, 0, packedLight, packedOverlay, armorColor, upperInflation);
+        poseStack.popPose();
+
+        float lowerLegOffsetX = -lowerLeg.position.x * SCALE;
+        float lowerLegOffsetY = -lowerLeg.position.y * SCALE;
+        float lowerLegOffsetZ = -lowerLeg.position.z * SCALE;
+        poseStack.pushPose();
+        applyLegTransform(poseStack, upperLeg, vanillaLegX);
+        applyPartTransform(poseStack, lowerLeg, true);
+        renderSlicedVertices(poseStack, vertexConsumer, sliceResults, false, lowerLegOffsetX, lowerLegOffsetY, lowerLegOffsetZ, packedLight, packedOverlay, armorColor, lowerInflation);
+        poseStack.popPose();
     }
 }

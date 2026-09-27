@@ -1,9 +1,6 @@
 package goblinbob.mobends.compat;
 
 import dev.architectury.platform.Platform;
-import goblinbob.mobends.standard.mutators.BipedMutator;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.PlayerModel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 
@@ -92,20 +89,5 @@ public class CrawlCompat
     public static boolean isPosingModel(LivingEntity entity)
     {
         return isCrawling(entity) && isReplacingAnimation();
-    }
-
-    public static void applyPose(LivingEntity entity, BipedMutator<?, ?, ?> mutator, HumanoidModel<?> vanillaModel)
-    {
-        if (mutator == null || !(vanillaModel instanceof PlayerModel<?>))
-        {
-            return;
-        }
-
-        if (!isPosingModel(entity))
-        {
-            return;
-        }
-
-        mutator.adoptPoseFromVanillaModel(vanillaModel, null, null);
     }
 }

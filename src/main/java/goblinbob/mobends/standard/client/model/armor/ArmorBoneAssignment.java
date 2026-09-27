@@ -219,24 +219,4 @@ public class ArmorBoneAssignment
                y >= LEG_MIN_Y && y <= LEG_MAX_Y &&
                z >= LEG_MIN_Z && z <= LEG_MAX_Z;
     }
-
-    public JointPlane getLeftElbowPlane()
-    {
-        return leftElbowPlane;
-    }
-
-    public JointPlane getRightElbowPlane()
-    {
-        return rightElbowPlane;
-    }
-
-    public JointPlane getLeftKneePlane()
-    {
-        return leftKneePlane;
-    }
-
-    public JointPlane getRightKneePlane()
-    {
-        return rightKneePlane;
-    }
 }

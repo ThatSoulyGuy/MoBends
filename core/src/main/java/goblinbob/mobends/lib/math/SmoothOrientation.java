@@ -1,7 +1,5 @@
 package goblinbob.mobends.lib.math;
 
-import goblinbob.mobends.lib.util.EnumAxis;
-
 public class SmoothOrientation
 {
     public static final float PI = (float) Math.PI;
@@ -21,11 +19,6 @@ public class SmoothOrientation
         this.smooth = new Quaternion();
         this.progress = 1.0F;
         this.smoothness = 1.0F;
-    }
-
-    public Quaternion getEnd()
-    {
-        return this.end;
     }
 
     public Quaternion getSmooth()
@@ -218,39 +211,6 @@ public class SmoothOrientation
         this.start.set(this.end);
         this.progress = 1.0F;
         this.updateSmooth();
-        return this;
-    }
-
-    public SmoothOrientation orient(EnumAxis axis, float angle)
-    {
-        if (axis == EnumAxis.X)
-            this.orientX(angle);
-        else if (axis == EnumAxis.Y)
-            this.orientY(angle);
-        else if (axis == EnumAxis.Z)
-            this.orientZ(angle);
-        return this;
-    }
-
-    public SmoothOrientation rotate(EnumAxis axis, float angle)
-    {
-        if (axis == EnumAxis.X)
-            this.rotateX(angle);
-        else if (axis == EnumAxis.Y)
-            this.rotateY(angle);
-        else if (axis == EnumAxis.Z)
-            this.rotateZ(angle);
-        return this;
-    }
-
-    public SmoothOrientation localRotate(EnumAxis axis, float angle)
-    {
-        if (axis == EnumAxis.X)
-            this.localRotateX(angle);
-        else if (axis == EnumAxis.Y)
-            this.localRotateY(angle);
-        else if (axis == EnumAxis.Z)
-            this.localRotateZ(angle);
         return this;
     }
 

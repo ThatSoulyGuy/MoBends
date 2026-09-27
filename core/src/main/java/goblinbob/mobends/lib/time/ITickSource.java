@@ -22,19 +22,9 @@ public interface ITickSource
             Holder.source = source != null ? source : ZERO;
         }
 
-        public static ITickSource getSource()
-        {
-            return source;
-        }
-
         public static float getTicks()
         {
             return source.getTicks();
-        }
-
-        public static void reset()
-        {
-            source = ZERO;
         }
 
     }

@@ -33,11 +33,7 @@ public class ShieldAnimationBit extends AnimationBit<BipedEntityData<?>>
         final ModelPartTransform mainArm = mainHandSwitch ? data.rightArm : data.leftArm;
         final ModelPartTransform mainForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
 
-        if (bringUpAnimation < 1F)
-        {
-            bringUpAnimation += DataUpdateHandler.ticksPerFrame * 0.7F;
-            bringUpAnimation = Math.min(bringUpAnimation, 1F);
-        }
+        bringUpAnimation = Math.min(bringUpAnimation + DataUpdateHandler.ticksPerFrame * 0.7F, 1F);
 
         mainArm.rotation.setSmoothness(0.5F).orientX(bringUpAnimation * 0.0F)
                         .rotateY(-45.0F * bringUpAnimation * handDirMtp);

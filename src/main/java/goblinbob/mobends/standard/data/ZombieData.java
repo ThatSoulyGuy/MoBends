@@ -19,9 +19,4 @@ public class ZombieData extends ZombieDataBase<Zombie>
         return this.controller;
     }
 
-    @Override
-    public void onTicksRestart()
-    {
-    }
-
 }

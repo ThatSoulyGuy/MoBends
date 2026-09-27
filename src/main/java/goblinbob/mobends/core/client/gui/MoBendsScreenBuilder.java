@@ -13,7 +13,7 @@ import goblinbob.mobends.core.client.gui.widget.UIGalleryWidget;
 import goblinbob.mobends.api.platform.PlatformServices;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
 import goblinbob.mobends.core.pack.IBendsPack;
-import goblinbob.mobends.core.network.NetworkConfiguration;
+import goblinbob.mobends.core.network.SharedNetworkConfiguration;
 import goblinbob.mobends.core.util.CustomWeapons;
 import goblinbob.mobends.core.util.ResourceLocationFactory;
 import goblinbob.mobends.standard.main.ConfigOptions;
@@ -77,7 +77,6 @@ public class MoBendsScreenBuilder
     private VanillaView animationsContent;
     private VanillaView configContent;
     private VanillaView weaponsContent;
-    private VanillaViewFactory weaponFactory;
     private VanillaLinearLayout weaponList;
     private VanillaTextField weaponField;
     private VanillaTextField configSearchField;
@@ -87,7 +86,6 @@ public class MoBendsScreenBuilder
     private boolean chooserStarted;
     private long chooserLastCycle;
     private boolean openConfigOnBuild;
-    private final EntityBenderRegistry.Filter filter = new EntityBenderRegistry.Filter();
 
     public String getTitle()
     {
@@ -106,43 +104,42 @@ public class MoBendsScreenBuilder
         }
     }
 
-    public VanillaView buildContent(VanillaViewFactory factory)
+    public VanillaView buildContent()
     {
-        VanillaLinearLayout root = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        root.setLayoutParams(factory.createFrameLayoutParams(
+        VanillaLinearLayout root = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        root.setLayoutParams(new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
-                VanillaLayoutParams.MATCH_PARENT,
-                VanillaLayoutParams.GRAVITY_CENTER
-        ));
+                VanillaLayoutParams.MATCH_PARENT
+        ).setGravity(VanillaLayoutParams.GRAVITY_CENTER));
         root.setBackgroundColor(MoBendsTheme.BG_PANEL);
 
-        VanillaLinearLayout header = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        header.setLayoutParams(factory.createLayoutParams(
+        VanillaLinearLayout header = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        header.setLayoutParams(new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.HEADER_HEIGHT
         ));
         header.setBackgroundColor(MoBendsTheme.BG_HEADER);
-        header.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        header.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
         header.setPadding(0, MoBendsTheme.PADDING, 0, 0);
 
-        VanillaTextView title = factory.createTextView(I18n.get("mobends.gui.title"));
+        VanillaTextView title = new VanillaTextView(I18n.get("mobends.gui.title"));
         title.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         title.setTextSize(15);
         title.setBold(true);
-        title.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
-        header.addView(title, factory.createLayoutParams(
+        title.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
+        header.addView(title, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.WRAP_CONTENT
         ));
 
-        root.addView(header, factory.createLayoutParams(
+        root.addView(header, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.HEADER_HEIGHT
         ));
 
-        tabBar = new TabBarWidget(factory);
+        tabBar = new TabBarWidget();
         tabBar.addTab("mobends.gui.section.settings", COLOR_SETTINGS);
-        if (NetworkConfiguration.instance.areBendsPacksAllowed())
+        if (SharedNetworkConfiguration.INSTANCE.areBendsPacksAllowed())
         {
             tabBar.addTab("mobends.gui.section.packs", COLOR_PACKS);
         }
@@ -151,31 +148,31 @@ public class MoBendsScreenBuilder
         if (devMode)
         {
             tabBar.addTab("UI Test", MoBendsTheme.ACCENT_ERROR);
-            galleryTabIndex = NetworkConfiguration.instance.areBendsPacksAllowed() ? 3 : 2;
+            galleryTabIndex = SharedNetworkConfiguration.INSTANCE.areBendsPacksAllowed() ? 3 : 2;
         }
         tabBar.setOnTabChanged(this::onTabChanged);
 
-        VanillaLayoutParams tabParams = factory.createLayoutParams(
+        VanillaLayoutParams tabParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.TAB_HEIGHT
         );
         root.addView(tabBar.getView(), tabParams);
 
-        contentFrame = factory.createFrameLayout();
-        contentFrame.setLayoutParams(factory.createMatchParent());
+        contentFrame = new VanillaFrameLayout();
+        contentFrame.setLayoutParams(VanillaLayoutParams.matchParent());
         contentFrame.setBackgroundColor(MoBendsTheme.BG_CONTENT);
 
-        settingsContent = buildSettingsTab(factory);
-        packsContent = withWipOverlay(factory, buildPacksContent(factory));
-        customizeContent = withWipOverlay(factory, buildCustomizeContent(factory));
+        settingsContent = buildSettingsTab();
+        packsContent = withWipOverlay(buildPacksContent());
+        customizeContent = withWipOverlay(buildCustomizeContent());
 
-        contentFrame.addView(settingsContent, factory.createMatchParent());
-        contentFrame.addView(packsContent, factory.createMatchParent());
-        contentFrame.addView(customizeContent, factory.createMatchParent());
+        contentFrame.addView(settingsContent, VanillaLayoutParams.matchParent());
+        contentFrame.addView(packsContent, VanillaLayoutParams.matchParent());
+        contentFrame.addView(customizeContent, VanillaLayoutParams.matchParent());
         if (devMode)
         {
-            galleryContent = UIGalleryWidget.build(factory);
-            contentFrame.addView(galleryContent, factory.createMatchParent());
+            galleryContent = UIGalleryWidget.build();
+            contentFrame.addView(galleryContent, VanillaLayoutParams.matchParent());
         }
 
         showTab(TAB_SETTINGS);
@@ -185,7 +182,7 @@ public class MoBendsScreenBuilder
             showSettingsSubView(SUB_CONFIG);
         }
 
-        root.addView(contentFrame, factory.createMatchParent());
+        root.addView(contentFrame, VanillaLayoutParams.matchParent());
 
         return root;
     }
@@ -195,48 +192,48 @@ public class MoBendsScreenBuilder
         this.openConfigOnBuild = openConfigOnBuild;
     }
 
-    private VanillaView buildAnimationsContent(VanillaViewFactory factory)
+    private VanillaView buildAnimationsContent()
     {
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        layout.setLayoutParams(factory.createMatchParent());
+        VanillaLinearLayout layout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        layout.setLayoutParams(VanillaLayoutParams.matchParent());
         layout.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        mobGrid = new MobPreviewGridWidget(factory);
-        mobGrid.populateFromRegistry(filter);
+        mobGrid = new MobPreviewGridWidget();
+        mobGrid.populateFromRegistry();
 
-        VanillaLinearLayout toolbar = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-        toolbar.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+        VanillaLinearLayout toolbar = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+        toolbar.setGravity(VanillaLayoutParams.GRAVITY_CENTER_VERTICAL);
 
-        searchField = factory.createTextField(I18n.get("mobends.gui.search"));
+        searchField = new VanillaTextField(I18n.get("mobends.gui.search"));
         searchField.setOnTextChangedListener(this::onSearchTextChanged);
-        VanillaLayoutParams searchParams = factory.createLayoutParams(
+        VanillaLayoutParams searchParams = new VanillaLayoutParams(
                 SEARCH_FIELD_WIDTH,
                 MoBendsTheme.BUTTON_HEIGHT
         );
         searchParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
         toolbar.addView(searchField, searchParams);
 
-        VanillaTextView hint = factory.createTextView(I18n.get("mobends.gui.animations.hint"));
+        VanillaTextView hint = new VanillaTextView(I18n.get("mobends.gui.animations.hint"));
         hint.setTextColor(MoBendsTheme.TEXT_HINT);
         hint.setTextSize(10);
-        toolbar.addView(hint, factory.createLayoutParams(
+        toolbar.addView(hint, new VanillaLayoutParams(
                 0, VanillaLayoutParams.WRAP_CONTENT, 1.0f));
 
-        VanillaLayoutParams toolbarParams = factory.createLayoutParams(
+        VanillaLayoutParams toolbarParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.BUTTON_HEIGHT
         );
         toolbarParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         layout.addView(toolbar, toolbarParams);
 
-        VanillaLayoutParams chipParams = factory.createLayoutParams(
+        VanillaLayoutParams chipParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.WRAP_CONTENT
         );
         chipParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         layout.addView(buildAnimationChips(), chipParams);
 
-        layout.addView(mobGrid.getView(), factory.createMatchParent());
+        layout.addView(mobGrid.getView(), VanillaLayoutParams.matchParent());
 
         return layout;
     }
@@ -285,45 +282,45 @@ public class MoBendsScreenBuilder
         }
     }
 
-    private VanillaView buildSettingsTab(VanillaViewFactory factory)
+    private VanillaView buildSettingsTab()
     {
-        settingsFrame = factory.createFrameLayout();
-        settingsFrame.setLayoutParams(factory.createMatchParent());
+        settingsFrame = new VanillaFrameLayout();
+        settingsFrame.setLayoutParams(VanillaLayoutParams.matchParent());
 
-        settingsChooser = buildSettingsChooser(factory);
+        settingsChooser = buildSettingsChooser();
 
-        VanillaView animations = buildAnimationsContent(factory);
-        animationsContent = withBackHeader(factory, animations, buildSpinDropDown());
+        VanillaView animations = buildAnimationsContent();
+        animationsContent = withBackHeader(animations, buildSpinDropDown());
 
-        configContent = withBackHeader(factory, buildConfigContent(factory), buildWeaponsButton(factory));
+        configContent = withBackHeader(buildConfigContent(), buildWeaponsButton());
 
-        weaponsContent = withBackHeader(factory, buildWeaponsContent(factory), null, SUB_CONFIG);
+        weaponsContent = withBackHeader(buildWeaponsContent(), null, SUB_CONFIG);
 
-        settingsFrame.addView(settingsChooser, factory.createMatchParent());
-        settingsFrame.addView(animationsContent, factory.createMatchParent());
-        settingsFrame.addView(configContent, factory.createMatchParent());
-        settingsFrame.addView(weaponsContent, factory.createMatchParent());
+        settingsFrame.addView(settingsChooser, VanillaLayoutParams.matchParent());
+        settingsFrame.addView(animationsContent, VanillaLayoutParams.matchParent());
+        settingsFrame.addView(configContent, VanillaLayoutParams.matchParent());
+        settingsFrame.addView(weaponsContent, VanillaLayoutParams.matchParent());
 
         showSettingsSubView(SUB_CHOOSER);
 
         return settingsFrame;
     }
 
-    private VanillaView buildSettingsChooser(VanillaViewFactory factory)
+    private VanillaView buildSettingsChooser()
     {
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-        layout.setLayoutParams(factory.createMatchParent());
+        VanillaLinearLayout layout = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+        layout.setLayoutParams(VanillaLayoutParams.matchParent());
         layout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                          MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        chooserPreview = new EntityPreviewWidget(factory, 0, 0);
+        chooserPreview = new EntityPreviewWidget(0, 0);
         chooserPreview.setChromeVisible(false);
         chooserPreview.setInteractive(false);
         chooserPreview.getView().setBackgroundColor(0);
         chooserPreview.setScaleMultiplier(CHOOSER_PREVIEW_SCALE);
         applyChooserBender();
 
-        VanillaTileView animationsTile = buildTile(factory, chooserPreview.getView(),
+        VanillaTileView animationsTile = buildTile(chooserPreview.getView(),
                 I18n.get("mobends.gui.settings.animations"),
                 () -> showSettingsSubView(SUB_ANIMATIONS));
         animationsTile.setTicker(this::tickChooserPreview);
@@ -334,39 +331,39 @@ public class MoBendsScreenBuilder
         cogwheel.setIconSize(96);
         cogwheel.setSpinning(true);
 
-        VanillaTileView configTile = buildTile(factory, cogwheel,
+        VanillaTileView configTile = buildTile(cogwheel,
                 I18n.get("mobends.gui.settings.config"),
                 () -> showSettingsSubView(SUB_CONFIG));
         cogwheel.setHoverSupplier(configTile::isHovered);
 
-        VanillaLayoutParams leftParams = factory.createLayoutParams(
+        VanillaLayoutParams leftParams = new VanillaLayoutParams(
                 0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
         leftParams.setMargins(0, 0, MoBendsTheme.PADDING_LARGE * 2, 0);
         layout.addView(animationsTile, leftParams);
-        layout.addView(configTile, factory.createLayoutParams(
+        layout.addView(configTile, new VanillaLayoutParams(
                 0, VanillaLayoutParams.MATCH_PARENT, 1.0f));
 
         return layout;
     }
 
-    private VanillaTileView buildTile(VanillaViewFactory factory, VanillaView content, String label, Runnable onClick)
+    private VanillaTileView buildTile(VanillaView content, String label, Runnable onClick)
     {
         VanillaTileView tile = new VanillaTileView();
-        tile.setOrientation(VanillaViewFactory.VERTICAL);
-        tile.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        tile.setOrientation(VanillaLinearLayout.VERTICAL);
+        tile.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
         tile.setPadding(MoBendsTheme.SPACING, MoBendsTheme.SPACING,
                        MoBendsTheme.SPACING, MoBendsTheme.SPACING);
         tile.setOnClickListener(onClick);
 
-        tile.addView(content, factory.createLayoutParams(
+        tile.addView(content, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, 0, 1.0f));
 
-        VanillaTextView labelView = factory.createTextView(label);
+        VanillaTextView labelView = new VanillaTextView(label);
         labelView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         labelView.setTextSize(12);
         labelView.setBold(true);
-        labelView.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
-        tile.addView(labelView, factory.createLayoutParams(
+        labelView.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
+        tile.addView(labelView, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
 
         return tile;
@@ -406,48 +403,48 @@ public class MoBendsScreenBuilder
         chooserPreview.setBender(benders.get(Math.floorMod(chooserBenderIndex, benders.size())));
     }
 
-    private VanillaView buildConfigContent(VanillaViewFactory factory)
+    private VanillaView buildConfigContent()
     {
         configRows.clear();
 
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        layout.setLayoutParams(factory.createMatchParent());
+        VanillaLinearLayout layout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        layout.setLayoutParams(VanillaLayoutParams.matchParent());
 
-        VanillaLinearLayout toolbar = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-        toolbar.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+        VanillaLinearLayout toolbar = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+        toolbar.setGravity(VanillaLayoutParams.GRAVITY_CENTER_VERTICAL);
 
-        configSearchField = factory.createTextField(I18n.get("mobends.gui.search"));
+        configSearchField = new VanillaTextField(I18n.get("mobends.gui.search"));
         configSearchField.setOnTextChangedListener(this::onConfigSearchTextChanged);
-        VanillaLayoutParams searchParams = factory.createLayoutParams(
+        VanillaLayoutParams searchParams = new VanillaLayoutParams(
                 CONFIG_SEARCH_FIELD_WIDTH,
                 MoBendsTheme.BUTTON_HEIGHT
         );
         searchParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
         toolbar.addView(configSearchField, searchParams);
 
-        VanillaTextView hint = factory.createTextView(I18n.get("mobends.gui.config.search.hint"));
+        VanillaTextView hint = new VanillaTextView(I18n.get("mobends.gui.config.search.hint"));
         hint.setTextColor(MoBendsTheme.TEXT_HINT);
         hint.setTextSize(10);
-        toolbar.addView(hint, factory.createLayoutParams(
+        toolbar.addView(hint, new VanillaLayoutParams(
                 0, VanillaLayoutParams.WRAP_CONTENT, 1.0f));
 
-        VanillaLayoutParams toolbarParams = factory.createLayoutParams(
+        VanillaLayoutParams toolbarParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.BUTTON_HEIGHT
         );
         toolbarParams.setMargins(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.SPACING);
         layout.addView(toolbar, toolbarParams);
 
-        VanillaScrollView scrollView = factory.createScrollView();
-        scrollView.setLayoutParams(factory.createMatchParent());
+        VanillaScrollView scrollView = new VanillaScrollView();
+        scrollView.setLayoutParams(VanillaLayoutParams.matchParent());
 
-        VanillaLinearLayout list = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        list.setLayoutParams(factory.createMatchParent());
+        VanillaLinearLayout list = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        list.setLayoutParams(VanillaLayoutParams.matchParent());
         list.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, 0);
 
         if (goblinbob.mobends.compat.BetterCombatCompat.isModLoaded())
         {
-            VanillaLayoutParams params = factory.createLayoutParams(
+            VanillaLayoutParams params = new VanillaLayoutParams(
                     VanillaLayoutParams.MATCH_PARENT,
                     CONFIG_ROW_HEIGHT);
             params.setMargins(0, 0, 0, MoBendsTheme.SPACING);
@@ -460,7 +457,7 @@ public class MoBendsScreenBuilder
 
         for (ConfigOptions.Option option : ConfigOptions.all())
         {
-            VanillaToggle toggle = factory.createToggle(option.get());
+            VanillaToggle toggle = new VanillaToggle(option.get());
             toggle.setText(I18n.get(option.getTranslationKey()));
             toggle.setBackgroundColor(MoBendsTheme.BG_LIST);
             toggle.setPadding(MoBendsTheme.PADDING_LARGE, 0, MoBendsTheme.PADDING_LARGE, 0);
@@ -468,7 +465,7 @@ public class MoBendsScreenBuilder
             toggle.setTooltip(I18n.get(option.getDescriptionKey()));
             toggle.setOnCheckedChangeListener(option::set);
 
-            VanillaLayoutParams params = factory.createLayoutParams(
+            VanillaLayoutParams params = new VanillaLayoutParams(
                     VanillaLayoutParams.MATCH_PARENT,
                     CONFIG_ROW_HEIGHT);
             params.setMargins(0, 0, 0, MoBendsTheme.SPACING);
@@ -477,10 +474,10 @@ public class MoBendsScreenBuilder
                     I18n.get(option.getTranslationKey()) + " " + I18n.get(option.getDescriptionKey())));
         }
 
-        scrollView.addView(list, factory.createLayoutParams(
+        scrollView.addView(list, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
 
-        layout.addView(scrollView, factory.createMatchParent());
+        layout.addView(scrollView, VanillaLayoutParams.matchParent());
 
         return layout;
     }
@@ -508,101 +505,94 @@ public class MoBendsScreenBuilder
         }
     }
 
-    private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content)
-    {
-        return withBackHeader(factory, content, null);
-    }
-
-    private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content,
+    private VanillaView withBackHeader(VanillaView content,
                                        @Nullable VanillaView trailingControl)
     {
-        return withBackHeader(factory, content, trailingControl, SUB_CHOOSER);
+        return withBackHeader(content, trailingControl, SUB_CHOOSER);
     }
 
-    private VanillaView withBackHeader(VanillaViewFactory factory, VanillaView content,
+    private VanillaView withBackHeader(VanillaView content,
                                        @Nullable VanillaView trailingControl, int backTarget)
     {
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        layout.setLayoutParams(factory.createMatchParent());
+        VanillaLinearLayout layout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        layout.setLayoutParams(VanillaLayoutParams.matchParent());
 
-        VanillaLinearLayout header = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-        header.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+        VanillaLinearLayout header = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+        header.setGravity(VanillaLayoutParams.GRAVITY_CENTER_VERTICAL);
 
-        VanillaButton backButton = factory.createButton(I18n.get("mobends.gui.back"));
+        VanillaButton backButton = new VanillaButton(I18n.get("mobends.gui.back"));
         backButton.setOnClickListener(() -> showSettingsSubView(backTarget));
 
-        VanillaLayoutParams backParams = factory.createLayoutParams(60, MoBendsTheme.BUTTON_HEIGHT);
+        VanillaLayoutParams backParams = new VanillaLayoutParams(60, MoBendsTheme.BUTTON_HEIGHT);
         backParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
         header.addView(backButton, backParams);
 
         if (trailingControl != null)
         {
-            header.addView(trailingControl, factory.createLayoutParams(
+            header.addView(trailingControl, new VanillaLayoutParams(
                     VanillaLayoutParams.WRAP_CONTENT, MoBendsTheme.BUTTON_HEIGHT));
         }
 
-        VanillaLayoutParams headerParams = factory.createLayoutParams(
+        VanillaLayoutParams headerParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, MoBendsTheme.BUTTON_HEIGHT);
         headerParams.setMargins(MoBendsTheme.PADDING, MoBendsTheme.PADDING, 0, MoBendsTheme.SPACING);
         layout.addView(header, headerParams);
 
-        layout.addView(content, factory.createMatchParent());
+        layout.addView(content, VanillaLayoutParams.matchParent());
 
         return layout;
     }
 
-    private VanillaButton buildWeaponsButton(VanillaViewFactory factory)
+    private VanillaButton buildWeaponsButton()
     {
-        VanillaButton button = factory.createButton(I18n.get("mobends.gui.weapons"));
+        VanillaButton button = new VanillaButton(I18n.get("mobends.gui.weapons"));
         button.setMinimumWidth(WEAPONS_BUTTON_WIDTH);
         button.setOnClickListener(() -> showSettingsSubView(SUB_WEAPONS));
         return button;
     }
 
-    private VanillaView buildWeaponsContent(VanillaViewFactory factory)
+    private VanillaView buildWeaponsContent()
     {
-        weaponFactory = factory;
-
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        layout.setLayoutParams(factory.createMatchParent());
+        VanillaLinearLayout layout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        layout.setLayoutParams(VanillaLayoutParams.matchParent());
         layout.setPadding(MoBendsTheme.PADDING, 0, MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        VanillaLinearLayout toolbar = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-        toolbar.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+        VanillaLinearLayout toolbar = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+        toolbar.setGravity(VanillaLayoutParams.GRAVITY_CENTER_VERTICAL);
 
-        weaponField = factory.createTextField("");
+        weaponField = new VanillaTextField("");
         weaponField.setOnSubmitListener(this::addWeaponFromField);
-        VanillaLayoutParams fieldParams = factory.createLayoutParams(
+        VanillaLayoutParams fieldParams = new VanillaLayoutParams(
                 0, MoBendsTheme.BUTTON_HEIGHT, 1.0f);
         fieldParams.setMargins(0, 0, MoBendsTheme.PADDING, 0);
         toolbar.addView(weaponField, fieldParams);
 
-        VanillaButton addButton = factory.createButton(I18n.get("mobends.gui.weapons.add"));
+        VanillaButton addButton = new VanillaButton(I18n.get("mobends.gui.weapons.add"));
         addButton.setOnClickListener(this::addWeaponFromField);
-        toolbar.addView(addButton, factory.createLayoutParams(WEAPON_ADD_WIDTH, MoBendsTheme.BUTTON_HEIGHT));
+        toolbar.addView(addButton, new VanillaLayoutParams(WEAPON_ADD_WIDTH, MoBendsTheme.BUTTON_HEIGHT));
 
-        VanillaLayoutParams toolbarParams = factory.createLayoutParams(
+        VanillaLayoutParams toolbarParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.BUTTON_HEIGHT
         );
         toolbarParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         layout.addView(toolbar, toolbarParams);
 
-        VanillaTextView hint = factory.createTextView(I18n.get("mobends.gui.weapons.hint"));
+        VanillaTextView hint = new VanillaTextView(I18n.get("mobends.gui.weapons.hint"));
         hint.setTextColor(MoBendsTheme.TEXT_HINT);
         hint.setTextSize(10);
-        VanillaLayoutParams hintParams = factory.createLayoutParams(
+        VanillaLayoutParams hintParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
         hintParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         layout.addView(hint, hintParams);
 
-        VanillaScrollView scrollView = factory.createScrollView();
-        weaponList = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        weaponList.setLayoutParams(factory.createLayoutParams(
+        VanillaScrollView scrollView = new VanillaScrollView();
+        weaponList = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        weaponList.setLayoutParams(new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
-        scrollView.addView(weaponList, factory.createLayoutParams(
+        scrollView.addView(weaponList, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
-        layout.addView(scrollView, factory.createMatchParent());
+        layout.addView(scrollView, VanillaLayoutParams.matchParent());
 
         refreshWeaponList();
 
@@ -635,7 +625,7 @@ public class MoBendsScreenBuilder
 
     private void refreshWeaponList()
     {
-        if (weaponList == null || weaponFactory == null) return;
+        if (weaponList == null) return;
 
         weaponList.removeAllViews();
 
@@ -643,36 +633,36 @@ public class MoBendsScreenBuilder
 
         if (weapons.isEmpty())
         {
-            VanillaTextView empty = weaponFactory.createTextView(I18n.get("mobends.gui.weapons.empty"));
+            VanillaTextView empty = new VanillaTextView(I18n.get("mobends.gui.weapons.empty"));
             empty.setTextColor(MoBendsTheme.TEXT_SECONDARY);
             empty.setTextSize(10);
             empty.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING,
                              MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING);
-            weaponList.addView(empty, weaponFactory.createLayoutParams(
+            weaponList.addView(empty, new VanillaLayoutParams(
                     VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT));
             return;
         }
 
         for (String weapon : weapons)
         {
-            VanillaLinearLayout row = weaponFactory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-            row.setGravity(VanillaLinearLayout.GRAVITY_CENTER_VERTICAL);
+            VanillaLinearLayout row = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+            row.setGravity(VanillaLayoutParams.GRAVITY_CENTER_VERTICAL);
             row.setBackgroundColor(MoBendsTheme.BG_LIST);
             row.setPadding(MoBendsTheme.PADDING_LARGE, 0, MoBendsTheme.PADDING, 0);
 
-            VanillaTextView label = weaponFactory.createTextView(weapon);
+            VanillaTextView label = new VanillaTextView(weapon);
             label.setTextColor(MoBendsTheme.TEXT_PRIMARY);
             label.setTextSize(11);
             label.setMaxLines(1);
-            row.addView(label, weaponFactory.createLayoutParams(
+            row.addView(label, new VanillaLayoutParams(
                     0, VanillaLayoutParams.WRAP_CONTENT, 1.0f));
 
-            VanillaButton remove = weaponFactory.createButton(I18n.get("mobends.gui.weapons.remove"));
+            VanillaButton remove = new VanillaButton(I18n.get("mobends.gui.weapons.remove"));
             remove.setTextSize(10);
             remove.setOnClickListener(() -> removeWeapon(weapon));
-            row.addView(remove, weaponFactory.createLayoutParams(WEAPON_REMOVE_WIDTH, WEAPON_ROW_BUTTON_HEIGHT));
+            row.addView(remove, new VanillaLayoutParams(WEAPON_REMOVE_WIDTH, WEAPON_ROW_BUTTON_HEIGHT));
 
-            VanillaLayoutParams rowParams = weaponFactory.createLayoutParams(
+            VanillaLayoutParams rowParams = new VanillaLayoutParams(
                     VanillaLayoutParams.MATCH_PARENT, WEAPON_ROW_HEIGHT);
             rowParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
             weaponList.addView(row, rowParams);
@@ -771,84 +761,74 @@ public class MoBendsScreenBuilder
         }
     }
 
-    public void openConfig()
+    private VanillaView buildPacksContent()
     {
-        if (tabBar != null)
-        {
-            tabBar.selectTab(TAB_SETTINGS);
-        }
-        showTab(TAB_SETTINGS);
-        showSettingsSubView(SUB_CONFIG);
-    }
-
-    private VanillaView buildPacksContent(VanillaViewFactory factory)
-    {
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.HORIZONTAL);
-        layout.setLayoutParams(factory.createMatchParent());
+        VanillaLinearLayout layout = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
+        layout.setLayoutParams(VanillaLayoutParams.matchParent());
         layout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                          MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        VanillaLinearLayout leftPanel = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        VanillaLinearLayout leftPanel = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
 
-        packSearchField = factory.createTextField(I18n.get("mobends.gui.search"));
+        packSearchField = new VanillaTextField(I18n.get("mobends.gui.search"));
         packSearchField.setOnTextChangedListener(this::onPackSearchTextChanged);
-        VanillaLayoutParams searchParams = factory.createLayoutParams(
+        VanillaLayoutParams searchParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 MoBendsTheme.BUTTON_HEIGHT
         );
         searchParams.setMargins(0, 0, 0, MoBendsTheme.SPACING);
         leftPanel.addView(packSearchField, searchParams);
 
-        packList = new PackListWidget(factory);
+        packList = new PackListWidget();
         packList.setOnPackSelected(this::onPackSelected);
         packList.populateFromManager();
 
-        leftPanel.addView(packList.getView(), factory.createMatchParent());
+        leftPanel.addView(packList.getView(), VanillaLayoutParams.matchParent());
 
         int detailsWidth = 160;
 
-        VanillaLinearLayout detailsPanel = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
+        VanillaLinearLayout detailsPanel = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
         detailsPanel.setBackgroundColor(MoBendsTheme.BG_LIST);
         detailsPanel.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                                MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        VanillaTextView detailsHeader = factory.createTextView(I18n.get("mobends.gui.packs.details"));
+        VanillaTextView detailsHeader = new VanillaTextView(I18n.get("mobends.gui.packs.details"));
         detailsHeader.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         detailsHeader.setTextSize(14);
         detailsHeader.setBold(true);
-        detailsPanel.addView(detailsHeader, factory.createLayoutParams(
+        detailsPanel.addView(detailsHeader, new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.WRAP_CONTENT
         ));
 
-        VanillaTextView detailsPlaceholder = factory.createTextView(I18n.get("mobends.gui.packs.select_pack"));
+        VanillaTextView detailsPlaceholder = new VanillaTextView(I18n.get("mobends.gui.packs.select_pack"));
         detailsPlaceholder.setTextColor(MoBendsTheme.TEXT_HINT);
         detailsPlaceholder.setTextSize(12);
-        VanillaLayoutParams placeholderParams = factory.createLayoutParams(
+        VanillaLayoutParams placeholderParams = new VanillaLayoutParams(
                 VanillaLayoutParams.MATCH_PARENT,
                 VanillaLayoutParams.WRAP_CONTENT
         );
         placeholderParams.setMargins(0, MoBendsTheme.SPACING, 0, 0);
         detailsPanel.addView(detailsPlaceholder, placeholderParams);
 
-        VanillaLayoutParams detailsParams = factory.createLayoutParams(
+        VanillaLayoutParams detailsParams = new VanillaLayoutParams(
                 detailsWidth,
                 VanillaLayoutParams.MATCH_PARENT
         );
         detailsParams.setMargins(MoBendsTheme.SPACING, 0, 0, 0);
 
-        VanillaLayoutParams leftPanelParams = factory.createLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
+        VanillaLayoutParams leftPanelParams = new VanillaLayoutParams(0, VanillaLayoutParams.MATCH_PARENT, 1.0f);
         layout.addView(leftPanel, leftPanelParams);
         layout.addView(detailsPanel, detailsParams);
 
         return layout;
     }
 
-    private VanillaView buildCustomizeContent(VanillaViewFactory factory)
+    private VanillaView buildCustomizeContent()
     {
-        VanillaLinearLayout layout = factory.createLinearLayout(VanillaViewFactory.VERTICAL);
-        layout.setLayoutParams(factory.createMatchParent());
-        layout.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
+        VanillaLinearLayout layout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        layout.setLayoutParams(VanillaLayoutParams.matchParent());
+        layout.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
         layout.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_LARGE,
                          MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_LARGE);
 
@@ -859,7 +839,7 @@ public class MoBendsScreenBuilder
             return layout;
         }
 
-        VanillaButton openEditor = factory.createButton(I18n.get("mobends.gui.customize.open_editor"));
+        VanillaButton openEditor = new VanillaButton(I18n.get("mobends.gui.customize.open_editor"));
         openEditor.setOnClickListener(() -> {
             try
             {
@@ -871,7 +851,7 @@ public class MoBendsScreenBuilder
             }
         });
 
-        layout.addView(openEditor, factory.createLayoutParams(
+        layout.addView(openEditor, new VanillaLayoutParams(
                 160,
                 MoBendsTheme.BUTTON_HEIGHT
         ));
@@ -879,11 +859,11 @@ public class MoBendsScreenBuilder
         return layout;
     }
 
-    private VanillaView withWipOverlay(VanillaViewFactory factory, VanillaView content)
+    private VanillaView withWipOverlay(VanillaView content)
     {
-        VanillaFrameLayout frame = factory.createFrameLayout();
-        frame.setLayoutParams(factory.createMatchParent());
-        frame.addView(content, factory.createMatchParent());
+        VanillaFrameLayout frame = new VanillaFrameLayout();
+        frame.setLayoutParams(VanillaLayoutParams.matchParent());
+        frame.addView(content, VanillaLayoutParams.matchParent());
 
         VanillaFrameLayout overlay = new VanillaFrameLayout()
         {
@@ -907,18 +887,17 @@ public class MoBendsScreenBuilder
         };
         overlay.setBackgroundColor(MoBendsTheme.BG_WIP_OVERLAY);
 
-        VanillaTextView label = factory.createTextView(I18n.get("mobends.gui.wip"));
+        VanillaTextView label = new VanillaTextView(I18n.get("mobends.gui.wip"));
         label.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         label.setTextSize(42);
         label.setBold(true);
-        label.setGravity(VanillaLinearLayout.GRAVITY_CENTER);
-        overlay.addView(label, factory.createFrameLayoutParams(
+        label.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
+        overlay.addView(label, new VanillaLayoutParams(
                 VanillaLayoutParams.WRAP_CONTENT,
-                VanillaLayoutParams.WRAP_CONTENT,
-                VanillaLayoutParams.GRAVITY_CENTER
-        ));
+                VanillaLayoutParams.WRAP_CONTENT
+        ).setGravity(VanillaLayoutParams.GRAVITY_CENTER));
 
-        frame.addView(overlay, factory.createMatchParent());
+        frame.addView(overlay, VanillaLayoutParams.matchParent());
         return frame;
     }
 
@@ -947,7 +926,7 @@ public class MoBendsScreenBuilder
 
     private void showTab(int tabIndex)
     {
-        boolean packsAllowed = NetworkConfiguration.instance.areBendsPacksAllowed();
+        boolean packsAllowed = SharedNetworkConfiguration.INSTANCE.areBendsPacksAllowed();
 
         int settingsIdx = TAB_SETTINGS;
         int packsIdx = packsAllowed ? TAB_PACKS : -1;

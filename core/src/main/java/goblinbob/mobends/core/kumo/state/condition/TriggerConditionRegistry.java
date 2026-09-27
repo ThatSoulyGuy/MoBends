@@ -7,6 +7,8 @@ import goblinbob.mobends.core.kumo.state.template.TriggerConditionTemplate;
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class TriggerConditionRegistry
@@ -81,6 +83,19 @@ public class TriggerConditionRegistry
         {
             throw new MalformedKumoTemplateException(String.format("A non-existent trigger condition type was specified: %s", type));
         }
+    }
+
+    public List<ITriggerCondition> createAll(List<TriggerConditionTemplate> templates) throws MalformedKumoTemplateException
+    {
+        final List<ITriggerCondition> conditions = new LinkedList<>();
+        for (TriggerConditionTemplate conditionTemplate : templates)
+        {
+            if (conditionTemplate != null)
+            {
+                conditions.add(createFromTemplate(conditionTemplate));
+            }
+        }
+        return conditions;
     }
 
     private <T extends TriggerConditionTemplate> ITriggerCondition createFromTemplate(RegistryEntry<T> entry, T template) throws MalformedKumoTemplateException

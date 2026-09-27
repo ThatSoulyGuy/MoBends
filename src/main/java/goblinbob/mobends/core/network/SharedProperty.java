@@ -6,14 +6,12 @@ public abstract class SharedProperty<T>
 {
 
     protected final String key;
-    protected final String description;
     protected final T defaultValue;
     protected T value;
 
-    public SharedProperty(String key, T defaultValue, String description)
+    public SharedProperty(String key, T defaultValue)
     {
         this.key = key;
-        this.description = description;
         this.defaultValue = defaultValue;
         this.value = defaultValue;
     }
@@ -21,16 +19,6 @@ public abstract class SharedProperty<T>
     public String getKey()
     {
         return key;
-    }
-
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public T getDefaultValue()
-    {
-        return defaultValue;
     }
 
     public T getValue()
