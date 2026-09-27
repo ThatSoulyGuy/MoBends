@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 public class ArmorCaptureContext
 {
-    private static final ThreadLocal<VertexConsumer> ACTIVE = new ThreadLocal<>();
+    private static VertexConsumer active;
 
     private static final ThreadLocal<CapturingVertexConsumer> DISCARD =
             ThreadLocal.withInitial(CapturingVertexConsumer::new);
@@ -24,8 +24,6 @@ public class ArmorCaptureContext
 
     public static void noteRenderType(Object renderType)
     {
-        final VertexConsumer active = ACTIVE.get();
-
         if (active instanceof CapturingVertexConsumer capturing)
         {
             capturing.setCurrentRenderType(renderType instanceof net.minecraft.client.renderer.RenderType type
@@ -72,31 +70,24 @@ public class ArmorCaptureContext
     @Nullable
     public static VertexConsumer begin(VertexConsumer consumer)
     {
-        VertexConsumer previous = ACTIVE.get();
-        ACTIVE.set(consumer);
+        VertexConsumer previous = active;
+        active = consumer;
         return previous;
     }
 
     public static void end(@Nullable VertexConsumer previous)
     {
-        if (previous == null)
-        {
-            ACTIVE.remove();
-        }
-        else
-        {
-            ACTIVE.set(previous);
-        }
+        active = previous;
     }
 
     @Nullable
     public static VertexConsumer active()
     {
-        return ACTIVE.get();
+        return active;
     }
 
     public static boolean isActive()
     {
-        return ACTIVE.get() != null;
+        return active != null;
     }
 }

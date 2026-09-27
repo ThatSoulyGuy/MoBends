@@ -7,100 +7,100 @@ import goblinbob.mobends.standard.mutators.WolfMutator;
 
 public class MoBendsRenderContext {
 
-    private static final ThreadLocal<BipedMutator<?, ?, ?>> currentBipedMutator = new ThreadLocal<>();
-    private static final ThreadLocal<SpiderMutator> currentSpiderMutator = new ThreadLocal<>();
-    private static final ThreadLocal<SquidMutator> currentSquidMutator = new ThreadLocal<>();
-    private static final ThreadLocal<WolfMutator> currentWolfMutator = new ThreadLocal<>();
+    private static BipedMutator<?, ?, ?> currentBipedMutator;
+    private static SpiderMutator currentSpiderMutator;
+    private static SquidMutator currentSquidMutator;
+    private static WolfMutator currentWolfMutator;
 
-    private static final ThreadLocal<Boolean> inMainModelRender = ThreadLocal.withInitial(() -> false);
+    private static boolean inMainModelRender = false;
 
-    private static final ThreadLocal<net.minecraft.client.model.HumanoidModel<?>> currentVanillaModel = new ThreadLocal<>();
+    private static net.minecraft.client.model.HumanoidModel<?> currentVanillaModel;
 
-    private static final ThreadLocal<net.minecraft.world.entity.LivingEntity> currentEntity = new ThreadLocal<>();
+    private static net.minecraft.world.entity.LivingEntity currentEntity;
 
-    private static final ThreadLocal<net.minecraft.client.renderer.MultiBufferSource> currentBufferSource = new ThreadLocal<>();
+    private static net.minecraft.client.renderer.MultiBufferSource currentBufferSource;
 
 
     public static void beginMainModelRender() {
-        inMainModelRender.set(true);
+        inMainModelRender = true;
     }
 
     public static void endMainModelRender() {
-        inMainModelRender.set(false);
+        inMainModelRender = false;
     }
 
     public static boolean isInMainModelRender() {
-        return inMainModelRender.get();
+        return inMainModelRender;
     }
 
-    private static final ThreadLocal<Integer> guiEntityRenderDepth = ThreadLocal.withInitial(() -> 0);
+    private static int guiEntityRenderDepth = 0;
 
     public static void beginGuiEntityRender() {
-        guiEntityRenderDepth.set(guiEntityRenderDepth.get() + 1);
+        guiEntityRenderDepth++;
     }
 
     public static void endGuiEntityRender() {
-        guiEntityRenderDepth.set(Math.max(0, guiEntityRenderDepth.get() - 1));
+        guiEntityRenderDepth = Math.max(0, guiEntityRenderDepth - 1);
     }
 
     public static boolean isInGuiEntityRender() {
-        return guiEntityRenderDepth.get() > 0;
+        return guiEntityRenderDepth > 0;
     }
 
     public static void setCurrentVanillaModel(net.minecraft.client.model.HumanoidModel<?> model) {
-        currentVanillaModel.set(model);
+        currentVanillaModel = model;
     }
 
     public static net.minecraft.client.model.HumanoidModel<?> getCurrentVanillaModel() {
-        return currentVanillaModel.get();
+        return currentVanillaModel;
     }
 
     public static void setCurrentEntity(net.minecraft.world.entity.LivingEntity entity) {
-        currentEntity.set(entity);
+        currentEntity = entity;
     }
 
     public static net.minecraft.world.entity.LivingEntity getCurrentEntity() {
-        return currentEntity.get();
+        return currentEntity;
     }
 
     public static void setCurrentBipedMutator(BipedMutator<?, ?, ?> mutator) {
-        currentBipedMutator.set(mutator);
+        currentBipedMutator = mutator;
     }
 
     public static BipedMutator<?, ?, ?> getCurrentBipedMutator() {
-        return currentBipedMutator.get();
+        return currentBipedMutator;
     }
 
     public static void setCurrentSpiderMutator(SpiderMutator mutator) {
-        currentSpiderMutator.set(mutator);
+        currentSpiderMutator = mutator;
     }
 
     public static SpiderMutator getCurrentSpiderMutator() {
-        return currentSpiderMutator.get();
+        return currentSpiderMutator;
     }
 
     public static void setCurrentSquidMutator(SquidMutator mutator) {
-        currentSquidMutator.set(mutator);
+        currentSquidMutator = mutator;
     }
 
     public static SquidMutator getCurrentSquidMutator() {
-        return currentSquidMutator.get();
+        return currentSquidMutator;
     }
 
     public static void setCurrentWolfMutator(WolfMutator mutator) {
-        currentWolfMutator.set(mutator);
+        currentWolfMutator = mutator;
     }
 
     public static WolfMutator getCurrentWolfMutator() {
-        return currentWolfMutator.get();
+        return currentWolfMutator;
     }
 
     public static void setCurrentRenderBuffers(net.minecraft.client.renderer.MultiBufferSource bufferSource) {
-        currentBufferSource.set(bufferSource);
+        currentBufferSource = bufferSource;
     }
 
     public static net.minecraft.client.renderer.MultiBufferSource getCurrentBufferSource() {
-        return currentBufferSource.get();
+        return currentBufferSource;
     }
 
     private static boolean inArmorRender = false;
@@ -119,13 +119,13 @@ public class MoBendsRenderContext {
 
     public static void clear() {
         inArmorRender = false;
-        currentBipedMutator.remove();
-        currentSpiderMutator.remove();
-        currentSquidMutator.remove();
-        currentWolfMutator.remove();
-        inMainModelRender.remove();
-        currentVanillaModel.remove();
-        currentEntity.remove();
-        currentBufferSource.remove();
+        currentBipedMutator = null;
+        currentSpiderMutator = null;
+        currentSquidMutator = null;
+        currentWolfMutator = null;
+        inMainModelRender = false;
+        currentVanillaModel = null;
+        currentEntity = null;
+        currentBufferSource = null;
     }
 }
