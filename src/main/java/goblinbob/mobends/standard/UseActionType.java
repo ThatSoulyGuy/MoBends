@@ -5,6 +5,7 @@ public enum UseActionType
     FOOD,
     BOW,
     SHIELD,
+    SWORD_BLOCK,
     SPEAR,
     SPYGLASS,
     HORN,

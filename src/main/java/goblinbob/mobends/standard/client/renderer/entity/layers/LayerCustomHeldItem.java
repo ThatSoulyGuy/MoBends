@@ -109,6 +109,13 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
                 return;
             }
 
+            if (this.isDrivenByMoBends(entity) && goblinbob.mobends.compat.SwordBlockingCompat.renderBlockingSword(
+                    (handArm, handPose) -> this.translateToHand(handArm, entity, handPose),
+                    entity, itemStack, displayContext, arm, poseStack, bufferSource, packedLight))
+            {
+                return;
+            }
+
             poseStack.pushPose();
 
             this.translateToHand(arm, entity, poseStack);

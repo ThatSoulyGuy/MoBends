@@ -10,6 +10,7 @@ import goblinbob.mobends.standard.animation.bit.biped.CrossbowHoldAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.EatingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.GoatHornAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.ShieldAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SwordBlockAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SpearThrowAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SpyglassAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.UmbrellaHoldingAnimationBit;
@@ -47,6 +48,7 @@ public class BipedActionController
         ITEM_USE_ACTION_MAP.put(UseActionType.FOOD, EatingAnimationBit::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.BOW, BowAction::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.SHIELD, ShieldAnimationBit::new);
+        ITEM_USE_ACTION_MAP.put(UseActionType.SWORD_BLOCK, SwordBlockAnimationBit::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.SPEAR, SpearThrowAnimationBit::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.SPYGLASS, SpyglassAnimationBit::new);
         ITEM_USE_ACTION_MAP.put(UseActionType.HORN, GoatHornAnimationBit::new);
@@ -76,7 +78,7 @@ public class BipedActionController
             {
                 UseAnim useAnim = heldItem.getUseAnimation();
 
-                if (useAnim == UseAnim.BLOCK)
+                if (useAnim == UseAnim.BLOCK || goblinbob.mobends.compat.SwordBlockingCompat.isBlocking(entity))
                     return HumanoidModel.ArmPose.BLOCK;
                 else if (useAnim == UseAnim.BOW)
                     return HumanoidModel.ArmPose.BOW_AND_ARROW;
@@ -111,7 +113,7 @@ public class BipedActionController
             return UseActionType.BOW;
 
         if (armPoseMain == HumanoidModel.ArmPose.BLOCK || armPoseOff == HumanoidModel.ArmPose.BLOCK)
-            return UseActionType.SHIELD;
+            return HeldItemHelper.isSword(item) ? UseActionType.SWORD_BLOCK : UseActionType.SHIELD;
 
         UseAnim useAnim = useAnimationOf(item);
         if (useAnim == UseAnim.EAT || useAnim == UseAnim.DRINK)
