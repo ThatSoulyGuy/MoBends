@@ -207,6 +207,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (customModel == null || customModel == defaultModel)
         {
+            final Model uranusModel = goblinbob.mobends.compat.UranusCompat.getArmorModel(entity, itemStack, slot, defaultModel);
+
+            if (uranusModel != null)
+            {
+                customModel = uranusModel;
+            }
+        }
+
+        if (customModel == null || customModel == defaultModel)
+        {
             Model geoModel = goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport
                     .getArmorRenderer(entity, itemStack, slot, defaultModel);
 
