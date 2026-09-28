@@ -217,6 +217,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (customModel == null || customModel == defaultModel)
         {
+            final Model armorApiModel = goblinbob.mobends.compat.ArmorModelApiCompat.getArmorModel(itemStack, slot);
+
+            if (armorApiModel != null)
+            {
+                customModel = armorApiModel;
+            }
+        }
+
+        if (customModel == null || customModel == defaultModel)
+        {
             Model geoModel = goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport
                     .getArmorRenderer(entity, itemStack, slot, defaultModel);
 
@@ -1705,6 +1715,13 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     private ResourceLocation resolveArmorTexture(ArmorItem armorItem, ItemStack itemStack, E entity, EquipmentSlot slot,
                                                  @Nullable Object layer, @Nullable String overlay)
     {
+        final ResourceLocation armorApiTexture = goblinbob.mobends.compat.ArmorModelApiCompat.getTexture(itemStack);
+
+        if (armorApiTexture != null)
+        {
+            return overlay == null ? armorApiTexture : null;
+        }
+
         boolean isInnerModel = usesInnerModel(slot);
 
         IArmorTextureProvider textureProvider = IArmorTextureProvider.Holder.getProvider();
