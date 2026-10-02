@@ -204,6 +204,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         Model customModel = ArmorModelProviderHolder.getProvider()
                 .getCustomArmorModel(entity, itemStack, slot, defaultModel);
+        final Model providerModel = customModel;
 
         if (customModel == null || customModel == defaultModel)
         {
@@ -257,7 +258,12 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             HumanoidModel<E> humanoidCustom = (HumanoidModel<E>) armorModel;
             copyParentProperties(humanoidCustom);
             humanoidCustom.young = false;
-            setPartVisibility(humanoidCustom, slot);
+
+            if (armorModel != providerModel || isBendableGeoArmor(armorModel)
+                    || goblinbob.mobends.standard.client.model.armor.TinkersArmorSupport.isTinkersArmorModel(armorModel))
+            {
+                setPartVisibility(humanoidCustom, slot);
+            }
         }
 
         boolean shouldUseBends = hasBendsAnimation && !ModConfig.shouldKeepArmorAsVanilla(armorItem)
@@ -312,6 +318,33 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (isCustomModel && isSelfRenderingModel(armorModel))
         {
+            if (!isTinkersArmor && shouldUseBends && entityData instanceof BipedEntityData<?>
+                    && !isBendableGeoArmor(armorModel) && armorModel instanceof HumanoidModel<?> selfDrawnHumanoid)
+            {
+                final BipedEntityData<?> selfDrawnData = previewAware((BipedEntityData<?>) entityData);
+
+                renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack,
+                        selfDrawnData, true);
+                final ResourceLocation selfDrawnTexture = getArmorTexture(armorItem, itemStack, entity, slot, null);
+
+                if (selfDrawnTexture != null)
+                {
+                    renderExtraParts(poseStack, bufferSource, packedLight, entity, selfDrawnHumanoid, slot, itemStack,
+                            selfDrawnData, (VertexConsumer) IModelRenderHelper.Holder.getHelper().getArmorFoilBuffer(
+                                    bufferSource, RenderType.armorCutoutNoCull(selfDrawnTexture), itemStack.hasFoil()),
+                            null);
+                }
+
+                final VertexConsumer selfDrawnTrim = getTrimBuffer(bufferSource, entity, armorItem, itemStack, slot);
+
+                if (selfDrawnTrim != null)
+                {
+                    renderExtraParts(poseStack, bufferSource, packedLight, entity, selfDrawnHumanoid, slot, itemStack,
+                            selfDrawnData, selfDrawnTrim, 0xFFFFFFFF);
+                }
+                return;
+            }
+
             if (mutator != null && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
             {
                 mutator.syncPosesToVanillaModel(
@@ -1327,6 +1360,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                     }
                 }
             }
+
+            renderTrim(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, bipedData);
         }
         else
         {
@@ -1336,8 +1371,20 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
             if (!extendedLayers.isEmpty())
             {
-                renderExtendedArmorLayers(poseStack, bufferSource, packedLight, entity,
+                renderExtendedArmorLayers(poseStack, bufferSource, packedLight, entity, armorItem,
                         armorModel, slot, itemStack, bipedData, extendedLayers);
+
+                if (armorModel instanceof HumanoidModel<?> humanoidModel)
+                {
+                    if (mutator != null && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
+                    {
+                        mutator.syncPosesToVanillaModel(humanoidModel);
+                    }
+
+                    goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.renderDecorations(
+                            armorItem, slot, poseStack, bufferSource, packedLight, entity, itemStack,
+                            goblinbob.mobends.core.client.event.DataUpdateHandler.partialTicks, humanoidModel);
+                }
                 return;
             }
 
@@ -1361,7 +1408,60 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
             renderArmorOverlayPass(poseStack, bufferSource, packedLight, entity, armorItem,
                     armorModel, slot, itemStack, bipedData);
+
+            renderTrim(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, bipedData);
         }
+    }
+
+    private void renderTrim(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, E entity,
+                            ArmorItem armorItem, Model armorModel, EquipmentSlot slot, ItemStack itemStack,
+                            @Nullable BipedEntityData<?> bipedData)
+    {
+        final VertexConsumer trimConsumer = getTrimBuffer(bufferSource, entity, armorItem, itemStack, slot);
+
+        if (trimConsumer == null)
+        {
+            return;
+        }
+
+        if (bipedData == null)
+        {
+            IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, trimConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        }
+        else if (armorModel instanceof HumanoidModel<?> humanoidModel)
+        {
+            armorFacade.renderArmorIntoConsumer(poseStack, bufferSource, trimConsumer, packedLight,
+                    OverlayTexture.NO_OVERLAY, entity, slot, itemStack, humanoidModel, bipedData, 0xFFFFFFFF);
+        }
+    }
+
+    @Nullable
+    private VertexConsumer getTrimBuffer(MultiBufferSource bufferSource, E entity, ArmorItem armorItem,
+                                         ItemStack itemStack, EquipmentSlot slot)
+    {
+        final boolean armorApi = goblinbob.mobends.compat.ArmorModelApiCompat.isArmor(itemStack);
+
+        //? if >=1.21 {
+        /*final net.minecraft.world.item.armortrim.ArmorTrim trim =
+                itemStack.get(net.minecraft.core.component.DataComponents.TRIM);
+        if (trim == null) return null;
+        final RenderType renderType = net.minecraft.client.renderer.Sheets.armorTrimsSheet(trim.pattern().value().decal());
+        *///?} else {
+        final net.minecraft.world.item.armortrim.ArmorTrim trim = net.minecraft.world.item.armortrim.ArmorTrim
+                .getTrim(entity.level().registryAccess(), itemStack).orElse(null);
+        if (trim == null) return null;
+        final RenderType renderType = net.minecraft.client.renderer.Sheets.armorTrimsSheet();
+        //?}
+
+        final net.minecraft.client.renderer.texture.TextureAtlas atlas = net.minecraft.client.Minecraft.getInstance()
+                .getModelManager().getAtlas(net.minecraft.client.renderer.Sheets.ARMOR_TRIMS_SHEET);
+        final net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = armorApi
+                ? goblinbob.mobends.compat.ArmorModelApiCompat.getTrimSprite(itemStack, trim, atlas)
+                : atlas.getSprite(usesInnerModel(slot)
+                        ? trim.innerTexture(armorItem.getMaterial())
+                        : trim.outerTexture(armorItem.getMaterial()));
+
+        return sprite == null ? null : sprite.wrap(bufferSource.getBuffer(renderType));
     }
 
     private java.util.List<goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.Layer>
@@ -1391,7 +1491,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     }
 
     private void renderExtendedArmorLayers(PoseStack poseStack, MultiBufferSource bufferSource,
-                                           int packedLight, E entity,
+                                           int packedLight, E entity, ArmorItem armorItem,
                                            Model armorModel, EquipmentSlot slot,
                                            ItemStack itemStack, BipedEntityData<?> bipedData,
                                            java.util.List<goblinbob.mobends.standard.client.model.armor.ImmersiveArmorsSupport.Layer> layers)
@@ -1405,6 +1505,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             {
                 copyModelProperties(parentModel, layer.model);
             }
+
+            layer.model.setAllVisible(false);
+            goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper.showSlotParts(layer.model, slot);
 
             java.util.function.Function<ResourceLocation, RenderType> renderTypeProvider =
                     layer.translucent ? RenderType::entityTranslucent
@@ -1431,6 +1534,14 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                 armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot,
                         itemStack, layer.model, bipedData, layer.overlayTexture, 0xFFFFFFFF,
                         renderTypeProvider);
+            }
+
+            final VertexConsumer trimConsumer = getTrimBuffer(bufferSource, entity, armorItem, itemStack, slot);
+
+            if (trimConsumer != null)
+            {
+                armorFacade.renderArmorIntoConsumer(poseStack, bufferSource, trimConsumer, packedLight,
+                        OverlayTexture.NO_OVERLAY, entity, slot, itemStack, layer.model, bipedData, 0xFFFFFFFF);
             }
         }
     }
@@ -1669,6 +1780,160 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         }
 
         IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+
+        renderTrim(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack, null);
+    }
+
+    private static final java.util.Map<Class<?>, java.util.List<java.lang.reflect.Field>> MODEL_PART_FIELDS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private final CapturingVertexConsumer extraLimbCapture = new CapturingVertexConsumer();
+    private final goblinbob.mobends.standard.client.model.armor.QuadSlicer extraLimbSlicer =
+            new goblinbob.mobends.standard.client.model.armor.QuadSlicer();
+
+    private void renderExtraParts(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, E entity,
+                                  HumanoidModel<?> armorModel, EquipmentSlot slot, ItemStack itemStack,
+                                  BipedEntityData<?> bipedData, VertexConsumer vertexConsumer, @Nullable Integer colorOverride)
+    {
+        final ModelPart[] limbs = {armorModel.leftLeg, armorModel.rightLeg, armorModel.leftArm, armorModel.rightArm};
+        final java.util.List<ModelPart> limbExtras = new java.util.ArrayList<>();
+        final java.util.List<Integer> limbIndices = new java.util.ArrayList<>();
+
+        for (ModelPart part : findExtraParts(armorModel))
+        {
+            for (int i = 0; i < limbs.length; ++i)
+            {
+                if (samePose(part, limbs[i]))
+                {
+                    limbExtras.add(part);
+                    limbIndices.add(i);
+                    part.visible = false;
+                    break;
+                }
+            }
+        }
+
+        if (mutator != null && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
+        {
+            mutator.syncPosesToVanillaModel(armorModel);
+        }
+
+        final boolean[] visibility = captureArmorPartVisibility(armorModel);
+        applyOnlyVisible(armorModel, null, visibility);
+
+        try
+        {
+            IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        }
+        finally
+        {
+            restoreArmorPartVisibility(armorModel, visibility);
+
+            for (ModelPart part : limbExtras)
+            {
+                part.visible = true;
+            }
+        }
+
+        if (limbExtras.isEmpty())
+        {
+            return;
+        }
+
+        final goblinbob.mobends.standard.client.model.armor.ArmorRenderContext<E> context =
+                new goblinbob.mobends.standard.client.model.armor.ArmorRenderContext<>(entity, bipedData, slot, itemStack,
+                        poseStack, bufferSource, packedLight, OverlayTexture.NO_OVERLAY, colorOverride);
+        final int color = context.getArmorColor();
+        final float slimArmOffset = context.isSlimArms()
+                ? -0.5F * goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper.SCALE
+                : 0.0F;
+
+        for (int i = 0; i < limbExtras.size(); ++i)
+        {
+            final int limb = limbIndices.get(i);
+
+            if (limb < 2)
+            {
+                goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper.renderSplitLeg(poseStack, vertexConsumer,
+                        limbExtras.get(i), bipedData, limb == 0, packedLight, OverlayTexture.NO_OVERLAY, color,
+                        extraLimbCapture, extraLimbSlicer);
+            }
+            else
+            {
+                goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper.renderSplitArm(poseStack, vertexConsumer,
+                        limbExtras.get(i), bipedData, limb == 2, packedLight, OverlayTexture.NO_OVERLAY, slimArmOffset,
+                        color, extraLimbCapture, extraLimbSlicer);
+            }
+        }
+    }
+
+    private static java.util.List<ModelPart> findExtraParts(HumanoidModel<?> model)
+    {
+        final java.util.Set<ModelPart> nested = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+
+        for (ModelPart part : armorParts(model))
+        {
+            part.getAllParts().forEach(nested::add);
+        }
+
+        final java.util.List<ModelPart> candidates = new java.util.ArrayList<>();
+
+        for (java.lang.reflect.Field field : modelPartFields(model.getClass()))
+        {
+            try
+            {
+                final ModelPart part = (ModelPart) field.get(model);
+
+                if (part != null && part.visible && !nested.contains(part) && !candidates.contains(part))
+                {
+                    candidates.add(part);
+                }
+            }
+            catch (Throwable ignored)
+            {
+            }
+        }
+
+        for (ModelPart part : candidates)
+        {
+            part.getAllParts().filter(child -> child != part).forEach(nested::add);
+        }
+
+        candidates.removeIf(nested::contains);
+        return candidates;
+    }
+
+    private static java.util.List<java.lang.reflect.Field> modelPartFields(Class<?> modelClass)
+    {
+        return MODEL_PART_FIELDS.computeIfAbsent(modelClass, type -> {
+            final java.util.List<java.lang.reflect.Field> fields = new java.util.ArrayList<>();
+
+            for (Class<?> current = type; current != null && current != HumanoidModel.class; current = current.getSuperclass())
+            {
+                for (java.lang.reflect.Field field : current.getDeclaredFields())
+                {
+                    if (field.getType() == ModelPart.class && !java.lang.reflect.Modifier.isStatic(field.getModifiers()))
+                    {
+                        try
+                        {
+                            field.setAccessible(true);
+                            fields.add(field);
+                        }
+                        catch (Throwable ignored)
+                        {
+                        }
+                    }
+                }
+            }
+
+            return fields;
+        });
+    }
+
+    private static boolean samePose(ModelPart a, ModelPart b)
+    {
+        return a.x == b.x && a.y == b.y && a.z == b.z
+                && a.xRot == b.xRot && a.yRot == b.yRot && a.zRot == b.zRot;
     }
 
     private static boolean isSelfRenderingModel(Model model)

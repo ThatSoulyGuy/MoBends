@@ -121,14 +121,7 @@ public class Tier1Renderer
         PoseStack poseStack = context.getPoseStack();
         EquipmentSlot slot = context.getSlot();
 
-        humanoidModel.head.visible = false;
-        humanoidModel.hat.visible = false;
-        humanoidModel.body.visible = false;
-        humanoidModel.rightArm.visible = false;
-        humanoidModel.leftArm.visible = false;
-        humanoidModel.rightLeg.visible = false;
-        humanoidModel.leftLeg.visible = false;
-        ArmorPoseHelper.showSlotParts(humanoidModel, slot);
+        ArmorPoseHelper.hideOtherSlotParts(humanoidModel, slot);
 
 
         boolean isSlimArms = context.isSlimArms();

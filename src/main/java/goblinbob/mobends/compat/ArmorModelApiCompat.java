@@ -2,10 +2,13 @@ package goblinbob.mobends.compat;
 
 import dev.architectury.platform.Platform;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.armortrim.ArmorTrim;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -21,6 +24,9 @@ public class ArmorModelApiCompat
     private static Method configMethod = null;
     private static Method textureMethod = null;
     private static Method applySlotVisibilityMethod = null;
+    private static Method layersMethod = null;
+    private static Class<?> trimLayerClass = null;
+    private static Method resolveSpriteMethod = null;
 
     public static void init()
     {
@@ -47,6 +53,10 @@ public class ArmorModelApiCompat
             configMethod = renderer.getMethod("config");
             textureMethod = config.getMethod("texture");
             applySlotVisibilityMethod = model.getMethod("applySlotVisibility", EquipmentSlot.class);
+            layersMethod = config.getMethod("layers");
+            trimLayerClass = Class.forName("net.rpg_foundation.armor_api.client.layer.TrimLayer");
+            resolveSpriteMethod = trimLayerClass.getDeclaredMethod("resolveSprite", TextureAtlas.class, ArmorTrim.class);
+            resolveSpriteMethod.setAccessible(true);
             available = true;
         }
         catch (Throwable e)
@@ -124,5 +134,38 @@ public class ArmorModelApiCompat
         {
             return null;
         }
+    }
+
+    public static boolean isArmor(ItemStack itemStack)
+    {
+        return getRenderer(itemStack) != null;
+    }
+
+    @Nullable
+    public static TextureAtlasSprite getTrimSprite(ItemStack itemStack, ArmorTrim trim, TextureAtlas atlas)
+    {
+        final Object renderer = getRenderer(itemStack);
+
+        if (renderer == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            for (Object layer : (java.util.List<?>) layersMethod.invoke(configMethod.invoke(renderer)))
+            {
+                if (trimLayerClass.isInstance(layer))
+                {
+                    return (TextureAtlasSprite) resolveSpriteMethod.invoke(layer, atlas, trim);
+                }
+            }
+        }
+        catch (Throwable e)
+        {
+            return null;
+        }
+
+        return null;
     }
 }

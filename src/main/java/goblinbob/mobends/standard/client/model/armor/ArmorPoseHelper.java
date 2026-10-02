@@ -354,6 +354,20 @@ public final class ArmorPoseHelper
         part.zRot = origZRot;
     }
 
+    public static void hideOtherSlotParts(HumanoidModel<?> model, EquipmentSlot slot)
+    {
+        final boolean head = slot == EquipmentSlot.HEAD;
+        final boolean legs = slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET;
+
+        model.head.visible &= head;
+        model.hat.visible &= head;
+        model.body.visible &= slot == EquipmentSlot.CHEST || slot == EquipmentSlot.LEGS;
+        model.rightArm.visible &= slot == EquipmentSlot.CHEST;
+        model.leftArm.visible &= slot == EquipmentSlot.CHEST;
+        model.rightLeg.visible &= legs;
+        model.leftLeg.visible &= legs;
+    }
+
     public static void showSlotParts(HumanoidModel<?> model, EquipmentSlot slot)
     {
         switch (slot)

@@ -28,6 +28,7 @@ public final class ImmersiveArmorsSupport
     private static Method pieceIsGlowing;
     private static Method pieceIsColored;
     private static Method pieceGetModel;
+    private static Method pieceRender;
 
     private static final Map<String, List<Layer>> CACHE = new ConcurrentHashMap<>();
 
@@ -47,6 +48,11 @@ public final class ImmersiveArmorsSupport
             pieceIsTranslucent = optionalMethod(pieceClass, "isTranslucent");
             pieceIsGlowing = optionalMethod(pieceClass, "isGlowing");
             pieceIsColored = optionalMethod(pieceClass, "isColored");
+
+            pieceRender = pieceClass.getMethod("render", com.mojang.blaze3d.vertex.PoseStack.class,
+                    net.minecraft.client.renderer.MultiBufferSource.class, int.class,
+                    net.minecraft.world.entity.LivingEntity.class, net.minecraft.world.item.ItemStack.class,
+                    float.class, EquipmentSlot.class, HumanoidModel.class);
 
             pieceGetModel = layerPieceClass.getDeclaredMethod("getModel");
             pieceGetModel.setAccessible(true);
@@ -178,6 +184,40 @@ public final class ImmersiveArmorsSupport
         CACHE.put(key, result);
 
         return result;
+    }
+
+    public static void renderDecorations(ArmorItem armorItem, EquipmentSlot slot,
+                                         com.mojang.blaze3d.vertex.PoseStack poseStack,
+                                         net.minecraft.client.renderer.MultiBufferSource bufferSource, int packedLight,
+                                         net.minecraft.world.entity.LivingEntity entity,
+                                         net.minecraft.world.item.ItemStack itemStack, float partialTicks,
+                                         HumanoidModel<?> model)
+    {
+        if (!AVAILABLE)
+        {
+            return;
+        }
+
+        Object material = resolveExtendedMaterial(armorItem);
+        if (material == null)
+        {
+            return;
+        }
+
+        try
+        {
+            for (Object piece : (List<?>) materialGetPieces.invoke(material, slot))
+            {
+                if (!layerPieceClass.isInstance(piece))
+                {
+                    pieceRender.invoke(piece, poseStack, bufferSource, packedLight, entity, itemStack,
+                            partialTicks, slot, model);
+                }
+            }
+        }
+        catch (Throwable ignored)
+        {
+        }
     }
 
     private static Layer readLayer(Object piece, String materialName) throws Exception
