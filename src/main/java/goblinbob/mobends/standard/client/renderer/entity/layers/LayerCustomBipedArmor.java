@@ -343,6 +343,20 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                     renderExtraParts(poseStack, bufferSource, packedLight, entity, selfDrawnHumanoid, slot, itemStack,
                             selfDrawnData, selfDrawnTrim, 0xFFFFFFFF);
                 }
+
+                final ResourceLocation glowTexture = goblinbob.mobends.compat.CrysisCompat.getGlowTexture(armorModel);
+
+                if (glowTexture != null)
+                {
+                    final PoseStack glowPose = new PoseStack();
+                    glowPose.last().pose().scaling(EMISSIVE_DEPTH_SCALE).mul(poseStack.last().pose());
+                    glowPose.last().normal().set(poseStack.last().normal());
+
+                    armorFacade.renderArmorLayer(glowPose, bufferSource, packedLight, entity, slot, itemStack,
+                            armorModel, selfDrawnData, glowTexture,
+                            goblinbob.mobends.compat.CrysisCompat.getGlowColor(armorModel),
+                            RenderType::entityTranslucentEmissive);
+                }
                 return;
             }
 
