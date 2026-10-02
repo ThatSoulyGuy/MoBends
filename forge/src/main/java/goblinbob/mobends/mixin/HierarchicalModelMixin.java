@@ -26,6 +26,8 @@ public abstract class HierarchicalModelMixin<E extends Entity> {
         int color = FastColor.ARGB32.color((int)(alpha * 255.0F), (int)(red * 255.0F), (int)(green * 255.0F), (int)(blue * 255.0F));
         Object model = this;
 
+        goblinbob.mobends.compat.SpiderOverhaulCompat.poseModel(model);
+
         if (model instanceof IllagerModel<?> || model instanceof VillagerModel<?>) {
             if (MixinBridge.shouldRenderBipedCustom()) {
                 MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);

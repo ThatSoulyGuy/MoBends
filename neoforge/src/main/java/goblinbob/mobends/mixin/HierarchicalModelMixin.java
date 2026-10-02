@@ -23,6 +23,8 @@ public abstract class HierarchicalModelMixin<E extends Entity> {
                                          CallbackInfo ci) {
         Object model = this;
 
+        goblinbob.mobends.compat.SpiderOverhaulCompat.poseModel(model);
+
         if (model instanceof IllagerModel<?> || model instanceof VillagerModel<?>) {
             if (MixinBridge.shouldRenderBipedCustom()) {
                 MixinBridge.renderBipedMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
