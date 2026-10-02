@@ -5,7 +5,7 @@ import goblinbob.mobends.core.data.IEntityDataFactory;
 import goblinbob.mobends.standard.data.IllagerData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.IllagerModel;
+import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.monster.AbstractIllager;
 
@@ -13,9 +13,9 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class IllagerMutator<E extends AbstractIllager>
-        extends BipedMutator<IllagerData<E>, E, IllagerModel<E>>
+        extends BipedMutator<IllagerData<E>, E, HierarchicalModel<E>>
 {
-    private final Map<IllagerModel<?>, HumanoidModel<?>> views = new IdentityHashMap<>();
+    private final Map<HierarchicalModel<?>, HumanoidModel<?>> views = new IdentityHashMap<>();
 
     public IllagerMutator(IEntityDataFactory<E> dataFactory)
     {
@@ -25,15 +25,22 @@ public class IllagerMutator<E extends AbstractIllager>
     @Override
     public HumanoidModel<?> humanoidViewOf(EntityModel<?> model)
     {
-        if (!(model instanceof IllagerModel<?> illagerModel))
+        if (!(model instanceof HierarchicalModel<?> hierarchicalModel) || !hasHumanoidParts(hierarchicalModel))
         {
             return null;
         }
 
-        return views.computeIfAbsent(illagerModel, IllagerMutator::buildView);
+        return views.computeIfAbsent(hierarchicalModel, IllagerMutator::buildView);
     }
 
-    private static HumanoidModel<?> buildView(IllagerModel<?> model)
+    private static boolean hasHumanoidParts(HierarchicalModel<?> model)
+    {
+        final ModelPart root = model.root();
+        return root.hasChild("head") && root.hasChild("body") && root.hasChild("right_arm")
+                && root.hasChild("left_arm") && root.hasChild("right_leg") && root.hasChild("left_leg");
+    }
+
+    private static HumanoidModel<?> buildView(HierarchicalModel<?> model)
     {
         final ModelPart root = model.root();
 
@@ -74,6 +81,6 @@ public class IllagerMutator<E extends AbstractIllager>
     @Override
     public boolean shouldModelBeSkipped(EntityModel<?> model)
     {
-        return !(model instanceof IllagerModel);
+        return !(model instanceof HierarchicalModel<?> hierarchicalModel) || !hasHumanoidParts(hierarchicalModel);
     }
 }

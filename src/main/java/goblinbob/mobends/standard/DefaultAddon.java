@@ -136,6 +136,8 @@ public class DefaultAddon implements IAddon
 
 		goblinbob.mobends.compat.SpiderOverhaulCompat.register(registry, SPIDER_ANIMATIONS);
 
+		goblinbob.mobends.compat.TakesAPillageCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new MutatedRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,
 				"head", "body", "neck", "leg1", "leg2", "leg3", "leg4", "leg5", "leg6", "leg7", "leg8",
