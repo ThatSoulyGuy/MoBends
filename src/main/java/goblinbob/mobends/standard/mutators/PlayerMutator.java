@@ -16,8 +16,6 @@ import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomElytr
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldItem;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomPlayerHeldItem;
 import goblinbob.mobends.standard.data.PlayerData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import goblinbob.mobends.standard.previewer.PlayerPreviewer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -32,7 +30,6 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 
 public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer, PlayerModel<AbstractClientPlayer>>
 {
-    private static final Logger LOG = LoggerFactory.getLogger(PlayerMutator.class);
 
     private int skinLayerParts = 0;
 
@@ -82,63 +79,15 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
 
     private boolean detectSlimArms(PlayerRenderer playerRenderer)
     {
-        String[] fieldNames = {"slim", "f_117788_"};
-        for (String fieldName : fieldNames)
+        final PlayerModel<?> model = playerRenderer.getModel();
+        if (model == null || model.leftArm == null)
         {
-            try
-            {
-                java.lang.reflect.Field slimField = PlayerRenderer.class.getDeclaredField(fieldName);
-                slimField.setAccessible(true);
-                boolean result = slimField.getBoolean(playerRenderer);
-                return result;
-            }
-            catch (NoSuchFieldException | IllegalAccessException ignored)
-            {
-            }
+            return false;
         }
 
-        try
-        {
-            PlayerModel<?> model = playerRenderer.getModel();
-            if (model != null && model.leftArm != null)
-            {
-                String[] cubeFieldNames = {"cubes", "f_104222_"};
-                java.util.List<?> cubes = null;
-                for (String fieldName : cubeFieldNames)
-                {
-                    try
-                    {
-                        java.lang.reflect.Field cubesField = net.minecraft.client.model.geom.ModelPart.class.getDeclaredField(fieldName);
-                        cubesField.setAccessible(true);
-                        cubes = (java.util.List<?>) cubesField.get(model.leftArm);
-                        break;
-                    }
-                    catch (NoSuchFieldException ignored)
-                    {
-                    }
-                }
-                if (cubes != null)
-                {
-                    for (Object obj : cubes)
-                    {
-                        net.minecraft.client.model.geom.ModelPart.Cube cube = (net.minecraft.client.model.geom.ModelPart.Cube) obj;
-                        float width = cube.maxX - cube.minX;
-                        if (Math.abs(width - 3.0f) < 0.1f)
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            LOG.warn("Failed to detect slim arms via model cube width: {}", e.getMessage());
-        }
-
-        LOG.warn("Could not detect slim arms, defaulting to standard arms");
-        return false;
+        final float[] width = {0.0F};
+        model.leftArm.visit(new PoseStack(), (pose, path, index, cube) -> width[0] = Math.max(width[0], cube.maxX - cube.minX));
+        return Math.abs(width[0] - 3.0F) < 0.1F;
     }
 
     @Override
@@ -458,17 +407,6 @@ public class PlayerMutator extends BipedMutator<PlayerData, AbstractClientPlayer
     public boolean shouldModelBeSkipped(EntityModel<?> model)
     {
         return !(model instanceof PlayerModel);
-    }
-
-    @Override
-    public PlayerData getData(AbstractClientPlayer entity)
-    {
-        if (entity != null && !PlayerPreviewer.isPreviewInProgress())
-        {
-            IPlayerSkinProvider skinProvider = IPlayerSkinProvider.Holder.getProvider();
-            this.smallArms = skinProvider != null && skinProvider.isSlimModel(entity);
-        }
-        return super.getData(entity);
     }
 
     @Override
