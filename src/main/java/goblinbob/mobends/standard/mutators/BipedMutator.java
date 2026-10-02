@@ -1192,6 +1192,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         goblinbob.mobends.compat.NotEnoughAnimationsCompat.applyArmPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
+        goblinbob.mobends.compat.ImmersiveMelodiesCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
         goblinbob.mobends.compat.WatutCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
@@ -2021,12 +2024,26 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public void adoptUpperBodyFromVanillaModel(HumanoidModel<?> model, boolean adoptHead,
                                                boolean adoptLeftArm, boolean adoptRightArm)
     {
+        adoptUpperBodyFromVanillaModel(model, adoptHead, adoptLeftArm, adoptRightArm, false);
+    }
+
+    public void adoptUpperBodyFromVanillaModel(HumanoidModel<?> model, boolean adoptHead,
+                                               boolean adoptLeftArm, boolean adoptRightArm,
+                                               boolean followBody)
+    {
         if (model == null || body == null) return;
 
         final BipedEntityData<?> data = getRenderData();
 
-        final Quaternion bodyRotation = body.rotation.getSmooth();
-        adoptedParentInverse.set(-bodyRotation.x, -bodyRotation.y, -bodyRotation.z, bodyRotation.w);
+        if (followBody)
+        {
+            adoptedParentInverse.set(0.0F, 0.0F, 0.0F, 1.0F);
+        }
+        else
+        {
+            final Quaternion bodyRotation = body.rotation.getSmooth();
+            adoptedParentInverse.set(-bodyRotation.x, -bodyRotation.y, -bodyRotation.z, bodyRotation.w);
+        }
 
         if (adoptHead)
         {
