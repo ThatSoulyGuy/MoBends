@@ -24,6 +24,7 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
     private static final double TICK_ACCELERATION_THRESHOLD = -0.02D;
     private static final double CONTROLLED_DESCENT_MIN_SPEED = -0.12D;
     private static final double CONTROLLED_DESCENT_MAX_DROP = 6.0D;
+    private static final double GROUND_PROXIMITY = 0.5D;
 
     protected boolean sprintJumpLeg = false;
     protected boolean sprintJumpLegSwitched = false;
@@ -151,6 +152,13 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
         }
     }
 
+    private boolean isNearGround()
+    {
+        final net.minecraft.world.phys.AABB box = this.entity.getBoundingBox();
+        return this.entity.level().getBlockCollisions(this.entity, new net.minecraft.world.phys.AABB(
+                box.minX, box.minY - GROUND_PROXIMITY, box.minZ, box.maxX, box.minY, box.maxZ)).iterator().hasNext();
+    }
+
     private boolean isAcceleratingDownward()
     {
         if (this.airborneTicks <= FALL_WINDOW_TICKS * 2)
@@ -189,6 +197,7 @@ public class PlayerData extends BipedEntityData<AbstractClientPlayer>
     {
         return !this.isOnGround()
                 && !this.entity.onGround()
+                && !this.isNearGround()
                 && !this.isRiding()
                 && !this.isClimbing()
                 && !this.entity.onClimbable()
