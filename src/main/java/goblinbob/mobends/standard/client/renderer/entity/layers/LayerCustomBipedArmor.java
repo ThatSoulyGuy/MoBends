@@ -112,7 +112,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                        E entity, float limbSwing, float limbSwingAmount,
                        float partialTicks, float ageInTicks, float netHeadYaw, float headPitch)
     {
-        if (goblinbob.mobends.compat.ModernCompanionsCompat.shouldSkipArmorLayer(vanillaArmorLayer, entity))
+        if (goblinbob.mobends.compat.ModernCompanionsCompat.shouldSkipArmorLayer(vanillaArmorLayer, entity)
+                || goblinbob.mobends.compat.AntarchyCompat.isArmorHidden(entity))
         {
             return;
         }

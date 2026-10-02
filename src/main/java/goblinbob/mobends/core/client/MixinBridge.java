@@ -39,11 +39,14 @@ public final class MixinBridge {
         }
     }
 
-    public static void syncPosesBeforeLayers() {
+    public static void syncPosesBeforeLayers(PoseStack poseStack) {
+        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
+        if (mutator != null) {
+            mutator.captureLayerBasePose(poseStack);
+        }
         if (!MoBendsRenderContext.isInMainModelRender()) {
             return;
         }
-        BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
         if (mutator == null || !mutator.shouldRenderCustom()) {
             return;
         }

@@ -113,6 +113,10 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     private final org.joml.Matrix3f mainRenderNormal = new org.joml.Matrix3f();
     private boolean mainRenderPoseValid = false;
 
+    private final org.joml.Matrix4f layerBasePose = new org.joml.Matrix4f();
+    private final org.joml.Matrix3f layerBaseNormal = new org.joml.Matrix3f();
+    private boolean layerBasePoseValid = false;
+
     private final org.joml.Matrix4f renderAnchorPose = new org.joml.Matrix4f();
     private boolean renderAnchorPoseValid = false;
 
@@ -1234,6 +1238,14 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         mainRenderPose.set(poseStack.last().pose());
         mainRenderNormal.set(poseStack.last().normal());
         mainRenderPoseValid = true;
+        layerBasePoseValid = false;
+    }
+
+    public void captureLayerBasePose(PoseStack poseStack)
+    {
+        layerBasePose.set(poseStack.last().pose()).invert();
+        layerBaseNormal.set(poseStack.last().normal()).invert();
+        layerBasePoseValid = true;
     }
 
     protected void captureRenderAnchorPose(PoseStack poseStack)
@@ -1318,6 +1330,12 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     {
         if (!mainRenderPoseValid)
         {
+            return;
+        }
+        if (layerBasePoseValid)
+        {
+            poseStack.last().pose().mulLocal(layerBasePose).mulLocal(mainRenderPose);
+            poseStack.last().normal().mulLocal(layerBaseNormal).mulLocal(mainRenderNormal);
             return;
         }
         poseStack.last().pose().set(mainRenderPose);

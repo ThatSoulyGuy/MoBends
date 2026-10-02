@@ -19,6 +19,6 @@ public abstract class LivingEntityRendererMixin {
     private void mobends$syncPosesBeforeLayers(LivingEntity entity, float entityYaw, float partialTicks,
                                                PoseStack poseStack, MultiBufferSource bufferSource,
                                                int packedLight, CallbackInfo ci) {
-        MixinBridge.syncPosesBeforeLayers();
+        MixinBridge.syncPosesBeforeLayers(poseStack);
     }
 }
