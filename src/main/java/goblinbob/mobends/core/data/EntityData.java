@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 public abstract class EntityData<E extends Entity> implements IEntityAnimationData
 {
-    private static final double STILL_SPEED_THRESHOLD = 0.003D;
+    protected static final double STILL_SPEED_THRESHOLD = 0.003D;
 
     protected final E entity;
 

@@ -35,6 +35,17 @@ public class SpiderData extends LivingEntityData<Spider>
         return controller;
     }
 
+    @Override
+    public boolean isStillHorizontally()
+    {
+        if (this.stillnessOverride == null && goblinbob.mobends.compat.AdvancedWallClimberCompat.isClimber(this.entity))
+        {
+            return this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ
+                    < STILL_SPEED_THRESHOLD * STILL_SPEED_THRESHOLD;
+        }
+        return super.isStillHorizontally();
+    }
+
     public float getInterpolatedCrawlProgress()
     {
         return GUtil.lerp(prevCrawlProgress, crawlProgress, DataUpdateHandler.partialTicks);

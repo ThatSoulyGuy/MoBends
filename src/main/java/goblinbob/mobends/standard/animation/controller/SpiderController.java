@@ -33,7 +33,7 @@ public class SpiderController implements IAnimationController<SpiderData>
 		else
 		{
 
-			if (spider.isClimbing())
+			if (spider.isClimbing() && !goblinbob.mobends.compat.AdvancedWallClimberCompat.isClimber(spider))
 			{
 				this.layerBase.playOrContinueBit(bitClimb, spiderData);
 			}
