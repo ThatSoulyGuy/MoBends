@@ -122,6 +122,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     protected float babyHeadScale = 1.0F;
 
+    protected float textureWidth = 64.0F;
+    protected float textureHeight = 64.0F;
+
     private VanillaRestState vanillaRest;
 
     @SuppressWarnings("rawtypes")
@@ -302,13 +305,13 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     protected void createHeadParts(float scaleFactor)
     {
         head = new BendsModelPart(0, 0)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, -12.0F, 0.0F);
         head.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor);
         body.addChild(head);
 
         headwear = new BendsModelPart(32, 0)
-                .setTextureSize(64, 64);
+                .setTextureSize(textureWidth, textureHeight);
         headwear.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + 0.5F);
         head.addChild(headwear);
     }
@@ -667,7 +670,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
 
         body = new BendsModelPart(16, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 12.0F, 0.0F);
         body.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor);
 
@@ -677,7 +680,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         float armY = -10F;
 
         leftArm = new BendsModelPart(40, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(5.0F, armY, 0.0F)
                 .setMirror(true);
         leftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
@@ -687,7 +690,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         body.addChild(leftArm);
 
         rightArm = new BendsModelPart(40, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(-5.0F, armY, 0.0F);
         rightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor)
                 .inflate(0.01F, 0F, 0.01F)
@@ -696,7 +699,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         body.addChild(rightArm);
 
         leftForeArm = new BendsModelPart(40, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
         leftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
@@ -706,7 +709,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         leftArm.addChild(leftForeArm);
 
         rightForeArm = new BendsModelPart(40, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 4.0F, 2.0F);
         rightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor)
                 .hideFace(BoxSide.TOP)
@@ -715,18 +718,18 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         rightArm.addChild(rightForeArm);
 
         rightLeg = new BendsModelPart(0, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 12F, 0F);
         rightLeg.addCube(-3.9F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
 
         leftLeg = new BendsModelPart(0, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 12.0F, 0.0F)
                 .setMirror(true);
         leftLeg.addCube(-0.1F, 0.0F, -2.0F, 4, 6, 4, scaleFactor);
 
         leftForeLeg = new BendsModelPart(0, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0, 6.0F, -2.0F)
                 .setMirror(true);
         leftForeLeg.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
@@ -736,7 +739,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         leftLeg.addChild(leftForeLeg);
 
         rightForeLeg = new BendsModelPart(0, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0, 6.0F, -2.0F);
         rightForeLeg.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor)
                 .inflate(0.01F, 0F, 0.01F)
@@ -759,18 +762,18 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         float armY = -10F;
 
         outerBody = new BendsModelPart(16, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 12.0F, 0.0F);
         outerBody.addCube(-4.0F, -12.0F, -2.0F, 8, 12, 4, scaleFactor + outerOffset);
 
         outerHead = new BendsModelPart(0, 0)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, -12.0F, 0.0F);
         outerHead.addCube(-4.0F, -8.0F, -4.0F, 8, 8, 8, scaleFactor + outerOffset);
         outerBody.addChild(outerHead);
 
         outerLeftArm = new BendsModelPart(40, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(5.0F, armY, 0.0F)
                 .setMirror(true);
         outerLeftArm.developBox(-1.0F, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset)
@@ -781,7 +784,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         outerBody.addChild(outerLeftArm);
 
         outerRightArm = new BendsModelPart(40, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(-5.0F, armY, 0.0F);
         outerRightArm.developBox(-armWidth + 1, -2.0F, -2.0F, armWidth, 6, 4, scaleFactor + outerOffset)
                 .setHeight(limbWearHeight)
@@ -791,7 +794,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         outerBody.addChild(outerRightArm);
 
         outerLeftForeArm = new BendsModelPart(40, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(true);
         outerLeftForeArm.developBox(-1.0F, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset)
@@ -804,7 +807,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         outerLeftArm.addChild(outerLeftForeArm);
 
         outerRightForeArm = new BendsModelPart(40, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 4.0F, 2.0F);
         outerRightForeArm.developBox(-armWidth + 1, 0.0F, -4.0F, armWidth, 6, 4, scaleFactor + outerOffset)
                 .setHeight(limbWearHeight)
@@ -816,7 +819,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         outerRightArm.addChild(outerRightForeArm);
 
         outerRightLeg = new BendsModelPart(0, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 12F, 0F);
         outerRightLeg.developBox(-3.9F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + outerOffset)
                 .setHeight(limbWearHeight)
@@ -824,7 +827,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .create();
 
         outerLeftLeg = new BendsModelPart(0, 16)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0.0F, 12.0F, 0.0F)
                 .setMirror(true);
         outerLeftLeg.developBox(-0.1F, 0.0F, -2.0F, 4, 6, 4, scaleFactor + outerOffset)
@@ -833,7 +836,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 .create();
 
         outerLeftForeLeg = new BendsModelPart(0, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0, 6.0F, -2.0F)
                 .setMirror(true);
         outerLeftForeLeg.developBox(-0.1F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset)
@@ -846,7 +849,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         outerLeftLeg.addChild(outerLeftForeLeg);
 
         outerRightForeLeg = new BendsModelPart(0, 22)
-                .setTextureSize(64, 64)
+                .setTextureSize(textureWidth, textureHeight)
                 .setPosition(0, 6.0F, -2.0F);
         outerRightForeLeg.developBox(-3.9F, 0.0F, 0.0F, 4, 6, 4, scaleFactor + outerOffset)
                 .setHeight(limbWearHeight)
