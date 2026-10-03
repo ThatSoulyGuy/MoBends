@@ -200,7 +200,12 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public void swapLayer(LivingEntityRenderer<E, M> renderer, int index, boolean isModelVanilla)
     {
         RenderLayer<E, M> layer = layerRenderers.get(index);
-        if (layer instanceof HumanoidArmorLayer)
+        if (goblinbob.mobends.compat.ColdSweatCompat.isChameleonLayer(layer))
+        {
+            this.originalLayers.put(index, layer);
+            layerRenderers.set(index, goblinbob.mobends.compat.ColdSweatCompat.emptyLayer(renderer));
+        }
+        else if (layer instanceof HumanoidArmorLayer)
         {
             HumanoidArmorLayer vanillaArmor = (HumanoidArmorLayer) layer;
 
@@ -1193,6 +1198,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
         goblinbob.mobends.compat.ImmersiveMelodiesCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.ColdSweatCompat.applyLampPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
         goblinbob.mobends.compat.WatutCompat.applyPose(

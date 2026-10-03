@@ -270,6 +270,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         boolean shouldUseBends = hasBendsAnimation && !ModConfig.shouldKeepArmorAsVanilla(armorItem)
                 && (mutator == null || mutator.shouldRenderCustom());
 
+        if (entity instanceof net.minecraft.world.entity.player.Player
+                && goblinbob.mobends.compat.ColdSweatCompat.isChameleonArmor(itemStack))
+        {
+            renderChameleonArmor(poseStack, bufferSource, packedLight, entity, slot, itemStack,
+                    shouldUseBends && entityData instanceof BipedEntityData<?>
+                            ? previewAware((BipedEntityData<?>) entityData)
+                            : null);
+            return;
+        }
+
         if (palladiumArmor != null)
         {
             renderPalladiumArmor(poseStack, bufferSource, packedLight, entity, slot, itemStack,
@@ -1602,6 +1612,55 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             renderPalladiumPass(poseStack, bufferSource, packedLight, itemStack, armorModel,
                     palladiumArmor.overlayTexture, renderTypeProvider, 0xFFFFFFFF);
         }
+    }
+
+    private void renderChameleonArmor(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
+                                      E entity, EquipmentSlot slot, ItemStack itemStack,
+                                      @Nullable BipedEntityData<?> bipedData)
+    {
+        final HumanoidModel<E> model = goblinbob.mobends.compat.ColdSweatCompat.getChameleonModel(entity, itemStack, slot);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        copyParentProperties(model);
+        model.young = false;
+        setPartVisibility(model, slot);
+
+        final double factor = goblinbob.mobends.compat.ColdSweatCompat.getAdaptiveFactor(itemStack);
+        final ResourceLocation baseTexture = goblinbob.mobends.compat.ColdSweatCompat.getChameleonTexture(slot, "");
+        final ResourceLocation overlayTexture =
+                goblinbob.mobends.compat.ColdSweatCompat.getChameleonTexture(slot, factor < 0 ? "_blue" : "_red");
+        final int overlayColor = ((int) (Math.min(Math.abs(factor), 1.0D) * 255.0D) << 24) | 0xFFFFFF;
+
+        if (bipedData != null)
+        {
+            armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot, itemStack,
+                    model, bipedData, baseTexture, 0xFFFFFFFF, RenderType::entityTranslucent);
+            armorFacade.renderArmorLayer(poseStack, bufferSource, packedLight, entity, slot, itemStack,
+                    model, bipedData, overlayTexture, overlayColor, RenderType::entityTranslucent);
+
+            if (itemStack.hasFoil())
+            {
+                armorFacade.renderArmorIntoConsumer(poseStack, bufferSource,
+                        bufferSource.getBuffer(RenderType.armorEntityGlint()), packedLight, OverlayTexture.NO_OVERLAY,
+                        entity, slot, itemStack, model, bipedData, 0xFFFFFFFF);
+            }
+            return;
+        }
+
+        if (mutator != null && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity))
+        {
+            mutator.syncPosesToVanillaModel(model);
+        }
+
+        renderPalladiumPass(poseStack, bufferSource, packedLight, itemStack, model, baseTexture,
+                RenderType::entityTranslucent, 0xFFFFFFFF);
+        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(model, poseStack,
+                bufferSource.getBuffer(RenderType.entityTranslucent(overlayTexture)), packedLight,
+                OverlayTexture.NO_OVERLAY, overlayColor);
     }
 
     private final goblinbob.mobends.standard.client.model.armor.CapturingVertexConsumer legendsVisibilityPass =
