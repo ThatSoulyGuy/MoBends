@@ -11,6 +11,8 @@ public class SittingAnimationBit<T extends BipedEntityData<?>> extends Animation
 	public void perform(T data)
 	{
 		data.centerRotation.setSmoothness(.3F).orientZero();
+		data.globalOffset.slideToZero(0.3F);
+		data.localOffset.slideToZero(0.3F);
 
 		data.head.rotation.orientX(data.headPitch.get())
 		  				  .rotateY(data.headYaw.get());

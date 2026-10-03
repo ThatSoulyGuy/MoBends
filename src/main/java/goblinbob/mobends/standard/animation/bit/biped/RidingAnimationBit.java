@@ -20,6 +20,7 @@ public class RidingAnimationBit<T extends BipedEntityData<?>> extends AnimationB
 		final float squareUp = data.getRidingBodyYaw();
 
 		data.localOffset.slideToZero(0.3F);
+		data.globalOffset.slideToZero(0.3F);
 		data.renderRotation.orientZero();
 		data.centerRotation.setSmoothness(.3F).orientZero();
 		data.renderLeftItemRotation.orientZero();
