@@ -1203,6 +1203,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         goblinbob.mobends.compat.ColdSweatCompat.applyLampPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
+        goblinbob.mobends.compat.BinocularsCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
         goblinbob.mobends.compat.WatutCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
