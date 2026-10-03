@@ -26,6 +26,13 @@ public class MutatedRenderer<T extends LivingEntity>
 
         this.renderLocalAccessories(entity, data, partialTicks, poseStack);
 
+        this.applyLocalTransform(data, entity, partialTicks, poseStack);
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
+    }
+
+    public void applyLocalTransform(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
+    {
         float globalScale = entity.isBaby() ? getChildScale() : 1;
 
         if (globalScale != 1.0f)
@@ -47,8 +54,6 @@ public class MutatedRenderer<T extends LivingEntity>
                 data.localOffset.getZ() * scale);
 
         this.transformLocally(entity, data, partialTicks, poseStack);
-
-        poseStack.mulPose(Axis.YP.rotationDegrees(interpolateRotation(entity.yBodyRotO, entity.yBodyRot, partialTicks)));
     }
 
     public void afterRender(T entity, float partialTicks, PoseStack poseStack)

@@ -166,6 +166,11 @@ public abstract class EntityBender<T extends LivingEntity>
         goblinbob.mobends.api.event.MoBendsPoseEvents.dispatch(entity, partialTicks);
     }
 
+    public void applyLocalTransform(EntityData<T> data, T entity, float partialTicks, PoseStack poseStack)
+    {
+        this.renderer.applyLocalTransform(data, entity, partialTicks, poseStack);
+    }
+
     public void afterRender(T entity, float partialTicks, PoseStack poseStack)
     {
         this.renderer.afterRender(entity, partialTicks, poseStack);

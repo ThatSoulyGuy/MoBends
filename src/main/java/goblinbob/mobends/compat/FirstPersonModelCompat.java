@@ -1,11 +1,14 @@
 package goblinbob.mobends.compat;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import dev.architectury.platform.Platform;
-import goblinbob.mobends.core.client.model.ModelPartTransform;
+import goblinbob.mobends.core.bender.EntityBender;
+import goblinbob.mobends.core.bender.EntityBenderRegistry;
+import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.core.data.EntityDatabase;
 import goblinbob.mobends.core.util.BenderHelper;
-import goblinbob.mobends.lib.math.Quaternion;
-import goblinbob.mobends.lib.math.QuaternionUtils;
+import goblinbob.mobends.standard.client.model.armor.ArmorPoseHelper;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
@@ -13,6 +16,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -24,11 +28,9 @@ public class FirstPersonModelCompat
     private static final String API_CLASS = "dev.tr7zw.firstperson.api.FirstPersonAPI";
     private static final String OFFSET_HANDLER_CLASS = "dev.tr7zw.firstperson.api.PlayerOffsetHandler";
 
-    private static final float MODEL_SCALE = 0.9375F / 16.0F;
-    private static final float ENTITY_SCALE = 1.0F / 16.0F;
-    private static final float DEGREES_TO_RADIANS = (float) Math.PI / 180.0F;
-    private static final double MAX_COMPENSATION = 1.5D;
-    private static final float MAX_HEAD_DISPLACEMENT = 48.0F;
+    private static final float PLAYER_SCALE = 0.9375F;
+    private static final float CROUCHING_HEAD_Y = 4.2F / 16.0F;
+    private static final float MAX_COMPENSATION = 1.5F;
 
     private static boolean initialized = false;
     private static boolean isLoaded = false;
@@ -137,6 +139,7 @@ public class FirstPersonModelCompat
         return model != null && !model.leftArm.visible && !model.rightArm.visible;
     }
 
+    @SuppressWarnings("unchecked")
     private static Vec3 applyOffset(AbstractClientPlayer entity, float partialTicks, Vec3 current)
     {
         if (entity == null || current == null)
@@ -149,58 +152,63 @@ public class FirstPersonModelCompat
             return current;
         }
 
-        Object rawData = EntityDatabase.instance.get(entity);
-        if (!(rawData instanceof BipedEntityData<?>))
+        final EntityBender<AbstractClientPlayer> bender = EntityBenderRegistry.instance.getForEntity(entity);
+        final Object rawData = EntityDatabase.instance.get(entity);
+        if (bender == null || !(rawData instanceof BipedEntityData<?> data) || data.body == null || data.head == null)
         {
             return current;
         }
 
-        BipedEntityData<?> data = (BipedEntityData<?>) rawData;
-        ModelPartTransform body = data.body;
-        ModelPartTransform head = data.head;
-        if (body == null || head == null)
+        final float yaw = Mth.rotLerp(partialTicks, entity.yBodyRotO, entity.yBodyRot);
+        final boolean crawling = (entity.isVisuallySwimming() && !entity.isInWater()) || CrawlCompat.isCrawling(entity);
+
+        final PoseStack bendsPose = new PoseStack();
+        bendsPose.mulPose(Axis.YP.rotationDegrees(-yaw));
+        bender.applyLocalTransform((EntityData<AbstractClientPlayer>) rawData, entity, partialTicks, bendsPose);
+        bendsPose.mulPose(Axis.YP.rotationDegrees(yaw));
+        applyVanillaRotations(bendsPose, entity, yaw, partialTicks, crawling);
+        ArmorPoseHelper.applyPartTransform(bendsPose, data.body, true);
+        ArmorPoseHelper.applyPartTransform(bendsPose, data.head, true);
+        final Vector3f bendsNeck = bendsPose.last().pose().transformPosition(new Vector3f());
+
+        final PoseStack vanillaPose = new PoseStack();
+        applyVanillaRotations(vanillaPose, entity, yaw, partialTicks, true);
+        final Vector3f vanillaNeck = vanillaPose.last().pose().transformPosition(
+                new Vector3f(0.0F, entity.isCrouching() ? CROUCHING_HEAD_Y : 0.0F, 0.0F));
+
+        final Vector3f offset = vanillaNeck.sub(bendsNeck);
+        if (!Float.isFinite(offset.lengthSquared()))
         {
             return current;
         }
 
-        Quaternion bodyRotation = body.rotation.getSmooth();
-
-        float bodyPivotX = body.globalOffset.x + (body.position.x + body.offset.x) * body.offsetScale;
-        float bodyPivotZ = body.globalOffset.z + (body.position.z + body.offset.z) * body.offsetScale;
-
-        float[] neck = QuaternionUtils.rotateVector(bodyRotation,
-                (head.position.x + head.offset.x) * head.offsetScale,
-                (head.position.y + head.offset.y) * head.offsetScale,
-                (head.position.z + head.offset.z) * head.offsetScale, new float[3]);
-
-        float headX = bodyPivotX + neck[0];
-        float headZ = bodyPivotZ + neck[2];
-
-        if (Math.abs(headX) > MAX_HEAD_DISPLACEMENT || Math.abs(headZ) > MAX_HEAD_DISPLACEMENT)
+        if (offset.length() > MAX_COMPENSATION)
         {
-            return current;
+            offset.normalize(MAX_COMPENSATION);
         }
 
-        float entityX = data.globalOffset.getX() + data.localOffset.getX();
-        float entityZ = data.globalOffset.getZ() + data.localOffset.getZ();
+        return current.add(offset.x, offset.y, offset.z);
+    }
 
-        float yaw = Mth.rotLerp(partialTicks, entity.yBodyRotO, entity.yBodyRot) * DEGREES_TO_RADIANS;
-        float cos = Mth.cos(yaw);
-        float sin = Mth.sin(yaw);
+    private static void applyVanillaRotations(PoseStack poseStack, AbstractClientPlayer entity, float yaw,
+                                              float partialTicks, boolean swimRotation)
+    {
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - yaw));
 
-        double offsetX = -MODEL_SCALE * (headX * cos + headZ * sin)
-                - ENTITY_SCALE * (entityX * cos - entityZ * sin);
-        double offsetZ = MODEL_SCALE * (-headX * sin + headZ * cos)
-                - ENTITY_SCALE * (entityX * sin + entityZ * cos);
-
-        double length = Math.sqrt(offsetX * offsetX + offsetZ * offsetZ);
-        if (length > MAX_COMPENSATION)
+        final float swimAmount = swimRotation ? entity.getSwimAmount(partialTicks) : 0.0F;
+        if (swimAmount > 0.0F && !entity.isFallFlying())
         {
-            double factor = MAX_COMPENSATION / length;
-            offsetX *= factor;
-            offsetZ *= factor;
+            final float target = entity.isInWater() ? -90.0F - entity.getXRot() : -90.0F;
+            poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(swimAmount, 0.0F, target)));
+
+            if (entity.isVisuallySwimming())
+            {
+                poseStack.translate(0.0F, -1.0F, 0.3F);
+            }
         }
 
-        return current.add(offsetX, 0.0D, offsetZ);
+        poseStack.scale(-1.0F, -1.0F, 1.0F);
+        poseStack.scale(PLAYER_SCALE, PLAYER_SCALE, PLAYER_SCALE);
+        poseStack.translate(0.0F, -1.501F, 0.0F);
     }
 }
