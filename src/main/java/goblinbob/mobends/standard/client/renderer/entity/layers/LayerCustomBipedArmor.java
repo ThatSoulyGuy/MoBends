@@ -785,15 +785,92 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             return java.util.Collections.emptySet();
         }
 
+        final java.util.Map<RenderType, java.util.List<CapturedVertex>> drawn = new java.util.LinkedHashMap<>(capturedByType);
+        final java.util.Map<RenderType, GeoPart[]> owners = probeOwners(armorModel, defaultModel, slotVisibility, packedLight, drawn);
+
         java.util.Set<String> keys = new java.util.HashSet<>();
 
-        for (java.util.Map.Entry<RenderType, java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex>> entry : capturedByType.entrySet())
+        for (java.util.Map.Entry<RenderType, java.util.List<CapturedVertex>> entry : drawn.entrySet())
         {
-            emitAlwaysDrawn(entry.getValue(), slot, keys,
+            emitAlwaysDrawn(entry.getValue(), owners.get(entry.getKey()), slot, keys,
                     geometry.computeIfAbsent(entry.getKey(), key -> new TypedGeometry()));
         }
 
         return keys;
+    }
+
+    private static final float PROBE_OFFSET = 64.0F;
+
+    private static final GeoPart[] PROBE_ORDER = {
+            GeoPart.BODY, GeoPart.HEAD, GeoPart.LEFT_ARM, GeoPart.RIGHT_ARM, GeoPart.LEFT_LEG, GeoPart.RIGHT_LEG
+    };
+
+    private java.util.Map<RenderType, GeoPart[]> probeOwners(Model armorModel, HumanoidModel<E> defaultModel,
+                                                             boolean[] slotVisibility, int packedLight,
+                                                             java.util.Map<RenderType, java.util.List<CapturedVertex>> drawn)
+    {
+        final java.util.Map<RenderType, GeoPart[]> owners = new java.util.HashMap<>();
+
+        for (GeoPart part : PROBE_ORDER)
+        {
+            final ModelPart base = basePart(defaultModel, part);
+            final float restX = base.x;
+            base.x = restX + PROBE_OFFSET;
+
+            try
+            {
+                for (java.util.Map.Entry<RenderType, java.util.List<CapturedVertex>> entry
+                        : captureGeo(armorModel, defaultModel, null, slotVisibility, packedLight).entrySet())
+                {
+                    final java.util.List<CapturedVertex> rest = drawn.get(entry.getKey());
+                    final java.util.List<CapturedVertex> moved = entry.getValue();
+
+                    if (rest == null || rest.size() != moved.size())
+                    {
+                        continue;
+                    }
+
+                    final GeoPart[] typeOwners = owners.computeIfAbsent(entry.getKey(), key -> new GeoPart[rest.size()]);
+
+                    for (int i = 0; i < moved.size(); ++i)
+                    {
+                        if (followsProbe(rest.get(i), moved.get(i)))
+                        {
+                            typeOwners[i] = part;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                base.x = restX;
+            }
+        }
+
+        return owners;
+    }
+
+    private static ModelPart basePart(HumanoidModel<?> model, GeoPart part)
+    {
+        switch (part)
+        {
+            case HEAD: return model.head;
+            case LEFT_ARM: return model.leftArm;
+            case RIGHT_ARM: return model.rightArm;
+            case LEFT_LEG: return model.leftLeg;
+            case RIGHT_LEG: return model.rightLeg;
+            case BODY:
+            default: return model.body;
+        }
+    }
+
+    private static boolean followsProbe(CapturedVertex rest, CapturedVertex probed)
+    {
+        final float dx = probed.x - rest.x;
+        final float dy = probed.y - rest.y;
+        final float dz = probed.z - rest.z;
+
+        return dx * dx + dy * dy + dz * dz > 1.0F;
     }
 
     private java.util.Map<RenderType, java.util.List<CapturedVertex>> captureGeo(Model armorModel, HumanoidModel<E> defaultModel,
@@ -825,7 +902,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return capture.getVerticesByType();
     }
 
-    private void emitAlwaysDrawn(java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured, EquipmentSlot slot,
+    private void emitAlwaysDrawn(java.util.List<goblinbob.mobends.standard.client.model.armor.CapturedVertex> captured,
+                                 @Nullable GeoPart[] owners, EquipmentSlot slot,
                                  java.util.Set<String> keys, TypedGeometry out)
     {
         goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment assignment = new goblinbob.mobends.standard.client.model.armor.ArmorBoneAssignment();
@@ -839,9 +917,18 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (!quadAligned)
         {
-            for (CapturedVertex v : captured)
+            for (int i = 0; i < captured.size(); ++i)
             {
-                BoneRegion region = assignment.assignVertexForSlot(v.x, v.y, v.z, slot);
+                final CapturedVertex v = captured.get(i);
+                final GeoPart owner = owners == null ? null : owners[i];
+
+                if (owner != null)
+                {
+                    emitVertex(owner, v, jointBlend(owner, v.y), out);
+                    continue;
+                }
+
+                final BoneRegion region = assignment.assignVertexForSlot(v.x, v.y, v.z, slot);
                 out.add(v, region, region, 0.0F);
             }
 
@@ -850,6 +937,15 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         for (int q = 0; q + 3 < captured.size(); q += 4)
         {
+            final GeoPart owner = owners == null ? null : owners[q];
+
+            if (owner != null)
+            {
+                emitPartQuad(owner, java.util.Arrays.asList(captured.get(q), captured.get(q + 1),
+                        captured.get(q + 2), captured.get(q + 3)), out);
+                continue;
+            }
+
             float cx = 0.0F, cy = 0.0F, cz = 0.0F;
 
             for (int i = q; i < q + 4; ++i)
@@ -919,8 +1015,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             return;
         }
 
-        final float joint = jointPlane(part);
-
         for (int q = 0; q + 3 < captured.size(); q += 4)
         {
             if (excluded.contains(vertexKey(captured.get(q)))
@@ -931,22 +1025,28 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                 continue;
             }
 
-            java.util.List<java.util.List<CapturedVertex>> polys = java.util.Collections.singletonList(
-                    java.util.Arrays.asList(captured.get(q), captured.get(q + 1),
-                            captured.get(q + 2), captured.get(q + 3)));
-
-            if (!Float.isNaN(joint))
-            {
-                polys = clipAll(polys, AXIS_Y, joint);
-            }
-
-            for (java.util.List<CapturedVertex> poly : polys)
-            {
-                final float weight = pieceJointBlend(joint, poly);
-                emitFan(poly, v -> emitVertex(part, v, weight, out));
-            }
+            emitPartQuad(part, java.util.Arrays.asList(captured.get(q), captured.get(q + 1),
+                    captured.get(q + 2), captured.get(q + 3)), out);
         }
 
+    }
+
+    private void emitPartQuad(GeoPart part, java.util.List<CapturedVertex> quad, TypedGeometry out)
+    {
+        final float joint = jointPlane(part);
+
+        java.util.List<java.util.List<CapturedVertex>> polys = java.util.Collections.singletonList(quad);
+
+        if (!Float.isNaN(joint))
+        {
+            polys = clipAll(polys, AXIS_Y, joint);
+        }
+
+        for (java.util.List<CapturedVertex> poly : polys)
+        {
+            final float weight = pieceJointBlend(joint, poly);
+            emitFan(poly, v -> emitVertex(part, v, weight, out));
+        }
     }
 
     private static boolean isSkirtQuad(float centroidY, EquipmentSlot slot)
