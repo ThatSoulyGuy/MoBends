@@ -11,6 +11,9 @@ public class VanillaScrollView extends VanillaViewGroup
     private int targetScroll = 0;
     private boolean animatingScroll = false;
 
+    private boolean draggingThumb = false;
+    private double thumbGrabOffset = 0;
+
     private static final int SCROLLBAR_WIDTH = 4;
     private static final int OUTSIDE_POINTER = Integer.MIN_VALUE / 2;
 
@@ -150,12 +153,46 @@ public class VanillaScrollView extends VanillaViewGroup
         guiGraphics.fill(trackLeft, trackTop, trackLeft + SCROLLBAR_WIDTH, trackTop + trackHeight,
                 MoBendsTheme.SCROLLBAR_TRACK);
 
-        int totalContentHeight = maxScroll + trackHeight;
-        int thumbHeight = Math.max(10, (int) ((float) trackHeight / totalContentHeight * trackHeight));
-        int thumbTop = trackTop + (int) ((float) scrollOffset / maxScroll * (trackHeight - thumbHeight));
+        int thumbTop = thumbTop();
 
-        guiGraphics.fill(trackLeft, thumbTop, trackLeft + SCROLLBAR_WIDTH, thumbTop + thumbHeight,
+        guiGraphics.fill(trackLeft, thumbTop, trackLeft + SCROLLBAR_WIDTH, thumbTop + thumbHeight(),
                 MoBendsTheme.SCROLLBAR_THUMB);
+    }
+
+    private int thumbHeight()
+    {
+        int trackHeight = getContentHeight();
+        return Math.max(10, (int) ((float) trackHeight / (maxScroll + trackHeight) * trackHeight));
+    }
+
+    private int thumbTop()
+    {
+        return y + paddingTop + (int) ((float) scrollOffset / maxScroll * (getContentHeight() - thumbHeight()));
+    }
+
+    private void dragThumbTo(double mouseY)
+    {
+        int range = getContentHeight() - thumbHeight();
+        if (range <= 0) return;
+
+        scrollTo((int) Math.round((mouseY - thumbGrabOffset - y - paddingTop) / range * maxScroll));
+    }
+
+    public boolean handleMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
+    {
+        if (draggingThumb)
+        {
+            dragThumbTo(mouseY);
+            return true;
+        }
+
+        return super.handleMouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    public void handleMouseReleased(double mouseX, double mouseY, int button)
+    {
+        draggingThumb = false;
+        super.handleMouseReleased(mouseX, mouseY, button);
     }
 
     public boolean handleMouseScrolled(double mouseX, double mouseY, double scrollY)
@@ -181,6 +218,19 @@ public class VanillaScrollView extends VanillaViewGroup
     {
         if (visibility != VISIBLE || !enabled) return false;
         if (!isInBounds(mouseX, mouseY)) return false;
+
+        if (maxScroll > 0 && button == 0 && mouseX >= x + measuredWidth - SCROLLBAR_WIDTH)
+        {
+            int thumbTop = thumbTop();
+            int thumbHeight = thumbHeight();
+
+            thumbGrabOffset = mouseY >= thumbTop && mouseY < thumbTop + thumbHeight
+                    ? mouseY - thumbTop
+                    : thumbHeight / 2.0;
+            draggingThumb = true;
+            dragThumbTo(mouseY);
+            return true;
+        }
 
         if (isInViewport(mouseX, mouseY))
         {
