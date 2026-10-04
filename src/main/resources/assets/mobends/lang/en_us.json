@@ -127,7 +127,7 @@
   "mobends.config.show_sword_trails": "Show Sword Trails",
   "mobends.config.show_sword_trails.tooltip": "If true, sword trails will be shown",
   "mobends.config.perform_spin_attack": "Perform Spin Attack",
-  "mobends.config.perform_spin_attack.tooltip": "If true, the spin attack (whirl slash) will be occur.",
+  "mobends.config.perform_spin_attack.tooltip": "If true, the spin attack (whirl slash) will occur.",
   "mobends.config.item_use_classifications": "Item use classifications",
   "mobends.config.item_use_classifications.tooltip": "A list of \"item=classification\" mappings.",
   "mobends.config.item_attack_classifications": "Item attack classifications",
