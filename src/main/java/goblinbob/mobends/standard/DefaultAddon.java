@@ -90,7 +90,7 @@ public class DefaultAddon implements IAddon
 				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(net.minecraft.world.entity.npc.Villager.class,
-				VillagerData::new, VillagerMutator::new, new VillagerRenderer(),
+				VillagerData::new, VillagerMutator::new, new VillagerRenderer<>(),
 				new BipedPreviewer<>(), SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(net.minecraft.world.entity.npc.WanderingTrader.class,
@@ -137,6 +137,8 @@ public class DefaultAddon implements IAddon
 		goblinbob.mobends.compat.SpiderOverhaulCompat.register(registry, SPIDER_ANIMATIONS);
 
 		goblinbob.mobends.compat.TakesAPillageCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+
+		goblinbob.mobends.compat.AdAstraCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_ANIMATIONS, BIPED_PARTS);
 
 		registry.registerNewEntity(Spider.class, SpiderData::new, SpiderMutator::new, new MutatedRenderer<>(),
 				new SpiderPreviewer(), SPIDER_ANIMATIONS,

@@ -251,8 +251,8 @@ public final class AdaptiveHumanoidGeometry
         pivot[1] = arm.pivotY - bodyPivot[1];
         pivot[2] = arm.pivotZ - bodyPivot[2];
 
-        final float splitY = jointOverride != null ? jointOverride[0] : (arm.baseMinY + arm.baseMaxY) * 0.5F;
-        final float hingeZ = jointOverride != null ? jointOverride[1] : arm.baseMaxZ;
+        final float splitY = jointOverride != null ? jointOverride[0] : (arm.limbMinY + arm.limbMaxY) * 0.5F;
+        final float hingeZ = jointOverride != null ? jointOverride[1] : arm.limbMaxZ;
 
         final float[] forePivot = isLeft ? leftForeArmPivot : rightForeArmPivot;
         forePivot[0] = 0.0F;
@@ -294,8 +294,8 @@ public final class AdaptiveHumanoidGeometry
         pivot[1] = leg.pivotY;
         pivot[2] = leg.pivotZ;
 
-        final float splitY = jointOverride != null ? jointOverride[2] : (leg.baseMinY + leg.baseMaxY) * 0.5F;
-        final float hingeZ = jointOverride != null ? jointOverride[3] : leg.baseMinZ;
+        final float splitY = jointOverride != null ? jointOverride[2] : (leg.limbMinY + leg.limbMaxY) * 0.5F;
+        final float hingeZ = jointOverride != null ? jointOverride[3] : leg.limbMinZ;
 
         final float[] forePivot = isLeft ? leftForeLegPivot : rightForeLegPivot;
         forePivot[0] = 0.0F;

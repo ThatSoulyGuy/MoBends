@@ -43,7 +43,7 @@ loom {
     forge {
         convertAccessWideners = true
         extraAccessWideners.add(loom.accessWidenerPath.get().asFile.name)
-        mixinConfig("mobends-forge.mixins.json", "mobends-forge-armourers.mixins.json", "mobends-forge-carryon.mixins.json", "mobends-forge-wearablebackpacks.mixins.json", "mobends-forge-iris.mixins.json", "mobends-forge-umapyoi.mixins.json", "mobends-forge-mca.mixins.json", "mobends-forge-legends.mixins.json", "mobends-forge-takesapillage.mixins.json")
+        mixinConfig("mobends-forge.mixins.json", "mobends-forge-armourers.mixins.json", "mobends-forge-carryon.mixins.json", "mobends-forge-wearablebackpacks.mixins.json", "mobends-forge-iris.mixins.json", "mobends-forge-umapyoi.mixins.json", "mobends-forge-mca.mixins.json", "mobends-forge-legends.mixins.json", "mobends-forge-takesapillage.mixins.json", "mobends-forge-adastra.mixins.json")
     }
     mixin {
         defaultRefmapName = "mobends-forge.refmap.json"

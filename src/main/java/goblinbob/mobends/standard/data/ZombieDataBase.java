@@ -1,11 +1,11 @@
 package goblinbob.mobends.standard.data;
 
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.Mob;
 
 import java.util.Random;
 
-public abstract class ZombieDataBase<E extends Zombie> extends BipedEntityData<E>
+public abstract class ZombieDataBase<E extends Mob> extends BipedEntityData<E>
 {
     public static final int ANIMATION_SETS_AMOUNT = 2;
 

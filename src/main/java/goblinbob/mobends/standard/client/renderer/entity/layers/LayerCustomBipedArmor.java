@@ -73,13 +73,14 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     private HumanoidModel<E> getHumanoidParentModel()
     {
         final M parentModel = getParentModel();
+        final HumanoidModel<?> view = mutator != null ? mutator.humanoidViewOf(parentModel) : null;
 
-        if (parentModel instanceof HumanoidModel<?>)
+        if (view != null)
         {
-            return (HumanoidModel<E>) parentModel;
+            return (HumanoidModel<E>) view;
         }
 
-        return mutator != null ? (HumanoidModel<E>) mutator.humanoidViewOf(parentModel) : null;
+        return parentModel instanceof HumanoidModel<?> ? (HumanoidModel<E>) parentModel : null;
     }
 
     private void copyParentProperties(HumanoidModel<E> target)

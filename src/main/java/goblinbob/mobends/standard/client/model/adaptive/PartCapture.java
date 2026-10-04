@@ -25,6 +25,8 @@ public final class PartCapture
 
     public final float baseMinY, baseMinZ, baseMaxY, baseMaxZ;
 
+    public final float limbMinY, limbMinZ, limbMaxY, limbMaxZ;
+
     public final int cubeCount;
 
     public final float frontUMin, frontUMax, frontVMin, frontVMax;
@@ -89,6 +91,41 @@ public final class PartCapture
         this.baseMinZ = baseLowZ;
         this.baseMaxY = baseHighY;
         this.baseMaxZ = baseHighZ;
+
+        float limbLowY = this.minY, limbLowZ = this.minZ;
+        float limbHighY = this.maxY, limbHighZ = this.maxZ;
+        float tallest = -1.0F;
+
+        for (int cube = 0; cubeCount > 1 && cube < cubeCount; ++cube)
+        {
+            float cubeLowY = Float.MAX_VALUE, cubeLowZ = Float.MAX_VALUE;
+            float cubeHighY = -Float.MAX_VALUE, cubeHighZ = -Float.MAX_VALUE;
+
+            for (int i = cube * 6; i < cube * 6 + 6; ++i)
+            {
+                for (CapturedVertex vertex : quads.get(i))
+                {
+                    cubeLowY = Math.min(cubeLowY, vertex.y * PIXELS);
+                    cubeLowZ = Math.min(cubeLowZ, vertex.z * PIXELS);
+                    cubeHighY = Math.max(cubeHighY, vertex.y * PIXELS);
+                    cubeHighZ = Math.max(cubeHighZ, vertex.z * PIXELS);
+                }
+            }
+
+            if (cubeHighY - cubeLowY > tallest + 1.0e-3F)
+            {
+                tallest = cubeHighY - cubeLowY;
+                limbLowY = cubeLowY;
+                limbLowZ = cubeLowZ;
+                limbHighY = cubeHighY;
+                limbHighZ = cubeHighZ;
+            }
+        }
+
+        this.limbMinY = limbLowY;
+        this.limbMinZ = limbLowZ;
+        this.limbMaxY = limbHighY;
+        this.limbMaxZ = limbHighZ;
 
         float uLow = 0.0F, uHigh = 0.0F, vLow = 0.0F, vHigh = 0.0F;
 

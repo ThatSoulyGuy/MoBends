@@ -59,6 +59,11 @@ public class VillagerMutator<E extends LivingEntity>
     private static final float SKIRT_MAX_FOLD = 90.0F;
     private static final float SKIRT_MAX_LIFT = 20.0F;
 
+    protected int textureWidth()
+    {
+        return 64;
+    }
+
     protected int textureHeight()
     {
         return 64;
@@ -83,9 +88,9 @@ public class VillagerMutator<E extends LivingEntity>
 
     private final Map<VillagerModel<?>, HumanoidModel<?>> views = new IdentityHashMap<>();
 
-    private static BendsModelPart lastOuterHand;
-    private static BendsModelPart lastWristTrim;
-    private static BendsModelPart lastSkirt;
+    protected static BendsModelPart lastOuterHand;
+    protected static BendsModelPart lastWristTrim;
+    protected static BendsModelPart lastSkirt;
     private BendsModelPart outerLeftHand, outerRightHand;
     private BendsModelPart leftWristTrim, rightWristTrim;
     private BendsModelPart outerSkirt;
@@ -208,7 +213,7 @@ public class VillagerMutator<E extends LivingEntity>
     protected BendsModelPart buildBody(float scaleFactor)
     {
         final BendsModelPart part = new BendsModelPart(16, 20)
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(0.0F, 12.0F, 0.0F);
 
         part.addCube(-4.0F, -12.0F, -3.0F, 8, 12, 6, scaleFactor);
@@ -227,7 +232,7 @@ public class VillagerMutator<E extends LivingEntity>
         final int skirtTexV = ROBE_TEX_V + ROBE_TORSO_HEIGHT - SKIRT_OVERLAP;
 
         final BendsModelPart part = new BendsModelPart(ROBE_TEX_U, skirtTexV)
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(0.0F, 0.0F, 0.0F);
 
         part.developBox(-4.0F, -SKIRT_OVERLAP, -3.0F, ROBE_WIDTH, SKIRT_HEIGHT, ROBE_DEPTH,
@@ -243,7 +248,7 @@ public class VillagerMutator<E extends LivingEntity>
     protected BendsModelPart buildHead(float scaleFactor, boolean outer)
     {
         final BendsModelPart part = new BendsModelPart(0, 0)
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(0.0F, -12.0F, 0.0F);
 
         part.addCube(-4.0F, -10.0F, -4.0F, 8, 10, 8, scaleFactor);
@@ -255,7 +260,7 @@ public class VillagerMutator<E extends LivingEntity>
         if (outer)
         {
             final BendsModelPart hatRim = new BendsModelPart(30, 47)
-                    .setTextureSize(64, textureHeight())
+                    .setTextureSize(textureWidth(), textureHeight())
                     .setPosition(0.0F, 0.0F, 0.0F);
             hatRim.addCube(-8.0F, -8.0F, -6.0F, 16, 16, 1, scaleFactor);
             hatRim.rotation.orientInstantX(-90.0F);
@@ -268,7 +273,7 @@ public class VillagerMutator<E extends LivingEntity>
     protected BendsModelPart buildArm(float scaleFactor, boolean left)
     {
         final BendsModelPart part = new BendsModelPart(44, 22)
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(left ? ARM_X : -ARM_X, ARM_Y, ARM_Z)
                 .setMirror(left);
 
@@ -283,7 +288,7 @@ public class VillagerMutator<E extends LivingEntity>
     protected BendsModelPart buildForeArm(float scaleFactor, boolean left, boolean outer)
     {
         final BendsModelPart part = new BendsModelPart(44, 26)
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(0.0F, 4.0F, 2.0F)
                 .setMirror(left);
 
@@ -293,7 +298,7 @@ public class VillagerMutator<E extends LivingEntity>
                 .create();
 
         final BendsModelPart hand = new BendsModelPart(handTexU(), handTexV())
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(0.0F, 0.0F, 0.0F)
                 .setMirror(left);
         hand.developBox(armBoxX(left), FOREARM_LENGTH, -4.0F, 4, HAND_EXPOSED, 4, scaleFactor)
@@ -311,7 +316,7 @@ public class VillagerMutator<E extends LivingEntity>
         else
         {
             final BendsModelPart trim = new BendsModelPart(0, 0)
-                    .setTextureSize(64, textureHeight())
+                    .setTextureSize(textureWidth(), textureHeight())
                     .setPosition(0.0F, 0.0F, 0.0F);
 
             trim.setTextureOffset(TRIM_RED_U, TRIM_RED_V);
@@ -338,7 +343,7 @@ public class VillagerMutator<E extends LivingEntity>
     protected BendsModelPart buildLeg(float scaleFactor, boolean left)
     {
         final BendsModelPart part = new BendsModelPart(0, 22)
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(0.0F, 12.0F, 0.0F)
                 .setMirror(left);
 
@@ -353,7 +358,7 @@ public class VillagerMutator<E extends LivingEntity>
     protected BendsModelPart buildForeLeg(float scaleFactor, boolean left)
     {
         final BendsModelPart part = new BendsModelPart(0, 28)
-                .setTextureSize(64, textureHeight())
+                .setTextureSize(textureWidth(), textureHeight())
                 .setPosition(0.0F, 6.0F, -2.0F)
                 .setMirror(left);
 
