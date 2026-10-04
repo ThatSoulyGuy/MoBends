@@ -120,11 +120,18 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
 
             this.translateToHand(arm, entity, poseStack);
 
-            poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            if (goblinbob.mobends.compat.IamMusicPlayerCompat.isBoomboxRaised(itemStack))
+            {
+                goblinbob.mobends.compat.IamMusicPlayerCompat.transformRaisedBoombox(arm, poseStack);
+            }
+            else
+            {
+                poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                this.translateToGrip(arm, entity, itemStack, displayContext, poseStack);
+            }
 
             boolean leftHanded = arm == HumanoidArm.LEFT;
-            this.translateToGrip(arm, entity, itemStack, displayContext, poseStack);
 
             Minecraft.getInstance().getItemRenderer().renderStatic(
                     entity, itemStack, displayContext, leftHanded,
