@@ -21,9 +21,14 @@ import java.util.Map;
 public class PlayerAnimationLibCompat
 {
     private static final String MOD_ID = "playeranimator";
+    private static final String PAL_MOD_ID = "player_animation_library";
 
     private static final float INFLUENCE_EPSILON = 1.0e-3F;
 
+    private static final Map<String, String> PAL_BONES = Map.of(
+            "rightArm", "right_arm", "leftArm", "left_arm", "rightLeg", "right_leg", "leftLeg", "left_leg");
+
+    private static final float[] NO_REST = {0.0F, 0.0F, 0.0F};
     private static final float[] TORSO_REST = {0.0F, 0.0F, 0.0F};
     private static final float[] HEAD_REST = {0.0F, 0.0F, 0.0F};
     private static final float[] RIGHT_ARM_REST = {-5.0F, 2.0F, 0.0F};
@@ -42,9 +47,17 @@ public class PlayerAnimationLibCompat
     private static Method vec3fGetX;
     private static Method vec3fGetY;
     private static Method vec3fGetZ;
-    private static Object transformPosition;
-    private static Object transformRotation;
-    private static Object transformBend;
+    private static Object[] kosmxTransforms;
+    private static boolean palLoaded = false;
+    private static Class<?> palAnimationClass;
+    private static Method palGetManagerMethod;
+    private static Method palGetProcessorMethod;
+    private static Method palHandleAnimationsMethod;
+    private static Method palIsActiveMethod;
+    private static Method palGet3DTransformMethod;
+    private static Constructor<?> palBoneConstructor;
+    private static Field[] palRotation;
+    private static Field[] palPosition;
     private static Field layerMapField;
     private static boolean layerMapResolved = false;
 
@@ -92,6 +105,39 @@ public class PlayerAnimationLibCompat
                         "Player Animator was detected but its API could not be bound.", e);
             }
         }
+
+        palLoaded = Platform.isModLoaded(PAL_MOD_ID);
+
+        if (palLoaded)
+        {
+            try
+            {
+                initPalReflection();
+            }
+            catch (Throwable e)
+            {
+                palLoaded = false;
+            }
+        }
+    }
+
+    private static void initPalReflection() throws Exception
+    {
+        palGetManagerMethod = Class.forName("com.zigythebird.playeranim.api.PlayerAnimationAccess")
+                .getMethod("getPlayerAnimManager", AbstractClientPlayer.class);
+        palGetProcessorMethod = Class.forName("com.zigythebird.playeranim.accessors.IAnimatedPlayer")
+                .getMethod("playerAnimLib$getAnimProcessor");
+        palHandleAnimationsMethod = Class.forName("com.zigythebird.playeranimcore.animation.AnimationProcessor")
+                .getMethod("handleAnimations", float.class, boolean.class);
+
+        final Class<?> boneClass = Class.forName("com.zigythebird.playeranimcore.bones.PlayerAnimBone");
+        palAnimationClass = Class.forName("com.zigythebird.playeranimcore.animation.layered.IAnimation");
+        palIsActiveMethod = palAnimationClass.getMethod("isActive");
+        palGet3DTransformMethod = palAnimationClass.getMethod("get3DTransform", boneClass);
+        palBoneConstructor = boneClass.getConstructor(String.class);
+        palRotation = new Field[]{boneClass.getField("rotX"), boneClass.getField("rotY"), boneClass.getField("rotZ")};
+        palPosition = new Field[]{boneClass.getField("positionX"), boneClass.getField("positionY"),
+                boneClass.getField("positionZ")};
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -114,9 +160,10 @@ public class PlayerAnimationLibCompat
         vec3fGetY = vec3fClass.getMethod("getY");
         vec3fGetZ = vec3fClass.getMethod("getZ");
 
-        transformPosition = Enum.valueOf((Class<Enum>) transformTypeClass, "POSITION");
-        transformRotation = Enum.valueOf((Class<Enum>) transformTypeClass, "ROTATION");
-        transformBend = Enum.valueOf((Class<Enum>) transformTypeClass, "BEND");
+        kosmxTransforms = new Object[]{
+                Enum.valueOf((Class<Enum>) transformTypeClass, "POSITION"),
+                Enum.valueOf((Class<Enum>) transformTypeClass, "ROTATION"),
+                Enum.valueOf((Class<Enum>) transformTypeClass, "BEND")};
     }
 
     public static boolean isModLoaded()
@@ -125,7 +172,18 @@ public class PlayerAnimationLibCompat
         {
             init();
         }
-        return isLoaded;
+        return isLoaded || palLoaded;
+    }
+
+    private static boolean isPal(Object animation)
+    {
+        return palAnimationClass != null && palAnimationClass.isInstance(animation);
+    }
+
+    private static boolean isActive(Object animation) throws Exception
+    {
+        return animation != null
+                && Boolean.TRUE.equals((isPal(animation) ? palIsActiveMethod : isActiveMethod).invoke(animation));
     }
 
     private static Object getActiveStack(LivingEntity entity)
@@ -153,14 +211,25 @@ public class PlayerAnimationLibCompat
     {
         try
         {
-            Object stack = getPlayerAnimLayerMethod.invoke(null, player);
-            if (stack == null)
+            if (isLoaded)
             {
-                return null;
+                final Object stack = getPlayerAnimLayerMethod.invoke(null, player);
+                if (isActive(stack))
+                {
+                    return stack;
+                }
             }
 
-            Boolean active = (Boolean) isActiveMethod.invoke(stack);
-            return active != null && active ? stack : null;
+            if (palLoaded)
+            {
+                final Object manager = palGetManagerMethod.invoke(null, player);
+                if (isActive(manager))
+                {
+                    return manager;
+                }
+            }
+
+            return null;
         }
         catch (Exception e)
         {
@@ -196,8 +265,7 @@ public class PlayerAnimationLibCompat
 
             try
             {
-                final Boolean active = (Boolean) isActiveMethod.invoke(entry.getValue());
-                if (active != null && active)
+                if (isActive(entry.getValue()))
                 {
                     return true;
                 }
@@ -271,12 +339,20 @@ public class PlayerAnimationLibCompat
 
         try
         {
-            setupAnimMethod.invoke(stack, partialTicks);
+            final boolean pal = isPal(stack);
+            if (pal)
+            {
+                palHandleAnimationsMethod.invoke(palGetProcessorMethod.invoke(data.getEntity()), partialTicks, false);
+            }
+            else
+            {
+                setupAnimMethod.invoke(stack, partialTicks);
+            }
 
-            sample(stack, "torso", transformRotation, partialTicks, torsoRotation);
-            sample(stack, "torso", transformPosition, partialTicks, torsoPosition);
-            sample(stack, "torso", transformBend, partialTicks, torsoBend);
-            sample(stack, "body", transformBend, partialTicks, bodyBend);
+            sample(stack, "torso", Transform.ROTATION, partialTicks, torsoRotation);
+            sample(stack, "torso", Transform.POSITION, partialTicks, torsoPosition);
+            sample(stack, "torso", Transform.BEND, partialTicks, torsoBend);
+            sample(stack, "body", Transform.BEND, partialTicks, bodyBend);
 
             bodyBefore.set(data.body.rotation.getSmooth());
 
@@ -312,12 +388,14 @@ public class PlayerAnimationLibCompat
             offsetsWritten |= applyUpperPart(stack, "head", partialTicks, data.head, null,
                     HEAD_REST, data.body.scale, upperFollows);
             offsetsWritten |= applyUpperPart(stack, "rightArm", partialTicks, data.rightArm, data.rightForeArm,
-                    RIGHT_ARM_REST, data.body.scale, upperFollows);
+                    pal ? NO_REST : RIGHT_ARM_REST, data.body.scale, upperFollows);
             offsetsWritten |= applyUpperPart(stack, "leftArm", partialTicks, data.leftArm, data.leftForeArm,
-                    LEFT_ARM_REST, data.body.scale, upperFollows);
+                    pal ? NO_REST : LEFT_ARM_REST, data.body.scale, upperFollows);
 
-            offsetsWritten |= applyLeg(stack, "rightLeg", partialTicks, data.rightLeg, data.rightForeLeg, RIGHT_LEG_REST);
-            offsetsWritten |= applyLeg(stack, "leftLeg", partialTicks, data.leftLeg, data.leftForeLeg, LEFT_LEG_REST);
+            offsetsWritten |= applyLeg(stack, "rightLeg", partialTicks, data.rightLeg, data.rightForeLeg,
+                    pal ? NO_REST : RIGHT_LEG_REST);
+            offsetsWritten |= applyLeg(stack, "leftLeg", partialTicks, data.leftLeg, data.leftForeLeg,
+                    pal ? NO_REST : LEFT_LEG_REST);
 
             if (offsetsWritten)
             {
@@ -341,11 +419,11 @@ public class PlayerAnimationLibCompat
             return false;
         }
 
-        sample(stack, bone, transformRotation, partialTicks, partRotation);
-        sample(stack, bone, transformPosition, partialTicks, partPosition);
+        sample(stack, bone, Transform.ROTATION, partialTicks, partRotation);
+        sample(stack, bone, Transform.POSITION, partialTicks, partPosition);
         if (lowerPart != null)
         {
-            sample(stack, bone, transformBend, partialTicks, partBend);
+            sample(stack, bone, Transform.BEND, partialTicks, partBend);
         }
         else
         {
@@ -404,9 +482,9 @@ public class PlayerAnimationLibCompat
             return false;
         }
 
-        sample(stack, bone, transformRotation, partialTicks, partRotation);
-        sample(stack, bone, transformPosition, partialTicks, partPosition);
-        sample(stack, bone, transformBend, partialTicks, partBend);
+        sample(stack, bone, Transform.ROTATION, partialTicks, partRotation);
+        sample(stack, bone, Transform.POSITION, partialTicks, partPosition);
+        sample(stack, bone, Transform.BEND, partialTicks, partBend);
 
         final float influence = Math.max(partRotation.influence(),
                 Math.max(partPosition.influence(), partBend.influence()));
@@ -455,7 +533,7 @@ public class PlayerAnimationLibCompat
         lowerPart.rotation.setSmooth(scratchLocal.x, scratchLocal.y, scratchLocal.z, scratchLocal.w);
     }
 
-    private static void sample(Object stack, String bone, Object type, float partialTicks, Channel dest)
+    private static void sample(Object stack, String bone, Transform type, float partialTicks, Channel dest)
             throws Exception
     {
         final float[] fromZero = query(stack, bone, type, partialTicks, 0.0F, 0.0F, 0.0F);
@@ -474,11 +552,16 @@ public class PlayerAnimationLibCompat
         }
     }
 
-    private static float[] query(Object stack, String bone, Object type, float partialTicks,
+    private static float[] query(Object stack, String bone, Transform type, float partialTicks,
                                  float fx, float fy, float fz) throws Exception
     {
+        if (isPal(stack))
+        {
+            return queryPal(stack, bone, type, fx, fy, fz);
+        }
+
         Object fallback = vec3fConstructor.newInstance(fx, fy, fz);
-        Object result = get3DTransformMethod.invoke(stack, bone, type, partialTicks, fallback);
+        Object result = get3DTransformMethod.invoke(stack, bone, kosmxTransforms[type.ordinal()], partialTicks, fallback);
         if (result == null)
         {
             return null;
@@ -488,6 +571,26 @@ public class PlayerAnimationLibCompat
                 ((Number) vec3fGetY.invoke(result)).floatValue(),
                 ((Number) vec3fGetZ.invoke(result)).floatValue()
         };
+    }
+
+    private static float[] queryPal(Object manager, String bone, Transform type,
+                                    float fx, float fy, float fz) throws Exception
+    {
+        if (type == Transform.BEND)
+        {
+            return null;
+        }
+
+        final Field[] fields = type == Transform.ROTATION ? palRotation : palPosition;
+        final float flipY = type == Transform.POSITION ? -1.0F : 1.0F;
+        final Object seed = palBoneConstructor.newInstance(PAL_BONES.getOrDefault(bone, bone));
+        fields[0].setFloat(seed, fx);
+        fields[1].setFloat(seed, fy * flipY);
+        fields[2].setFloat(seed, fz);
+
+        final Object result = palGet3DTransformMethod.invoke(manager, seed);
+
+        return new float[]{fields[0].getFloat(result), fields[1].getFloat(result) * flipY, fields[2].getFloat(result)};
     }
 
     private static void resolveRotation(Channel rotation, Quaternion current, Quaternion dest)
@@ -560,6 +663,11 @@ public class PlayerAnimationLibCompat
                 from.z + (to.z * sign - from.z) * t,
                 from.w + (to.w * sign - from.w) * t);
         dest.normalise();
+    }
+
+    private enum Transform
+    {
+        POSITION, ROTATION, BEND
     }
 
     private static final class Channel
