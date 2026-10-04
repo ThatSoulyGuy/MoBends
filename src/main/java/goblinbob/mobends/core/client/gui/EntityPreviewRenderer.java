@@ -2,7 +2,6 @@ package goblinbob.mobends.core.client.gui;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexSorting;
 import goblinbob.mobends.core.bender.EntityBender;
 import goblinbob.mobends.core.bender.IPreviewer;
 import goblinbob.mobends.core.bender.PreviewHelper;
@@ -17,7 +16,6 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
@@ -453,14 +451,6 @@ public class EntityPreviewRenderer
         int[] prevScissorBox = new int[4];
         GL11.glGetIntegerv(GL11.GL_SCISSOR_BOX, prevScissorBox);
 
-        Matrix4f savedProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
-        Matrix4f mcProjection = new Matrix4f().setOrtho(
-            0.0f, (float) mc.getWindow().getGuiScaledWidth(),
-            (float) mc.getWindow().getGuiScaledHeight(), 0.0f,
-            1000.0f, 21000.0f
-        );
-        RenderSystem.setProjectionMatrix(mcProjection, VertexSorting.ORTHOGRAPHIC_Z);
-
         GL11.glViewport(0, 0, mc.getWindow().getWidth(), mc.getWindow().getHeight());
 
         double guiScale = mc.getWindow().getGuiScale();
@@ -542,7 +532,6 @@ public class EntityPreviewRenderer
 
         Lighting.setupFor3DItems();
 
-        RenderSystem.setProjectionMatrix(savedProjection, VertexSorting.ORTHOGRAPHIC_Z);
         GL11.glScissor(prevScissorBox[0], prevScissorBox[1], prevScissorBox[2], prevScissorBox[3]);
         if (!prevScissorTest) GL11.glDisable(GL11.GL_SCISSOR_TEST);
         if (!prevDepthTest) GL11.glDisable(GL11.GL_DEPTH_TEST);
