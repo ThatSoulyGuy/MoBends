@@ -1,19 +1,19 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
-public class VanillaLinearLayout extends VanillaViewGroup
+public class LinearLayout extends ViewGroup
 {
     public static final int HORIZONTAL = 0;
     public static final int VERTICAL = 1;
 
     private int orientation = VERTICAL;
-    private int gravity = VanillaLayoutParams.GRAVITY_NO_GRAVITY;
+    private int gravity = LayoutParams.GRAVITY_NO_GRAVITY;
     private int spacing = 0;
 
-    public VanillaLinearLayout()
+    public LinearLayout()
     {
     }
 
-    public VanillaLinearLayout(int orientation)
+    public LinearLayout(int orientation)
     {
         this.orientation = orientation;
     }
@@ -48,7 +48,7 @@ public class VanillaLinearLayout extends VanillaViewGroup
     private static float effectiveWeight(float weight, int mainAxisSpec)
     {
         if (weight > 0) return weight;
-        return (mainAxisSpec == VanillaLayoutParams.MATCH_PARENT) ? 1.0f : 0;
+        return (mainAxisSpec == LayoutParams.MATCH_PARENT) ? 1.0f : 0;
     }
 
     private void measureVertical(int contentW, int contentH, int availableWidth, int availableHeight)
@@ -58,12 +58,12 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int maxChildWidth = 0;
         int visibleCount = 0;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
             visibleCount++;
 
-            VanillaLayoutParams clp = child.layoutParams;
+            LayoutParams clp = child.layoutParams;
             int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
             float weight = clp.getWeight();
             int childHeightSpec = clp.getHeight();
@@ -80,7 +80,7 @@ public class VanillaLinearLayout extends VanillaViewGroup
                 child.measure(childAvailW, contentH);
                 totalFixedHeight += child.measuredHeight + mt + mb;
                 int childWidthSpec = clp.getWidth();
-                if (childWidthSpec != VanillaLayoutParams.MATCH_PARENT)
+                if (childWidthSpec != LayoutParams.MATCH_PARENT)
                 {
                     maxChildWidth = Math.max(maxChildWidth, child.measuredWidth + ml + mr);
                 }
@@ -95,10 +95,10 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int remainingHeight = Math.max(0, contentH - totalFixedHeight);
         if (totalWeight > 0)
         {
-            for (VanillaView child : children)
+            for (View child : children)
             {
                 if (child.visibility == GONE) continue;
-                VanillaLayoutParams clp = child.layoutParams;
+                LayoutParams clp = child.layoutParams;
                 float weight = clp.getWeight();
                 int childHeightSpec = clp.getHeight();
                 float ew = effectiveWeight(weight, childHeightSpec);
@@ -115,7 +115,7 @@ public class VanillaLinearLayout extends VanillaViewGroup
                         child.measuredHeight = childH;
                     }
                     int childWidthSpec = clp.getWidth();
-                    if (childWidthSpec != VanillaLayoutParams.MATCH_PARENT)
+                    if (childWidthSpec != LayoutParams.MATCH_PARENT)
                     {
                         maxChildWidth = Math.max(maxChildWidth, child.measuredWidth + ml + mr);
                     }
@@ -128,7 +128,7 @@ public class VanillaLinearLayout extends VanillaViewGroup
 
         measuredWidth = resolveSize(lpW, availableWidth, maxChildWidth + paddingLeft + paddingRight);
 
-        if (lpH == VanillaLayoutParams.WRAP_CONTENT)
+        if (lpH == LayoutParams.WRAP_CONTENT)
         {
             measuredHeight = totalFixedHeight + paddingTop + paddingBottom;
             if (totalWeight > 0)
@@ -149,12 +149,12 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int maxChildHeight = 0;
         int visibleCount = 0;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
             visibleCount++;
 
-            VanillaLayoutParams clp = child.layoutParams;
+            LayoutParams clp = child.layoutParams;
             int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
             float weight = clp.getWeight();
             int childWidthSpec = clp.getWidth();
@@ -171,7 +171,7 @@ public class VanillaLinearLayout extends VanillaViewGroup
                 child.measure(contentW, childAvailH);
                 totalFixedWidth += child.measuredWidth + ml + mr;
                 int childHeightSpec = clp.getHeight();
-                if (childHeightSpec != VanillaLayoutParams.MATCH_PARENT)
+                if (childHeightSpec != LayoutParams.MATCH_PARENT)
                 {
                     maxChildHeight = Math.max(maxChildHeight, child.measuredHeight + mt + mb);
                 }
@@ -186,10 +186,10 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int remainingWidth = Math.max(0, contentW - totalFixedWidth);
         if (totalWeight > 0)
         {
-            for (VanillaView child : children)
+            for (View child : children)
             {
                 if (child.visibility == GONE) continue;
-                VanillaLayoutParams clp = child.layoutParams;
+                LayoutParams clp = child.layoutParams;
                 float weight = clp.getWeight();
                 int childWidthSpec = clp.getWidth();
                 float ew = effectiveWeight(weight, childWidthSpec);
@@ -206,7 +206,7 @@ public class VanillaLinearLayout extends VanillaViewGroup
                         child.measuredWidth = childW;
                     }
                     int childHeightSpec = clp.getHeight();
-                    if (childHeightSpec != VanillaLayoutParams.MATCH_PARENT)
+                    if (childHeightSpec != LayoutParams.MATCH_PARENT)
                     {
                         maxChildHeight = Math.max(maxChildHeight, child.measuredHeight + mt + mb);
                     }
@@ -217,7 +217,7 @@ public class VanillaLinearLayout extends VanillaViewGroup
         int lpW = layoutParams.getWidth();
         int lpH = layoutParams.getHeight();
 
-        if (lpW == VanillaLayoutParams.WRAP_CONTENT)
+        if (lpW == LayoutParams.WRAP_CONTENT)
         {
             measuredWidth = totalFixedWidth + paddingLeft + paddingRight;
             if (totalWeight > 0)
@@ -251,14 +251,14 @@ public class VanillaLinearLayout extends VanillaViewGroup
     {
         int childTop = y + paddingTop;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
 
-            VanillaLayoutParams clp = child.layoutParams;
+            LayoutParams clp = child.layoutParams;
             int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
             int childGravity = gravity;
-            if (clp.getGravity() != VanillaLayoutParams.GRAVITY_NO_GRAVITY)
+            if (clp.getGravity() != LayoutParams.GRAVITY_NO_GRAVITY)
             {
                 childGravity = clp.getGravity();
             }
@@ -268,12 +268,12 @@ public class VanillaLinearLayout extends VanillaViewGroup
             int childW = child.measuredWidth;
             int availW = getContentWidth() - ml - mr;
 
-            if (clp.getWidth() == VanillaLayoutParams.MATCH_PARENT)
+            if (clp.getWidth() == LayoutParams.MATCH_PARENT)
             {
                 childW = availW;
             }
 
-            int childLeft = VanillaLayoutParams.alignH(childGravity, x + paddingLeft + ml, availW, childW);
+            int childLeft = LayoutParams.alignH(childGravity, x + paddingLeft + ml, availW, childW);
 
             child.layout(childLeft, childTop, childLeft + childW, childTop + child.measuredHeight);
             childTop += child.measuredHeight + mb + spacing;
@@ -284,14 +284,14 @@ public class VanillaLinearLayout extends VanillaViewGroup
     {
         int childLeft = x + paddingLeft;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
 
-            VanillaLayoutParams clp = child.layoutParams;
+            LayoutParams clp = child.layoutParams;
             int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
             int childGravity = gravity;
-            if (clp.getGravity() != VanillaLayoutParams.GRAVITY_NO_GRAVITY)
+            if (clp.getGravity() != LayoutParams.GRAVITY_NO_GRAVITY)
             {
                 childGravity = clp.getGravity();
             }
@@ -301,12 +301,12 @@ public class VanillaLinearLayout extends VanillaViewGroup
             int childH = child.measuredHeight;
             int availH = getContentHeight() - mt - mb;
 
-            if (clp.getHeight() == VanillaLayoutParams.MATCH_PARENT)
+            if (clp.getHeight() == LayoutParams.MATCH_PARENT)
             {
                 childH = availH;
             }
 
-            int childTop = VanillaLayoutParams.alignV(childGravity, y + paddingTop + mt, availH, childH);
+            int childTop = LayoutParams.alignV(childGravity, y + paddingTop + mt, availH, childH);
 
             child.layout(childLeft, childTop, childLeft + child.measuredWidth, childTop + childH);
             childLeft += child.measuredWidth + mr + spacing;

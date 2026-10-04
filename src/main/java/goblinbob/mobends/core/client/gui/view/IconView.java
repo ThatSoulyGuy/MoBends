@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import javax.annotation.Nullable;
 import java.util.function.BooleanSupplier;
 
-public class VanillaIconView extends VanillaView
+public class IconView extends View
 {
     private static final float IDLE_DEGREES_PER_SECOND = 12.0F;
     private static final float HOVER_DEGREES_PER_SECOND = 60.0F;
@@ -24,7 +24,7 @@ public class VanillaIconView extends VanillaView
     @Nullable
     private BooleanSupplier hoverSupplier;
 
-    public VanillaIconView(ResourceLocation texture, int textureSize)
+    public IconView(ResourceLocation texture, int textureSize)
     {
         this.texture = texture;
         this.textureSize = textureSize;

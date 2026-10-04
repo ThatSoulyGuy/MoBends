@@ -1,11 +1,11 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.gui.GuiGraphics;
 
 import javax.annotation.Nullable;
 
-public class VanillaTileView extends VanillaLinearLayout
+public class TileView extends LinearLayout
 {
     private int bulge = 3;
     private boolean hovered;

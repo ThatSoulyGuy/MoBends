@@ -1,4 +1,4 @@
 @Internal
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.api.annotation.Internal;

@@ -1,9 +1,9 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.gui.GuiGraphics;
 
-public class VanillaScrollView extends VanillaViewGroup
+public class ScrollView extends ViewGroup
 {
     protected int scrollOffset = 0;
     protected int maxScroll = 0;
@@ -41,10 +41,10 @@ public class VanillaScrollView extends VanillaViewGroup
         int contentW = measuredWidth - paddingLeft - paddingRight;
         contentW -= SCROLLBAR_WIDTH;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
-            VanillaLayoutParams clp = child.layoutParams;
+            LayoutParams clp = child.layoutParams;
             int ml = clp.getMarginLeft(), mr = clp.getMarginRight();
             child.measure(contentW - ml - mr, Integer.MAX_VALUE / 2);
         }
@@ -82,14 +82,14 @@ public class VanillaScrollView extends VanillaViewGroup
 
         int totalContentHeight = 0;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
-            VanillaLayoutParams clp = child.layoutParams;
+            LayoutParams clp = child.layoutParams;
             int ml = clp.getMarginLeft(), mt = clp.getMarginTop(), mr = clp.getMarginRight(), mb = clp.getMarginBottom();
 
             int childW = child.measuredWidth;
-            if (clp.getWidth() == VanillaLayoutParams.MATCH_PARENT)
+            if (clp.getWidth() == LayoutParams.MATCH_PARENT)
             {
                 childW = contentW - ml - mr;
             }
@@ -125,7 +125,7 @@ public class VanillaScrollView extends VanillaViewGroup
         final int childMouseX = pointerInside ? mouseX : OUTSIDE_POINTER;
         final int childMouseY = pointerInside ? mouseY : OUTSIDE_POINTER;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             child.render(guiGraphics, childMouseX, childMouseY, partialTick);
         }

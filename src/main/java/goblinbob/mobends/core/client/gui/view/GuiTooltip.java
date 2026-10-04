@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;

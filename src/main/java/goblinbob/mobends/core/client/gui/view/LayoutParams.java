@@ -1,6 +1,6 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
-public class VanillaLayoutParams
+public class LayoutParams
 {
     public static final int MATCH_PARENT = -1;
     public static final int WRAP_CONTENT = -2;
@@ -16,21 +16,21 @@ public class VanillaLayoutParams
     private int gravity;
     private int marginLeft, marginTop, marginRight, marginBottom;
 
-    public VanillaLayoutParams(int width, int height)
+    public LayoutParams(int width, int height)
     {
         this.width = width;
         this.height = height;
     }
 
-    public VanillaLayoutParams(int width, int height, float weight)
+    public LayoutParams(int width, int height, float weight)
     {
         this(width, height);
         this.weight = weight;
     }
 
-    public static VanillaLayoutParams matchParent()
+    public static LayoutParams matchParent()
     {
-        return new VanillaLayoutParams(MATCH_PARENT, MATCH_PARENT);
+        return new LayoutParams(MATCH_PARENT, MATCH_PARENT);
     }
 
     public static int alignH(int gravity, int start, int avail, int size)
@@ -57,7 +57,7 @@ public class VanillaLayoutParams
         this.marginBottom = bottom;
     }
 
-    public VanillaLayoutParams setGravity(int gravity)
+    public LayoutParams setGravity(int gravity)
     {
         this.gravity = gravity;
         return this;

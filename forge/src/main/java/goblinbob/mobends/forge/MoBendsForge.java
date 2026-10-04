@@ -46,7 +46,7 @@ public class MoBendsForge
             ModLoadingContext.get().registerExtensionPoint(
                     net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory.class,
                     () -> new net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory(
-                            (minecraft, parent) -> goblinbob.mobends.core.client.gui.UIBridge.createConfigScreen()));
+                            (minecraft, parent) -> new goblinbob.mobends.core.client.gui.MoBendsScreen(true)));
 
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(KeyboardEventHandler::registerKeyMappings);

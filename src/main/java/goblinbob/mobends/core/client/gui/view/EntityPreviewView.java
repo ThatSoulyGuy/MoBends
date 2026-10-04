@@ -1,15 +1,15 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.EntityPreviewRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 
-public class VanillaEntityPreviewView extends VanillaView
+public class EntityPreviewView extends View
 {
     private final EntityPreviewRenderer renderer;
     private boolean dragging = false;
     private boolean interactive = true;
 
-    public VanillaEntityPreviewView(EntityPreviewRenderer renderer)
+    public EntityPreviewView(EntityPreviewRenderer renderer)
     {
         this.renderer = renderer;
     }

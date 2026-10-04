@@ -1,26 +1,26 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class VanillaViewGroup extends VanillaView
+public class ViewGroup extends View
 {
-    protected final List<VanillaView> children = new ArrayList<>();
+    protected final List<View> children = new ArrayList<>();
 
-    public void addView(VanillaView child)
+    public void addView(View child)
     {
         children.add(child);
     }
 
-    public void addView(VanillaView child, VanillaLayoutParams params)
+    public void addView(View child, LayoutParams params)
     {
         child.setLayoutParams(params);
         addView(child);
     }
 
-    public void addView(VanillaView child, int index)
+    public void addView(View child, int index)
     {
         children.add(index, child);
     }
@@ -34,7 +34,7 @@ public class VanillaViewGroup extends VanillaView
     {
         if (visibility != VISIBLE) return;
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        for (VanillaView child : children)
+        for (View child : children)
         {
             child.render(guiGraphics, mouseX, mouseY, partialTick);
         }
@@ -76,7 +76,7 @@ public class VanillaViewGroup extends VanillaView
 
     public void handleMouseReleased(double mouseX, double mouseY, int button)
     {
-        for (VanillaView child : children)
+        for (View child : children)
         {
             child.handleMouseReleased(mouseX, mouseY, button);
         }
@@ -84,7 +84,7 @@ public class VanillaViewGroup extends VanillaView
 
     public boolean handleKeyPressed(int keyCode, int scanCode, int modifiers)
     {
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.handleKeyPressed(keyCode, scanCode, modifiers)) return true;
         }
@@ -93,7 +93,7 @@ public class VanillaViewGroup extends VanillaView
 
     public boolean handleCharTyped(char ch, int modifiers)
     {
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.handleCharTyped(ch, modifiers)) return true;
         }

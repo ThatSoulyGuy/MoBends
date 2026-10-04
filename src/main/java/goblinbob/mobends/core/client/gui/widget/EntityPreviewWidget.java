@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.client.gui.widget;
 
-import goblinbob.mobends.core.client.gui.vanilla.*;
+import goblinbob.mobends.core.client.gui.view.*;
 import goblinbob.mobends.core.client.gui.EntityPreviewRenderer;
 
 import goblinbob.mobends.core.bender.EntityBender;
@@ -11,11 +11,11 @@ import javax.annotation.Nullable;
 
 public class EntityPreviewWidget
 {
-    private final VanillaFrameLayout rootLayout;
-    private final VanillaView entityPreviewView;
-    private final VanillaTextView titleView;
-    private final VanillaTextView hintView;
-    private final VanillaTextView statusView;
+    private final FrameLayout rootLayout;
+    private final View entityPreviewView;
+    private final TextView titleView;
+    private final TextView hintView;
+    private final TextView statusView;
     private final EntityPreviewRenderer renderer;
 
     private boolean chromeVisible = true;
@@ -25,54 +25,54 @@ public class EntityPreviewWidget
     {
         this.renderer = new EntityPreviewRenderer();
 
-        this.rootLayout = new VanillaFrameLayout();
-        this.rootLayout.setLayoutParams(new VanillaLayoutParams(width, height));
+        this.rootLayout = new FrameLayout();
+        this.rootLayout.setLayoutParams(new LayoutParams(width, height));
         this.rootLayout.setBackgroundColor(MoBendsTheme.BG_CONTENT);
 
-        this.entityPreviewView = new VanillaEntityPreviewView(renderer);
-        this.entityPreviewView.setVisibility(VanillaView.GONE);
-        rootLayout.addView(entityPreviewView, VanillaLayoutParams.matchParent());
+        this.entityPreviewView = new EntityPreviewView(renderer);
+        this.entityPreviewView.setVisibility(View.GONE);
+        rootLayout.addView(entityPreviewView, LayoutParams.matchParent());
 
-        VanillaLinearLayout contentLayout = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
-        contentLayout.setLayoutParams(VanillaLayoutParams.matchParent());
+        LinearLayout contentLayout = new LinearLayout(LinearLayout.VERTICAL);
+        contentLayout.setLayoutParams(LayoutParams.matchParent());
         contentLayout.setPadding(MoBendsTheme.PADDING, MoBendsTheme.PADDING,
                                 MoBendsTheme.PADDING, MoBendsTheme.PADDING);
 
-        this.titleView = new VanillaTextView(I18n.get("mobends.gui.preview"));
+        this.titleView = new TextView(I18n.get("mobends.gui.preview"));
         this.titleView.setTextColor(MoBendsTheme.TEXT_PRIMARY);
         this.titleView.setTextSize(14);
         this.titleView.setBold(true);
-        this.titleView.setGravity(VanillaLayoutParams.GRAVITY_CENTER_HORIZONTAL);
-        contentLayout.addView(titleView, new VanillaLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
-                VanillaLayoutParams.WRAP_CONTENT
+        this.titleView.setGravity(LayoutParams.GRAVITY_CENTER_HORIZONTAL);
+        contentLayout.addView(titleView, new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
         ));
 
-        this.statusView = new VanillaTextView(I18n.get("mobends.gui.preview.select"));
+        this.statusView = new TextView(I18n.get("mobends.gui.preview.select"));
         this.statusView.setTextColor(MoBendsTheme.TEXT_HINT);
         this.statusView.setTextSize(12);
-        this.statusView.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
-        VanillaLayoutParams statusParams = new VanillaLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
-                VanillaLayoutParams.MATCH_PARENT
+        this.statusView.setGravity(LayoutParams.GRAVITY_CENTER);
+        LayoutParams statusParams = new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT
         );
         statusParams.setMargins(0, MoBendsTheme.SPACING, 0, MoBendsTheme.SPACING);
         contentLayout.addView(statusView, statusParams);
 
-        this.hintView = new VanillaTextView(I18n.get("mobends.gui.preview.hint"));
+        this.hintView = new TextView(I18n.get("mobends.gui.preview.hint"));
         this.hintView.setTextColor(MoBendsTheme.TEXT_HINT);
         this.hintView.setTextSize(10);
-        this.hintView.setGravity(VanillaLayoutParams.GRAVITY_CENTER_HORIZONTAL);
-        contentLayout.addView(hintView, new VanillaLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
-                VanillaLayoutParams.WRAP_CONTENT
+        this.hintView.setGravity(LayoutParams.GRAVITY_CENTER_HORIZONTAL);
+        contentLayout.addView(hintView, new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
         ));
 
-        rootLayout.addView(contentLayout, VanillaLayoutParams.matchParent());
+        rootLayout.addView(contentLayout, LayoutParams.matchParent());
 
-        titleView.setVisibility(VanillaView.GONE);
-        statusView.setVisibility(VanillaView.GONE);
-        hintView.setVisibility(VanillaView.GONE);
+        titleView.setVisibility(View.GONE);
+        statusView.setVisibility(View.GONE);
+        hintView.setVisibility(View.GONE);
     }
 
     public void setBender(@Nullable EntityBender<?> bender)
@@ -82,15 +82,15 @@ public class EntityPreviewWidget
         if (bender != null)
         {
             titleView.setText(bender.getLocalizedName());
-            titleView.setVisibility(VanillaView.VISIBLE);
+            titleView.setVisibility(View.VISIBLE);
             if (renderer.hasEntity())
             {
-                entityPreviewView.setVisibility(VanillaView.VISIBLE);
-                statusView.setVisibility(VanillaView.GONE);
+                entityPreviewView.setVisibility(View.VISIBLE);
+                statusView.setVisibility(View.GONE);
             }
             else
             {
-                entityPreviewView.setVisibility(VanillaView.GONE);
+                entityPreviewView.setVisibility(View.GONE);
 
                 if (net.minecraft.client.Minecraft.getInstance().level == null)
                 {
@@ -103,16 +103,16 @@ public class EntityPreviewWidget
                     statusView.setTextColor(MoBendsTheme.ACCENT_ERROR);
                 }
 
-                statusView.setVisibility(VanillaView.VISIBLE);
+                statusView.setVisibility(View.VISIBLE);
             }
-            hintView.setVisibility(renderer.hasEntity() ? VanillaView.VISIBLE : VanillaView.GONE);
+            hintView.setVisibility(renderer.hasEntity() ? View.VISIBLE : View.GONE);
         }
         else
         {
-            entityPreviewView.setVisibility(VanillaView.GONE);
-            titleView.setVisibility(VanillaView.GONE);
-            statusView.setVisibility(VanillaView.GONE);
-            hintView.setVisibility(VanillaView.GONE);
+            entityPreviewView.setVisibility(View.GONE);
+            titleView.setVisibility(View.GONE);
+            statusView.setVisibility(View.GONE);
+            hintView.setVisibility(View.GONE);
         }
 
         applyChrome();
@@ -151,7 +151,7 @@ public class EntityPreviewWidget
 
     public void setInteractive(boolean interactive)
     {
-        if (entityPreviewView instanceof goblinbob.mobends.core.client.gui.vanilla.VanillaEntityPreviewView preview)
+        if (entityPreviewView instanceof goblinbob.mobends.core.client.gui.view.EntityPreviewView preview)
         {
             preview.setInteractive(interactive);
         }
@@ -161,9 +161,9 @@ public class EntityPreviewWidget
     {
         if (chromeVisible) return;
 
-        titleView.setVisibility(VanillaView.GONE);
-        statusView.setVisibility(VanillaView.GONE);
-        hintView.setVisibility(VanillaView.GONE);
+        titleView.setVisibility(View.GONE);
+        statusView.setVisibility(View.GONE);
+        hintView.setVisibility(View.GONE);
     }
 
     public void resetView()
@@ -196,7 +196,7 @@ public class EntityPreviewWidget
         return renderer.hasEntity();
     }
 
-    public VanillaView getView()
+    public View getView()
     {
         return rootLayout;
     }

@@ -1,6 +1,6 @@
 package goblinbob.mobends.core.client.gui.widget;
 
-import goblinbob.mobends.core.client.gui.vanilla.*;
+import goblinbob.mobends.core.client.gui.view.*;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.resources.language.I18n;
@@ -13,7 +13,7 @@ public class TabBarWidget
 {
     private static final int TAB_GAP = 2;
 
-    private final VanillaLinearLayout rootLayout;
+    private final LinearLayout rootLayout;
     private final List<TabInfo> tabs;
     private int selectedIndex;
     private Consumer<Integer> onTabChanged;
@@ -23,9 +23,9 @@ public class TabBarWidget
         this.tabs = new ArrayList<>();
         this.selectedIndex = -1;
 
-        this.rootLayout = new VanillaLinearLayout(VanillaLinearLayout.HORIZONTAL);
-        this.rootLayout.setLayoutParams(new VanillaLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
+        this.rootLayout = new LinearLayout(LinearLayout.HORIZONTAL);
+        this.rootLayout.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT,
                 MoBendsTheme.TAB_HEIGHT
         ));
     }
@@ -34,39 +34,39 @@ public class TabBarWidget
     {
         int tabIndex = tabs.size();
 
-        VanillaLinearLayout tabContainer = new VanillaLinearLayout(VanillaLinearLayout.VERTICAL);
+        LinearLayout tabContainer = new LinearLayout(LinearLayout.VERTICAL);
 
-        VanillaTextView label = new VanillaTextView(I18n.get(labelKey));
+        TextView label = new TextView(I18n.get(labelKey));
         label.setTextColor(MoBendsTheme.TEXT_SECONDARY);
         label.setTextSize(14);
-        label.setGravity(VanillaLayoutParams.GRAVITY_CENTER);
+        label.setGravity(LayoutParams.GRAVITY_CENTER);
         label.setPadding(MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_SMALL,
                         MoBendsTheme.PADDING_LARGE, MoBendsTheme.PADDING_SMALL);
 
-        VanillaView indicator = new VanillaView();
+        View indicator = new View();
         indicator.setBackgroundColor(accentColor);
-        indicator.setVisibility(VanillaView.GONE);
-        indicator.setLayoutParams(new VanillaLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
+        indicator.setVisibility(View.GONE);
+        indicator.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT,
                 3
         ));
 
-        tabContainer.addView(label, new VanillaLayoutParams(
-                VanillaLayoutParams.WRAP_CONTENT,
+        tabContainer.addView(label, new LayoutParams(
+                LayoutParams.WRAP_CONTENT,
                 0,
                 1.0f
         ));
-        tabContainer.addView(indicator, new VanillaLayoutParams(
-                VanillaLayoutParams.MATCH_PARENT,
+        tabContainer.addView(indicator, new LayoutParams(
+                LayoutParams.MATCH_PARENT,
                 3
         ));
 
         tabContainer.setOnClickListener(() -> selectTab(tabIndex));
         tabContainer.setBackgroundColor(MoBendsTheme.BG_TAB_INACTIVE);
 
-        VanillaLayoutParams params = new VanillaLayoutParams(
-                VanillaLayoutParams.WRAP_CONTENT,
-                VanillaLayoutParams.MATCH_PARENT
+        LayoutParams params = new LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.MATCH_PARENT
         );
         params.setMargins(0, 0, TAB_GAP, 0);
         rootLayout.addView(tabContainer, params);
@@ -98,14 +98,14 @@ public class TabBarWidget
         {
             TabInfo oldTab = tabs.get(selectedIndex);
             oldTab.label.setTextColor(MoBendsTheme.TEXT_SECONDARY);
-            oldTab.indicator.setVisibility(VanillaView.GONE);
+            oldTab.indicator.setVisibility(View.GONE);
             oldTab.container.setBackgroundColor(MoBendsTheme.BG_TAB_INACTIVE);
         }
 
         selectedIndex = index;
         TabInfo newTab = tabs.get(index);
         newTab.label.setTextColor(MoBendsTheme.TEXT_PRIMARY);
-        newTab.indicator.setVisibility(VanillaView.VISIBLE);
+        newTab.indicator.setVisibility(View.VISIBLE);
         newTab.container.setBackgroundColor(MoBendsTheme.BG_TAB_ACTIVE);
 
         if (onTabChanged != null)
@@ -114,7 +114,7 @@ public class TabBarWidget
         }
     }
 
-    public VanillaView getView()
+    public View getView()
     {
         return rootLayout;
     }
@@ -123,12 +123,12 @@ public class TabBarWidget
     {
         final String labelKey;
         final int accentColor;
-        final VanillaLinearLayout container;
-        final VanillaTextView label;
-        final VanillaView indicator;
+        final LinearLayout container;
+        final TextView label;
+        final View indicator;
 
-        TabInfo(String labelKey, int accentColor, VanillaLinearLayout container,
-                VanillaTextView label, VanillaView indicator)
+        TabInfo(String labelKey, int accentColor, LinearLayout container,
+                TextView label, View indicator)
         {
             this.labelKey = labelKey;
             this.accentColor = accentColor;

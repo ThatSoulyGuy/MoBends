@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
@@ -7,7 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-public class VanillaToggle extends VanillaView
+public class Toggle extends View
 {
     private boolean checked;
     private String text = "";
@@ -20,7 +20,7 @@ public class VanillaToggle extends VanillaView
     @Nullable
     private String tooltip;
 
-    public VanillaToggle(boolean initialState)
+    public Toggle(boolean initialState)
     {
         this.checked = initialState;
     }

@@ -1,11 +1,11 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 
 import javax.annotation.Nullable;
 
-public class VanillaView
+public class View
 {
     public static final int VISIBLE = 0;
     public static final int INVISIBLE = 4;
@@ -28,11 +28,11 @@ public class VanillaView
     protected int minWidth, minHeight;
     protected int paddingLeft, paddingTop, paddingRight, paddingBottom;
 
-    protected VanillaLayoutParams layoutParams = new VanillaLayoutParams(VanillaLayoutParams.WRAP_CONTENT, VanillaLayoutParams.WRAP_CONTENT);
+    protected LayoutParams layoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     @Nullable
     protected Runnable clickListener;
 
-    public void setLayoutParams(VanillaLayoutParams params)
+    public void setLayoutParams(LayoutParams params)
     {
         this.layoutParams = params;
     }
@@ -113,11 +113,11 @@ public class VanillaView
 
     protected int resolveSize(int spec, int available, int contentSize)
     {
-        if (spec == VanillaLayoutParams.MATCH_PARENT)
+        if (spec == LayoutParams.MATCH_PARENT)
         {
             return (available > 100000) ? Math.max(contentSize, 0) : available;
         }
-        if (spec == VanillaLayoutParams.WRAP_CONTENT) return Math.max(contentSize, 0);
+        if (spec == LayoutParams.WRAP_CONTENT) return Math.max(contentSize, 0);
         return spec;
     }
 

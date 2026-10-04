@@ -1,7 +1,8 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui;
 
-import goblinbob.mobends.core.client.gui.MoBendsScreenBuilder;
-
+import goblinbob.mobends.core.client.gui.view.GuiOverlay;
+import goblinbob.mobends.core.client.gui.view.GuiTooltip;
+import goblinbob.mobends.core.client.gui.view.View;
 import goblinbob.mobends.core.util.ScreenHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,16 +10,16 @@ import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 
-public class VanillaMoBendsScreen extends Screen
+public class MoBendsScreen extends Screen
 {
-    private final MoBendsScreenBuilder screenBuilder;
+    private final MoBendsScreenBuilder screenBuilder = new MoBendsScreenBuilder();
     @Nullable
-    private VanillaView rootView;
+    private View rootView;
 
-    public VanillaMoBendsScreen(MoBendsScreenBuilder screenBuilder)
+    public MoBendsScreen(boolean openConfig)
     {
-        super(Component.literal(screenBuilder.getTitle()));
-        this.screenBuilder = screenBuilder;
+        super(Component.translatable("mobends.gui.title"));
+        screenBuilder.setOpenConfigOnBuild(openConfig);
     }
 
     @Override
@@ -35,7 +36,7 @@ public class VanillaMoBendsScreen extends Screen
         screenBuilder.dispose();
         GuiOverlay.clear();
 
-        VanillaView content = screenBuilder.buildContent();
+        View content = screenBuilder.buildContent();
 
         this.rootView = content;
         rootView.measure(this.width, this.height);

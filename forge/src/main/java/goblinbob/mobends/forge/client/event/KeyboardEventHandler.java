@@ -1,7 +1,7 @@
 package goblinbob.mobends.forge.client.event;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import goblinbob.mobends.core.client.gui.UIBridge;
+import goblinbob.mobends.core.client.gui.MoBendsScreen;
 import goblinbob.mobends.standard.main.ModStatics;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -37,7 +37,7 @@ public class KeyboardEventHandler
 
         if (openMenuKey != null && openMenuKey.consumeClick())
         {
-            UIBridge.openSettingsScreen();
+            mc.setScreen(new MoBendsScreen(false));
         }
     }
 }

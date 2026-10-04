@@ -37,7 +37,7 @@ public class MoBends
 
             container.registerExtensionPoint(
                     net.neoforged.neoforge.client.gui.IConfigScreenFactory.class,
-                    (modContainer, parent) -> goblinbob.mobends.core.client.gui.UIBridge.createConfigScreen());
+                    (modContainer, parent) -> new goblinbob.mobends.core.client.gui.MoBendsScreen(true));
         }
 
         modEventBus.addListener(this::commonSetup);

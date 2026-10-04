@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-public class VanillaTextField extends VanillaView
+public class TextField extends View
 {
     private String text = "";
     private String hint;
@@ -24,7 +24,7 @@ public class VanillaTextField extends VanillaView
     private static final int KEY_ENTER = 257;
     private static final int KEY_KP_ENTER = 335;
 
-    public VanillaTextField(String hint)
+    public TextField(String hint)
     {
         this.hint = hint;
     }

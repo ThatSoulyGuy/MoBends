@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
 
-public class VanillaDropDown extends VanillaView implements GuiOverlay.Layer
+public class DropDown extends View implements GuiOverlay.Layer
 {
     private static final int OPTION_HEIGHT = 14;
     private static final int TEXT_INSET = 4;
@@ -26,7 +26,7 @@ public class VanillaDropDown extends VanillaView implements GuiOverlay.Layer
     @Nullable
     private IntConsumer selectionListener;
 
-    public VanillaDropDown(String label)
+    public DropDown(String label)
     {
         this.label = label;
         this.backgroundColor = MoBendsTheme.BG_BUTTON;

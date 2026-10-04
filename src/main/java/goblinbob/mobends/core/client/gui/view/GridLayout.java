@@ -1,6 +1,6 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
-public class VanillaGridLayout extends VanillaViewGroup
+public class GridLayout extends ViewGroup
 {
     private int cellWidth = 80;
     private int cellHeight = 80;
@@ -35,7 +35,7 @@ public class VanillaGridLayout extends VanillaViewGroup
                 (contentW - horizontalSpacing * (columnCount - 1)) / columnCount);
 
         int visibleCount = 0;
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
 
@@ -58,7 +58,7 @@ public class VanillaGridLayout extends VanillaViewGroup
         int column = 0;
         int rowTop = y + paddingTop;
 
-        for (VanillaView child : children)
+        for (View child : children)
         {
             if (child.visibility == GONE) continue;
 

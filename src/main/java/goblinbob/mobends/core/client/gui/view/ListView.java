@@ -1,23 +1,23 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class VanillaListView extends VanillaScrollView
+public class ListView extends ScrollView
 {
-    private final VanillaLinearLayout innerLayout;
-    private final List<VanillaView> itemViews = new ArrayList<>();
+    private final LinearLayout innerLayout;
+    private final List<View> itemViews = new ArrayList<>();
 
     private boolean dividersShown = false;
     private int dividerColor = 0xFF2A2E3C;
     private int dividerHeight = 1;
 
-    public VanillaListView()
+    public ListView()
     {
-        innerLayout = new VanillaLinearLayout();
-        innerLayout.setOrientation(VanillaLinearLayout.VERTICAL);
-        VanillaLayoutParams params = new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
+        innerLayout = new LinearLayout();
+        innerLayout.setOrientation(LinearLayout.VERTICAL);
+        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         innerLayout.setLayoutParams(params);
         super.addView(innerLayout);
     }
@@ -29,8 +29,8 @@ public class VanillaListView extends VanillaScrollView
         {
             final int index = i;
             final String item = items.get(i);
-            VanillaTextView textView = new VanillaTextView(item);
-            VanillaLayoutParams params = new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, VanillaLayoutParams.WRAP_CONTENT);
+            TextView textView = new TextView(item);
+            LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             textView.setLayoutParams(params);
             textView.setPadding(8, 4, 8, 4);
             textView.setOnClickListener(() -> onItemClick.accept(index, item));
@@ -52,11 +52,11 @@ public class VanillaListView extends VanillaScrollView
         }
     }
 
-    private VanillaView makeDivider()
+    private View makeDivider()
     {
-        VanillaView divider = new VanillaView();
+        View divider = new View();
         divider.setBackgroundColor(dividerColor);
-        divider.setLayoutParams(new VanillaLayoutParams(VanillaLayoutParams.MATCH_PARENT, Math.max(1, dividerHeight)));
+        divider.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, Math.max(1, dividerHeight)));
         return divider;
     }
 

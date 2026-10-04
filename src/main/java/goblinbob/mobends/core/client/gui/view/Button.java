@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
 
-public class VanillaButton extends VanillaView
+public class Button extends View
 {
     private String text;
     private int textColor = MoBendsTheme.TEXT_PRIMARY;
@@ -16,7 +16,7 @@ public class VanillaButton extends VanillaView
     @Nullable
     private ResourceLocation icon;
 
-    public VanillaButton(String text)
+    public Button(String text)
     {
         this.text = text;
         this.backgroundColor = MoBendsTheme.BG_BUTTON;

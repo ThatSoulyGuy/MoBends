@@ -1,4 +1,4 @@
-package goblinbob.mobends.core.client.gui.vanilla;
+package goblinbob.mobends.core.client.gui.view;
 
 import goblinbob.mobends.core.client.gui.theme.MoBendsTheme;
 import net.minecraft.client.Minecraft;
@@ -11,19 +11,19 @@ import net.minecraft.util.FormattedCharSequence;
 import java.util.Collections;
 import java.util.List;
 
-public class VanillaTextView extends VanillaView
+public class TextView extends View
 {
     private String text;
     private int textColor = MoBendsTheme.TEXT_PRIMARY;
     private float textSize = 1.0f;
-    private int textGravity = VanillaLayoutParams.GRAVITY_NO_GRAVITY;
+    private int textGravity = LayoutParams.GRAVITY_NO_GRAVITY;
     private boolean bold = false;
     private boolean italic = false;
     private int maxLines = Integer.MAX_VALUE;
 
     private List<FormattedCharSequence> lines = Collections.emptyList();
 
-    public VanillaTextView(String text)
+    public TextView(String text)
     {
         this.text = text;
     }
@@ -69,7 +69,7 @@ public class VanillaTextView extends VanillaView
         int horizPad = paddingLeft + paddingRight;
 
         int wrapPixels;
-        if (lpW == VanillaLayoutParams.MATCH_PARENT) wrapPixels = availableWidth - horizPad;
+        if (lpW == LayoutParams.MATCH_PARENT) wrapPixels = availableWidth - horizPad;
         else if (lpW >= 0) wrapPixels = lpW - horizPad;
         else wrapPixels = -1;
         int wrapFontSpace = wrapPixels > 0 ? (int) (wrapPixels / textSize) : -1;
