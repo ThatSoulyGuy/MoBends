@@ -432,7 +432,7 @@ public final class ArmorPoseHelper
         List<CapturedVertex[]> quads = groupIntoQuads(vertices);
         List<SliceResult> sliceResults = quadSlicer.sliceAll(quads, JointDefinitions.ELBOW);
 
-        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.ARM_INFLATION);
+        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.LIMB_INFLATION);
         LimbInflation lowerInflation = upperInflation.plus(LimbInflation.LOWER_LIMB_INFLATION_STEP);
 
         poseStack.pushPose();
@@ -490,8 +490,8 @@ public final class ArmorPoseHelper
 
         float vanillaLegX = storage[0];
 
-        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION);
-        LimbInflation lowerInflation = LimbInflation.of(vertices, LimbInflation.LEG_INFLATION + LimbInflation.LOWER_LIMB_INFLATION_STEP);
+        LimbInflation upperInflation = LimbInflation.of(vertices, LimbInflation.LIMB_INFLATION);
+        LimbInflation lowerInflation = upperInflation.plus(LimbInflation.LOWER_LIMB_INFLATION_STEP);
 
         poseStack.pushPose();
         applyLegTransform(poseStack, upperLeg, vanillaLegX);

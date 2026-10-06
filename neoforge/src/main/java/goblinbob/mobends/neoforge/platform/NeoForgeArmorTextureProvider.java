@@ -7,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.ClientHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -31,13 +32,7 @@ public class NeoForgeArmorTextureProvider implements IArmorTextureProvider
             return null;
         }
 
-        ResourceLocation overridden = armorItem.getArmorTexture(itemStack, entity, slot, materialLayer, isInnerModel);
-        if (overridden != null)
-        {
-            return overridden;
-        }
-
-        return materialLayer.texture(isInnerModel);
+        return ClientHooks.getArmorTexture(entity, itemStack, materialLayer, isInnerModel, slot);
     }
 
     @Nullable

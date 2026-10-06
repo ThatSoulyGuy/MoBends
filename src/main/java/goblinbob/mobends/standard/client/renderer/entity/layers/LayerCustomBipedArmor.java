@@ -133,6 +133,13 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                 && !goblinbob.mobends.compat.BetterCombatCompat.shouldYieldModel(entity);
 
         goblinbob.mobends.core.client.MoBendsRenderContext.beginArmorRender();
+        poseStack.pushPose();
+
+        if (hasBendsAnimation)
+        {
+            poseStack.last().pose().scaleLocal(DEPTH_BIAS_SCALE);
+        }
+
         try
         {
             renderArmorPiece(poseStack, bufferSource, entity, EquipmentSlot.CHEST, packedLight, hasBendsAnimation, entityData);
@@ -142,6 +149,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         }
         finally
         {
+            poseStack.popPose();
             goblinbob.mobends.core.client.MoBendsRenderContext.endArmorRender();
         }
     }
@@ -333,6 +341,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             if (!isTinkersArmor && shouldUseBends && entityData instanceof BipedEntityData<?>
                     && !isBendableGeoArmor(armorModel) && armorModel instanceof HumanoidModel<?> selfDrawnHumanoid)
             {
+                if (drawsNothing(armorModel, packedLight)) return;
+
                 final BipedEntityData<?> selfDrawnData = previewAware((BipedEntityData<?>) entityData);
 
                 renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack,
@@ -360,7 +370,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                 if (glowTexture != null)
                 {
                     final PoseStack glowPose = new PoseStack();
-                    glowPose.last().pose().scaling(EMISSIVE_DEPTH_SCALE).mul(poseStack.last().pose());
+                    glowPose.last().pose().scaling(DEPTH_BIAS_SCALE).mul(poseStack.last().pose());
                     glowPose.last().normal().set(poseStack.last().normal());
 
                     armorFacade.renderArmorLayer(glowPose, bufferSource, packedLight, entity, slot, itemStack,
@@ -659,7 +669,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         return null;
     }
 
-    private static final float EMISSIVE_DEPTH_SCALE = 0.9997F;
+    private static final float DEPTH_BIAS_SCALE = 0.9997F;
 
     private static final float ELBOW_Y = 6.0F / 16.0F;
     private static final float KNEE_Y = 18.0F / 16.0F;
@@ -744,7 +754,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         if (!emissiveTypes.isEmpty())
         {
             final PoseStack emissivePose = new PoseStack();
-            emissivePose.last().pose().scaling(EMISSIVE_DEPTH_SCALE).mul(poseStack.last().pose());
+            emissivePose.last().pose().scaling(DEPTH_BIAS_SCALE).mul(poseStack.last().pose());
             emissivePose.last().normal().set(poseStack.last().normal());
 
             for (RenderType emissiveType : emissiveTypes)
@@ -1818,6 +1828,18 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         legendsVisibilityPass.clear();
     }
 
+    private final CapturingVertexConsumer selfDrawnProbe = new CapturingVertexConsumer();
+
+    private boolean drawsNothing(Model armorModel, int packedLight)
+    {
+        selfDrawnProbe.clear();
+        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, new PoseStack(),
+                selfDrawnProbe, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        final boolean empty = selfDrawnProbe.getVertices().isEmpty();
+        selfDrawnProbe.clear();
+        return empty;
+    }
+
     private void renderPalladiumPass(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
                                      ItemStack itemStack, Model armorModel, ResourceLocation texture,
                                      java.util.function.Function<ResourceLocation, RenderType> renderTypeProvider,
@@ -1982,7 +2004,6 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
                 {
                     limbExtras.add(part);
                     limbIndices.add(i);
-                    part.visible = false;
                     break;
                 }
             }
@@ -1993,8 +2014,17 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             mutator.syncPosesToVanillaModel(armorModel);
         }
 
-        final boolean[] visibility = captureArmorPartVisibility(armorModel);
-        applyOnlyVisible(armorModel, null, visibility);
+        final java.util.List<ModelPart> drawnElsewhere = new java.util.ArrayList<>(limbExtras);
+        java.util.Collections.addAll(drawnElsewhere, armorParts(armorModel));
+        final java.util.List<ModelPart> skipped = drawnElsewhere.stream()
+                .filter(java.util.Objects::nonNull).flatMap(ModelPart::getAllParts).toList();
+        final boolean[] skipDraws = new boolean[skipped.size()];
+
+        for (int i = 0; i < skipped.size(); ++i)
+        {
+            skipDraws[i] = skipped.get(i).skipDraw;
+            skipped.get(i).skipDraw = true;
+        }
 
         try
         {
@@ -2002,11 +2032,9 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         }
         finally
         {
-            restoreArmorPartVisibility(armorModel, visibility);
-
-            for (ModelPart part : limbExtras)
+            for (int i = skipped.size() - 1; i >= 0; --i)
             {
-                part.visible = true;
+                skipped.get(i).skipDraw = skipDraws[i];
             }
         }
 

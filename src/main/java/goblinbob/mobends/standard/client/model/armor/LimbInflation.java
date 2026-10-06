@@ -6,8 +6,7 @@ public final class LimbInflation
 {
     public static final LimbInflation NONE = new LimbInflation(0.0F, 0.0F, 0.0F);
 
-    public static final float ARM_INFLATION = 0.001F;
-    public static final float LEG_INFLATION = 0.0F;
+    public static final float LIMB_INFLATION = 0.015F;
     public static final float LOWER_LIMB_INFLATION_STEP = 0.001F;
 
     private final float amount;
