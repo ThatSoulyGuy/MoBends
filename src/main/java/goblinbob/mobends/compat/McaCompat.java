@@ -8,6 +8,7 @@ import goblinbob.mobends.standard.client.model.adaptive.AdaptiveHumanoidGeometry
 import goblinbob.mobends.standard.client.renderer.entity.mutated.BipedRenderer;
 import goblinbob.mobends.standard.data.McaVillagerData;
 import goblinbob.mobends.standard.data.ZombieData;
+import goblinbob.mobends.standard.mutators.BipedMutator;
 import goblinbob.mobends.standard.mutators.McaVillagerMutator;
 import goblinbob.mobends.standard.mutators.McaZombieVillagerMutator;
 import goblinbob.mobends.standard.previewer.BipedPreviewer;
@@ -366,7 +367,7 @@ public final class McaCompat
             {
                 final float pitch = part.xRot;
                 part.xRot = BREAST_PITCH;
-                renderTinted(part, poseStack, vertexConsumer, packedLight, packedOverlay, color);
+                BipedMutator.renderTinted(part, poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 part.xRot = pitch;
             }
 
@@ -467,19 +468,5 @@ public final class McaCompat
         });
 
         return cached.length == 5 ? cached : null;
-    }
-
-    private static void renderTinted(ModelPart part, PoseStack poseStack, VertexConsumer vertexConsumer,
-                                     int packedLight, int packedOverlay, int color)
-    {
-        //? if >=1.21 {
-        /*part.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
-        *///?} else {
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay,
-                ((color >> 16) & 0xFF) / 255.0F,
-                ((color >> 8) & 0xFF) / 255.0F,
-                (color & 0xFF) / 255.0F,
-                ((color >>> 24) & 0xFF) / 255.0F);
-        //?}
     }
 }

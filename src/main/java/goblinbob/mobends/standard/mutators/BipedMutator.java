@@ -1585,7 +1585,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             body.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         }
 
-        renderAttachedParts(poseStack, vertexConsumer, packedLight, packedOverlay);
+        renderAttachedParts(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
         if (leftLeg != null)
         {
@@ -1612,7 +1612,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     }
 
     protected void renderAttachedParts(PoseStack poseStack, VertexConsumer vertexConsumer,
-                                       int packedLight, int packedOverlay)
+                                       int packedLight, int packedOverlay, int color)
     {
 
         if (attachedParts.isEmpty())
@@ -1642,7 +1642,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
                 for (ModelPart child : foreignChildren)
                 {
-                    child.render(poseStack, vertexConsumer, packedLight, packedOverlay);
+                    renderTinted(child, poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 }
 
                 poseStack.popPose();
@@ -1669,12 +1669,26 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             part.skipDraw = !attached.drawOwnCubes;
             part.visible = true;
 
-            part.render(poseStack, vertexConsumer, packedLight, packedOverlay);
+            renderTinted(part, poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
             VanillaPartState.restore(saved, part);
 
             poseStack.popPose();
         }
+    }
+
+    public static void renderTinted(ModelPart part, PoseStack poseStack, VertexConsumer vertexConsumer,
+                                    int packedLight, int packedOverlay, int color)
+    {
+        //? if >=1.21 {
+        /*part.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        *///?} else {
+        part.render(poseStack, vertexConsumer, packedLight, packedOverlay,
+                ((color >> 16) & 0xFF) / 255.0F,
+                ((color >> 8) & 0xFF) / 255.0F,
+                (color & 0xFF) / 255.0F,
+                ((color >>> 24) & 0xFF) / 255.0F);
+        //?}
     }
 
     protected void syncConcealmentFromVanillaModel()
