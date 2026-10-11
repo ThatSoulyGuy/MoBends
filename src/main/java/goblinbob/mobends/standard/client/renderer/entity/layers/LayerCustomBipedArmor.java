@@ -238,6 +238,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         if (customModel == null || customModel == defaultModel)
         {
+            final Model azureModel = goblinbob.mobends.compat.AzureLibCompat.getArmorModel(entity, itemStack, slot, defaultModel);
+
+            if (azureModel != null)
+            {
+                customModel = azureModel;
+            }
+        }
+
+        if (customModel == null || customModel == defaultModel)
+        {
             Model geoModel = goblinbob.mobends.standard.client.model.armor.GeckoLibArmorSupport
                     .getArmorRenderer(entity, itemStack, slot, defaultModel);
 
@@ -591,6 +601,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
     private static boolean isBendableGeoArmor(Model armorModel)
     {
+        if (goblinbob.mobends.compat.AzureLibCompat.isArmorModel(armorModel))
+        {
+            return true;
+        }
+
         try
         {
             return Class.forName("software.bernie.geckolib.renderer.GeoArmorRenderer").isInstance(armorModel);
@@ -617,6 +632,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     @Nullable
     private static ResourceLocation geoArmorTexture(Model armorModel, ItemStack itemStack)
     {
+        if (goblinbob.mobends.compat.AzureLibCompat.isArmorModel(armorModel))
+        {
+            return goblinbob.mobends.compat.AzureLibCompat.getTexture(itemStack);
+        }
+
         try
         {
             Object animatable = invokeNoArg(armorModel, "getAnimatable");
