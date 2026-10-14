@@ -22,6 +22,11 @@ public class MoBendsScreen extends Screen
         screenBuilder.setOpenConfigOnBuild(openConfig);
     }
 
+    public static Screen configScreen()
+    {
+        return new MoBendsScreen(true);
+    }
+
     @Override
     public void removed()
     {
