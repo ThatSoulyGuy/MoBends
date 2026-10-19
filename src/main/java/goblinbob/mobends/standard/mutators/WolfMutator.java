@@ -12,6 +12,7 @@ import goblinbob.mobends.standard.client.renderer.entity.layers.LayerWolfMisc;
 import goblinbob.mobends.standard.data.WolfData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.WolfModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.animal.Wolf;
 
@@ -52,6 +53,21 @@ public class WolfMutator extends Mutator<WolfData, Wolf, WolfModel<Wolf>>
     @Override
     public void applyVanillaModel(WolfModel<Wolf> model)
     {
+        if (vanillaHead != null)
+        {
+            vanillaHead.resetPose();
+        }
+    }
+
+    private ModelPart vanillaHead;
+
+    public void syncHeadToVanillaModel(ModelPart head)
+    {
+        if (wolfHeadMain != null)
+        {
+            vanillaHead = head;
+            wolfHeadMain.copyPoseTo(head, -1.0F, 0.0F, -2.0F);
+        }
     }
 
     @Override

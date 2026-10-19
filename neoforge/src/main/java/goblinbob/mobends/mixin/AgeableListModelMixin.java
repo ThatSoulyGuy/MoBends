@@ -51,7 +51,7 @@ public abstract class AgeableListModelMixin<T extends LivingEntity> {
         else if ((Object) this instanceof WolfModel<?> wolfModel) {
             if (MixinBridge.shouldRenderWolfCustom()) {
                 MixinBridge.setWolfBabyHeadScale(mobends$babyHeadScale(wolfModel.young));
-                MixinBridge.renderWolfMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+                MixinBridge.renderWolfMutated(headParts().iterator().next(), poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 ci.cancel();
             }
         }

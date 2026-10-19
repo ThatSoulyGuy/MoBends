@@ -177,7 +177,7 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
             this.onGround = true;
         }
 
-        if ((!calcOnGroundResult & this.onGround) | (this.prevMotionY <= 0 && this.motionY - this.prevMotionY > 0.4D && this.ticksInAir > 2.0F))
+        if (!calcOnGroundResult & (this.onGround | (this.prevMotionY <= 0 && this.motionY - this.prevMotionY > 0.4D && this.ticksInAir > 2.0F)))
         {
             this.onLiftoff();
             this.onGround = false;

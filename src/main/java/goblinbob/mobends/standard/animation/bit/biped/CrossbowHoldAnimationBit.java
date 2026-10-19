@@ -7,7 +7,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import goblinbob.mobends.core.util.HeldItemHelper;
+import goblinbob.mobends.platform.armor.ArmorModelProviderHolder;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 
 import javax.annotation.Nullable;
 
@@ -26,11 +30,6 @@ public class CrossbowHoldAnimationBit extends AnimationBit<BipedEntityData<?>>
     @Nullable
     public static HumanoidArm getChargedCrossbowArm(LivingEntity entity)
     {
-        if (entity.swinging)
-        {
-            return null;
-        }
-
         final HumanoidArm mainArm = entity.getMainArm();
         final HumanoidArm offArm = mainArm.getOpposite();
 
@@ -49,12 +48,19 @@ public class CrossbowHoldAnimationBit extends AnimationBit<BipedEntityData<?>>
 
     private static boolean isReadyCrossbow(LivingEntity entity, ItemStack itemStack, InteractionHand hand)
     {
-        if (!HeldItemHelper.isLoadedCrossbow(itemStack))
+        if (entity.getUsedItemHand() == hand && entity.getUseItemRemainingTicks() > 0
+                && itemStack.getUseAnimation() != UseAnim.NONE)
         {
             return false;
         }
 
-        return entity.getUsedItemHand() != hand || entity.getUseItemRemainingTicks() <= 0;
+        if (HeldItemHelper.isLoadedCrossbow(itemStack))
+        {
+            return !entity.swinging;
+        }
+
+        return entity instanceof Player
+                && ArmorModelProviderHolder.getProvider().getArmPose(entity, hand, itemStack) == HumanoidModel.ArmPose.CROSSBOW_HOLD;
     }
 
 

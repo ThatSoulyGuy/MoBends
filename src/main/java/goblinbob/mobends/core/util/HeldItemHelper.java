@@ -1,5 +1,6 @@
 package goblinbob.mobends.core.util;
 
+import goblinbob.mobends.compat.SporeCompat;
 import goblinbob.mobends.compat.TinkersConstructCompat;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -31,6 +32,7 @@ public final class HeldItemHelper
                 || isTagged(item, ItemTags.SWORDS)
                 || isUntaggedMeleeWeapon(item)
                 || TinkersConstructCompat.isMeleeWeapon(item)
+                || SporeCompat.isMeleeWeapon(item)
                 || CustomWeapons.matches(item);
     }
 

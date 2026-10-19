@@ -39,7 +39,7 @@ public abstract class HierarchicalModelMixin<E extends Entity> {
 
         if (model instanceof SpiderModel) {
             if (MixinBridge.shouldRenderSpiderCustom()) {
-                MixinBridge.renderSpiderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+                MixinBridge.renderSpiderMutated(((SpiderModel<?>) model).root().getChild("head"), poseStack, vertexConsumer, packedLight, packedOverlay, color);
                 ci.cancel();
             }
             return;

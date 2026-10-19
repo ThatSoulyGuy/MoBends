@@ -112,11 +112,12 @@ public final class MixinBridge {
         return mutator != null && mutator.shouldRenderCustom();
     }
 
-    public static void renderSpiderMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
+    public static void renderSpiderMutated(net.minecraft.client.model.geom.ModelPart head, PoseStack poseStack, VertexConsumer vertexConsumer,
                                            int packedLight, int packedOverlay, int color) {
         SpiderMutator mutator = MoBendsRenderContext.getCurrentSpiderMutator();
         if (mutator != null) {
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            mutator.syncHeadToVanillaModel(head);
             MoBendsRenderContext.endMainModelRender();
         }
     }
@@ -147,11 +148,12 @@ public final class MixinBridge {
         return mutator != null && mutator.shouldRenderCustom();
     }
 
-    public static void renderWolfMutated(PoseStack poseStack, VertexConsumer vertexConsumer,
+    public static void renderWolfMutated(net.minecraft.client.model.geom.ModelPart head, PoseStack poseStack, VertexConsumer vertexConsumer,
                                           int packedLight, int packedOverlay, int color) {
         WolfMutator mutator = MoBendsRenderContext.getCurrentWolfMutator();
         if (mutator != null) {
             mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            mutator.syncHeadToVanillaModel(head);
             MoBendsRenderContext.endMainModelRender();
         }
     }

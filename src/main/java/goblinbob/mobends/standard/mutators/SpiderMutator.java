@@ -8,6 +8,7 @@ import goblinbob.mobends.core.mutators.Mutator;
 import goblinbob.mobends.standard.data.SpiderData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.SpiderModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.monster.Spider;
 
 public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spider>>
@@ -105,6 +106,26 @@ public class SpiderMutator extends Mutator<SpiderData, Spider, SpiderModel<Spide
     public boolean shouldRenderCustom()
     {
         return this.spiderHead != null;
+    }
+
+    private ModelPart vanillaHead;
+
+    public void syncHeadToVanillaModel(ModelPart head)
+    {
+        if (spiderHead != null)
+        {
+            vanillaHead = head;
+            spiderHead.copyPoseTo(head, 0.0F, 0.0F, 0.0F);
+        }
+    }
+
+    @Override
+    public void applyVanillaModel(SpiderModel<Spider> model)
+    {
+        if (vanillaHead != null)
+        {
+            vanillaHead.resetPose();
+        }
     }
 
     @Override

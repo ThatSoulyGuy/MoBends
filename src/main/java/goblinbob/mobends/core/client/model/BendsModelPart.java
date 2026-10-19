@@ -148,6 +148,21 @@ public class BendsModelPart implements IModelPart
         applyLocalTransformPoseStack(poseStack);
     }
 
+    public void copyPoseTo(net.minecraft.client.model.geom.ModelPart target, float localX, float localY, float localZ)
+    {
+        final PoseStack poseStack = new PoseStack();
+        applyCharacterTransformPoseStack(poseStack);
+        poseStack.translate(localX / 16.0F, localY / 16.0F, localZ / 16.0F);
+
+        final org.joml.Matrix4f pose = poseStack.last().pose();
+        final org.joml.Vector3f translation = pose.getTranslation(new org.joml.Vector3f()).mul(16.0F);
+        final org.joml.Vector3f euler = pose.getNormalizedRotation(new org.joml.Quaternionf())
+                .getEulerAnglesZYX(new org.joml.Vector3f());
+
+        target.setPos(translation.x, translation.y, translation.z);
+        target.setRotation(euler.x, euler.y, euler.z);
+    }
+
     public void applyPreTransformPoseStack(PoseStack poseStack)
     {
         if (globalOffset.x != 0.0F || globalOffset.y != 0.0F || globalOffset.z != 0.0F)
