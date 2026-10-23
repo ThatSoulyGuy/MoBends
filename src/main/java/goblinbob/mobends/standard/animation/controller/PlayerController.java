@@ -139,6 +139,12 @@ public class PlayerController implements IAnimationController<PlayerData>
                 layerSneak.clearAnimation();
                 layerTorch.clearAnimation();
             }
+            else if (player.isAutoSpinAttack())
+            {
+                layerBase.playOrContinueBit(bitJump, data);
+                layerSneak.clearAnimation();
+                layerTorch.clearAnimation();
+            }
             else if (data.isInWater() && (player.isVisuallySwimming() || !player.isCrouching()))
             {
                 layerBase.playOrContinueBit(bitSwimming, data);
