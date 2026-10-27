@@ -324,11 +324,10 @@ public class RigidArmorRenderer
         accumulateRestPosition(part.getParent(), out);
 
         IVec3f position = part.getPosition();
-        IVec3f offset = part.getOffset();
 
-        out[0] += position.getX() + offset.getX();
-        out[1] += position.getY() + offset.getY();
-        out[2] += position.getZ() + offset.getZ();
+        out[0] += position.getX();
+        out[1] += position.getY();
+        out[2] += position.getZ();
     }
 
     private static class BoneTransform
