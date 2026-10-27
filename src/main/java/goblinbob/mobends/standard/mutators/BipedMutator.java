@@ -218,11 +218,19 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
             try
             {
-                net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-                HumanoidModel<?> innerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(ModelLayers.PLAYER_INNER_ARMOR));
-                HumanoidModel<?> outerModel = new HumanoidModel<>(mc.getEntityModels().bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR));
+                final HumanoidModel<?>[] vanillaModels = vanillaArmorModels(vanillaArmor);
 
-                this.layerArmor.setArmorModels(innerModel, outerModel);
+                if (vanillaModels != null)
+                {
+                    this.layerArmor.setArmorModels(vanillaModels[0], vanillaModels[1]);
+                }
+                else
+                {
+                    net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+                    this.layerArmor.setArmorModels(
+                            new HumanoidModel<>(mc.getEntityModels().bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)),
+                            new HumanoidModel<>(mc.getEntityModels().bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR)));
+                }
             }
             catch (Exception e)
             {
@@ -238,6 +246,39 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             this.layerHeldItem = createHeldItemLayer(renderer);
             this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerHeldItem);
+        }
+    }
+
+    private static Field[] armorModelFields;
+
+    private static HumanoidModel<?>[] vanillaArmorModels(HumanoidArmorLayer<?, ?, ?> layer)
+    {
+        if (armorModelFields == null)
+        {
+            armorModelFields = java.util.Arrays.stream(HumanoidArmorLayer.class.getDeclaredFields())
+                    .filter(field -> HumanoidModel.class.isAssignableFrom(field.getType()))
+                    .toArray(Field[]::new);
+            for (Field field : armorModelFields)
+            {
+                field.setAccessible(true);
+            }
+        }
+
+        if (armorModelFields.length != 2)
+        {
+            return null;
+        }
+
+        try
+        {
+            return new HumanoidModel<?>[] {
+                    (HumanoidModel<?>) armorModelFields[0].get(layer),
+                    (HumanoidModel<?>) armorModelFields[1].get(layer)
+            };
+        }
+        catch (Exception e)
+        {
+            return null;
         }
     }
 

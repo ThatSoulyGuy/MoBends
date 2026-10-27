@@ -274,6 +274,7 @@ public abstract class EntityBender<T extends LivingEntity>
             }
             goblinbob.mobends.compat.McaCompat.initializePreviewAppearance(entity);
             goblinbob.mobends.compat.MillenaireCompat.initializePreviewAppearance(entity);
+            goblinbob.mobends.compat.VillagerRecruitsCompat.initializePreviewAppearance(entity);
             PreviewHelper.registerPreviewEntity(entity);
 
             return (T) entity;

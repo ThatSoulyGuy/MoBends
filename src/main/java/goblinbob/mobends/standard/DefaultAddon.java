@@ -126,6 +126,8 @@ public class DefaultAddon implements IAddon
 
 		goblinbob.mobends.compat.ModernCompanionsCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
+		goblinbob.mobends.compat.VillagerRecruitsCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
+
 		goblinbob.mobends.compat.MineColoniesCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_PARTS);
 
 		goblinbob.mobends.compat.VillagersRebornCompat.register(registry, SPRINTING_BIPED_ANIMATIONS, BIPED_ANIMATIONS, BIPED_PARTS);
