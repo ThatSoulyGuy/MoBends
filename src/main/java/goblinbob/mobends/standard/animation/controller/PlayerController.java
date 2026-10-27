@@ -159,7 +159,9 @@ public class PlayerController implements IAnimationController<PlayerData>
                 }
                 else if (data.isFlying())
                 {
-                    layerBase.playOrContinueBit(bitFlying, data);
+                    layerBase.playOrContinueBit(
+                            goblinbob.mobends.compat.PlayerAnimationLibCompat.isPosingBones(player) ? bitStand : bitFlying,
+                            data);
                 }
                 else
                 {

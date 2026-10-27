@@ -131,12 +131,9 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
                 this.translateToGrip(arm, entity, itemStack, displayContext, poseStack);
             }
 
-            boolean leftHanded = arm == HumanoidArm.LEFT;
-
-            Minecraft.getInstance().getItemRenderer().renderStatic(
-                    entity, itemStack, displayContext, leftHanded,
-                    poseStack, bufferSource, entity.level(), packedLight,
-                    LivingEntityRenderer.getOverlayCoords(entity, 0.0F), entity.getId());
+            Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer().renderItem(
+                    entity, itemStack, displayContext, arm == HumanoidArm.LEFT,
+                    poseStack, bufferSource, packedLight);
 
             poseStack.popPose();
         }

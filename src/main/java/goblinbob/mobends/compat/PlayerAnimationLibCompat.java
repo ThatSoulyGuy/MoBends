@@ -242,6 +242,35 @@ public class PlayerAnimationLibCompat
         return getActiveStack(entity) != null;
     }
 
+    private static final String[] POSED_BONES = {"torso", "head", "rightArm", "leftArm", "rightLeg", "leftLeg"};
+
+    public static boolean isPosingBones(LivingEntity entity)
+    {
+        final Object stack = getActiveStack(entity);
+        if (stack == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            for (String bone : POSED_BONES)
+            {
+                sample(stack, bone, Transform.ROTATION,
+                        goblinbob.mobends.core.client.event.DataUpdateHandler.partialTicks, partRotation);
+                if (partRotation.isInfluenced())
+                {
+                    return true;
+                }
+            }
+        }
+        catch (Exception ignored)
+        {
+        }
+
+        return false;
+    }
+
     public static boolean isAnimatingVanillaModel(LivingEntity entity)
     {
         return isModLoaded() && entity instanceof AbstractClientPlayer player && getAnimatingStack(player) != null;
