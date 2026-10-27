@@ -82,6 +82,10 @@ public class ConfigOptions
                     () -> ModConfig.mobsCanSpin,
                     value -> ModConfig.mobsCanSpin = value),
 
+            new Option("zombieFistAttacks", "mobends.gui.config.zombie_fist_attacks",
+                    () -> ModConfig.zombieFistAttacks,
+                    value -> ModConfig.zombieFistAttacks = value),
+
             new Option("disableMovementInGui", "mobends.gui.config.disable_movement_in_gui",
                     () -> ModConfig.disableMovementInGui,
                     value -> ModConfig.disableMovementInGui = value),

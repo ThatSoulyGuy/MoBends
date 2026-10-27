@@ -3,7 +3,6 @@ package goblinbob.mobends.standard.animation.controller;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
-import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.animation.bit.biped.MobSwingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
@@ -15,6 +14,7 @@ import goblinbob.mobends.standard.animation.bit.zombie_base.ZombieLeanAnimationB
 import goblinbob.mobends.standard.animation.bit.zombie_base.ZombieStumblingAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.ZombieDataBase;
+import goblinbob.mobends.standard.main.ModConfig;
 
 
 public class ZombieController implements IAnimationController<ZombieDataBase<?>>
@@ -78,8 +78,8 @@ public class ZombieController implements IAnimationController<ZombieDataBase<?>>
 			this.layerSet.playOrContinueBit(bitAnimationSet[zombieData.getAnimationSet()], zombieData);
 		}
 
-		if (zombieData.getEntity().getAttackAnim(DataUpdateHandler.partialTicks) > 0
-				&& MobSwingAnimationBit.canPerform(zombieData.getEntity()))
+		if (MobSwingAnimationBit.isSwinging(zombieData)
+				&& (ModConfig.zombieFistAttacks || MobSwingAnimationBit.canPerform(zombieData.getEntity())))
 		{
 			this.layerAction.playOrContinueBit(this.bitAttack, zombieData);
 		}

@@ -4,8 +4,10 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
+import goblinbob.mobends.standard.animation.bit.player.PunchAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Arrays;
@@ -13,6 +15,13 @@ import java.util.List;
 
 public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
+
+    private static final float SWING_TICKS = 6.0F;
+
+    public static boolean isSwinging(BipedEntityData<?> data)
+    {
+        return data.getTicksAfterAnyAttack() < SWING_TICKS;
+    }
 
     public static boolean canPerform(LivingEntity entity)
     {
@@ -30,12 +39,23 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
     private static final AnimationBit<BipedEntityData<?>> SPIN = new AttackWhirlSlashAnimationBit();
 
+    private static final List<AnimationBit<BipedEntityData<?>>> PUNCHES = Arrays.asList(
+            new PunchAnimationBit(HumanoidArm.LEFT),
+            new PunchAnimationBit(HumanoidArm.RIGHT)
+    );
+
     private final HardAnimationLayer<BipedEntityData<?>> layer = new HardAnimationLayer<>();
 
 
     @Override
     public void onPlay(BipedEntityData<?> data)
     {
+        if (!canPerform(data.getEntity()))
+        {
+            this.layer.playBit(PUNCHES.get(Math.floorMod(data.getEntity().tickCount / 6, PUNCHES.size())), data);
+            return;
+        }
+
         final int variantCount = ModConfig.mobsCanSpin ? SLASHES.size() + 1 : SLASHES.size();
         final int variant = Math.floorMod(data.getEntity().tickCount / 6, variantCount);
 

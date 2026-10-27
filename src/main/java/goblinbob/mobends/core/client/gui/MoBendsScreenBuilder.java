@@ -439,15 +439,18 @@ public class MoBendsScreenBuilder
 
         if (goblinbob.mobends.compat.BetterCombatCompat.isModLoaded())
         {
-            LayoutParams params = new LayoutParams(
-                    LayoutParams.MATCH_PARENT,
-                    CONFIG_ROW_HEIGHT);
-            params.setMargins(0, 0, 0, MoBendsTheme.SPACING);
-            DropDown betterCombat = buildBetterCombatDropDown();
-            list.addView(betterCombat, params);
-            configRows.add(new ConfigRow(betterCombat,
-                    I18n.get("mobends.gui.config.better_combat_animations") + " "
-                            + I18n.get("mobends.gui.config.better_combat_animations.desc")));
+            addCombatAnimationsRow(list, BETTER_COMBAT_KEY,
+                    goblinbob.mobends.compat.BetterCombatCompat.Animations.values(),
+                    goblinbob.mobends.compat.BetterCombatCompat.getAnimations(),
+                    goblinbob.mobends.compat.BetterCombatCompat::setAnimations);
+        }
+
+        if (goblinbob.mobends.compat.PlayerAnimationLibCompat.isMobAnimatorLoaded())
+        {
+            addCombatAnimationsRow(list, MOB_BETTER_COMBAT_KEY,
+                    goblinbob.mobends.compat.BetterCombatCompat.MOB_ANIMATIONS,
+                    goblinbob.mobends.compat.BetterCombatCompat.getMobAnimations(),
+                    goblinbob.mobends.compat.BetterCombatCompat::setMobAnimations);
         }
 
         for (ConfigOptions.Option option : ConfigOptions.all())
@@ -684,43 +687,47 @@ public class MoBendsScreenBuilder
         return dropDown;
     }
 
-    private DropDown buildBetterCombatDropDown()
-    {
-        final goblinbob.mobends.compat.BetterCombatCompat.Animations[] modes =
-                goblinbob.mobends.compat.BetterCombatCompat.Animations.values();
+    private static final String BETTER_COMBAT_KEY = "mobends.gui.config.better_combat_animations";
+    private static final String MOB_BETTER_COMBAT_KEY = "mobends.gui.config.mob_better_combat_animations";
 
+    private void addCombatAnimationsRow(LinearLayout list, String key,
+                                        goblinbob.mobends.compat.BetterCombatCompat.Animations[] modes,
+                                        goblinbob.mobends.compat.BetterCombatCompat.Animations current,
+                                        java.util.function.Consumer<goblinbob.mobends.compat.BetterCombatCompat.Animations> setter)
+    {
         DropDown dropDown = new DropDown("");
         dropDown.setBackgroundColor(MoBendsTheme.BG_LIST);
 
         for (goblinbob.mobends.compat.BetterCombatCompat.Animations mode : modes)
         {
-            dropDown.addOption(I18n.get(betterCombatModeKey(mode)),
-                    I18n.get(betterCombatModeKey(mode) + ".desc"));
+            dropDown.addOption(I18n.get(combatModeKey(key, mode)),
+                    I18n.get(combatModeKey(key, mode) + ".desc"));
         }
 
-        goblinbob.mobends.compat.BetterCombatCompat.Animations current =
-                goblinbob.mobends.compat.BetterCombatCompat.getAnimations();
-        dropDown.setSelectedIndex(current.ordinal());
-        dropDown.setLabel(betterCombatLabel(current));
+        dropDown.setSelectedIndex(java.util.Arrays.asList(modes).indexOf(current));
+        dropDown.setLabel(combatLabel(key, current));
 
         dropDown.setOnSelectionChanged(index -> {
-            goblinbob.mobends.compat.BetterCombatCompat.Animations selected = modes[index];
-            goblinbob.mobends.compat.BetterCombatCompat.setAnimations(selected);
-            dropDown.setLabel(betterCombatLabel(selected));
+            setter.accept(modes[index]);
+            dropDown.setLabel(combatLabel(key, modes[index]));
         });
 
-        return dropDown;
+        LayoutParams params = new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                CONFIG_ROW_HEIGHT);
+        params.setMargins(0, 0, 0, MoBendsTheme.SPACING);
+        list.addView(dropDown, params);
+        configRows.add(new ConfigRow(dropDown, I18n.get(key) + " " + I18n.get(key + ".desc")));
     }
 
-    private static String betterCombatLabel(goblinbob.mobends.compat.BetterCombatCompat.Animations mode)
+    private static String combatLabel(String key, goblinbob.mobends.compat.BetterCombatCompat.Animations mode)
     {
-        return I18n.get("mobends.gui.config.better_combat_animations")
-                + ": " + I18n.get(betterCombatModeKey(mode));
+        return I18n.get(key) + ": " + I18n.get(combatModeKey(key, mode));
     }
 
-    private static String betterCombatModeKey(goblinbob.mobends.compat.BetterCombatCompat.Animations mode)
+    private static String combatModeKey(String key, goblinbob.mobends.compat.BetterCombatCompat.Animations mode)
     {
-        return "mobends.gui.config.better_combat_animations." + mode.name().toLowerCase(java.util.Locale.ROOT);
+        return key + "." + mode.name().toLowerCase(java.util.Locale.ROOT);
     }
 
     private static MobPreviewGridWidget.SpinMode readSpinMode()

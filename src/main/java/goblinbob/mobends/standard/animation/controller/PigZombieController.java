@@ -3,7 +3,6 @@ package goblinbob.mobends.standard.animation.controller;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.controller.IAnimationController;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
-import goblinbob.mobends.core.client.event.DataUpdateHandler;
 import goblinbob.mobends.standard.animation.bit.biped.MobSwingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.JumpAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.RidingAnimationBit;
@@ -13,6 +12,7 @@ import goblinbob.mobends.standard.animation.bit.pigzombie.StandAnimationBit;
 import goblinbob.mobends.standard.animation.bit.pigzombie.WalkAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.data.PigZombieData;
+import goblinbob.mobends.standard.main.ModConfig;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 
 
@@ -66,8 +66,8 @@ public class PigZombieController implements IAnimationController<PigZombieData>
 			}
 		}
 
-		if (pigZombie.getAttackAnim(DataUpdateHandler.partialTicks) > 0
-				&& MobSwingAnimationBit.canPerform(pigZombie))
+		if (MobSwingAnimationBit.isSwinging(pigZombieData)
+				&& (ModConfig.zombieFistAttacks || MobSwingAnimationBit.canPerform(pigZombie)))
 		{
 			this.layerAction.playOrContinueBit(this.bitAttack, pigZombieData);
 		}

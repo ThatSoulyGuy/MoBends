@@ -13,6 +13,8 @@ public final class GuiOverlay
         void renderOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY);
 
         boolean handleOverlayClick(double mouseX, double mouseY, int button);
+
+        boolean isOverlayHit(double mouseX, double mouseY);
     }
 
     @Nullable
@@ -33,6 +35,11 @@ public final class GuiOverlay
         {
             pending = null;
         }
+    }
+
+    public static boolean covers(Layer layer, double mouseX, double mouseY)
+    {
+        return pending != null && pending != layer && pending.isOverlayHit(mouseX, mouseY);
     }
 
     public static void clear()

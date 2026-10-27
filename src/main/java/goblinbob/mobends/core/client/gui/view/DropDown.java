@@ -66,7 +66,7 @@ public class DropDown extends View implements GuiOverlay.Layer
         return options.size() * OPTION_HEIGHT + 2;
     }
 
-    private boolean isInPopup(double mx, double my)
+    public boolean isOverlayHit(double mx, double my)
     {
         if (!expanded) return false;
 
@@ -91,8 +91,8 @@ public class DropDown extends View implements GuiOverlay.Layer
             return;
         }
 
-        boolean hoveredButton = enabled && isInBounds(mouseX, mouseY);
-        expanded = enabled && (hoveredButton || isInPopup(mouseX, mouseY));
+        boolean hoveredButton = enabled && isInBounds(mouseX, mouseY) && !GuiOverlay.covers(this, mouseX, mouseY);
+        expanded = enabled && (hoveredButton || isOverlayHit(mouseX, mouseY));
 
         int bgColor = hoveredButton || expanded ? MoBendsTheme.BG_BUTTON_HOVER : backgroundColor;
         guiGraphics.fill(x, y, x + measuredWidth, y + measuredHeight, bgColor);
@@ -165,7 +165,7 @@ public class DropDown extends View implements GuiOverlay.Layer
 
     public boolean handleOverlayClick(double mouseX, double mouseY, int button)
     {
-        if (button != 0 || !isInPopup(mouseX, mouseY)) return false;
+        if (button != 0 || !isOverlayHit(mouseX, mouseY)) return false;
 
         int index = optionAt(mouseY);
         if (index < 0) return true;

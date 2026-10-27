@@ -30,6 +30,8 @@ public class ModConfig
 
     public static boolean mobsCanSpin = false;
 
+    public static boolean zombieFistAttacks = false;
+
     public static boolean disableMovementInGui = false;
 
     public static boolean bendRobesOnlyWhenSitting = true;

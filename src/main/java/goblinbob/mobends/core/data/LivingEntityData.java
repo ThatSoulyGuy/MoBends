@@ -25,6 +25,7 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     protected boolean alreadyAttacked = false;
     protected boolean externalAttackDriven = false;
     protected boolean betterCombatSuppressed = false;
+    protected boolean betterMobCombatAttacking = false;
     protected int lastMainSwingTime = -1;
     protected int lastOffHandSwingTime = -1;
     protected boolean climbing = false;
@@ -196,6 +197,13 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         if (goblinbob.mobends.compat.BetterCombatCompat.isModLoaded())
         {
             this.updateBetterCombatOverride();
+
+            final boolean mobAttacking = goblinbob.mobends.compat.BetterCombatCompat.isMobAttacking(this.entity);
+            if (mobAttacking && !this.betterMobCombatAttacking)
+            {
+                this.onAttack();
+            }
+            this.betterMobCombatAttacking = mobAttacking;
         }
 
         if (goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())

@@ -7,6 +7,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -182,6 +183,72 @@ public final class BetterCombatCompat
     {
         final Animations resolved = mode == null ? Animations.NO_INTEGRATION : mode;
         CoreClientConfig.getInstance().setBetterCombatAnimations(resolved.name());
+    }
+
+    public static final Animations[] MOB_ANIMATIONS = {
+            Animations.BETTER_COMBAT_AND_MOBENDS, Animations.NO_INTEGRATION
+    };
+
+    public static boolean skipsMobBodyRotations()
+    {
+        final goblinbob.mobends.standard.mutators.BipedMutator<?, ?, ?> mutator =
+                goblinbob.mobends.core.client.MoBendsRenderContext.getCurrentBipedMutator();
+
+        return goblinbob.mobends.core.client.MoBendsRenderContext.getCurrentEntity() instanceof Mob
+                && mutator != null && mutator.shouldRenderCustom()
+                && getMobAnimations() == Animations.NO_INTEGRATION;
+    }
+
+    private static boolean mobAttackResolved = false;
+    private static Method mobAttackAnimationMethod;
+
+    public static boolean isMobAttacking(LivingEntity entity)
+    {
+        if (!(entity instanceof Mob) || getMobAnimations() != Animations.NO_INTEGRATION)
+        {
+            return false;
+        }
+
+        if (!mobAttackResolved)
+        {
+            mobAttackResolved = true;
+            try
+            {
+                mobAttackAnimationMethod = Mob.class.getMethod("bettermobcombat$hasActiveAttackAnimation");
+            }
+            catch (Exception ignored)
+            {
+            }
+        }
+
+        try
+        {
+            return mobAttackAnimationMethod != null && (Boolean) mobAttackAnimationMethod.invoke(entity);
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+    }
+
+    public static Animations getMobAnimations()
+    {
+        final String stored = CoreClientConfig.getInstance().getMobBetterCombatAnimations();
+
+        for (final Animations mode : MOB_ANIMATIONS)
+        {
+            if (mode.name().equals(stored))
+            {
+                return mode;
+            }
+        }
+
+        return Animations.BETTER_COMBAT_AND_MOBENDS;
+    }
+
+    public static void setMobAnimations(Animations mode)
+    {
+        CoreClientConfig.getInstance().setMobBetterCombatAnimations(mode.name());
     }
 
     private static boolean keepsAttackAnimation(Animations mode, AbstractClientPlayer player)

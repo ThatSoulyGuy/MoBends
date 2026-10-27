@@ -180,6 +180,17 @@ public class CoreClientConfig
         save();
     }
 
+    public String getMobBetterCombatAnimations()
+    {
+        return data.mobBetterCombatAnimations;
+    }
+
+    public void setMobBetterCombatAnimations(String mode)
+    {
+        data.mobBetterCombatAnimations = mode;
+        save();
+    }
+
     private static class ConfigData
     {
         List<String> appliedPacks = new ArrayList<>();
@@ -194,5 +205,6 @@ public class CoreClientConfig
         List<String> customWeapons = new ArrayList<>();
         String previewSpinMode = "HOVER";
         String betterCombatAnimations = null;
+        String mobBetterCombatAnimations = null;
     }
 }

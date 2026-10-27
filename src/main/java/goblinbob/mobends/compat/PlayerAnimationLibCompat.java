@@ -1,5 +1,7 @@
 package goblinbob.mobends.compat;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import goblinbob.mobends.api.animation.MoBendsAnimationControl;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.math.Quaternion;
@@ -9,7 +11,9 @@ import goblinbob.mobends.lib.util.GUtil;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import dev.architectury.platform.Platform;
 
 import java.lang.reflect.Constructor;
@@ -22,6 +26,7 @@ public class PlayerAnimationLibCompat
 {
     private static final String MOD_ID = "playeranimator";
     private static final String PAL_MOD_ID = "player_animation_library";
+    private static final String MOB_MOD_ID = "mobplayeranimator";
 
     private static final float INFLUENCE_EPSILON = 1.0e-3F;
 
@@ -40,6 +45,7 @@ public class PlayerAnimationLibCompat
     private static boolean isLoaded = false;
 
     private static Method getPlayerAnimLayerMethod;
+    private static Method getMobAnimLayerMethod;
     private static Method isActiveMethod;
     private static Method setupAnimMethod;
     private static Method get3DTransformMethod;
@@ -103,6 +109,19 @@ public class PlayerAnimationLibCompat
                 isLoaded = false;
                 org.slf4j.LoggerFactory.getLogger("MoBends").warn(
                         "Player Animator was detected but its API could not be bound.", e);
+            }
+        }
+
+        if (isLoaded && Platform.isModLoaded(MOB_MOD_ID))
+        {
+            try
+            {
+                getMobAnimLayerMethod = Class.forName("me.Thelnfamous1.mobplayeranimator.api.MobAnimationAccess")
+                        .getMethod("getMobAnimLayer", Mob.class);
+            }
+            catch (Throwable e)
+            {
+                getMobAnimLayerMethod = null;
             }
         }
 
@@ -188,6 +207,11 @@ public class PlayerAnimationLibCompat
 
     private static Object getActiveStack(LivingEntity entity)
     {
+        if (entity instanceof Mob mob && isModLoaded())
+        {
+            return getMobStack(mob);
+        }
+
         if (!isModLoaded() || !(entity instanceof AbstractClientPlayer player))
         {
             return null;
@@ -205,6 +229,30 @@ public class PlayerAnimationLibCompat
         }
 
         return stack;
+    }
+
+    public static boolean isMobAnimatorLoaded()
+    {
+        return isModLoaded() && getMobAnimLayerMethod != null;
+    }
+
+    private static Object getMobStack(Mob mob)
+    {
+        if (getMobAnimLayerMethod == null
+                || BetterCombatCompat.getMobAnimations() == BetterCombatCompat.Animations.NO_INTEGRATION)
+        {
+            return null;
+        }
+
+        try
+        {
+            final Object stack = getMobAnimLayerMethod.invoke(null, mob);
+            return isActive(stack) ? stack : null;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 
     private static Object getAnimatingStack(AbstractClientPlayer player)
@@ -240,6 +288,35 @@ public class PlayerAnimationLibCompat
     public static boolean hasActiveAnimation(LivingEntity entity)
     {
         return getActiveStack(entity) != null;
+    }
+
+    public static void applyItemTransform(LivingEntity entity, HumanoidArm arm, PoseStack poseStack)
+    {
+        final Object stack = getActiveStack(entity);
+        if (stack == null)
+        {
+            return;
+        }
+
+        try
+        {
+            final String bone = arm == HumanoidArm.LEFT ? "leftItem" : "rightItem";
+            final float partialTicks = goblinbob.mobends.core.client.event.DataUpdateHandler.partialTicks;
+            final float[] position = query(stack, bone, Transform.POSITION, partialTicks, 0.0F, 0.0F, 0.0F);
+            final float[] rotation = query(stack, bone, Transform.ROTATION, partialTicks, 0.0F, 0.0F, 0.0F);
+            if (position == null || rotation == null)
+            {
+                return;
+            }
+
+            poseStack.translate(position[0] / 16.0F, position[1] / 16.0F, position[2] / 16.0F);
+            poseStack.mulPose(Axis.ZP.rotation(rotation[2]));
+            poseStack.mulPose(Axis.YP.rotation(rotation[1]));
+            poseStack.mulPose(Axis.XP.rotation(rotation[0]));
+        }
+        catch (Exception ignored)
+        {
+        }
     }
 
     private static final String[] POSED_BONES = {"torso", "head", "rightArm", "leftArm", "rightLeg", "leftLeg"};
