@@ -23,6 +23,17 @@ public class ForgeArmorTextureProvider implements IArmorTextureProvider
         {
             return ResourceLocationFactory.parse(texture);
         }
-        return null;
+
+        String materialName = armorItem.getMaterial().getName();
+        String domain = "minecraft";
+        int colonIndex = materialName.indexOf(':');
+        if (colonIndex >= 0)
+        {
+            domain = materialName.substring(0, colonIndex);
+            materialName = materialName.substring(colonIndex + 1);
+        }
+
+        return ResourceLocationFactory.create(domain, "textures/models/armor/" + materialName
+                + "_layer_" + (isInnerModel ? 2 : 1) + (type == null ? "" : "_" + type) + ".png");
     }
 }

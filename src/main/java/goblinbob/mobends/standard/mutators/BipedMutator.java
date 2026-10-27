@@ -208,7 +208,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             this.originalLayers.put(index, layer);
             layerRenderers.set(index, goblinbob.mobends.compat.ColdSweatCompat.emptyLayer(renderer));
         }
-        else if (layer instanceof HumanoidArmorLayer)
+        else if (layer instanceof HumanoidArmorLayer
+                && !layer.getClass().getName().equals("mekanism.client.render.layer.MekanismArmorLayer"))
         {
             HumanoidArmorLayer vanillaArmor = (HumanoidArmorLayer) layer;
 

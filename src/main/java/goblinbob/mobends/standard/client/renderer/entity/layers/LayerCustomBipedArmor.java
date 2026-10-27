@@ -2210,32 +2210,8 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             return overlay == null ? armorApiTexture : null;
         }
 
-        boolean isInnerModel = usesInnerModel(slot);
-
-        IArmorTextureProvider textureProvider = IArmorTextureProvider.Holder.getProvider();
-        ResourceLocation customTexture = textureProvider.getArmorTexture(armorItem, itemStack, entity, slot, layer, overlay, isInnerModel);
-
-        if (customTexture != null)
-        {
-            return customTexture;
-        }
-
-        IArmorHelper helper = IArmorHelper.Holder.getHelper();
-        String materialName = helper != null ? helper.getArmorMaterialName(armorItem) : "leather";
-
-        String domain = "minecraft";
-        String path = materialName;
-        int colonIndex = materialName.indexOf(':');
-        if (colonIndex >= 0)
-        {
-            domain = materialName.substring(0, colonIndex);
-            path = materialName.substring(colonIndex + 1);
-        }
-
-        int layerIndex = isInnerModel ? 2 : 1;
-        String suffix = overlay == null ? "" : "_" + overlay;
-
-        return goblinbob.mobends.core.util.ResourceLocationFactory.create(domain, "textures/models/armor/" + path + "_layer_" + layerIndex + suffix + ".png");
+        return IArmorTextureProvider.Holder.getProvider()
+                .getArmorTexture(armorItem, itemStack, entity, slot, layer, overlay, usesInnerModel(slot));
     }
 
     private boolean usesInnerModel(EquipmentSlot slot)
