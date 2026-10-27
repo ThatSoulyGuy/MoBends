@@ -16,7 +16,6 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -119,28 +118,10 @@ public class Tier1Renderer
 
         BipedEntityData<?> entityData = context.getEntityData();
         PoseStack poseStack = context.getPoseStack();
-        EquipmentSlot slot = context.getSlot();
 
-        ArmorPoseHelper.hideOtherSlotParts(humanoidModel, slot);
-
-
-        boolean isSlimArms = context.isSlimArms();
-
-        switch (slot)
-        {
-            case HEAD:
-                renderHead(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
-                break;
-            case CHEST:
-                renderChest(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), isSlimArms);
-                break;
-            case LEGS:
-                renderLegs(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
-                break;
-            case FEET:
-                renderFeet(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
-                break;
-        }
+        renderHead(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
+        renderChest(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay(), context.isSlimArms());
+        renderFeet(poseStack, vertexConsumer, humanoidModel, entityData, context.getPackedLight(), context.getPackedOverlay());
     }
 
     private void renderHead(
@@ -226,28 +207,6 @@ public class Tier1Renderer
         ArmorPoseHelper.renderSplitArm(poseStack, vertexConsumer, model.leftArm, entityData, true, packedLight, packedOverlay, slimArmOffset, currentArmorColor, limbCapture, quadSlicer);
 
         ArmorPoseHelper.renderSplitArm(poseStack, vertexConsumer, model.rightArm, entityData, false, packedLight, packedOverlay, slimArmOffset, currentArmorColor, limbCapture, quadSlicer);
-
-        poseStack.popPose();
-    }
-
-    private void renderLegs(
-            PoseStack poseStack,
-            VertexConsumer vertexConsumer,
-            HumanoidModel<?> model,
-            BipedEntityData<?> entityData,
-            int packedLight,
-            int packedOverlay)
-    {
-        poseStack.pushPose();
-
-        if (model.body != null && model.body.visible)
-        {
-            renderBodyWithPivotRotation(poseStack, vertexConsumer, model.body, entityData, packedLight, packedOverlay);
-        }
-
-        ArmorPoseHelper.renderSplitLeg(poseStack, vertexConsumer, model.leftLeg, entityData, true, packedLight, packedOverlay, currentArmorColor, limbCapture, quadSlicer);
-
-        ArmorPoseHelper.renderSplitLeg(poseStack, vertexConsumer, model.rightLeg, entityData, false, packedLight, packedOverlay, currentArmorColor, limbCapture, quadSlicer);
 
         poseStack.popPose();
     }
