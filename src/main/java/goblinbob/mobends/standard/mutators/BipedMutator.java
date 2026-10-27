@@ -1269,8 +1269,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
     public void captureLayerBasePose(PoseStack poseStack)
     {
-        layerBasePose.set(poseStack.last().pose()).invert();
-        layerBaseNormal.set(poseStack.last().normal()).invert();
+        layerBasePose.set(poseStack.last().pose());
+        layerBaseNormal.set(poseStack.last().normal());
         layerBasePoseValid = true;
     }
 
@@ -1358,10 +1358,10 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         {
             return;
         }
-        if (layerBasePoseValid)
+        if (layerBasePoseValid && !poseStack.last().pose().equals(layerBasePose))
         {
-            poseStack.last().pose().mulLocal(layerBasePose).mulLocal(mainRenderPose);
-            poseStack.last().normal().mulLocal(layerBaseNormal).mulLocal(mainRenderNormal);
+            poseStack.last().pose().mulLocal(new org.joml.Matrix4f(layerBasePose).invert()).mulLocal(mainRenderPose);
+            poseStack.last().normal().mulLocal(new org.joml.Matrix3f(layerBaseNormal).invert()).mulLocal(mainRenderNormal);
             return;
         }
         poseStack.last().pose().set(mainRenderPose);
