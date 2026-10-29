@@ -9,10 +9,24 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class ToolAction extends AnimationBit<BipedEntityData<?>>
 {
+    private static final AnimationBit<BipedEntityData<?>> SWIM_SWING =
+            new goblinbob.mobends.standard.animation.bit.biped.SwimSlashAnimationBit(-205.0F, -140.0F, -15.0F, 10.0F,
+                    0.0F, goblinbob.mobends.standard.animation.bit.biped.SwimSlashAnimationBit.SWORD);
+
     @Override
     public void perform(BipedEntityData<?> data)
     {
         LivingEntity entity = data.getEntity();
+
+        if (goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit.isSwimmingHorizontally(data))
+        {
+            if (data.getTicksAfterAnyAttack() < 10.0F)
+            {
+                SWIM_SWING.perform(data);
+            }
+            return;
+        }
+
         if (!entity.swinging)
         {
             return;

@@ -33,6 +33,12 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
             new AttackWhirlSlashAnimationBit()
     );
 
+    private static final List<AnimationBit<BipedEntityData<?>>> SWIM_BITS = Arrays.asList(
+            new SwimSlashAnimationBit(-195.0F, -135.0F, -70.0F, 40.0F, -45.0F, SwimSlashAnimationBit.SWORD),
+            new SwimSlashAnimationBit(-215.0F, -115.0F, -10.0F, -10.0F, 0.0F, SwimSlashAnimationBit.SWORD),
+            new SwimSlashAnimationBit(-165.0F, -165.0F, -70.0F, 40.0F, 90.0F, SwimSlashAnimationBit.SWORD)
+    );
+
     private boolean canStartNextMove()
     {
         if (!goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks())
@@ -48,7 +54,15 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
         LivingEntity entity = entityData.getEntity();
         boolean isLocal = entity == Minecraft.getInstance().player;
 
-        boolean spinAllowed = isLocal ? ModConfig.performSpinAttack : ModConfig.mobsCanSpin;
+        if (SwimmingAnimationBit.isSwimmingHorizontally(entityData))
+        {
+            final int swimMove = isLocal ? moveId % SWIM_BITS.size() : (entity.tickCount / 6) % SWIM_BITS.size();
+            this.layerBase.playBit(SWIM_BITS.get(swimMove), entityData);
+            moveId = (swimMove + 1) % SWIM_BITS.size();
+            return;
+        }
+
+        boolean spinAllowed = (isLocal ? ModConfig.performSpinAttack : ModConfig.mobsCanSpin) && !entityData.isInWater();
         int moveCount = spinAllowed ? bits.size() : bits.size() - 1;
 
         if (!isLocal)
@@ -91,7 +105,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
 
         if (ticksAfterAttack >= 10)
         {
-            if (ticksAfterAttack < 60)
+            if (ticksAfterAttack < 60 && !entityData.isInWater())
             {
                 final boolean grounded = entityData.isOnGround();
                 final boolean jumping = !grounded

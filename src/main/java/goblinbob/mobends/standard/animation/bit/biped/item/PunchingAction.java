@@ -3,6 +3,8 @@ package goblinbob.mobends.standard.animation.bit.biped.item;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.FistGuardAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SwimPunchAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.player.PunchAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.Minecraft;
@@ -16,6 +18,8 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
     protected final FistGuardAnimationBit bitFistGuard = new FistGuardAnimationBit();
     protected final PunchAnimationBit bitPunchLeft = new PunchAnimationBit(HumanoidArm.LEFT);
     protected final PunchAnimationBit bitPunchRight = new PunchAnimationBit(HumanoidArm.RIGHT);
+    protected final SwimPunchAnimationBit bitSwimPunchLeft = new SwimPunchAnimationBit(HumanoidArm.LEFT);
+    protected final SwimPunchAnimationBit bitSwimPunchRight = new SwimPunchAnimationBit(HumanoidArm.RIGHT);
 
     protected HumanoidArm punchingFist = HumanoidArm.LEFT;
     protected float lastTicksAfterAttack = 0;
@@ -48,7 +52,18 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
         }
         lastTicksAfterAttack = ticksAfterAttack;
 
-        if (ticksAfterAttack < 10)
+        if (SwimmingAnimationBit.isSwimmingHorizontally(entityData))
+        {
+            if (ticksAfterAttack < 10)
+            {
+                this.layerBase.playOrContinueBit(punchingFist == HumanoidArm.LEFT ? bitSwimPunchLeft : bitSwimPunchRight, entityData);
+            }
+            else
+            {
+                this.layerBase.clearAnimation();
+            }
+        }
+        else if (ticksAfterAttack < 10)
         {
             this.layerBase.playOrContinueBit(punchingFist == HumanoidArm.LEFT ? bitPunchLeft : bitPunchRight, entityData);
         }

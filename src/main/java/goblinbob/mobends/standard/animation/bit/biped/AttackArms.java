@@ -40,7 +40,8 @@ public final class AttackArms
 
     private static boolean holdsSword(LivingEntity living, HumanoidArm arm)
     {
-        return HeldItemHelper.isSword(living.getItemInHand(handOf(living, arm)));
+        final net.minecraft.world.item.ItemStack itemStack = living.getItemInHand(handOf(living, arm));
+        return HeldItemHelper.isSword(itemStack) || HeldItemHelper.isAxe(itemStack.getItem());
     }
 
     public static void resetTrails(BipedEntityData<?> data)

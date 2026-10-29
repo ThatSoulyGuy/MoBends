@@ -464,8 +464,8 @@ public class SwordTrail
         newPart.renderOffset.set(entityData.globalOffset.getX(),
                 entityData.globalOffset.getY(),
                 entityData.globalOffset.getZ());
-        newPart.renderRotation.set(entityData.renderRotation.getSmooth());
-        newPart.renderRotation.conjugate();
+        final Quaternion renderRotation = entityData.renderRotation.getSmooth();
+        newPart.renderRotation.set(renderRotation.x, -renderRotation.y, -renderRotation.z, renderRotation.w);
 
         trailPartList.add(newPart);
     }

@@ -62,7 +62,7 @@ public class AttackWhirlSlashAnimationBit extends AnimationBit<BipedEntityData<?
 		mainForeArm.getRotation().setSmoothness(.3F).orientX(-20);
 		offForeArm.getRotation().setSmoothness(.3F).orientX(-60);
 
-		if (data.isStillHorizontally() && !living.isCrouching())
+		if (data.isStillHorizontally() && !living.isCrouching() && !data.isInWater())
 		{
 			data.rightLeg.rotation.setSmoothness(.3F).orientX(-30F)
 					.rotateZ(10)

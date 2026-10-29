@@ -86,7 +86,10 @@ public final class VanillaBackportCompat
         }
 
         final boolean stabbing = humanoidModel.attackTime > 0.0F && entity.getMainArm() == arm
-                && BipedActionController.getItemAttackAction(itemStack.getItem()) == AttackActionType.STAB;
+                && BipedActionController.getItemAttackAction(itemStack.getItem()) == AttackActionType.STAB
+                && !(goblinbob.mobends.core.data.EntityDatabase.instance.get(entity)
+                        instanceof goblinbob.mobends.standard.data.BipedEntityData<?> data
+                        && goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit.isSwimmingHorizontally(data));
         final boolean jousting = getJoustingArm(entity, humanoidModel) == arm;
 
         if (!stabbing && !jousting)

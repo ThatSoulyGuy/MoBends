@@ -24,11 +24,13 @@ public class FistGuardAnimationBit extends AnimationBit<BipedEntityData<?>>
 		}
 
 		boolean crouching = living.isCrouching();
-		boolean grounded = !crouching && !data.isRiding();
+		boolean inWater = data.isInWater();
+		boolean grounded = !crouching && !data.isRiding() && !inWater;
 
 		if (grounded)
 			data.globalOffset.slideY(-2.0F);
-		data.renderRotation.setSmoothness(.3F).orientY(-20 * handDirMtp);
+		if (!inWater)
+			data.renderRotation.setSmoothness(.3F).orientY(-20 * handDirMtp);
 
 		data.rightArm.rotation.setSmoothness(.3F).orientX(-90F)
 				.rotateZ(20F);

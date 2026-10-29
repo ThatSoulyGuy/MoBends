@@ -34,7 +34,7 @@ public final class WeaponTrailCapture
             return;
         }
 
-        if (!HeldItemHelper.isSword(itemStack))
+        if (!HeldItemHelper.isSword(itemStack) && !HeldItemHelper.isAxe(itemStack.getItem()))
         {
             return;
         }

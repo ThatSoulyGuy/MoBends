@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import goblinbob.mobends.core.util.HeldItemHelper;
 import goblinbob.mobends.platform.armor.ArmorModelProviderHolder;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
@@ -84,6 +85,27 @@ public class CrossbowHoldAnimationBit extends AnimationBit<BipedEntityData<?>>
         final IModelPart supportArm = rightHanded ? data.leftArm : data.rightArm;
         final IModelPart holdingForeArm = rightHanded ? data.rightForeArm : data.leftForeArm;
         final IModelPart supportForeArm = rightHanded ? data.leftForeArm : data.rightForeArm;
+
+        if (SwimmingAnimationBit.isSwimmingHorizontally(data))
+        {
+            final float side = rightHanded ? 1F : -1F;
+            final float pitch = Mth.clamp(headPitch, -80F, 80F);
+            final float yaw = Mth.clamp(headYaw, -60F, 60F);
+
+            holdingArm.getRotation().setSmoothness(SMOOTHNESS)
+                    .orientX(-172F + pitch)
+                    .rotateZ(-yaw + HOLDING_YAW * side);
+            supportArm.getRotation().setSmoothness(SMOOTHNESS)
+                    .orientX(-165F + pitch)
+                    .rotateZ(-yaw - SUPPORT_YAW * side);
+
+            holdingForeArm.getRotation().setSmoothness(SMOOTHNESS).orientX(-5F);
+            supportForeArm.getRotation().setSmoothness(SMOOTHNESS).orientX(-20F);
+
+            data.renderRightItemRotation.set(0F, 0F, 0F, 1F);
+            data.renderLeftItemRotation.set(0F, 0F, 0F, 1F);
+            return;
+        }
 
         holdingArm.getRotation().setSmoothness(SMOOTHNESS)
                 .orientX(HOLDING_PITCH + headPitch)

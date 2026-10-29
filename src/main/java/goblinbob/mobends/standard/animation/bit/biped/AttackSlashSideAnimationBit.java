@@ -75,7 +75,7 @@ public abstract class AttackSlashSideAnimationBit extends AnimationBit<BipedEnti
 			offForeArm.getRotation().setSmoothness(.3F).orientX(-60F);
 		}
 
-		if (data.isStillHorizontally() && !living.isPassenger())
+		if (data.isStillHorizontally() && !living.isPassenger() && !data.isInWater())
 		{
 			if (!living.isCrouching())
 			{

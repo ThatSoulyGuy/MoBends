@@ -3,6 +3,7 @@ package goblinbob.mobends.standard.animation.bit.biped.item;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.lib.util.GUtil;
+import goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
@@ -17,9 +18,42 @@ public class BowAction extends AnimationBit<BipedEntityData<?>>
 		this.actionHand = handSide;
 	}
 
+	private void performSwimming(BipedEntityData<?> data)
+	{
+		final LivingEntity living = data.getEntity();
+		final boolean mainHandSwitch = this.actionHand == HumanoidArm.RIGHT;
+		final float side = mainHandSwitch ? 1 : -1;
+		final ModelPartTransform bowArm = mainHandSwitch ? data.rightArm : data.leftArm;
+		final ModelPartTransform drawArm = mainHandSwitch ? data.leftArm : data.rightArm;
+		final ModelPartTransform bowForeArm = mainHandSwitch ? data.rightForeArm : data.leftForeArm;
+		final ModelPartTransform drawForeArm = mainHandSwitch ? data.leftForeArm : data.rightForeArm;
+
+		final float pitch = Mth.clamp(data.headPitch.get(), -80F, 80F);
+		final float yaw = Mth.clamp(data.headYaw.get(), -60F, 60F);
+		final float draw = living != null ? Math.min(living.getTicksUsingItem() / 15F, 1F) : 0F;
+
+		final float drawSide = -side;
+
+		bowArm.rotation.setSmoothness(.8F).orientX(-170F + pitch).rotateZ(-yaw + 8F * side);
+		bowForeArm.rotation.setSmoothness(1F).orientX(0);
+		drawArm.rotation.setSmoothness(.8F).orientX(-170F + pitch)
+				.rotateZ(-yaw + 15F * drawSide)
+				.localRotateY(-80F * drawSide);
+		drawForeArm.rotation.setSmoothness(.8F).orientX(-45F * draw);
+
+		data.renderRightItemRotation.set(0F, 0F, 0F, 1F);
+		data.renderLeftItemRotation.set(0F, 0F, 0F, 1F);
+	}
+
 	@Override
 	public void perform(BipedEntityData<?> data)
 	{
+		if (SwimmingAnimationBit.isSwimmingHorizontally(data))
+		{
+			performSwimming(data);
+			return;
+		}
+
 		data.localOffset.slideToZero(0.3F);
 
 		final LivingEntity living = data.getEntity();

@@ -79,7 +79,7 @@ public abstract class AttackSlashAcrossAnimationBit extends AnimationBit<BipedEn
 			offForeArm.getRotation().setSmoothness(.3F).orientX(-60);
 		}
 
-		if (data.isStillHorizontally() && !living.isPassenger())
+		if (data.isStillHorizontally() && !living.isPassenger() && !data.isInWater())
 		{
 			if (!living.isCrouching())
 			{

@@ -23,8 +23,9 @@ public class PunchAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.leftForeArm.rotation.setSmoothness(.3F).orientX(-80);
 
 		float renderRotationY = 0F;
+		final boolean inWater = data.isInWater();
 
-		if (data.isStillHorizontally())
+		if (data.isStillHorizontally() && !inWater)
 		{
 			renderRotationY = -20F;
 
@@ -56,6 +57,9 @@ public class PunchAnimationBit extends AnimationBit<BipedEntityData<?>>
 			data.head.rotation.rotateY(-20.0F);
 		}
 
-		data.renderRotation.orientY(renderRotationY);
+		if (!inWater)
+		{
+			data.renderRotation.orientY(renderRotationY);
+		}
 	}
 }

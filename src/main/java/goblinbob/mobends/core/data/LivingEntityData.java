@@ -494,14 +494,24 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         return -2.0F;
     }
 
+    private static boolean isDrawAnimation(ItemStack itemStack)
+    {
+        if (itemStack.isEmpty())
+        {
+            return false;
+        }
+
+        final UseAnim useAnim = itemStack.getUseAnimation();
+        return useAnim == UseAnim.BOW || useAnim == UseAnim.CROSSBOW;
+    }
+
     public boolean isDrawingBow()
     {
         if (entity.getUseItemRemainingTicks() > 0)
         {
             ItemStack mainItemStack = entity.getMainHandItem();
             ItemStack offItemStack = entity.getOffhandItem();
-            if ((!mainItemStack.isEmpty() && mainItemStack.getUseAnimation() == UseAnim.BOW)
-                    || (!offItemStack.isEmpty() && offItemStack.getUseAnimation() == UseAnim.BOW))
+            if (isDrawAnimation(mainItemStack) || isDrawAnimation(offItemStack))
             {
                 return true;
             }

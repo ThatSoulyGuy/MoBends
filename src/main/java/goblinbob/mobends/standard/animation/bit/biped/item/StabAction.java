@@ -27,6 +27,12 @@ public class StabAction extends AnimationBit<BipedEntityData<?>>
         final float attack = Mth.square(progress(swingProgress, 0.05F, 0.2F));
         final float retract = inOutExpo(progress(swingProgress, 0.4F, 1.0F));
 
+        if (goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit.isSwimmingHorizontally(data))
+        {
+            performSwimming(data, entity, prepare, attack, retract);
+            return;
+        }
+
         final HumanoidArm activeHand = goblinbob.mobends.standard.animation.bit.biped.AttackArms
                 .attackingArm(data, entity);
         final float sideMultiplier = activeHand == HumanoidArm.RIGHT ? 1.0F : -1.0F;
@@ -58,6 +64,41 @@ public class StabAction extends AnimationBit<BipedEntityData<?>>
         mainArm.rotation.orientInstantX(armPitch + bend)
                 .rotateY(headYaw - bodyYaw - HOLD_YAW * sideMultiplier).finish();
         mainForeArm.rotation.orientInstantX(-bend);
+    }
+
+    private static void performSwimming(BipedEntityData<?> data, LivingEntity entity,
+                                        float prepare, float attack, float retract)
+    {
+        final HumanoidArm activeHand = goblinbob.mobends.standard.animation.bit.biped.AttackArms
+                .attackingArm(data, entity);
+        final boolean right = activeHand == HumanoidArm.RIGHT;
+        final float side = right ? 1.0F : -1.0F;
+        final ModelPartTransform mainArm = right ? data.rightArm : data.leftArm;
+        final ModelPartTransform mainForeArm = right ? data.rightForeArm : data.leftForeArm;
+        final ModelPartTransform offArm = right ? data.leftArm : data.rightArm;
+        final ModelPartTransform offForeArm = right ? data.leftForeArm : data.rightForeArm;
+
+        final float thrust = easeOutBack(attack) * (1.0F - retract);
+        final float chamber = prepare * (1.0F - attack);
+        final float aim = Mth.clamp(data.headPitch.get(), -60.0F, 60.0F) * 0.5F;
+
+        mainArm.rotation.orientInstantX(-150.0F - 35.0F * thrust + 45.0F * chamber + aim)
+                .rotateZ((8.0F + 10.0F * thrust) * side).finish();
+        mainForeArm.rotation.orientInstantX(-120.0F * chamber - 25.0F * retract);
+        data.body.rotation.rotateY((10.0F * chamber - 25.0F * thrust) * side);
+
+        offArm.rotation.setSmoothness(.6F).orientX(-40.0F + 30.0F * thrust).rotateY(-80.0F * side);
+        offForeArm.rotation.setSmoothness(.6F).orientX(-20.0F);
+
+        (right ? data.renderRightItemRotation : data.renderLeftItemRotation)
+                .set(Mth.sin(Mth.PI / 4.0F), 0.0F, 0.0F, Mth.cos(Mth.PI / 4.0F));
+    }
+
+    private static float easeOutBack(float x)
+    {
+        final float c = 1.70158F;
+        final float t = x - 1.0F;
+        return 1.0F + (c + 1.0F) * t * t * t + c * t * t;
     }
 
     private static float progress(float time, float start, float end)

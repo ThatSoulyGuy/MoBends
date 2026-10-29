@@ -2,19 +2,47 @@ package goblinbob.mobends.standard.animation.bit.biped;
 
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.event.DataUpdateHandler;
+import goblinbob.mobends.core.client.model.ModelPartTransform;
+import goblinbob.mobends.lib.math.QuaternionUtils;
 import goblinbob.mobends.lib.util.Tween;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 
 public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 {
 	private static final float PI = (float) Math.PI;
 	private static final float PI_2 = PI*2;
 	private static final float MAX_HEAD_PITCH = 90F;
+	private static final float RAISED_ARM_Y = -0.7F;
 
 	private float transformTransition = 0F;
 	private float transitionSpeed = 0.1F;
 
+
+	public static boolean isSwimmingHorizontally(BipedEntityData<?> data)
+	{
+		final LivingEntity entity = data.getEntity();
+		return (data.isUnderwater() || entity.isVisuallySwimming())
+				&& (entity.isVisuallySwimming() || !entity.isCrouching())
+				&& !data.isRiding() && !data.isClimbing()
+				&& !data.isStillHorizontally();
+	}
+
+	private static void strokeArm(ModelPartTransform arm, float side, float armSway, float t)
+	{
+		final float[] direction = QuaternionUtils.rotateVector(arm.rotation.getSmooth(), 0F, 1F, 0F, new float[3]);
+
+		if (direction[1] < RAISED_ARM_Y)
+		{
+			arm.rotation.setSmoothness(.3F).orientX(-90F).rotateY(90F * side * t);
+			return;
+		}
+
+		arm.rotation.setSmoothness(.3F).orientX(armSway*-120)
+				.rotateY(90F * side * t)
+				.rotateX(armSway * 20);
+	}
 
 	@Override
 	public void onPlay(BipedEntityData<?> data)
@@ -38,9 +66,7 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
         float t = (float) Tween.easeInOut(this.transformTransition, 3F);
 
-		final boolean swimmingPose = data.isUnderwater() || data.getEntity().isVisuallySwimming();
-
-		if(data.isStillHorizontally() || data.isDrawingBow() || data.getTicksAfterAttack() < 10 || !swimmingPose)
+		if (!isSwimmingHorizontally(data))
 		{
 			this.transformTransition = Math.max(0F, this.transformTransition - DataUpdateHandler.ticksPerFrame * this.transitionSpeed);
 
@@ -62,12 +88,8 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		{
 			this.transformTransition = Math.min(this.transformTransition + DataUpdateHandler.ticksPerFrame * this.transitionSpeed, 1F);
 
-			data.leftArm.rotation.setSmoothness(.3F).orientX(armSway*-120)
-					.rotateY(-90F * t)
-					.rotateX(armSway * 20);
-			data.rightArm.rotation.setSmoothness(.3F).orientX(armSway*-120)
-					.rotateY(90F * t)
-					.rotateX(armSway * 20);
+			strokeArm(data.leftArm, -1F, armSway, t);
+			strokeArm(data.rightArm, 1F, armSway, t);
 
 			data.leftForeArm.rotation.setSmoothness(.3F).orientX((foreArmSway < 0.55f | foreArmSway > 0.9) ? foreArmStretch*-60.0f : -60);
 			data.rightForeArm.rotation.setSmoothness(.3F).orientX((foreArmSway < 0.55f | foreArmSway > 0.9) ? foreArmStretch*-60.0f : -60);
@@ -95,7 +117,7 @@ public class SwimmingAnimationBit extends AnimationBit<BipedEntityData<?>>
 		data.renderRotation.setSmoothness(.7F).orientX(t * 80F);
 		data.globalOffset.slideZ(-20 * t, .7F);
 		if (data.getEntity().isVisuallySwimming())
-			data.globalOffset.slideY(8 * t, .7F);
+			data.globalOffset.slideY(2 * t, .7F);
 		else
 			data.globalOffset.slideY(14 * t, .7F);
 		data.localOffset.slideToZero(0.3F);

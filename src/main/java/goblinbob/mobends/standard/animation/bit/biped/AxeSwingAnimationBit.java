@@ -29,6 +29,12 @@ public class AxeSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
     }
 
     @Override
+    public void onPlay(BipedEntityData<?> data)
+    {
+        AttackArms.resetTrails(data);
+    }
+
+    @Override
     public void perform(BipedEntityData<?> data)
     {
         final LivingEntity living = data.getEntity();
@@ -38,6 +44,11 @@ public class AxeSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
         if (ticks >= DURATION)
         {
             return;
+        }
+
+        if (ticks >= WIND_UP_TICKS && ticks < WIND_UP_TICKS + STRIKE_TICKS)
+        {
+            data.swordTrail.add(data, attackArm);
         }
 
         final float windUp = phase(ticks, 0.0F, WIND_UP_TICKS);
@@ -74,7 +85,7 @@ public class AxeSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
         (rightHanded ? data.renderRightItemRotation : data.renderLeftItemRotation).setSmoothness(.9F)
                 .orientY(blend(windUpPose.itemY(), strikePose.itemY(), windUp, strike) * side * strength);
 
-        if (data.isStillHorizontally() && !living.isPassenger() && !living.isCrouching())
+        if (data.isStillHorizontally() && !living.isPassenger() && !living.isCrouching() && !data.isInWater())
         {
             final float lunge = strike * strength;
             final ModelPartTransform frontLeg = rightHanded ? data.leftLeg : data.rightLeg;
