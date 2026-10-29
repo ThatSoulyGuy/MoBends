@@ -17,6 +17,7 @@ import goblinbob.mobends.standard.client.model.adaptive.HumanoidLayout;
 import goblinbob.mobends.standard.client.model.adaptive.PartCapture;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomBipedArmor;
 import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomHeldItem;
+import goblinbob.mobends.standard.client.renderer.entity.layers.LayerCustomItemInHand;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -247,6 +248,61 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
             this.originalLayers.put(index, layer);
             layerRenderers.set(index, this.layerHeldItem);
         }
+        else
+        {
+            swapNestedItemLayer(renderer, layer);
+        }
+    }
+
+    private static final Map<Class<?>, Optional<Field>> NESTED_ITEM_LAYER_FIELDS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private final Map<RenderLayer<E, M>, Object> nestedItemLayers = new IdentityHashMap<>();
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void swapNestedItemLayer(LivingEntityRenderer<E, M> renderer, RenderLayer<E, M> layer)
+    {
+        final Field field = NESTED_ITEM_LAYER_FIELDS
+                .computeIfAbsent(layer.getClass(), BipedMutator::findNestedItemLayerField).orElse(null);
+        if (field == null || nestedItemLayers.containsKey(layer))
+        {
+            return;
+        }
+
+        try
+        {
+            final Object original = field.get(layer);
+            if (original instanceof ItemInHandLayer<?, ?>)
+            {
+                field.set(layer, new LayerCustomItemInHand(renderer, createHeldItemLayer(renderer)));
+                nestedItemLayers.put(layer, original);
+            }
+        }
+        catch (Exception ignored)
+        {
+        }
+    }
+
+    private static Optional<Field> findNestedItemLayerField(Class<?> layerClass)
+    {
+        for (Field field : layerClass.getDeclaredFields())
+        {
+            if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                    && ItemInHandLayer.class.isAssignableFrom(field.getType()))
+            {
+                try
+                {
+                    field.setAccessible(true);
+                    return Optional.of(field);
+                }
+                catch (Exception e)
+                {
+                    return Optional.empty();
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static Field[] armorModelFields;
@@ -341,6 +397,18 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         if (original != null && layer != original)
         {
             layerRenderers.set(index, original);
+        }
+
+        final Object nestedItemLayer = nestedItemLayers.remove(layer);
+        if (nestedItemLayer != null)
+        {
+            try
+            {
+                NESTED_ITEM_LAYER_FIELDS.get(layer.getClass()).orElseThrow().set(layer, nestedItemLayer);
+            }
+            catch (Exception ignored)
+            {
+            }
         }
     }
 
@@ -1300,6 +1368,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
 
         goblinbob.mobends.compat.VanillaBackportCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.ValarianConquestCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 
