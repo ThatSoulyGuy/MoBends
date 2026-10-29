@@ -131,6 +131,9 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
                 this.translateToGrip(arm, entity, itemStack, displayContext, poseStack);
             }
 
+            goblinbob.mobends.compat.VanillaBackportCompat.transformSpearItem(
+                    entity, this.getParentModel(), arm, itemStack, poseStack);
+
             goblinbob.mobends.compat.PlayerAnimationLibCompat.applyItemTransform(entity, arm, poseStack);
 
             Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer().renderItem(

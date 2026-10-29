@@ -4,6 +4,7 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
+import goblinbob.mobends.standard.animation.bit.biped.item.StabAction;
 import goblinbob.mobends.standard.animation.bit.player.PunchAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
@@ -39,6 +40,8 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
     private static final AnimationBit<BipedEntityData<?>> SPIN = new AttackWhirlSlashAnimationBit();
 
+    private static final AnimationBit<BipedEntityData<?>> STAB = new StabAction();
+
     private static final List<AnimationBit<BipedEntityData<?>>> PUNCHES = Arrays.asList(
             new PunchAnimationBit(HumanoidArm.LEFT),
             new PunchAnimationBit(HumanoidArm.RIGHT)
@@ -53,6 +56,12 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
         if (!canPerform(data.getEntity()))
         {
             this.layer.playBit(PUNCHES.get(Math.floorMod(data.getEntity().tickCount / 6, PUNCHES.size())), data);
+            return;
+        }
+
+        if (BipedActionController.getItemAttackAction(data.getEntity().getMainHandItem().getItem()) == AttackActionType.STAB)
+        {
+            this.layer.playBit(STAB, data);
             return;
         }
 

@@ -1294,6 +1294,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         goblinbob.mobends.compat.IronsArtificeCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.VanillaBackportCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
     }
 
     protected void captureMainRenderPose(PoseStack poseStack)
