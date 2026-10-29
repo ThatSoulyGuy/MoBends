@@ -2,6 +2,8 @@ package goblinbob.mobends.compat;
 
 import dev.architectury.platform.Platform;
 import goblinbob.mobends.core.configuration.CoreClientConfig;
+import goblinbob.mobends.standard.AttackActionType;
+import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.InteractionHand;
@@ -15,9 +17,11 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 public final class BetterCombatCompat
@@ -62,6 +66,7 @@ public final class BetterCombatCompat
     private static final Map<Class<?>, PlayerLayers> LAYER_CACHE = new IdentityHashMap<>();
     private static final Map<LivingEntity, Object> LAST_ATTACK = new WeakHashMap<>();
     private static final Map<LivingEntity, Object> TRIGGER_LAYERS = new WeakHashMap<>();
+    private static final Set<LivingEntity> ADOPTED = Collections.newSetFromMap(new WeakHashMap<>());
 
 
     private static boolean firstPersonRequested = false;
@@ -288,7 +293,7 @@ public final class BetterCombatCompat
 
     public static boolean blocksAdoption(LivingEntity entity)
     {
-        if (!isModLoaded() || shouldYieldModel(entity))
+        if (!isModLoaded() || shouldYieldModel(entity) || ADOPTED.contains(entity))
         {
             return false;
         }
@@ -402,7 +407,29 @@ public final class BetterCombatCompat
             final Object animation = getAnimationMethod.invoke(base);
             final boolean started = animation != null && animation != LAST_ATTACK.get(player);
 
-            if (keepsAttackAnimation(mode, player))
+            InteractionHand hand = null;
+            if (animation != null)
+            {
+                final Object mirror = attackMirrorField.get(attackStack);
+                final boolean mirrored = mirror != null && (Boolean) isMirroredMethod.invoke(mirror);
+                final boolean leftHanded = player.getMainArm() == HumanoidArm.LEFT;
+                hand = mirrored != leftHanded ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+            }
+
+            final boolean adopted = mode == Animations.BETTER_COMBAT_AND_MOBENDS && hand != null
+                    && BipedActionController.getItemAttackAction(player.getItemInHand(hand).getItem())
+                            != AttackActionType.SWORD;
+
+            if (adopted)
+            {
+                ADOPTED.add(player);
+            }
+            else
+            {
+                ADOPTED.remove(player);
+            }
+
+            if (adopted || keepsAttackAnimation(mode, player))
             {
                 if (animation == null)
                 {
@@ -429,20 +456,17 @@ public final class BetterCombatCompat
                 return null;
             }
 
-            final Object mirror = attackMirrorField.get(attackStack);
-            final boolean mirrored = mirror != null && (Boolean) isMirroredMethod.invoke(mirror);
-            final boolean leftHanded = player.getMainArm() == HumanoidArm.LEFT;
             if (player == Minecraft.getInstance().player)
             {
                 firstPersonTicks = 0.0F;
             }
 
-            if (mode == Animations.BETTER_COMBAT_ONLY)
+            if (mode == Animations.BETTER_COMBAT_ONLY || adopted)
             {
                 return null;
             }
 
-            return mirrored != leftHanded ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+            return hand;
         }
         catch (Exception e)
         {
@@ -536,6 +560,7 @@ public final class BetterCombatCompat
     public static void releaseAnimations(LivingEntity entity)
     {
         LAST_ATTACK.remove(entity);
+        ADOPTED.remove(entity);
 
         if (entity == Minecraft.getInstance().player)
         {
