@@ -907,6 +907,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public void performAnimations(D data, String animatedEntityKey,
                                   LivingEntityRenderer<E, M> renderer, float partialTicks)
     {
+        goblinbob.mobends.compat.LeaningOrNotCompat.removeLean(data);
+
         if (data.externalPoseAdopted)
         {
             data.externalPoseAdopted = false;
@@ -914,6 +916,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         }
 
         super.performAnimations(data, animatedEntityKey, renderer, partialTicks);
+
+        goblinbob.mobends.compat.LeaningOrNotCompat.applyLean(data);
     }
 
     private static void clearAdoptedOffsets(BipedEntityData<?> data)

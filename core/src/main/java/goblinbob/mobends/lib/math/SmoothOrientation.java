@@ -123,6 +123,15 @@ public class SmoothOrientation
         return this;
     }
 
+    public SmoothOrientation rotateAll(float angle, float x, float y, float z)
+    {
+        final float radians = angle / 180.0F * PI;
+        this.start.rotate(x, y, z, radians);
+        this.end.rotate(x, y, z, radians);
+        this.smooth.rotate(x, y, z, radians);
+        return this;
+    }
+
     public SmoothOrientation rotateX(float angle)
     {
         return this.rotate(angle, 1F, 0F, 0F);
