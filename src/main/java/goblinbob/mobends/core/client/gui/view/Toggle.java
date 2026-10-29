@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 
 public class Toggle extends View
 {
+    private static final int DISABLED_ALPHA = 0x50000000;
+
     private boolean checked;
     private String text = "";
     @Nullable
@@ -101,12 +103,18 @@ public class Toggle extends View
         int toggleX = x + measuredWidth - toggleWidth - paddingRight - 2;
         int toggleY = y + (measuredHeight - toggleHeight) / 2;
         int trackColor = checked ? MoBendsTheme.TOGGLE_ON : MoBendsTheme.TOGGLE_OFF;
+        int thumbColor = 0xFFFFFFFF;
+        if (!enabled)
+        {
+            trackColor = DISABLED_ALPHA | (trackColor & 0x00FFFFFF);
+            thumbColor = DISABLED_ALPHA | (thumbColor & 0x00FFFFFF);
+        }
         guiGraphics.fill(toggleX, toggleY, toggleX + toggleWidth, toggleY + toggleHeight, trackColor);
 
         int thumbSize = toggleHeight - 2;
         int thumbX = checked ? toggleX + toggleWidth - thumbSize - 1 : toggleX + 1;
         int thumbY = toggleY + 1;
-        guiGraphics.fill(thumbX, thumbY, thumbX + thumbSize, thumbY + thumbSize, 0xFFFFFFFF);
+        guiGraphics.fill(thumbX, thumbY, thumbX + thumbSize, thumbY + thumbSize, thumbColor);
 
         if (text != null && !text.isEmpty())
         {
