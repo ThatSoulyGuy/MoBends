@@ -6,4 +6,5 @@ public enum AttackActionType
     FISTS,
     SWORD,
     STAB,
+    AXE,
 }

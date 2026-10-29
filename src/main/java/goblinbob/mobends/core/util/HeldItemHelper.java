@@ -58,6 +58,11 @@ public final class HeldItemHelper
                 || TinkersConstructCompat.isTool(item);
     }
 
+    public static boolean isAxe(Item item)
+    {
+        return item instanceof AxeItem || isTagged(item, ItemTags.AXES);
+    }
+
     public static boolean isBow(Item item)
     {
         return item instanceof BowItem || TinkersConstructCompat.isBow(item);

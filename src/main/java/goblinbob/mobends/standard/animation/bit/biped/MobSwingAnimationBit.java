@@ -4,6 +4,7 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
+import goblinbob.mobends.standard.animation.bit.biped.item.AxeAction;
 import goblinbob.mobends.standard.animation.bit.biped.item.StabAction;
 import goblinbob.mobends.standard.animation.bit.player.PunchAnimationBit;
 import goblinbob.mobends.standard.data.BipedEntityData;
@@ -59,9 +60,12 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
             return;
         }
 
-        if (BipedActionController.getItemAttackAction(data.getEntity().getMainHandItem().getItem()) == AttackActionType.STAB)
+        final AttackActionType attackAction = BipedActionController.getItemAttackAction(data.getEntity().getMainHandItem().getItem());
+        if (attackAction == AttackActionType.STAB || attackAction == AttackActionType.AXE)
         {
-            this.layer.playBit(STAB, data);
+            this.layer.playBit(attackAction == AttackActionType.STAB
+                    ? STAB
+                    : AxeAction.MOVES.get(Math.floorMod(data.getEntity().tickCount / 6, AxeAction.MOVES.size())), data);
             return;
         }
 

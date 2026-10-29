@@ -57,6 +57,7 @@ public class BipedActionController
         ITEM_ATTACK_ACTION_MAP.put(AttackActionType.FISTS, hand -> new PunchingAction());
         ITEM_ATTACK_ACTION_MAP.put(AttackActionType.SWORD, hand -> new SwordAction());
         ITEM_ATTACK_ACTION_MAP.put(AttackActionType.STAB, hand -> new StabAction());
+        ITEM_ATTACK_ACTION_MAP.put(AttackActionType.AXE, hand -> new AxeAction());
 
         for (UseActionType type : UseActionType.values())
         {
@@ -148,6 +149,9 @@ public class BipedActionController
     {
         if ("REAL_SPEAR".equals(useAnimationOf(item).name()))
             return AttackActionType.STAB;
+
+        if (HeldItemHelper.isAxe(item))
+            return AttackActionType.AXE;
 
         if (HeldItemHelper.isSword(item))
             return AttackActionType.SWORD;
