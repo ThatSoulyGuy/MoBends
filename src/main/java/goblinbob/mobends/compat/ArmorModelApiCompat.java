@@ -2,6 +2,7 @@ package goblinbob.mobends.compat;
 
 import dev.architectury.platform.Platform;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
@@ -11,7 +12,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.armortrim.ArmorTrim;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.function.Function;
 
 public class ArmorModelApiCompat
 {
@@ -26,7 +29,8 @@ public class ArmorModelApiCompat
     private static Method applySlotVisibilityMethod = null;
     private static Method layersMethod = null;
     private static Class<?> trimLayerClass = null;
-    private static Method resolveSpriteMethod = null;
+    private static Field texturePermutationsField = null;
+    private static Field fallbackTextureField = null;
 
     public static void init()
     {
@@ -54,14 +58,24 @@ public class ArmorModelApiCompat
             textureMethod = config.getMethod("texture");
             applySlotVisibilityMethod = model.getMethod("applySlotVisibility", EquipmentSlot.class);
             layersMethod = config.getMethod("layers");
-            trimLayerClass = Class.forName("net.rpg_foundation.armor_api.client.layer.TrimLayer");
-            resolveSpriteMethod = trimLayerClass.getDeclaredMethod("resolveSprite", TextureAtlas.class, ArmorTrim.class);
-            resolveSpriteMethod.setAccessible(true);
             available = true;
         }
         catch (Throwable e)
         {
             available = false;
+        }
+
+        try
+        {
+            trimLayerClass = Class.forName("net.rpg_foundation.armor_api.client.layer.TrimLayer");
+            texturePermutationsField = trimLayerClass.getDeclaredField("texturePermutations");
+            texturePermutationsField.setAccessible(true);
+            fallbackTextureField = trimLayerClass.getDeclaredField("fallbackTexture");
+            fallbackTextureField.setAccessible(true);
+        }
+        catch (Throwable e)
+        {
+            trimLayerClass = null;
         }
     }
 
@@ -142,11 +156,12 @@ public class ArmorModelApiCompat
     }
 
     @Nullable
+    @SuppressWarnings("unchecked")
     public static TextureAtlasSprite getTrimSprite(ItemStack itemStack, ArmorTrim trim, TextureAtlas atlas)
     {
         final Object renderer = getRenderer(itemStack);
 
-        if (renderer == null)
+        if (renderer == null || trimLayerClass == null)
         {
             return null;
         }
@@ -157,7 +172,22 @@ public class ArmorModelApiCompat
             {
                 if (trimLayerClass.isInstance(layer))
                 {
-                    return (TextureAtlasSprite) resolveSpriteMethod.invoke(layer, atlas, trim);
+                    final Function<ArmorTrim, ResourceLocation> permutations =
+                            (Function<ArmorTrim, ResourceLocation>) texturePermutationsField.get(layer);
+                    if (permutations == null)
+                    {
+                        return null;
+                    }
+
+                    final TextureAtlasSprite sprite = atlas.getSprite(permutations.apply(trim));
+                    if (!isMissing(sprite))
+                    {
+                        return sprite;
+                    }
+
+                    final ResourceLocation fallback = (ResourceLocation) fallbackTextureField.get(layer);
+                    final TextureAtlasSprite fallbackSprite = fallback == null ? null : atlas.getSprite(fallback);
+                    return fallbackSprite == null || isMissing(fallbackSprite) ? null : fallbackSprite;
                 }
             }
         }
@@ -167,5 +197,10 @@ public class ArmorModelApiCompat
         }
 
         return null;
+    }
+
+    private static boolean isMissing(TextureAtlasSprite sprite)
+    {
+        return sprite.contents().name().equals(MissingTextureAtlasSprite.getLocation());
     }
 }
