@@ -26,7 +26,7 @@ public class ModConfig
 
     public static boolean tridentTrail = true;
 
-    public static boolean performSpinAttack = true;
+    public static boolean performSpinAttack = false;
 
     public static boolean mobsCanSpin = false;
 

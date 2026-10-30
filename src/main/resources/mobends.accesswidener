@@ -20,3 +20,5 @@ accessible field net/minecraft/client/model/PlayerModel cloak Lnet/minecraft/cli
 
 # ModelPart - cube access for arm width detection fallback
 accessible field net/minecraft/client/model/geom/ModelPart cubes Ljava/util/List;
+
+accessible method net/minecraft/client/renderer/entity/player/PlayerRenderer getArmPose (Lnet/minecraft/client/player/AbstractClientPlayer;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/client/model/HumanoidModel$ArmPose;

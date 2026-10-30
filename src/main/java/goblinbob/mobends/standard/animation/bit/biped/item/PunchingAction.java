@@ -3,6 +3,7 @@ package goblinbob.mobends.standard.animation.bit.biped.item;
 import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.animation.layer.HardAnimationLayer;
 import goblinbob.mobends.standard.animation.bit.biped.FistGuardAnimationBit;
+import goblinbob.mobends.standard.animation.bit.biped.RowingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SwimPunchAnimationBit;
 import goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit;
 import goblinbob.mobends.standard.animation.bit.player.PunchAnimationBit;
@@ -67,7 +68,7 @@ public class PunchingAction extends AnimationBit<BipedEntityData<?>>
         {
             this.layerBase.playOrContinueBit(punchingFist == HumanoidArm.LEFT ? bitPunchLeft : bitPunchRight, entityData);
         }
-        else if (ticksAfterAttack < 60)
+        else if (ticksAfterAttack < 60 && !RowingAnimationBit.isPaddling(entityData.getEntity()))
         {
             this.layerBase.playOrContinueBit(bitFistGuard, entityData);
         }

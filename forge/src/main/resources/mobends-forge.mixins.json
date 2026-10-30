@@ -15,7 +15,9 @@
     "HierarchicalModelMixin",
     "RenderLayerMixin",
     "PlayerRendererSwimMixin",
-    "InventoryScreenMixin"
+    "InventoryScreenMixin",
+    "BoatModelMixin",
+    "RaftModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

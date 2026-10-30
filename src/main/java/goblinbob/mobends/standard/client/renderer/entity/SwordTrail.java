@@ -47,6 +47,7 @@ public class SwordTrail
     private float lastTipTicks;
     private boolean hasLastTip = false;
     private boolean emitting = false;
+    private boolean recaptures = false;
 
     public SwordTrail(Supplier<IColorRead> baseColor)
     {
@@ -140,6 +141,7 @@ public class SwordTrail
         protected boolean anchored = false;
 
         protected boolean worldAnchored = false;
+        protected boolean fresh = true;
         protected double worldStartX, worldStartY, worldStartZ;
         protected double worldEndX, worldEndY, worldEndZ;
 
@@ -327,6 +329,11 @@ public class SwordTrail
         while (it.hasNext())
         {
             final TrailPart part = it.next();
+            if (part.fresh && recaptures && !part.worldAnchored)
+            {
+                continue;
+            }
+
             final float alpha = part.getAlpha();
             final IColorRead color = part.baseColor;
 
@@ -432,42 +439,56 @@ public class SwordTrail
             newPart.anchored = true;
         }
 
-        newPart.body.syncUp(entityData.body);
-
-        if (primaryHand == HumanoidArm.RIGHT)
-        {
-            newPart.arm.syncUp(entityData.rightArm);
-            newPart.foreArm.syncUp(entityData.rightForeArm);
-            newPart.itemRotation.set(entityData.renderRightItemRotation.getSmooth());
-        }
-        else
-        {
-            newPart.arm.syncUp(entityData.leftArm);
-            newPart.foreArm.syncUp(entityData.leftForeArm);
-            newPart.itemRotation.set(entityData.renderLeftItemRotation.getSmooth());
-        }
-
         final BipedMutator<?, ?, ?> mutator = entity != null ? mutatorOf(entity) : null;
+        capturePose(newPart, entityData, mutator);
+
         if (mutator != null)
         {
-            final BendsModelPart bodyBone = mutator.getBody();
-            final BendsModelPart armBone = primaryHand == HumanoidArm.RIGHT ? mutator.getRightArm() : mutator.getLeftArm();
             final BendsModelPart foreArmBone = primaryHand == HumanoidArm.RIGHT ? mutator.getRightForeArm() : mutator.getLeftForeArm();
-
-            copyPivot(newPart.body, bodyBone);
-            copyPivot(newPart.arm, armBone);
-            copyPivot(newPart.foreArm, foreArmBone);
-
             newPart.gripX = WeaponTrailMetrics.gripX(primaryHand, foreArmBone, weapon, entity, displayContext);
         }
 
-        newPart.renderOffset.set(entityData.globalOffset.getX(),
+        trailPartList.add(newPart);
+    }
+
+    public void recapturePose(BipedEntityData<?> entityData, BipedMutator<?, ?, ?> mutator)
+    {
+        recaptures = true;
+        final Iterator<TrailPart> it = trailPartList.descendingIterator();
+        while (it.hasNext())
+        {
+            final TrailPart part = it.next();
+            if (!part.fresh)
+            {
+                return;
+            }
+
+            capturePose(part, entityData, mutator);
+            part.fresh = false;
+        }
+    }
+
+    private static void capturePose(TrailPart part, BipedEntityData<?> entityData, BipedMutator<?, ?, ?> mutator)
+    {
+        final boolean right = part.primaryHand == HumanoidArm.RIGHT;
+
+        part.body.syncUp(entityData.body);
+        part.arm.syncUp(right ? entityData.rightArm : entityData.leftArm);
+        part.foreArm.syncUp(right ? entityData.rightForeArm : entityData.leftForeArm);
+        part.itemRotation.set((right ? entityData.renderRightItemRotation : entityData.renderLeftItemRotation).getSmooth());
+
+        if (mutator != null)
+        {
+            copyPivot(part.body, mutator.getBody());
+            copyPivot(part.arm, right ? mutator.getRightArm() : mutator.getLeftArm());
+            copyPivot(part.foreArm, right ? mutator.getRightForeArm() : mutator.getLeftForeArm());
+        }
+
+        part.renderOffset.set(entityData.globalOffset.getX(),
                 entityData.globalOffset.getY(),
                 entityData.globalOffset.getZ());
         final Quaternion renderRotation = entityData.renderRotation.getSmooth();
-        newPart.renderRotation.set(renderRotation.x, -renderRotation.y, -renderRotation.z, renderRotation.w);
-
-        trailPartList.add(newPart);
+        part.renderRotation.set(renderRotation.x, -renderRotation.y, -renderRotation.z, renderRotation.w);
     }
 
     private static void copyPivot(ModelPartTransform target, BendsModelPart bone)

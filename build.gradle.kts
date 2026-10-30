@@ -33,6 +33,8 @@ dependencies {
 
     modCompileOnly("maven.modrinth:armourers-workshop:${mod.dep("armourers_workshop")}")
     modCompileOnly("maven.modrinth:3dskinlayers:${mod.dep("skinlayers3d")}")
+    modCompileOnly("maven.modrinth:entity-model-features:${mod.dep("emf")}")
+    modCompileOnly("maven.modrinth:entitytexturefeatures:${mod.dep("etf")}")
 
     api(project(":core"))
 }

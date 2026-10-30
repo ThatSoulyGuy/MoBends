@@ -975,6 +975,7 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
     public void performAnimations(D data, String animatedEntityKey,
                                   LivingEntityRenderer<E, M> renderer, float partialTicks)
     {
+        goblinbob.mobends.compat.TouchNMotionCompat.prepare(data);
         goblinbob.mobends.compat.LeaningOrNotCompat.removeLean(data);
 
         if (data.externalPoseAdopted)
@@ -1372,6 +1373,16 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         goblinbob.mobends.compat.ValarianConquestCompat.applyPose(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        goblinbob.mobends.compat.TouchNMotionCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
+        final BipedEntityData<?> data = getRenderData();
+        if (data != null)
+        {
+            data.swordTrail.recapturePose(data, this);
+            data.offHandSwordTrail.recapturePose(data, this);
+        }
     }
 
     protected void captureMainRenderPose(PoseStack poseStack)

@@ -3,7 +3,6 @@ package goblinbob.mobends.forge.platform;
 import goblinbob.mobends.platform.armor.IArmorModelProvider;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -30,11 +29,5 @@ public class ForgeArmorModelProvider implements IArmorModelProvider
         }
 
         return defaultModel;
-    }
-
-    @Override
-    public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack itemStack)
-    {
-        return IClientItemExtensions.of(itemStack).getArmPose(entity, hand, itemStack);
     }
 }

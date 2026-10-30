@@ -25,6 +25,7 @@ public class PlayerController implements IAnimationController<PlayerData>
     protected AnimationBit<BipedEntityData<?>> bitCrawling = new CrawlingAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitRiding = new RidingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitSitting = new SittingAnimationBit<>();
+    protected AnimationBit<BipedEntityData<?>> bitRowing = new RowingAnimationBit<>();
     protected AnimationBit<BipedEntityData<?>> bitFalling = new FallingAnimationBit();
     protected AnimationBit<BipedEntityData<?>> bitParagliding = new ParaglidingAnimationBit();
     protected AnimationBit<PlayerData> bitWalk = new goblinbob.mobends.standard.animation.bit.player.WalkAnimationBit<>();
@@ -103,7 +104,7 @@ public class PlayerController implements IAnimationController<PlayerData>
             }
             else
             {
-                layerBase.playOrContinueBit(bitSitting, data);
+                layerBase.playOrContinueBit(RowingAnimationBit.isRowing(player) ? bitRowing : bitSitting, data);
             }
             layerSneak.clearAnimation();
         }

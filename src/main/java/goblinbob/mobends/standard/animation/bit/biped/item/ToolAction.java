@@ -27,7 +27,8 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
             return;
         }
 
-        if (!entity.swinging)
+        final float swingProgress = entity.swinging ? data.swingProgress.get() : data.getExternalSwingProgress();
+        if (!entity.swinging && swingProgress <= 0.0F)
         {
             return;
         }
@@ -44,7 +45,6 @@ public class ToolAction extends AnimationBit<BipedEntityData<?>>
         data.localOffset.slideToZero(0.3F);
         data.centerRotation.setSmoothness(.3F).orientZero();
 
-        float swingProgress = data.swingProgress.get();
         final float bodyYaw = Mth.sin(Mth.sqrt(swingProgress) * ((float)Math.PI * 2F)) * 30.0F * sideMultiplier;
         data.body.rotation.setSmoothness(0.8F).orientY(bodyYaw);
 

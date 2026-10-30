@@ -4,6 +4,7 @@ import dev.architectury.platform.Platform;
 import goblinbob.mobends.core.client.model.BendsModelPart;
 import goblinbob.mobends.lib.math.Quaternion;
 import goblinbob.mobends.lib.math.SmoothOrientation;
+import goblinbob.mobends.standard.animation.bit.biped.RowingAnimationBit;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.EntityModel;
@@ -24,6 +25,7 @@ public class NotEnoughAnimationsCompat
 {
     private static final String MOD_ID = "notenoughanimations";
     private static final String HANDS_PACKAGE = "dev.tr7zw.notenoughanimations.animations.hands.";
+    private static final String BOAT_ANIMATION = HANDS_PACKAGE + "BoatAnimation";
 
     private static final float RAD_TO_DEG = (float) (180.0 / Math.PI);
 
@@ -181,11 +183,17 @@ public class NotEnoughAnimationsCompat
         Object rightWinner = null;
         int leftPriority = 0;
         int rightPriority = 0;
+        final boolean rowing = RowingAnimationBit.isRowing(player);
 
         try
         {
             for (Object animation : animations)
             {
+                if (rowing && animation.getClass().getName().equals(BOAT_ANIMATION))
+                {
+                    continue;
+                }
+
                 Boolean valid = (Boolean) isValidMethod.invoke(animation, player, player);
                 if (valid == null || !valid)
                 {

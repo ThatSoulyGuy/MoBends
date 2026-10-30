@@ -29,8 +29,11 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     protected int lastMainSwingTime = -1;
     protected int lastOffHandSwingTime = -1;
     protected boolean climbing = false;
+    private boolean attacksHidden = false;
 
     private static final float EXTERNAL_SWING_DURATION = 6.0F;
+    private static final float NO_ATTACK_TICKS = 100.0F;
+    private static final float SWING_TICKS = 10.0F;
 
     protected Boolean climbingOverride = null;
     protected Boolean inWaterOverride = null;
@@ -160,7 +163,7 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
 
     public float getTicksAfterTouchdown() { return this.ticksAfterTouchdown; }
 
-    public float getTicksAfterAttack() { return this.ticksAfterAttack; }
+    public float getTicksAfterAttack() { return this.attacksHidden ? NO_ATTACK_TICKS : this.ticksAfterAttack; }
 
     public float getTicksFalling() { return this.ticksFalling; }
 
@@ -317,8 +320,12 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
             }
         }
 
-        this.ticksAfterAttack += DataUpdateHandler.ticksPerFrame;
-        this.ticksAfterOffHandAttack += DataUpdateHandler.ticksPerFrame;
+        final float swingRate = this.ticksAfterAttack < SWING_TICKS || this.ticksAfterOffHandAttack < SWING_TICKS
+                ? goblinbob.mobends.compat.BetterCombatCompat.swingRate(this.entity)
+                : 1.0F;
+        this.ticksAfterAttack += DataUpdateHandler.ticksPerFrame * (this.ticksAfterAttack < SWING_TICKS ? swingRate : 1.0F);
+        this.ticksAfterOffHandAttack += DataUpdateHandler.ticksPerFrame
+                * (this.ticksAfterOffHandAttack < SWING_TICKS ? swingRate : 1.0F);
     }
 
     public void onTouchdown()
@@ -340,6 +347,17 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
     public void onOffHandAttack()
     {
         this.ticksAfterOffHandAttack = 0.0F;
+    }
+
+    public void cancelAttacks()
+    {
+        this.ticksAfterAttack = NO_ATTACK_TICKS;
+        this.ticksAfterOffHandAttack = NO_ATTACK_TICKS;
+    }
+
+    public void hideAttacks(boolean hidden)
+    {
+        this.attacksHidden = hidden;
     }
 
     public void onExternalAttack(InteractionHand hand)
@@ -368,22 +386,22 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
         return ticks < EXTERNAL_SWING_DURATION ? ticks / EXTERNAL_SWING_DURATION : 0.0F;
     }
 
-    public float getTicksAfterOffHandAttack() { return this.ticksAfterOffHandAttack; }
+    public float getTicksAfterOffHandAttack() { return this.attacksHidden ? NO_ATTACK_TICKS : this.ticksAfterOffHandAttack; }
 
     public float getTicksAfterAnyAttack()
     {
         if (!goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks())
         {
-            return this.ticksAfterAttack;
+            return this.getTicksAfterAttack();
         }
 
-        return Math.min(this.ticksAfterAttack, this.ticksAfterOffHandAttack);
+        return Math.min(this.getTicksAfterAttack(), this.getTicksAfterOffHandAttack());
     }
 
     public boolean isOffHandAttacking()
     {
         return goblinbob.mobends.compat.ModCompatManager.tracksPerHandAttacks()
-                && this.ticksAfterOffHandAttack < 10.0F;
+                && this.getTicksAfterOffHandAttack() < 10.0F;
     }
 
     public float getClimbingRotation()

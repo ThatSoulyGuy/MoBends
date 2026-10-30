@@ -16,6 +16,8 @@
     "RenderLayerMixin",
     "PlayerRendererSwimMixin",
     "InventoryScreenMixin",
+    "BoatModelMixin",
+    "RaftModelMixin",
     "armor.HumanoidArmorLayerMixin"
   ],
   "injectors": {

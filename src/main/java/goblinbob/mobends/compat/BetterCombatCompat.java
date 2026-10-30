@@ -6,10 +6,13 @@ import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -38,6 +41,9 @@ public final class BetterCombatCompat
 
     private static final float FIRST_PERSON_WINDOW = 10.0F;
     private static final int TRIGGER_PRIORITY = 2001;
+    private static final float SWORD_COOLDOWN_TICKS = 12.5F;
+    private static final float MIN_SWING_RATE = 0.5F;
+    private static final float MAX_SWING_RATE = 2.0F;
 
     private static boolean initialized = false;
     private static boolean isLoaded = false;
@@ -55,6 +61,8 @@ public final class BetterCombatCompat
     private static Method isMirroredMethod;
     private static Method firstPersonPassMethod;
     private static Method animationIsActiveMethod;
+    private static Method attackCooldownMethod;
+    private static Method weaponAttributesMethod;
 
     private static Class<?> animationInterface;
     private static Method getAnimationStackMethod;
@@ -131,6 +139,18 @@ public final class BetterCombatCompat
 
         try
         {
+            attackCooldownMethod = Class.forName("net.bettercombat.logic.PlayerAttackHelper")
+                    .getMethod("getAttackCooldownTicksCapped", Player.class);
+            weaponAttributesMethod = Class.forName("net.bettercombat.logic.WeaponRegistry")
+                    .getMethod("getAttributes", ItemStack.class);
+        }
+        catch (Exception e)
+        {
+            attackCooldownMethod = null;
+        }
+
+        try
+        {
             initTriggerReflection();
         }
         catch (Exception e)
@@ -167,6 +187,31 @@ public final class BetterCombatCompat
             init();
         }
         return isLoaded;
+    }
+
+    public static float swingRate(LivingEntity entity)
+    {
+        if (!isModLoaded() || attackCooldownMethod == null || !(entity instanceof Player player)
+                || getAnimations() == Animations.BETTER_COMBAT_ONLY)
+        {
+            return 1.0F;
+        }
+
+        try
+        {
+            if (weaponAttributesMethod.invoke(null, player.getMainHandItem()) == null)
+            {
+                return 1.0F;
+            }
+
+            final float cooldown = (Float) attackCooldownMethod.invoke(null, player);
+            return cooldown > 0.0F ? Mth.clamp(SWORD_COOLDOWN_TICKS / cooldown, MIN_SWING_RATE, MAX_SWING_RATE) : 1.0F;
+        }
+        catch (Exception e)
+        {
+            attackCooldownMethod = null;
+            return 1.0F;
+        }
     }
 
     public static Animations getAnimations()
@@ -416,9 +461,10 @@ public final class BetterCombatCompat
                 hand = mirrored != leftHanded ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
             }
 
-            final boolean adopted = mode == Animations.BETTER_COMBAT_AND_MOBENDS && hand != null
-                    && BipedActionController.getItemAttackAction(player.getItemInHand(hand).getItem())
-                            != AttackActionType.SWORD;
+            final AttackActionType attackAction = hand == null ? null
+                    : BipedActionController.getItemAttackAction(player.getItemInHand(hand).getItem());
+            final boolean adopted = mode == Animations.BETTER_COMBAT_AND_MOBENDS && attackAction != null
+                    && attackAction != AttackActionType.SWORD && attackAction != AttackActionType.AXE;
 
             if (adopted)
             {

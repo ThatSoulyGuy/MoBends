@@ -132,6 +132,14 @@ public class SmoothOrientation
         return this;
     }
 
+    public SmoothOrientation rotateAll(Quaternion rotation)
+    {
+        Quaternion.mul(rotation, this.start, this.start);
+        Quaternion.mul(rotation, this.end, this.end);
+        Quaternion.mul(rotation, this.smooth, this.smooth);
+        return this;
+    }
+
     public SmoothOrientation rotateX(float angle)
     {
         return this.rotate(angle, 1F, 0F, 0F);

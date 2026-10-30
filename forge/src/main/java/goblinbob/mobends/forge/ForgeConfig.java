@@ -16,7 +16,7 @@ public class ForgeConfig
     {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-        define(builder, "disableSpinSwing", "Disable spinning animation when swinging for players", false);
+        define(builder, "enableSpinSwing", "Enable spinning animations when swinging for players", false);
         define(builder, "mobsCanSpin", "Allow mobs to do the spinning animation when swinging", false);
         define(builder, "zombieFistAttacks", "Zombies without a weapon punch when they attack.", false);
         define(builder, "disableMovementInGui", "Disables movement when inside a GUI.", false);
@@ -55,7 +55,7 @@ public class ForgeConfig
 
     public static void sync()
     {
-        ModConfig.performSpinAttack = !get("disableSpinSwing");
+        ModConfig.performSpinAttack = get("enableSpinSwing");
         ModConfig.mobsCanSpin = get("mobsCanSpin");
         ModConfig.zombieFistAttacks = get("zombieFistAttacks");
         ModConfig.disableMovementInGui = get("disableMovementInGui");

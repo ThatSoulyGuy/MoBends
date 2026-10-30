@@ -33,7 +33,6 @@ public class ConfigOptions
         private final Consumer<Boolean> setter;
         @Nullable
         private Option parent;
-        private boolean storedInverted;
 
         private Option(String key, String translationKey, Category category, boolean defaultValue,
                        BooleanSupplier getter, Consumer<Boolean> setter)
@@ -49,12 +48,6 @@ public class ConfigOptions
         private Option under(Option parent)
         {
             this.parent = parent;
-            return this;
-        }
-
-        private Option storedInverted()
-        {
-            this.storedInverted = true;
             return this;
         }
 
@@ -92,7 +85,7 @@ public class ConfigOptions
         public void set(boolean value)
         {
             setter.accept(value);
-            PlatformServices.get().setConfigBoolean(key, value != storedInverted);
+            PlatformServices.get().setConfigBoolean(key, value);
         }
     }
 
@@ -131,9 +124,9 @@ public class ConfigOptions
                     () -> ModConfig.tridentTrail,
                     value -> ModConfig.tridentTrail = value),
 
-            new Option("disableSpinSwing", "mobends.gui.config.spin_swing", Category.COMBAT, true,
+            new Option("enableSpinSwing", "mobends.gui.config.spin_swing", Category.COMBAT, false,
                     () -> ModConfig.performSpinAttack,
-                    value -> ModConfig.performSpinAttack = value).storedInverted(),
+                    value -> ModConfig.performSpinAttack = value),
 
             new Option("mobsCanSpin", "mobends.gui.config.mobs_can_spin", Category.MOBS, false,
                     () -> ModConfig.mobsCanSpin,
