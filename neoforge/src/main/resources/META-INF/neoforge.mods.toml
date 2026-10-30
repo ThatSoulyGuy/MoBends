@@ -11,6 +11,9 @@ authors = "${mod_authors}"
 description = '''${mod_description}'''
 logoFile = "icon.png"
 
+[[accessTransformers]]
+file = "META-INF/accesstransformer.cfg"
+
 [[mixins]]
 config = "mobends-neoforge.mixins.json"
 

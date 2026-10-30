@@ -114,6 +114,7 @@ tasks.shadowJar {
 tasks.remapJar {
     input = tasks.shadowJar.get().archiveFile
     archiveClassifier = null
+    atAccessWideners.add(loom.accessWidenerPath.get().asFile.name)
     dependsOn(tasks.shadowJar)
 }
 
