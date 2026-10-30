@@ -4,25 +4,46 @@ import goblinbob.mobends.core.animation.bit.AnimationBit;
 import goblinbob.mobends.core.client.model.ModelPartTransform;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 public class StabAction extends AnimationBit<BipedEntityData<?>>
 {
     private static final float HOLD_PITCH = -44.16F;
     private static final float HOLD_YAW = 5.73F;
     private static final float ELBOW_BEND = 30.0F;
+    private static final float MOB_COOLDOWN_TICKS = 20.0F;
+
+    public static float stabProgress(BipedEntityData<?> data, HumanoidArm arm)
+    {
+        final LivingEntity entity = data.getEntity();
+        final InteractionHand hand = goblinbob.mobends.standard.animation.bit.biped.AttackArms.handOf(entity, arm);
+
+        if (BipedActionController.isRealSpear(entity.getItemInHand(hand).getItem()))
+        {
+            return entity.swinging ? data.swingProgress.get() : 1.0F;
+        }
+
+        final float cooldown = entity instanceof Player player
+                ? player.getCurrentItemAttackStrengthDelay()
+                : MOB_COOLDOWN_TICKS;
+
+        return goblinbob.mobends.standard.animation.bit.biped.AttackArms.ticksAfterAttack(data, entity, arm) / cooldown;
+    }
 
     @Override
     public void perform(BipedEntityData<?> data)
     {
         final LivingEntity entity = data.getEntity();
-        if (!entity.swinging)
+        final float swingProgress = stabProgress(data,
+                goblinbob.mobends.standard.animation.bit.biped.AttackArms.attackingArm(data, entity));
+        if (swingProgress >= 1.0F)
         {
             return;
         }
 
-        final float swingProgress = data.swingProgress.get();
         final float prepare = (1.0F - Mth.cos(progress(swingProgress, 0.0F, 0.05F) * (float) Math.PI)) * 0.5F;
         final float attack = Mth.square(progress(swingProgress, 0.05F, 0.2F));
         final float retract = inOutExpo(progress(swingProgress, 0.4F, 1.0F));
@@ -92,6 +113,12 @@ public class StabAction extends AnimationBit<BipedEntityData<?>>
 
         (right ? data.renderRightItemRotation : data.renderLeftItemRotation)
                 .set(Mth.sin(Mth.PI / 4.0F), 0.0F, 0.0F, Mth.cos(Mth.PI / 4.0F));
+    }
+
+    public static float itemPitch(float swingProgress)
+    {
+        return 70.0F * (Mth.square(progress(swingProgress, 0.05F, 0.2F))
+                - inOutExpo(progress(swingProgress, 0.4F, 1.0F)));
     }
 
     private static float easeOutBack(float x)

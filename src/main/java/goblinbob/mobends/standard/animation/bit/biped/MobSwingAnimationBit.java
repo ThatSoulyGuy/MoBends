@@ -22,7 +22,10 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
 
     public static boolean isSwinging(BipedEntityData<?> data)
     {
-        return data.getTicksAfterAnyAttack() < SWING_TICKS;
+        return data.getTicksAfterAnyAttack() < SWING_TICKS
+                || BipedActionController.getItemAttackAction(data.getEntity().getMainHandItem().getItem())
+                        == AttackActionType.STAB
+                && StabAction.stabProgress(data, data.getEntity().getMainArm()) < 1.0F;
     }
 
     public static boolean canPerform(LivingEntity entity)

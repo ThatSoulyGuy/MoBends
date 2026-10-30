@@ -1,9 +1,11 @@
 package goblinbob.mobends.compat;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import dev.architectury.platform.Platform;
 import goblinbob.mobends.standard.AttackActionType;
 import goblinbob.mobends.standard.animation.bit.biped.item.BipedActionController;
+import goblinbob.mobends.standard.animation.bit.biped.item.StabAction;
 import goblinbob.mobends.standard.mutators.BipedMutator;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -77,6 +79,17 @@ public final class VanillaBackportCompat
         }
     }
 
+    private static float stabProgress(LivingEntity entity, HumanoidArm arm, ItemStack itemStack)
+    {
+        return entity.getMainArm() == arm
+                && BipedActionController.getItemAttackAction(itemStack.getItem()) == AttackActionType.STAB
+                && goblinbob.mobends.core.data.EntityDatabase.instance.get(entity)
+                        instanceof goblinbob.mobends.standard.data.BipedEntityData<?> data
+                && !goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit.isSwimmingHorizontally(data)
+                ? StabAction.stabProgress(data, arm)
+                : 1.0F;
+    }
+
     public static void transformSpearItem(LivingEntity entity, EntityModel<?> model, HumanoidArm arm,
                                           ItemStack itemStack, PoseStack poseStack)
     {
@@ -85,11 +98,15 @@ public final class VanillaBackportCompat
             return;
         }
 
-        final boolean stabbing = humanoidModel.attackTime > 0.0F && entity.getMainArm() == arm
-                && BipedActionController.getItemAttackAction(itemStack.getItem()) == AttackActionType.STAB
-                && !(goblinbob.mobends.core.data.EntityDatabase.instance.get(entity)
-                        instanceof goblinbob.mobends.standard.data.BipedEntityData<?> data
-                        && goblinbob.mobends.standard.animation.bit.biped.SwimmingAnimationBit.isSwimmingHorizontally(data));
+        final float stab = stabProgress(entity, arm, itemStack);
+        final boolean realSpear = BipedActionController.isRealSpear(itemStack.getItem());
+
+        if (stab < 1.0F && !realSpear)
+        {
+            poseStack.rotateAround(Axis.XN.rotationDegrees(StabAction.itemPitch(stab)), 0.0F, -0.125F, 0.125F);
+        }
+
+        final boolean stabbing = stab < 1.0F && realSpear;
         final boolean jousting = getJoustingArm(entity, humanoidModel) == arm;
 
         if (!stabbing && !jousting)

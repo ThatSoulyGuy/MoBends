@@ -147,7 +147,7 @@ public class BipedActionController
 
     public static AttackActionType getBuiltInItemAttackAction(Item item)
     {
-        if ("REAL_SPEAR".equals(useAnimationOf(item).name()))
+        if (item instanceof TridentItem || isRealSpear(item))
             return AttackActionType.STAB;
 
         if (HeldItemHelper.isAxe(item))
@@ -160,6 +160,11 @@ public class BipedActionController
             return AttackActionType.FISTS;
 
         return AttackActionType.TOOL;
+    }
+
+    public static boolean isRealSpear(Item item)
+    {
+        return "REAL_SPEAR".equals(useAnimationOf(item).name());
     }
 
     public static AttackActionType getItemAttackAction(Item item)
