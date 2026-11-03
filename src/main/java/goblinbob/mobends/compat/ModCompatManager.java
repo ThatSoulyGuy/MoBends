@@ -64,6 +64,8 @@ public class ModCompatManager
 
         OffHandCombatCompat.init();
 
+        DualWieldingCompat.init();
+
         BetterCombatCompat.init();
 
         WearableBackpacksCompat.init();
@@ -124,7 +126,7 @@ public class ModCompatManager
 
     public static boolean tracksPerHandAttacks()
     {
-        return OffHandCombatCompat.isModLoaded() || BetterCombatCompat.isModLoaded();
+        return OffHandCombatCompat.isModLoaded() || DualWieldingCompat.isModLoaded() || BetterCombatCompat.isModLoaded();
     }
 
     public static boolean isAttachedProxyEntity(LivingEntity entity)

@@ -209,7 +209,8 @@ public abstract class LivingEntityData<E extends LivingEntity> extends EntityDat
             this.betterMobCombatAttacking = mobAttacking;
         }
 
-        if (goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded())
+        if (goblinbob.mobends.compat.OffHandCombatCompat.isModLoaded()
+                || goblinbob.mobends.compat.DualWieldingCompat.isModLoaded())
         {
             this.updateHandAttack(InteractionHand.MAIN_HAND);
             this.updateHandAttack(InteractionHand.OFF_HAND);
