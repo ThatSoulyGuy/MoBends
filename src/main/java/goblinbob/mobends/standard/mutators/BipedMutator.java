@@ -1345,6 +1345,9 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel(),
                 goblinbob.mobends.compat.CrawlCompat::isPosingModel);
 
+        goblinbob.mobends.compat.HorsingAroundCompat.applyPose(
+                MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel());
+
         goblinbob.mobends.compat.ModCompatManager.adoptPlayerPoseIf(
                 MoBendsRenderContext.getCurrentEntity(), this, MoBendsRenderContext.getCurrentVanillaModel(),
                 goblinbob.mobends.compat.BossesRiseCompat::isAnimating);

@@ -60,6 +60,8 @@ public class ModCompatManager
 
         CrawlCompat.init();
 
+        HorsingAroundCompat.init();
+
         OffHandCombatCompat.init();
 
         BetterCombatCompat.init();
@@ -97,6 +99,7 @@ public class ModCompatManager
         MoBendsAnimationControl.registerPoseOverride("parcool", ParCoolCompat::isAnimating);
         MoBendsAnimationControl.registerPoseOverride("monsterexpansion", MonsterExpansionCompat::isAnimating);
         MoBendsAnimationControl.registerPoseOverride("crawl", CrawlCompat::isPosingModel);
+        MoBendsAnimationControl.registerPoseOverride("horsingaround", HorsingAroundCompat::isPosingModel);
         MoBendsAnimationControl.registerPoseOverride("customnpcs", CustomNpcsCompat::isExternallyPosed);
         MoBendsAnimationControl.registerPoseOverride("iwannaskate", IWannaSkateCompat::isPosingModel);
         MoBendsAnimationControl.registerPoseOverride("legendsmod", LegendsModCompat::isPosingModel);

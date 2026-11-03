@@ -79,12 +79,26 @@ public class PlayerController implements IAnimationController<PlayerData>
 
         if (goblinbob.mobends.compat.ModCompatManager.isExternallyPosed(player))
         {
-            layerBase.playOrContinueBit(bitExternalPose, data);
             layerSneak.clearAnimation();
             layerTorch.clearAnimation();
             layerCape.clearAnimation();
-            actionController.clearAction();
 
+            if (goblinbob.mobends.compat.HorsingAroundCompat.isPosingModel(player))
+            {
+                data.renderLeftItemRotation.orientZero();
+                data.renderRightItemRotation.orientZero();
+                this.performActionAnimations(data, player);
+                if (goblinbob.mobends.compat.HorsingAroundCompat.isAttacking(data))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                actionController.clearAction();
+            }
+
+            layerBase.playOrContinueBit(bitExternalPose, data);
             layerBase.perform(data);
             return;
         }
