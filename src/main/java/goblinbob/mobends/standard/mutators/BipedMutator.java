@@ -1009,6 +1009,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         goblinbob.mobends.compat.PlayerAnimationLibCompat.applyToPose(
                 data, goblinbob.mobends.core.client.event.DataUpdateHandler.partialTicks);
 
+        goblinbob.mobends.compat.ChromewareCompat.followHead(data);
+
         goblinbob.mobends.compat.CarryOnCompat.applyToPose(data);
 
         goblinbob.mobends.compat.EpicFightCompat.registerLayerAliases(data.getEntity());
@@ -1850,6 +1852,13 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
         applyConcealment(rightForeLeg, model.rightLeg);
 
         applySkinConcealment(model);
+
+        goblinbob.mobends.compat.ChromewareCompat.conceal(model.head, head, null);
+        goblinbob.mobends.compat.ChromewareCompat.conceal(model.body, body, null);
+        goblinbob.mobends.compat.ChromewareCompat.conceal(model.leftArm, leftArm, leftForeArm);
+        goblinbob.mobends.compat.ChromewareCompat.conceal(model.rightArm, rightArm, rightForeArm);
+        goblinbob.mobends.compat.ChromewareCompat.conceal(model.leftLeg, leftLeg, leftForeLeg);
+        goblinbob.mobends.compat.ChromewareCompat.conceal(model.rightLeg, rightLeg, rightForeLeg);
 
         syncOuterConcealment(model);
 

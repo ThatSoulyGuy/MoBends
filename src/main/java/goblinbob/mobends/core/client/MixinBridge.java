@@ -30,7 +30,8 @@ public final class MixinBridge {
                                           int packedLight, int packedOverlay, int color) {
         BipedMutator<?, ?, ?> mutator = MoBendsRenderContext.getCurrentBipedMutator();
         if (mutator != null) {
-            mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+            goblinbob.mobends.compat.HemodynamicsCompat.renderOnSkin(MoBendsRenderContext.getCurrentEntity(),
+                    () -> mutator.renderMutated(poseStack, vertexConsumer, packedLight, packedOverlay, color));
             net.minecraft.client.model.HumanoidModel<?> vanillaModel = MoBendsRenderContext.getCurrentVanillaModel();
             if (vanillaModel != null) {
                 mutator.syncPosesToVanillaModel(vanillaModel);
@@ -57,6 +58,7 @@ public final class MixinBridge {
     }
 
     public static void compensateScaledPivot(Object part, PoseStack poseStack) {
+        goblinbob.mobends.compat.ChromewareCompat.track(part);
         if (MoBendsRenderContext.isInMainModelRender()) {
             return;
         }

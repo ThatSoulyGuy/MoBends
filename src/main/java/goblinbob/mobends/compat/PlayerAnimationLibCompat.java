@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class PlayerAnimationLibCompat
@@ -58,6 +59,7 @@ public class PlayerAnimationLibCompat
     private static Class<?> palAnimationClass;
     private static Method palGetManagerMethod;
     private static Method palGetProcessorMethod;
+    private static Method palGetLayersMethod;
     private static Method palHandleAnimationsMethod;
     private static Method palIsActiveMethod;
     private static Method palGet3DTransformMethod;
@@ -146,6 +148,15 @@ public class PlayerAnimationLibCompat
                 .getMethod("getPlayerAnimManager", AbstractClientPlayer.class);
         palGetProcessorMethod = Class.forName("com.zigythebird.playeranim.accessors.IAnimatedPlayer")
                 .getMethod("playerAnimLib$getAnimProcessor");
+        try
+        {
+            palGetLayersMethod = Class.forName("com.zigythebird.playeranimcore.animation.layered.AnimationStack")
+                    .getMethod("getLayers");
+        }
+        catch (Exception e)
+        {
+            palGetLayersMethod = null;
+        }
         palHandleAnimationsMethod = Class.forName("com.zigythebird.playeranimcore.animation.AnimationProcessor")
                 .getMethod("handleAnimations", float.class, boolean.class);
 
@@ -324,11 +335,42 @@ public class PlayerAnimationLibCompat
     public static boolean isPosingBones(LivingEntity entity)
     {
         final Object stack = getActiveStack(entity);
+        return stack != null && posesBones(stack);
+    }
+
+    public static boolean isPosingBonesExcept(LivingEntity entity, String ignoredPackage)
+    {
+        final Object stack = getActiveStack(entity);
         if (stack == null)
         {
             return false;
         }
+        if (palGetLayersMethod == null || !palGetLayersMethod.getDeclaringClass().isInstance(stack))
+        {
+            return posesBones(stack);
+        }
 
+        try
+        {
+            for (Object entry : (List<?>) palGetLayersMethod.invoke(stack))
+            {
+                final Object layer = entry instanceof it.unimi.dsi.fastutil.Pair<?, ?> pair ? pair.right() : null;
+                if (layer != null && !layer.getClass().getName().startsWith(ignoredPackage)
+                        && isActive(layer) && posesBones(layer))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch (Exception e)
+        {
+            return posesBones(stack);
+        }
+    }
+
+    private static boolean posesBones(Object stack)
+    {
         try
         {
             for (String bone : POSED_BONES)

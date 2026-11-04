@@ -62,6 +62,10 @@ public class ModCompatManager
 
         HorsingAroundCompat.init();
 
+        ChromewareCompat.init();
+
+        HemodynamicsCompat.init();
+
         OffHandCombatCompat.init();
 
         DualWieldingCompat.init();

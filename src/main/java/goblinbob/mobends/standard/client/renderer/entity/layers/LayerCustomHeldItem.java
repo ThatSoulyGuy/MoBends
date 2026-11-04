@@ -96,7 +96,7 @@ public class LayerCustomHeldItem<E extends LivingEntity, M extends net.minecraft
                                 HumanoidArm arm, PoseStack poseStack,
                                 MultiBufferSource bufferSource, int packedLight)
     {
-        if (!itemStack.isEmpty())
+        if (!itemStack.isEmpty() && !goblinbob.mobends.compat.ChromewareCompat.isHandLocked(entity, arm))
         {
             if (goblinbob.mobends.compat.NotEnoughAnimationsCompat.renderHeldItem(
                     entity, this.getParentModel(), itemStack, arm, poseStack, bufferSource, packedLight))
