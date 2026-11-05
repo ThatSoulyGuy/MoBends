@@ -10,8 +10,6 @@ import java.lang.reflect.Method;
 
 public class OffHandCombatCompat
 {
-    private static final String MOD_ID = "offhandcombat";
-
     private static boolean initialized = false;
     private static boolean isLoaded = false;
 
@@ -30,16 +28,19 @@ public class OffHandCombatCompat
         }
         initialized = true;
 
-        if (!Platform.isModLoaded(MOD_ID))
+        final String modClass = Platform.isModLoaded("offhandcombat") ? "cinnamon.ofc.Mod"
+                : Platform.isModLoaded("rlcombat") ? "com.rlcombat.RLCombatMod"
+                : null;
+        if (modClass == null)
         {
             return;
         }
 
         try
         {
-            getDataMethod = Class.forName("cinnamon.ofc.Mod").getMethod("get", Player.class);
+            getDataMethod = Class.forName(modClass).getMethod("get", Player.class);
 
-            final Class<?> dataClass = Class.forName("cinnamon.ofc.Mod$Data");
+            final Class<?> dataClass = Class.forName(modClass + "$Data");
             swingingField = dataClass.getField("swinging");
             swingingArmField = dataClass.getField("swingingArm");
             swingTimeField = dataClass.getField("swingTime");
