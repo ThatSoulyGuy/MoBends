@@ -1841,11 +1841,22 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     private void refreshLegendsPartVisibility(Model armorModel, int packedLight)
     {
         legendsVisibilityPass.clear();
-
-        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, new PoseStack(),
-                legendsVisibilityPass, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
-
+        captureModel(armorModel, legendsVisibilityPass, packedLight);
         legendsVisibilityPass.clear();
+    }
+
+    private static void captureModel(Model armorModel, VertexConsumer capture, int packedLight)
+    {
+        final VertexConsumer previous = goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.begin(capture);
+        try
+        {
+            IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, new PoseStack(),
+                    capture, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        }
+        finally
+        {
+            goblinbob.mobends.standard.client.model.armor.ArmorCaptureContext.end(previous);
+        }
     }
 
     private final CapturingVertexConsumer selfDrawnProbe = new CapturingVertexConsumer();
@@ -1853,8 +1864,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
     private boolean drawsNothing(Model armorModel, int packedLight)
     {
         selfDrawnProbe.clear();
-        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, new PoseStack(),
-                selfDrawnProbe, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        captureModel(armorModel, selfDrawnProbe, packedLight);
         final boolean empty = selfDrawnProbe.getVertices().isEmpty();
         selfDrawnProbe.clear();
         return empty;
@@ -1941,8 +1951,7 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
         CapturingVertexConsumer captureConsumer = rigidRenderer.getCaptureConsumer();
 
-        PoseStack capturePoseStack = new PoseStack();
-        IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, capturePoseStack, captureConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        captureModel(armorModel, captureConsumer, packedLight);
 
         restoreModelPoses(humanoidModel, snapshot);
 
