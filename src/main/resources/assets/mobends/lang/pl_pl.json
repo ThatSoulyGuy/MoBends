@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Pokazuje smugę podczas zamachu mieczem.",
   "mobends.gui.config.sword_trail_full_bright": "Pełna jasność",
   "mobends.gui.config.sword_trail_full_bright.desc": "Smuga miecza ignoruje oświetlenie.",
+  "mobends.gui.config.first_person_sword_trail": "Smuga z pierwszej osoby",
+  "mobends.gui.config.first_person_sword_trail.desc": "Pokazuje smugę własnego miecza w widoku z pierwszej osoby.",
   "mobends.gui.config.show_arrow_trail": "Smuga strzały",
   "mobends.gui.config.show_arrow_trail.desc": "Pokazuje smugę za lecącymi strzałami.",
   "mobends.gui.config.arrow_trail_full_bright": "Pełna jasność",

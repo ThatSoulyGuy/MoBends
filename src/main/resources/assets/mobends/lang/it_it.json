@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Mostra la scia quando si brandisce una spada.",
   "mobends.gui.config.sword_trail_full_bright": "Piena luminosità",
   "mobends.gui.config.sword_trail_full_bright.desc": "La scia della spada ignora l'illuminazione.",
+  "mobends.gui.config.first_person_sword_trail": "Scia in prima persona",
+  "mobends.gui.config.first_person_sword_trail.desc": "Mostra la scia della propria spada in prima persona.",
   "mobends.gui.config.show_arrow_trail": "Scia delle frecce",
   "mobends.gui.config.show_arrow_trail.desc": "Mostra la scia delle frecce in volo.",
   "mobends.gui.config.arrow_trail_full_bright": "Piena luminosità",

@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Affiche une traînée quand une épée est brandie.",
   "mobends.gui.config.sword_trail_full_bright": "Pleine luminosité",
   "mobends.gui.config.sword_trail_full_bright.desc": "La traînée d'épée ignore l'éclairage.",
+  "mobends.gui.config.first_person_sword_trail": "Traînée à la première personne",
+  "mobends.gui.config.first_person_sword_trail.desc": "Affiche la traînée de votre propre épée à la première personne.",
   "mobends.gui.config.show_arrow_trail": "Traînée de flèche",
   "mobends.gui.config.show_arrow_trail.desc": "Affiche une traînée derrière les flèches en vol.",
   "mobends.gui.config.arrow_trail_full_bright": "Pleine luminosité",

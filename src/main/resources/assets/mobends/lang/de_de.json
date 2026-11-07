@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Zeigt eine Spur, wenn ein Schwert geschwungen wird.",
   "mobends.gui.config.sword_trail_full_bright": "Volle Helligkeit",
   "mobends.gui.config.sword_trail_full_bright.desc": "Die Schwertspur ignoriert die Lichtverhältnisse.",
+  "mobends.gui.config.first_person_sword_trail": "Spur in der Ego-Perspektive",
+  "mobends.gui.config.first_person_sword_trail.desc": "Zeigt die Spur des eigenen Schwerts in der Ego-Perspektive.",
   "mobends.gui.config.show_arrow_trail": "Pfeilspur",
   "mobends.gui.config.show_arrow_trail.desc": "Zeigt eine Spur hinter fliegenden Pfeilen.",
   "mobends.gui.config.arrow_trail_full_bright": "Volle Helligkeit",

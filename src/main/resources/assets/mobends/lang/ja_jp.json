@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "剣を振ったときに軌跡を表示します。",
   "mobends.gui.config.sword_trail_full_bright": "常に明るく",
   "mobends.gui.config.sword_trail_full_bright.desc": "剣の軌跡が周囲の明るさの影響を受けません。",
+  "mobends.gui.config.first_person_sword_trail": "一人称視点の軌跡",
+  "mobends.gui.config.first_person_sword_trail.desc": "一人称視点で自分の剣の軌跡を表示します。",
   "mobends.gui.config.show_arrow_trail": "矢の軌跡",
   "mobends.gui.config.show_arrow_trail.desc": "飛んでいる矢に軌跡を表示します。",
   "mobends.gui.config.arrow_trail_full_bright": "常に明るく",

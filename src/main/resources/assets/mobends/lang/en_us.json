@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Show the trail when swords are swung.",
   "mobends.gui.config.sword_trail_full_bright": "Full Bright",
   "mobends.gui.config.sword_trail_full_bright.desc": "Sword trail does not respect lighting conditions.",
+  "mobends.gui.config.first_person_sword_trail": "First Person Trail",
+  "mobends.gui.config.first_person_sword_trail.desc": "Show your own sword trail in first person.",
   "mobends.gui.config.show_arrow_trail": "Arrow Trail",
   "mobends.gui.config.show_arrow_trail.desc": "Show the trail when arrows are travelling.",
   "mobends.gui.config.arrow_trail_full_bright": "Full Bright",

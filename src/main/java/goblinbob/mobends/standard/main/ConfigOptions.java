@@ -106,6 +106,10 @@ public class ConfigOptions
                     () -> ModConfig.swordTrailFullBright,
                     value -> ModConfig.swordTrailFullBright = value).under(SHOW_SWORD_TRAIL),
 
+            new Option("firstPersonSwordTrail", "mobends.gui.config.first_person_sword_trail", Category.TRAILS, true,
+                    () -> ModConfig.firstPersonSwordTrail,
+                    value -> ModConfig.firstPersonSwordTrail = value).under(SHOW_SWORD_TRAIL),
+
             SHOW_ARROW_TRAIL,
 
             new Option("arrowTrailFullBright", "mobends.gui.config.arrow_trail_full_bright", Category.TRAILS, false,

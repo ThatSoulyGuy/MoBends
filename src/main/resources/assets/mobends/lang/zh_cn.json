@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "挥剑时显示拖尾。",
   "mobends.gui.config.sword_trail_full_bright": "全亮",
   "mobends.gui.config.sword_trail_full_bright.desc": "剑刃拖尾不受光照影响。",
+  "mobends.gui.config.first_person_sword_trail": "第一人称拖尾",
+  "mobends.gui.config.first_person_sword_trail.desc": "在第一人称视角下显示自己的剑刃拖尾。",
   "mobends.gui.config.show_arrow_trail": "箭矢拖尾",
   "mobends.gui.config.show_arrow_trail.desc": "箭矢飞行时显示拖尾。",
   "mobends.gui.config.arrow_trail_full_bright": "全亮",

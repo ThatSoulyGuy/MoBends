@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Muestra la estela al blandir una espada.",
   "mobends.gui.config.sword_trail_full_bright": "Brillo máximo",
   "mobends.gui.config.sword_trail_full_bright.desc": "La estela de espada no tiene en cuenta la iluminación.",
+  "mobends.gui.config.first_person_sword_trail": "Estela en primera persona",
+  "mobends.gui.config.first_person_sword_trail.desc": "Muestra la estela de tu propia espada en primera persona.",
   "mobends.gui.config.show_arrow_trail": "Estela de flecha",
   "mobends.gui.config.show_arrow_trail.desc": "Muestra la estela de las flechas en vuelo.",
   "mobends.gui.config.arrow_trail_full_bright": "Brillo máximo",

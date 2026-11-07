@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Показывать след при взмахе меча.",
   "mobends.gui.config.sword_trail_full_bright": "Полная яркость",
   "mobends.gui.config.sword_trail_full_bright.desc": "След меча не зависит от освещения.",
+  "mobends.gui.config.first_person_sword_trail": "След от первого лица",
+  "mobends.gui.config.first_person_sword_trail.desc": "Показывать след своего меча при виде от первого лица.",
   "mobends.gui.config.show_arrow_trail": "След стрелы",
   "mobends.gui.config.show_arrow_trail.desc": "Показывать след за летящими стрелами.",
   "mobends.gui.config.arrow_trail_full_bright": "Полная яркость",

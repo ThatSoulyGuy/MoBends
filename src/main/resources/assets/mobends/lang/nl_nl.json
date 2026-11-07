@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Toont een spoor wanneer een zwaard wordt gezwaaid.",
   "mobends.gui.config.sword_trail_full_bright": "Volle helderheid",
   "mobends.gui.config.sword_trail_full_bright.desc": "Het zwaardspoor negeert de verlichting.",
+  "mobends.gui.config.first_person_sword_trail": "Spoor in eerste persoon",
+  "mobends.gui.config.first_person_sword_trail.desc": "Toont het spoor van je eigen zwaard in eerstepersoonsperspectief.",
   "mobends.gui.config.show_arrow_trail": "Pijlspoor",
   "mobends.gui.config.show_arrow_trail.desc": "Toont een spoor achter vliegende pijlen.",
   "mobends.gui.config.arrow_trail_full_bright": "Volle helderheid",

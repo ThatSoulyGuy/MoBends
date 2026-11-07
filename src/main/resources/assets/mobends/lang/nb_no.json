@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Viser et spor når et sverd svinges.",
   "mobends.gui.config.sword_trail_full_bright": "Full lysstyrke",
   "mobends.gui.config.sword_trail_full_bright.desc": "Sverdsporet tar ikke hensyn til belysningen.",
+  "mobends.gui.config.first_person_sword_trail": "Spor i førsteperson",
+  "mobends.gui.config.first_person_sword_trail.desc": "Viser sporet etter ditt eget sverd i førstepersonsvisning.",
   "mobends.gui.config.show_arrow_trail": "Pilspor",
   "mobends.gui.config.show_arrow_trail.desc": "Viser et spor bak piler i luften.",
   "mobends.gui.config.arrow_trail_full_bright": "Full lysstyrke",

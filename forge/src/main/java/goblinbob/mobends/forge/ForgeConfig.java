@@ -22,6 +22,7 @@ public class ForgeConfig
         define(builder, "disableMovementInGui", "Disables movement when inside a GUI.", false);
         define(builder, "arrowTrailFullBright", "Arrow trail does not respect lighting conditions.", false);
         define(builder, "swordTrailFullBright", "Sword trail does not respect lighting conditions.", false);
+        define(builder, "firstPersonSwordTrail", "Show your own sword trail in first person.", true);
         define(builder, "showSwordTrail", "Show the trail when swords are swung", true);
         define(builder, "showArrowTrail", "Show the trail when arrows are travelling", true);
         define(builder, "arrowTrailPotionColor", "The color of an arrow trail will match the color of its potion effect.", true);
@@ -61,6 +62,7 @@ public class ForgeConfig
         ModConfig.disableMovementInGui = get("disableMovementInGui");
         ModConfig.arrowTrailFullBright = get("arrowTrailFullBright");
         ModConfig.swordTrailFullBright = get("swordTrailFullBright");
+        ModConfig.firstPersonSwordTrail = get("firstPersonSwordTrail");
         ModConfig.showSwordTrail = get("showSwordTrail");
         ModConfig.showArrowTrails = get("showArrowTrail");
         ModConfig.arrowTrailPotionColor = get("arrowTrailPotionColor");

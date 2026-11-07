@@ -6,6 +6,7 @@ import goblinbob.mobends.core.client.MutatedRenderer;
 import goblinbob.mobends.core.data.EntityData;
 import goblinbob.mobends.standard.data.BipedEntityData;
 import goblinbob.mobends.standard.main.ModConfig;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 
 public class BipedRenderer<T extends LivingEntity> extends MutatedRenderer<T>
@@ -17,7 +18,9 @@ public class BipedRenderer<T extends LivingEntity> extends MutatedRenderer<T>
         if (data instanceof BipedEntityData)
         {
             BipedEntityData<?> bipedData = (BipedEntityData<?>) data;
-            if (ModConfig.showSwordTrail)
+            final Minecraft mc = Minecraft.getInstance();
+            if (ModConfig.showSwordTrail && (ModConfig.firstPersonSwordTrail
+                    || entity != mc.getCameraEntity() || !mc.options.getCameraType().isFirstPerson()))
             {
                 final float modelScale = (entity.isBaby() ? getChildScale() : 1.0F)
                         * goblinbob.mobends.core.util.EntityScaleHelper.getRenderScale(entity);

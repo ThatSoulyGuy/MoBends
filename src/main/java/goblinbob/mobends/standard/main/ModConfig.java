@@ -16,6 +16,8 @@ public class ModConfig
 
     public static boolean swordTrailFullBright = false;
 
+    public static boolean firstPersonSwordTrail = true;
+
     public static boolean showArrowTrails = true;
 
     public static boolean arrowTrailFullBright = false;

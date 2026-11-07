@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "揮劍時顯示軌跡。",
   "mobends.gui.config.sword_trail_full_bright": "全亮",
   "mobends.gui.config.sword_trail_full_bright.desc": "劍的軌跡不受光照影響。",
+  "mobends.gui.config.first_person_sword_trail": "第一人稱軌跡",
+  "mobends.gui.config.first_person_sword_trail.desc": "在第一人稱視角下顯示自己揮劍的軌跡。",
   "mobends.gui.config.show_arrow_trail": "箭矢軌跡",
   "mobends.gui.config.show_arrow_trail.desc": "箭矢飛行時顯示軌跡。",
   "mobends.gui.config.arrow_trail_full_bright": "全亮",

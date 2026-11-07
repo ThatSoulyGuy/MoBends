@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Mostra o rasto quando se brande uma espada.",
   "mobends.gui.config.sword_trail_full_bright": "Brilho máximo",
   "mobends.gui.config.sword_trail_full_bright.desc": "O rasto da espada ignora a iluminação.",
+  "mobends.gui.config.first_person_sword_trail": "Rasto na primeira pessoa",
+  "mobends.gui.config.first_person_sword_trail.desc": "Mostra o rasto da tua própria espada na primeira pessoa.",
   "mobends.gui.config.show_arrow_trail": "Rasto da flecha",
   "mobends.gui.config.show_arrow_trail.desc": "Mostra o rasto das flechas em voo.",
   "mobends.gui.config.arrow_trail_full_bright": "Brilho máximo",

@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Zobrazí stopu při máchnutí mečem.",
   "mobends.gui.config.sword_trail_full_bright": "Plný jas",
   "mobends.gui.config.sword_trail_full_bright.desc": "Stopa meče nebere ohled na osvětlení.",
+  "mobends.gui.config.first_person_sword_trail": "Stopa z první osoby",
+  "mobends.gui.config.first_person_sword_trail.desc": "Zobrazí stopu vlastního meče v pohledu z první osoby.",
   "mobends.gui.config.show_arrow_trail": "Stopa šípu",
   "mobends.gui.config.show_arrow_trail.desc": "Zobrazí stopu za letícími šípy.",
   "mobends.gui.config.arrow_trail_full_bright": "Plný jas",

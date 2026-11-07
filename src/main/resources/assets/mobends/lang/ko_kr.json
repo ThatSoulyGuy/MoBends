@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "검을 휘두를 때 궤적을 표시합니다.",
   "mobends.gui.config.sword_trail_full_bright": "최대 밝기",
   "mobends.gui.config.sword_trail_full_bright.desc": "검 궤적이 주변 밝기의 영향을 받지 않습니다.",
+  "mobends.gui.config.first_person_sword_trail": "1인칭 궤적",
+  "mobends.gui.config.first_person_sword_trail.desc": "1인칭 시점에서 자신의 검 궤적을 표시합니다.",
   "mobends.gui.config.show_arrow_trail": "화살 궤적",
   "mobends.gui.config.show_arrow_trail.desc": "날아가는 화살에 궤적을 표시합니다.",
   "mobends.gui.config.arrow_trail_full_bright": "최대 밝기",

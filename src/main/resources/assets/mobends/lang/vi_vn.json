@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Hiện vệt khi vung kiếm.",
   "mobends.gui.config.sword_trail_full_bright": "Sáng tối đa",
   "mobends.gui.config.sword_trail_full_bright.desc": "Vệt kiếm không bị ảnh hưởng bởi ánh sáng.",
+  "mobends.gui.config.first_person_sword_trail": "Vệt góc nhìn thứ nhất",
+  "mobends.gui.config.first_person_sword_trail.desc": "Hiện vệt kiếm của bạn ở góc nhìn thứ nhất.",
   "mobends.gui.config.show_arrow_trail": "Vệt mũi tên",
   "mobends.gui.config.show_arrow_trail.desc": "Hiện vệt phía sau mũi tên đang bay.",
   "mobends.gui.config.arrow_trail_full_bright": "Sáng tối đa",

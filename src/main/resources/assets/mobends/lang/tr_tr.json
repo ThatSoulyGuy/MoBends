@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Kılıç savrulurken iz gösterir.",
   "mobends.gui.config.sword_trail_full_bright": "Tam parlaklık",
   "mobends.gui.config.sword_trail_full_bright.desc": "Kılıç izi ışıklandırmadan etkilenmez.",
+  "mobends.gui.config.first_person_sword_trail": "Birinci şahıs izi",
+  "mobends.gui.config.first_person_sword_trail.desc": "Birinci şahıs görünümünde kendi kılıcınızın izini gösterir.",
   "mobends.gui.config.show_arrow_trail": "Ok izi",
   "mobends.gui.config.show_arrow_trail.desc": "Uçan okların arkasında iz gösterir.",
   "mobends.gui.config.arrow_trail_full_bright": "Tam parlaklık",

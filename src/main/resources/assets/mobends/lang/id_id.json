@@ -18,6 +18,8 @@
   "mobends.gui.config.show_sword_trail.desc": "Menampilkan jejak saat pedang diayunkan.",
   "mobends.gui.config.sword_trail_full_bright": "Terang penuh",
   "mobends.gui.config.sword_trail_full_bright.desc": "Jejak pedang tidak terpengaruh pencahayaan.",
+  "mobends.gui.config.first_person_sword_trail": "Jejak orang pertama",
+  "mobends.gui.config.first_person_sword_trail.desc": "Menampilkan jejak pedang Anda sendiri dalam sudut pandang orang pertama.",
   "mobends.gui.config.show_arrow_trail": "Jejak panah",
   "mobends.gui.config.show_arrow_trail.desc": "Menampilkan jejak di belakang panah yang melayang.",
   "mobends.gui.config.arrow_trail_full_bright": "Terang penuh",
