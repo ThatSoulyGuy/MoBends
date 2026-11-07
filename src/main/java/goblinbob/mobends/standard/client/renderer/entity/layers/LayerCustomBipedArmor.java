@@ -351,12 +351,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             if (!isTinkersArmor && shouldUseBends && entityData instanceof BipedEntityData<?>
                     && !isBendableGeoArmor(armorModel) && armorModel instanceof HumanoidModel<?> selfDrawnHumanoid)
             {
-                if (drawsNothing(armorModel, packedLight)) return;
+                final int selfDrawnVertices = countSelfDrawnVertices(selfDrawnHumanoid, packedLight, java.util.List.of());
+                if (selfDrawnVertices == 0) return;
 
                 final BipedEntityData<?> selfDrawnData = previewAware((BipedEntityData<?>) entityData);
 
-                renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack,
-                        selfDrawnData, true);
+                if (countSelfDrawnVertices(selfDrawnHumanoid, packedLight, armorPartTrees(selfDrawnHumanoid)) < selfDrawnVertices)
+                {
+                    renderRigidArmor(poseStack, bufferSource, packedLight, entity, armorItem, armorModel, slot, itemStack,
+                            selfDrawnData, true);
+                }
                 final ResourceLocation selfDrawnTexture = getArmorTexture(armorItem, itemStack, entity, slot, null);
 
                 if (selfDrawnTexture != null)
@@ -1861,13 +1865,45 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
 
     private final CapturingVertexConsumer selfDrawnProbe = new CapturingVertexConsumer();
 
-    private boolean drawsNothing(Model armorModel, int packedLight)
+    private int countSelfDrawnVertices(Model armorModel, int packedLight, java.util.List<ModelPart> skipped)
     {
-        selfDrawnProbe.clear();
-        captureModel(armorModel, selfDrawnProbe, packedLight);
-        final boolean empty = selfDrawnProbe.getVertices().isEmpty();
-        selfDrawnProbe.clear();
-        return empty;
+        final int[] count = new int[1];
+        drawSkipping(skipped, () -> {
+            selfDrawnProbe.clear();
+            captureModel(armorModel, selfDrawnProbe, packedLight);
+            count[0] = selfDrawnProbe.getVertices().size();
+            selfDrawnProbe.clear();
+        });
+        return count[0];
+    }
+
+    private static java.util.List<ModelPart> armorPartTrees(HumanoidModel<?> model)
+    {
+        return java.util.Arrays.stream(armorParts(model)).filter(java.util.Objects::nonNull)
+                .flatMap(ModelPart::getAllParts).toList();
+    }
+
+    private static void drawSkipping(java.util.List<ModelPart> skipped, Runnable draw)
+    {
+        final boolean[] skipDraws = new boolean[skipped.size()];
+
+        for (int i = 0; i < skipped.size(); ++i)
+        {
+            skipDraws[i] = skipped.get(i).skipDraw;
+            skipped.get(i).skipDraw = true;
+        }
+
+        try
+        {
+            draw.run();
+        }
+        finally
+        {
+            for (int i = skipped.size() - 1; i >= 0; --i)
+            {
+                skipped.get(i).skipDraw = skipDraws[i];
+            }
+        }
     }
 
     private void renderPalladiumPass(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight,
@@ -2043,29 +2079,11 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             mutator.syncPosesToVanillaModel(armorModel);
         }
 
-        final java.util.List<ModelPart> drawnElsewhere = new java.util.ArrayList<>(limbExtras);
-        java.util.Collections.addAll(drawnElsewhere, armorParts(armorModel));
-        final java.util.List<ModelPart> skipped = drawnElsewhere.stream()
-                .filter(java.util.Objects::nonNull).flatMap(ModelPart::getAllParts).toList();
-        final boolean[] skipDraws = new boolean[skipped.size()];
+        final java.util.List<ModelPart> skipped = new java.util.ArrayList<>(armorPartTrees(armorModel));
+        limbExtras.forEach(part -> part.getAllParts().forEach(skipped::add));
 
-        for (int i = 0; i < skipped.size(); ++i)
-        {
-            skipDraws[i] = skipped.get(i).skipDraw;
-            skipped.get(i).skipDraw = true;
-        }
-
-        try
-        {
-            IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
-        }
-        finally
-        {
-            for (int i = skipped.size() - 1; i >= 0; --i)
-            {
-                skipped.get(i).skipDraw = skipDraws[i];
-            }
-        }
+        drawSkipping(skipped, () -> IModelRenderHelper.Holder.getHelper().renderModelToBuffer(armorModel, poseStack,
+                vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
 
         if (limbExtras.isEmpty())
         {
