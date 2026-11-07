@@ -1067,7 +1067,8 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
 
         final LivingEntity currentEntity = MoBendsRenderContext.getCurrentEntity();
         if (goblinbob.mobends.compat.ModCompatManager.isExternallyPosed(currentEntity)
-                || goblinbob.mobends.compat.PlayerAnimationLibCompat.isAnimatingVanillaModel(currentEntity))
+                || goblinbob.mobends.compat.PlayerAnimationLibCompat.isAnimatingVanillaModel(currentEntity)
+                || goblinbob.mobends.compat.FirstPersonModelCompat.isRenderingFirstPersonBody())
         {
             return;
         }

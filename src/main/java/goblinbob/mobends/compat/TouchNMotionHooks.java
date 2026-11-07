@@ -261,7 +261,8 @@ final class TouchNMotionHooks
             armed = false;
 
             final Map<String, ? extends ModelPart> parts = context.animatingModelRoot().getAllVanillaPartsByNameEMF();
-            final ModelPart body = posed[BODY] ? parts.get(PART_NAMES[BODY]) : null;
+            final ModelPart torso = posed[BODY] ? parts.get(PART_NAMES[BODY]) : null;
+            final ModelPart body = torso != null && torso.visible ? torso : null;
             if (body != null)
             {
                 final int p = BODY * 6;
@@ -292,7 +293,11 @@ final class TouchNMotionHooks
                 before.set(pose[p], pose[p + 1], pose[p + 2]);
                 after.set(part.x, part.y, part.z);
 
-                if (i == BODY)
+                if (!part.visible)
+                {
+                    after.set(before);
+                }
+                else if (i == BODY)
                 {
                     bodyRotations[0].transform(before.set(0.0F, WAIST_Y, 0.0F)).add(pose[p], pose[p + 1], pose[p + 2]);
                     bodyRotations[1].transform(after.set(0.0F, WAIST_Y, 0.0F)).add(part.x, part.y, part.z);
