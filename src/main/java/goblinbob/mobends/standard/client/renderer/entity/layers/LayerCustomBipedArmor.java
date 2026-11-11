@@ -2237,6 +2237,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
             return overlay == null ? armorApiTexture : null;
         }
 
+        if (overlay == null)
+        {
+            final ResourceLocation uranusTexture = goblinbob.mobends.compat.UranusCompat.getArmorTexture(itemStack, entity, slot);
+
+            if (uranusTexture != null)
+            {
+                return uranusTexture;
+            }
+        }
+
         return IArmorTextureProvider.Holder.getProvider()
                 .getArmorTexture(armorItem, itemStack, entity, slot, layer, overlay, usesInnerModel(slot));
     }
