@@ -30,7 +30,7 @@ public class NeoForgeServerConfig
 
     public static void sync()
     {
-        SharedNetworkConfiguration.INSTANCE.setBendsPacksAllowed(ALLOW_BENDSPACKS.get());
-        SharedNetworkConfiguration.INSTANCE.setMovementLimited(LIMIT_MOVEMENT.get());
+        SharedNetworkConfiguration.SERVER.setBendsPacksAllowed(ALLOW_BENDSPACKS.get());
+        SharedNetworkConfiguration.SERVER.setMovementLimited(LIMIT_MOVEMENT.get());
     }
 }

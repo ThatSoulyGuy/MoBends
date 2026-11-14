@@ -109,6 +109,7 @@ public class PlayerController implements IAnimationController<PlayerData>
         {
             layerBase.playOrContinueBit(bitSleeping, data);
             layerSneak.clearAnimation();
+            layerTorch.clearAnimation();
         }
         else if (data.isRiding())
         {
@@ -121,6 +122,7 @@ public class PlayerController implements IAnimationController<PlayerData>
                 layerBase.playOrContinueBit(RowingAnimationBit.isRowing(player) ? bitRowing : bitSitting, data);
             }
             layerSneak.clearAnimation();
+            layerTorch.clearAnimation();
         }
         else
         {

@@ -1602,16 +1602,16 @@ public class LayerCustomBipedArmor<E extends LivingEntity, M extends EntityModel
         final boolean armorApi = goblinbob.mobends.compat.ArmorModelApiCompat.isArmor(itemStack);
 
         //? if >=1.21 {
-        /*final net.minecraft.world.item.armortrim.ArmorTrim trim =
+        final net.minecraft.world.item.armortrim.ArmorTrim trim =
                 itemStack.get(net.minecraft.core.component.DataComponents.TRIM);
         if (trim == null) return null;
         final RenderType renderType = net.minecraft.client.renderer.Sheets.armorTrimsSheet(trim.pattern().value().decal());
-        *///?} else {
-        final net.minecraft.world.item.armortrim.ArmorTrim trim = net.minecraft.world.item.armortrim.ArmorTrim
+        //?} else {
+        /*final net.minecraft.world.item.armortrim.ArmorTrim trim = net.minecraft.world.item.armortrim.ArmorTrim
                 .getTrim(entity.level().registryAccess(), itemStack).orElse(null);
         if (trim == null) return null;
         final RenderType renderType = net.minecraft.client.renderer.Sheets.armorTrimsSheet();
-        //?}
+        *///?}
 
         final net.minecraft.client.renderer.texture.TextureAtlas atlas = net.minecraft.client.Minecraft.getInstance()
                 .getModelManager().getAtlas(net.minecraft.client.renderer.Sheets.ARMOR_TRIMS_SHEET);

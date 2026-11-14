@@ -179,6 +179,10 @@ public class View
         return false;
     }
 
+    public void clearFocus()
+    {
+    }
+
     public boolean isInBounds(double mx, double my)
     {
         return mx >= x && mx < x + measuredWidth && my >= y && my < y + measuredHeight;

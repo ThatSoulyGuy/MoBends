@@ -55,6 +55,7 @@ public class EntityPreviewView extends View
 
     public boolean handleMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
     {
+        if (visibility != VISIBLE) return false;
         if (!dragging || button != 0) return false;
 
         float rotX = renderer.getRotationX() + (float) dragY * 0.5f;

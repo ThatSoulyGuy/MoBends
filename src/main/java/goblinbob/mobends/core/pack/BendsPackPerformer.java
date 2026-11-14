@@ -29,6 +29,11 @@ public class BendsPackPerformer
             LOGGER.error("Malformed bends pack animator; resetting the applied packs", e);
             PackManager.INSTANCE.resetAppliedPacks(true);
         }
+        catch (RuntimeException | StackOverflowError e)
+        {
+            LOGGER.error("The applied bends pack animator failed; resetting the applied packs", e);
+            PackManager.INSTANCE.resetAppliedPacks(true);
+        }
     }
 
 }

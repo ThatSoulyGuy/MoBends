@@ -19,11 +19,13 @@ This is the modern version of the classic 1.12.2 mod, now for **Minecraft 1.20.1
 ## How to use
 1. Put the jar in your `mods` folder together with Architectury API.
 2. Start the game and press **G** to open the Mo' Bends menu. You can change this key in Controls.
-3. In the menu you can:
-   - **Animations** - turn animations on or off for each mob, and pick if mobs spin when they attack.
-   - **Config** - turn sword trails, arrow trails and other options on or off.
-   - **Weapons** - add items from other mods so they count as weapons and get sword animations and trails.
-   - **Customize** - change how your own player model looks.
+3. The menu opens on the **Settings** tab. From there you can go to:
+   - **Animations** - turn animations on or off for each mob and preview them.
+   - **Config** - turn sword trails, arrow trails, spin attacks and other options on or off.
+     - **Weapons** is in the list on the left of Config. Add items from other mods there so they count as weapons and
+       get sword animations and trails.
+
+   The **Packs** and **Customize** tabs are still a work in progress and cannot be used yet.
 
 Found a mod that does not work well with Mo' Bends? Please
 [open an issue](https://github.com/ThatSoulyGuy/MoBends/issues) and say which mod it is.

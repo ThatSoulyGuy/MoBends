@@ -77,7 +77,7 @@ public class PackManager
                 }
                 catch(IOException ex)
                 {
-                    LOGGER.error(String.format("Couldn't load local bends pack: '%s'", file.getName()));
+                    LOGGER.error(String.format("Couldn't load local bends pack: '%s'", file.getName()), ex);
                 }
             }
         }

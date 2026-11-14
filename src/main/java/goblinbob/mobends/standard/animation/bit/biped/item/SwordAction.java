@@ -25,7 +25,7 @@ public class SwordAction extends AnimationBit<BipedEntityData<?>>
     private static final float MIN_MOVE_INTERVAL = 4.0F;
     private static final float JUMP_AIRBORNE_TICKS = 14.0F;
 
-    private static final List<AnimationBit<BipedEntityData<?>>> bits = Arrays.asList(
+    private final List<AnimationBit<BipedEntityData<?>>> bits = Arrays.asList(
             new AttackSlashUpAnimationBit(),
             new AttackSlashDownAnimationBit(),
             new AttackSlashInwardAnimationBit(),

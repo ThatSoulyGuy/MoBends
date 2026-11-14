@@ -102,7 +102,12 @@ public class MobPreviewGridWidget
 
     public void dispose()
     {
-        clear();
+        for (MobCard card : cards)
+        {
+            card.preview.getRenderer().dispose();
+            card.previewInitialized = false;
+            card.placeholderView.setVisibility(View.GONE);
+        }
     }
 
     public void filter(String query)

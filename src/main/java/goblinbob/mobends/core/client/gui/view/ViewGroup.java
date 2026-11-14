@@ -55,6 +55,8 @@ public class ViewGroup extends View
 
     public boolean handleMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
     {
+        if (visibility != VISIBLE) return false;
+
         for (int i = children.size() - 1; i >= 0; i--)
         {
             if (children.get(i).handleMouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
@@ -84,6 +86,8 @@ public class ViewGroup extends View
 
     public boolean handleKeyPressed(int keyCode, int scanCode, int modifiers)
     {
+        if (visibility != VISIBLE) return false;
+
         for (View child : children)
         {
             if (child.handleKeyPressed(keyCode, scanCode, modifiers)) return true;
@@ -93,10 +97,20 @@ public class ViewGroup extends View
 
     public boolean handleCharTyped(char ch, int modifiers)
     {
+        if (visibility != VISIBLE) return false;
+
         for (View child : children)
         {
             if (child.handleCharTyped(ch, modifiers)) return true;
         }
         return false;
+    }
+
+    public void clearFocus()
+    {
+        for (View child : children)
+        {
+            child.clearFocus();
+        }
     }
 }

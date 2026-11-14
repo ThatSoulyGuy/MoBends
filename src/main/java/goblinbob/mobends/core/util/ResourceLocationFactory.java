@@ -18,10 +18,10 @@ public final class ResourceLocationFactory
         }
 
         //? if >=1.21 {
-        /*return ResourceLocation.fromNamespaceAndPath(namespace, path);
-        *///?} else {
-        return new ResourceLocation(namespace, path);
-        //?}
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
+        //?} else {
+        /*return new ResourceLocation(namespace, path);
+        *///?}
     }
 
     public static ResourceLocation parse(String location)
@@ -33,9 +33,9 @@ public final class ResourceLocationFactory
         }
 
         //? if >=1.21 {
-        /*return ResourceLocation.parse(location);
-        *///?} else {
-        return new ResourceLocation(location);
-        //?}
+        return ResourceLocation.parse(location);
+        //?} else {
+        /*return new ResourceLocation(location);
+        *///?}
     }
 }

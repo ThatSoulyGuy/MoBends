@@ -44,17 +44,17 @@ public final class TinkersArmorProxyModel extends Model
     }
 
     //? if >=1.21 {
-    /*@Override
+    @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color)
     {
         dispatch(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
-    *///?} else {
-    @Override
+    //?} else {
+    /*@Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay,
                                float red, float green, float blue, float alpha)
     {
         dispatch(poseStack, vertexConsumer, packedLight, packedOverlay, packColor(red, green, blue, alpha));
     }
-    //?}
+    *///?}
 }

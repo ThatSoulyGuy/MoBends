@@ -133,12 +133,12 @@ tasks.remapJar {
 
 tasks.build {
     group = "versioned"
-    description = "Must run through 'chiseledBuild'"
+    description = "Builds this loader. Asked for as $path it sets the active version first; a bare 'build' does not, use 'chiseledBuild' for every loader"
 }
 
 tasks.register<Copy>("buildAndCollect") {
     group = "versioned"
-    description = "Must run through 'chiseledBuild'"
+    description = "Builds this loader and copies its jars to build/libs. Asked for as $path it sets the active version first; a bare 'buildAndCollect' does not"
     from(tasks.remapJar.get().archiveFile, tasks.remapSourcesJar.get().archiveFile)
     into(rootProject.layout.buildDirectory.file("libs/${mod.version}/$loader"))
     dependsOn("build")
@@ -149,13 +149,16 @@ tasks.register<Copy>("buildAndCollect") {
 // node was already configured with no usable output, and the launch dies with
 // "Invalid paths argument, contained no existing paths" before any mod loads.
 //
-// The switch therefore has to happen in a SEPARATE Gradle invocation, which is what the root
-// runClient<Loader> / runServer<Loader> tasks do. Refuse here and point at them.
+// The switch therefore has to happen in a SEPARATE Gradle invocation. Asking for this task on its
+// own gets one automatically (see "runWithOwnVersionActive" in stonecutter.gradle.kts), and so do
+// the root runClient<Loader> / runServer<Loader> tasks. What is left for this guard is a request
+// that cannot be switched for, such as one that names tasks of two versions at once.
 tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
     val activeVersion = stonecutter.active.version
     val thisVersion = stonecutter.current.version
     val loaderSuffix = loader.replaceFirstChar { it.uppercaseChar() }
     val runType = if (name == "runClient") "Client" else "Server"
+    val ownPath = path
 
     doFirst {
         if (thisVersion != activeVersion) {
@@ -163,7 +166,8 @@ tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEac
                 "Cannot run $thisVersion while Stonecutter's active version is $activeVersion.\n" +
                     "Only the active version has sources, and the active version has to be set\n" +
                     "before Gradle configures the build — so it cannot be switched from inside it.\n\n" +
-                    "Use the root task, which does the switch as its own invocation:\n" +
+                    "Run this task on its own, or use the root task. Both switch first:\n" +
+                    "  ./gradlew $ownPath\n" +
                     "  ./gradlew run$runType$loaderSuffix\n"
             )
         }

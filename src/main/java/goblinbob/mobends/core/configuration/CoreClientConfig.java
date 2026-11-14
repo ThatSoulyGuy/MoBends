@@ -96,7 +96,7 @@ public class CoreClientConfig
 
     public List<String> getAppliedPacks()
     {
-        return new ArrayList<>(data.appliedPacks);
+        return data.appliedPacks != null ? new ArrayList<>(data.appliedPacks) : new ArrayList<>();
     }
 
     public void setAppliedPacks(List<String> packs)

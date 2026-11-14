@@ -9,7 +9,15 @@ import net.minecraft.util.Mth;
 public abstract class SpiderAnimationBitBase extends AnimationBit<SpiderData>
 {
 
+    private static final float TICKS_TO_SETTLE_AFTER_TOUCHDOWN = 10.0F;
+
     protected float startTransition = 0.0F;
+
+    @Override
+    public void onPlay(SpiderData data)
+    {
+        this.startTransition = data.getTicksAfterTouchdown() < TICKS_TO_SETTLE_AFTER_TOUCHDOWN ? 1.0F : 0.0F;
+    }
 
     protected void animateLimbs(SpiderData data, float groundLevel, float limbSwing)
     {

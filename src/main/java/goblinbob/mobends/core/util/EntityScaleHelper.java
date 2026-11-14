@@ -22,9 +22,9 @@ public final class EntityScaleHelper
         }
 
         //? if >=1.21 {
-        /*return entity.getScale();
-        *///?} else {
-        return 1.0F;
-        //?}
+        return entity.getScale();
+        //?} else {
+        /*return 1.0F;
+        *///?}
     }
 }

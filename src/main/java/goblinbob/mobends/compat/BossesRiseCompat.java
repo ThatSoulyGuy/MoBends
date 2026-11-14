@@ -46,12 +46,12 @@ public class BossesRiseCompat
     private static void initReflection() throws Exception
     {
         //? if >=1.21 {
-        /*final Class<?> animationCapClass = Class.forName(
-                "net.unusual.block_factorys_bosses.attachment.entity.PlayerAnimationHandler");
-        *///?} else {
         final Class<?> animationCapClass = Class.forName(
+                "net.unusual.block_factorys_bosses.attachment.entity.PlayerAnimationHandler");
+        //?} else {
+        /*final Class<?> animationCapClass = Class.forName(
                 "net.unusual.block_factorys_bosses.capability.entity.PlayerAnimationCap");
-        //?}
+        *///?}
 
         fromPlayerMethod = animationCapClass.getMethod("fromPlayer", Player.class);
         getCurrentAnimationMethod = animationCapClass.getMethod("getCurrentAnimation");

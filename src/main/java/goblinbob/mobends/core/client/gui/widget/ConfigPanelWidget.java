@@ -590,7 +590,10 @@ public class ConfigPanelWidget
         toolbar.addView(weaponField, fieldParams);
 
         final Button addButton = new Button(I18n.get("mobends.gui.weapons.add"));
-        addButton.setOnClickListener(this::addWeaponFromField);
+        addButton.setOnClickListener(() -> {
+            addWeaponFromField();
+            weaponField.requestFocus();
+        });
         toolbar.addView(addButton, new LayoutParams(WEAPON_ADD_WIDTH, MoBendsTheme.BUTTON_HEIGHT));
 
         final LayoutParams toolbarParams = new LayoutParams(LayoutParams.MATCH_PARENT, MoBendsTheme.BUTTON_HEIGHT);

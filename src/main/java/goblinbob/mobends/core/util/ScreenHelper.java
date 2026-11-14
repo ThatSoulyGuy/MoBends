@@ -12,9 +12,9 @@ public final class ScreenHelper
     public static void renderBackground(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
         //? if >=1.21 {
-        /*screen.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
-        *///?} else {
-        screen.renderBackground(guiGraphics);
-        //?}
+        screen.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        //?} else {
+        /*screen.renderBackground(guiGraphics);
+        *///?}
     }
 }

@@ -3,6 +3,7 @@ package goblinbob.mobends.core.network;
 public class SharedNetworkConfiguration
 {
     public static final SharedNetworkConfiguration INSTANCE = new SharedNetworkConfiguration();
+    public static final SharedNetworkConfiguration SERVER = new SharedNetworkConfiguration();
 
     private final SharedConfig sharedConfig;
     private final SharedBooleanProp allowBendspacks;

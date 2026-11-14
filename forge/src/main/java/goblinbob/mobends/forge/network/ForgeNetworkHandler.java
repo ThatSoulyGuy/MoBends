@@ -4,8 +4,11 @@ import goblinbob.mobends.forge.MoBendsForge;
 import goblinbob.mobends.forge.network.msg.MessageConfigRequest;
 import goblinbob.mobends.forge.network.msg.MessageConfigResponse;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+
+import java.util.Optional;
 
 public class ForgeNetworkHandler {
     private static final String PROTOCOL_VERSION = "1";
@@ -27,13 +30,15 @@ public class ForgeNetworkHandler {
                 MessageConfigRequest.class,
                 MessageConfigRequest::encode,
                 MessageConfigRequest::decode,
-                MessageConfigRequest::handle);
+                MessageConfigRequest::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
 
         CHANNEL.registerMessage(id++,
                 MessageConfigResponse.class,
                 MessageConfigResponse::encode,
                 MessageConfigResponse::decode,
-                MessageConfigResponse::handle);
+                MessageConfigResponse::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
     }
 

@@ -15,6 +15,8 @@ public class MoBendsScreen extends Screen
     private final MoBendsScreenBuilder screenBuilder = new MoBendsScreenBuilder();
     @Nullable
     private View rootView;
+    @Nullable
+    private Screen parent;
 
     public MoBendsScreen(boolean openConfig)
     {
@@ -22,9 +24,20 @@ public class MoBendsScreen extends Screen
         screenBuilder.setOpenConfigOnBuild(openConfig);
     }
 
+    public MoBendsScreen(boolean openConfig, @Nullable Screen parent)
+    {
+        this(openConfig);
+        this.parent = parent;
+    }
+
     public static Screen configScreen()
     {
         return new MoBendsScreen(true);
+    }
+
+    public static Screen configScreen(@Nullable Screen parent)
+    {
+        return new MoBendsScreen(true, parent);
     }
 
     @Override
@@ -34,16 +47,34 @@ public class MoBendsScreen extends Screen
         screenBuilder.dispose();
     }
 
+    @Override
+    public void onClose()
+    {
+        if (parent != null)
+        {
+            this.minecraft.setScreen(parent);
+        }
+        else
+        {
+            super.onClose();
+        }
+    }
+
     protected void init()
     {
         super.init();
 
-        screenBuilder.dispose();
         GuiOverlay.clear();
 
-        View content = screenBuilder.buildContent();
+        if (rootView == null)
+        {
+            screenBuilder.dispose();
 
-        this.rootView = content;
+            View content = screenBuilder.buildContent();
+
+            this.rootView = content;
+        }
+
         rootView.measure(this.width, this.height);
         rootView.layout(0, 0, this.width, this.height);
     }
@@ -68,6 +99,10 @@ public class MoBendsScreen extends Screen
 
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
+        if (rootView != null)
+        {
+            rootView.clearFocus();
+        }
         if (GuiOverlay.clickPending(mouseX, mouseY, button)) return true;
         if (rootView != null && rootView.handleClick(mouseX, mouseY, button)) return true;
         return super.mouseClicked(mouseX, mouseY, button);

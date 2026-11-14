@@ -65,9 +65,20 @@ public class LocalBendsPack implements IBendsPack
 
     public static LocalBendsPack readFromFile(File file) throws IOException
     {
-        JsonReader fileReader = new JsonReader(new FileReader(file));
-        BendsPackMeta meta = (new Gson()).fromJson(fileReader, BendsPackMeta.class);
-        return new LocalBendsPack(meta);
+        try (JsonReader fileReader = new JsonReader(new FileReader(file)))
+        {
+            BendsPackMeta meta = (new Gson()).fromJson(fileReader, BendsPackMeta.class);
+            if (meta == null || meta.key == null)
+            {
+                throw new IOException(String.format("The metadata in '%s' is empty or doesn't specify a key", file.getName()));
+            }
+
+            return new LocalBendsPack(meta);
+        }
+        catch (RuntimeException ex)
+        {
+            throw new IOException(String.format("The metadata in '%s' isn't in a correct format", file.getName()), ex);
+        }
     }
 
 }

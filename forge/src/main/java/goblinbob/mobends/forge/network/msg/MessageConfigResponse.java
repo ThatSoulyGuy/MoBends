@@ -18,7 +18,7 @@ public class MessageConfigResponse
     public MessageConfigResponse()
     {
         this.configData = new CompoundTag();
-        SharedNetworkConfiguration.INSTANCE.getSharedConfig().writeToNBT(this.configData);
+        SharedNetworkConfiguration.SERVER.getSharedConfig().writeToNBT(this.configData);
     }
 
     private MessageConfigResponse(CompoundTag configData)
@@ -39,6 +39,12 @@ public class MessageConfigResponse
     public static void handle(MessageConfigResponse message, Supplier<NetworkEvent.Context> contextSupplier)
     {
         final NetworkEvent.Context context = contextSupplier.get();
+
+        if (context.getDirection().getReceptionSide().isServer())
+        {
+            context.setPacketHandled(true);
+            return;
+        }
 
         context.enqueueWork(() -> {
             if (message.configData == null)

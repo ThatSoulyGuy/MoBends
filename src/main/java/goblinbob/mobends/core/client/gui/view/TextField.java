@@ -149,6 +149,8 @@ public class TextField extends View
 
     public boolean handleKeyPressed(int keyCode, int scanCode, int modifiers)
     {
+        if (visibility != VISIBLE) return false;
+
         if (editBox != null && editBox.isFocused())
         {
             if (submitListener != null && (keyCode == KEY_ENTER || keyCode == KEY_KP_ENTER))
@@ -163,11 +165,30 @@ public class TextField extends View
 
     public boolean handleCharTyped(char ch, int modifiers)
     {
+        if (visibility != VISIBLE) return false;
+
         if (editBox != null && editBox.isFocused())
         {
             return editBox.charTyped(ch, modifiers);
         }
         return false;
+    }
+
+    public void clearFocus()
+    {
+        if (editBox != null)
+        {
+            editBox.setFocused(false);
+        }
+    }
+
+    public void requestFocus()
+    {
+        ensureEditBox();
+        if (editBox != null)
+        {
+            editBox.setFocused(true);
+        }
     }
 
     public void measure(int availableWidth, int availableHeight)

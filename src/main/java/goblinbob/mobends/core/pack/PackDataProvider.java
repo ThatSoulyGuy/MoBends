@@ -67,9 +67,11 @@ public class PackDataProvider
             try
             {
                 File file = PackManager.INSTANCE.getDataFileForPack(bendsPack.getKey());
-                JsonReader fileReader = new JsonReader(new FileReader(file));
-                BendsPackData data = KumoSerializer.INSTANCE.gson.fromJson(fileReader, BendsPackData.class);
-                fileReader.close();
+                BendsPackData data;
+                try (JsonReader fileReader = new JsonReader(new FileReader(file)))
+                {
+                    data = KumoSerializer.INSTANCE.gson.fromJson(fileReader, BendsPackData.class);
+                }
 
                 validatePackData(data);
 
@@ -79,25 +81,46 @@ public class PackDataProvider
             catch (IOException ex)
             {
                 LOGGER.error("Data for pack '{}' couldn't be fetched", bendsPack.getKey(), ex);
-                throw new InvalidPackFormatException(bendsPack.getDisplayName(), String.format("Data for pack '%s' couldn't be fetched", bendsPack.getKey()));
+                throw new InvalidPackFormatException(getPackName(bendsPack), String.format("Data for pack '%s' couldn't be fetched", bendsPack.getKey()));
             }
             catch (JsonSyntaxException | MalformedKumoTemplateException ex)
             {
                 LOGGER.error("The '{}' pack isn't in a correct format", bendsPack.getKey(), ex);
-                throw new InvalidPackFormatException(bendsPack.getDisplayName(), String.format("The '%s' pack isn't in a correct format.", bendsPack.getKey()));
+                throw new InvalidPackFormatException(getPackName(bendsPack), String.format("The '%s' pack isn't in a correct format.", bendsPack.getKey()));
+            }
+            catch (RuntimeException | StackOverflowError ex)
+            {
+                LOGGER.error("The '{}' pack couldn't be deserialised", bendsPack.getKey(), ex);
+                throw new InvalidPackFormatException(getPackName(bendsPack), String.format("The '%s' pack isn't in a correct format.", bendsPack.getKey()));
             }
         }
 
         return null;
     }
 
+    private static String getPackName(IBendsPack bendsPack)
+    {
+        final String displayName = bendsPack.getDisplayName();
+        return displayName != null ? displayName : String.valueOf(bendsPack.getKey());
+    }
+
     public void validatePackData(BendsPackData data) throws MalformedKumoTemplateException
     {
+        if (data == null)
+        {
+            throw new MalformedKumoTemplateException("The pack data is empty.");
+        }
+
+        if (data.targets == null)
+        {
+            throw new MalformedKumoTemplateException("No targets were specified!");
+        }
+
         IKumoValidationContext context = new IKumoValidationContext() {
             @Override
             public boolean doesAnimationExist(String animationKey)
             {
-                if (data.keyframeAnimations.containsKey(animationKey))
+                if (data.keyframeAnimations != null && data.keyframeAnimations.containsKey(animationKey))
                 {
                     return true;
                 }
@@ -116,8 +139,18 @@ public class PackDataProvider
 
         for (AnimatorTemplate animator : data.targets.values())
         {
+            if (animator == null || animator.layers == null)
+            {
+                throw new MalformedKumoTemplateException("No layers were specified");
+            }
+
             for (LayerTemplate layer : animator.layers)
             {
+                if (layer == null)
+                {
+                    throw new MalformedKumoTemplateException("An empty layer was specified");
+                }
+
                 layer.validate(context);
             }
         }

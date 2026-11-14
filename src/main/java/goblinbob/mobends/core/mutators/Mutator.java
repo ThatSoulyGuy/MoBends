@@ -52,7 +52,7 @@ public abstract class Mutator<D extends LivingEntityData<E>, E extends LivingEnt
         {
             if (layersField == null)
             {
-                String[] fieldNames = {"layers", "f_115313_"};
+                String[] fieldNames = {"layers", "f_115291_", "f_115313_"};
                 for (String name : fieldNames)
                 {
                     try

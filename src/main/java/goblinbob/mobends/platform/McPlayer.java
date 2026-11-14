@@ -38,10 +38,10 @@ public class McPlayer extends McLivingEntity implements IPlayer
         if (player instanceof AbstractClientPlayer clientPlayer)
         {
             //? if >=1.21 {
-            /*String model = clientPlayer.getSkin().model().id();
-            *///?} else {
-            String model = clientPlayer.getModelName();
-            //?}
+            String model = clientPlayer.getSkin().model().id();
+            //?} else {
+            /*String model = clientPlayer.getModelName();
+            *///?}
             return "slim".equals(model);
         }
         return false;

@@ -1821,14 +1821,14 @@ public abstract class BipedMutator<D extends BipedEntityData<E>,
                                     int packedLight, int packedOverlay, int color)
     {
         //? if >=1.21 {
-        /*part.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
-        *///?} else {
-        part.render(poseStack, vertexConsumer, packedLight, packedOverlay,
+        part.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        //?} else {
+        /*part.render(poseStack, vertexConsumer, packedLight, packedOverlay,
                 ((color >> 16) & 0xFF) / 255.0F,
                 ((color >> 8) & 0xFF) / 255.0F,
                 (color & 0xFF) / 255.0F,
                 ((color >>> 24) & 0xFF) / 255.0F);
-        //?}
+        *///?}
     }
 
     protected void syncConcealmentFromVanillaModel()

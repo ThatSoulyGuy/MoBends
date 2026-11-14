@@ -35,7 +35,7 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
                         != AttackActionType.FISTS;
     }
 
-    private static final List<AnimationBit<BipedEntityData<?>>> SLASHES = Arrays.asList(
+    private final List<AnimationBit<BipedEntityData<?>>> slashes = Arrays.asList(
             new AttackSlashUpAnimationBit(),
             new AttackSlashDownAnimationBit(),
             new AttackSlashInwardAnimationBit(),
@@ -72,10 +72,10 @@ public class MobSwingAnimationBit extends AnimationBit<BipedEntityData<?>>
             return;
         }
 
-        final int variantCount = ModConfig.mobsCanSpin ? SLASHES.size() + 1 : SLASHES.size();
+        final int variantCount = ModConfig.mobsCanSpin ? slashes.size() + 1 : slashes.size();
         final int variant = Math.floorMod(data.getEntity().tickCount / 6, variantCount);
 
-        this.layer.playBit(variant < SLASHES.size() ? SLASHES.get(variant) : SPIN, data);
+        this.layer.playBit(variant < slashes.size() ? slashes.get(variant) : SPIN, data);
     }
 
     @Override

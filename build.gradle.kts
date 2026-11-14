@@ -52,7 +52,7 @@ tasks.processResources {
 
 tasks.build {
     group = "versioned"
-    description = "Must run through 'chiseledBuild'"
+    description = "Builds the loader-less common jar only. Use 'chiseledBuild' to build the mod"
 }
 
 // This is the COMMON node -- shared sources with no mod loader attached. Loom still generates
@@ -66,5 +66,5 @@ tasks.build {
 tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
     enabled = false
     group = "versioned"
-    description = "Disabled: the common node has no mod loader. Use runActiveClient<Loader>."
+    description = "Disabled: the common node has no mod loader. Use runClient<Loader> or runServer<Loader>."
 }

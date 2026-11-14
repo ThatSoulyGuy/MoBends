@@ -15,8 +15,15 @@ public class PackCombiner
         for (int i = packs.size() - 1; i >= 0; --i)
         {
             BendsPackData data = packs.get(i);
-            combinedData.targets.putAll(data.targets);
-            combinedData.keyframeAnimations.putAll(data.keyframeAnimations);
+            if (data.targets != null)
+            {
+                combinedData.targets.putAll(data.targets);
+            }
+
+            if (data.keyframeAnimations != null)
+            {
+                combinedData.keyframeAnimations.putAll(data.keyframeAnimations);
+            }
         }
 
         return combinedData;

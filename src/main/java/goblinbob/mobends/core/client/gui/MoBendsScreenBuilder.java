@@ -67,6 +67,7 @@ public class MoBendsScreenBuilder
     private int chooserBenderIndex;
     private boolean chooserStarted;
     private long chooserLastCycle;
+    private boolean chooserDisposed;
     private boolean openConfigOnBuild;
 
     public void dispose()
@@ -78,6 +79,7 @@ public class MoBendsScreenBuilder
         if (chooserPreview != null)
         {
             chooserPreview.getRenderer().dispose();
+            chooserDisposed = true;
         }
     }
 
@@ -347,6 +349,14 @@ public class MoBendsScreenBuilder
     private void tickChooserPreview()
     {
         long now = System.currentTimeMillis();
+
+        if (chooserDisposed)
+        {
+            chooserDisposed = false;
+            chooserLastCycle = now;
+            applyChooserBender();
+            return;
+        }
 
         if (chooserLastCycle == 0L)
         {

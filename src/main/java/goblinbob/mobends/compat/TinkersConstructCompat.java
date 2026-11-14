@@ -100,12 +100,12 @@ public class TinkersConstructCompat
     private static CompoundTag rawTagOf(ItemStack itemStack)
     {
         //? if >=1.21 {
-        /*net.minecraft.world.item.component.CustomData customData =
+        net.minecraft.world.item.component.CustomData customData =
                 itemStack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
         return customData != null ? customData.copyTag() : null;
-        *///?} else {
-        return itemStack.getTag();
-        //?}
+        //?} else {
+        /*return itemStack.getTag();
+        *///?}
     }
 
     private static boolean is(Item item, TagKey<Item> tag)

@@ -51,9 +51,10 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
     );
 
     @Inject(
-            method = "renderArmorPiece",
+            method = "renderArmorPiece(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;ILnet/minecraft/client/model/HumanoidModel;)V",
             at = @At("HEAD"),
-            cancellable = true
+            cancellable = true,
+            require = 0
     )
     private void mobends$onRenderArmorPiece(
             PoseStack poseStack,

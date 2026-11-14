@@ -180,6 +180,8 @@ public class ScrollView extends ViewGroup
 
     public boolean handleMouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
     {
+        if (visibility != VISIBLE) return false;
+
         if (draggingThumb)
         {
             dragThumbTo(mouseY);
